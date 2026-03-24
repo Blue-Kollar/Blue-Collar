@@ -1,6 +1,7 @@
 // Entry point for BlueCollar API
 import express from 'express'
 import cors from 'cors'
+import methodOverride from 'method-override'
 import passport from './config/passport.js'
 import authRoutes from './routes/auth.js'
 import categoryRoutes from './routes/categories.js'
@@ -12,6 +13,7 @@ const PORT = process.env.PORT || 3000
 app.use(cors())
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
+app.use(methodOverride('X-HTTP-Method'))
 app.use(passport.initialize())
 
 app.use('/api/auth', authRoutes)
