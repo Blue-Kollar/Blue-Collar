@@ -6,9 +6,11 @@ import {
   forgotPassword,
   resetPassword,
   verifyAccount,
+  googleAuthCallback,
 } from '../controllers/auth.js'
 import { authenticate } from '../middleware/auth.js'
 import { validate } from '../middleware/validate.js'
+import passport from '../config/passport.js'
 import {
   registerRules,
   loginRules,
@@ -19,6 +21,12 @@ import {
 
 const router = Router()
 
+router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }))
+router.get(
+  '/google/callback',
+  passport.authenticate('google', { failureRedirect: '/login?error=unauthorized', session: false }),
+  googleAuthCallback
+)
 router.post('/login', validate(loginRules), login)
 router.post('/register', validate(registerRules), register)
 router.delete('/logout', authenticate, logout)

@@ -127,6 +127,21 @@ export async function verifyAccount(req: Request, res: Response) {
   return res.status(200).json({ status: 'success', message: 'Email verified successfully', code: 200 })
 }
 
+export async function googleAuthCallback(req: Request, res: Response) {
+  const user = req.user as any
+
+  if (!user) {
+    return res.redirect(`${process.env.APP_URL}/login?error=oauth-failed`)
+  }
+
+  const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET!, {
+    expiresIn: '7d',
+  })
+
+  // Redirect to frontend with token as query param
+  return res.redirect(`${process.env.APP_URL}/auth-callback?token=${token}`)
+}
+
 export async function logout(_req: Request, res: Response) {
   return res.status(200).json({ status: 'success', message: 'Logged out', code: 200 })
 }
