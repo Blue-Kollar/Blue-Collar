@@ -6,6 +6,7 @@ import passport from './config/passport.js'
 import authRoutes from './routes/auth.js'
 import categoryRoutes from './routes/categories.js'
 import workerRoutes from './routes/workers.js'
+import adminRoutes from './routes/admin.js'
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js'
 
 const app = express()
@@ -23,6 +24,7 @@ app.use('/storage', express.static(path.resolve('storage')))
 app.use('/api/auth', authRoutes)
 app.use('/api/categories', categoryRoutes)
 app.use('/api/workers', workerRoutes)
+app.use('/api/admin', adminRoutes)
 
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', service: 'bluecollar-api' })
