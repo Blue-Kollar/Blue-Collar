@@ -24,6 +24,7 @@ Many skilled workers lack a platform to help them get noticed. Meanwhile, countl
 - [Contributing](#contributing)
 - [License](#license)
 - [Quick Start Guide](packages/api/QUICK_START_GUIDE.md)
+- [API Documentation](packages/api/DOCUMENTATION.json)
 
 ---
 
