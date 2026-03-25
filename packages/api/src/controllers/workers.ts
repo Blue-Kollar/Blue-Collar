@@ -38,6 +38,10 @@ function handleError(res: Response, err: unknown) {
   return res.status(500).json({ status: 'error', message: 'Internal server error', code: 500 })
 }
 
+export async function listWorkers(req: Request<{}, {}, {}, WorkerQuery>, res: Response) {
+  const { category, page = '1', limit = '20' } = req.query
+  const workers = await workerService.listWorkers({
+    category,
 export async function listWorkers(req: Request, res: Response) {
   const { category, page = '1', limit = '20' } = req.query
   const workers = await workerService.listWorkers({
@@ -120,6 +124,24 @@ export async function createWorker(req: Request<{}, {}, CreateWorkerBody>, res: 
   } catch (err) {
     return handleError(res, err)
   }
+}
+
+export async function updateWorker(req: Request<{ id: string }, {}, UpdateWorkerBody>, res: Response) {
+  try {
+    const worker = await workerService.updateWorker(req.params.id, req.body)
+    return res.json({ data: worker, status: 'success', code: 200 })
+  } catch (err) {
+    return handleError(res, err)
+  }
+}
+
+export async function deleteWorker(req: Request, res: Response) {
+  try {
+    await workerService.deleteWorker(req.params.id)
+    return res.status(204).send()
+  } catch (err) {
+    return handleError(res, err)
+  }
 export async function createWorker(req: Request, res: Response) {
   const worker = await workerService.createWorker(req.body, req.user!.id)
   return res.status(201).json({ data: worker, status: 'success', code: 201 })
@@ -150,6 +172,12 @@ export async function toggleActivation(req: Request, res: Response) {
   } catch (err) {
     return handleError(res, err)
   }
+  const worker = await workerService.updateWorker(req.params.id, req.body)
+  return res.json({ data: worker, status: 'success', code: 200 })
+}
+
+export async function deleteWorker(req: Request, res: Response) {
+  await workerService.deleteWorker(req.params.id)
 /** Returns the worker or sends a 404. Also enforces curator ownership unless the caller is an admin. */
 async function resolveWorker(req: Request, res: Response) {
   const worker = await db.worker.findUnique({ where: { id: req.params.id } })

@@ -71,6 +71,11 @@ export async function verifyAccount(token: string): Promise<boolean> {
     console.error('[mailer] Failed to send verification email:', err),
   )
 
+  return sanitizeUser(user)
+}
+
+/** Returns true if newly verified, false if already verified. */
+export async function verifyAccount(token: string): Promise<boolean> {
   const { password: _, verificationToken: __, verificationTokenExpiry: ___, ...data } = user
   return data
 }
