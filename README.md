@@ -23,6 +23,8 @@ Many skilled workers lack a platform to help them get noticed. Meanwhile, countl
 - [Environment Variables](#environment-variables)
 - [Contributing](#contributing)
 - [License](#license)
+- [Quick Start Guide](packages/api/QUICK_START_GUIDE.md)
+- [API Documentation](packages/api/DOCUMENTATION.json)
 
 ---
 
@@ -211,7 +213,13 @@ Base URL: `http://localhost:3000/api`
 | `DELETE` | `/workers/:id` | Delete a worker | Curator |
 | `PATCH` | `/workers/:id/toggle` | Toggle active status | Curator |
 
-> **Note on file uploads:** Use `POST` with the `X-HTTP-Method: PUT` header to update resources that include file uploads (e.g. profile images). Standard `PUT` does not support `multipart/form-data`.
+> **Method spoofing for file uploads:** HTML forms and `multipart/form-data` requests only support `GET`/`POST`. To update a worker with a file upload, send a `POST` request with the header `X-HTTP-Method: PUT`. The API uses the [`method-override`](https://www.npmjs.com/package/method-override) middleware to rewrite the request method to `PUT` before it reaches the route handler, so the update route behaves identically to a standard `PUT`.
+>
+> ```
+> POST /api/workers/:id
+> Content-Type: multipart/form-data
+> X-HTTP-Method: PUT
+> ```
 
 ### Admin
 

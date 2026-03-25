@@ -16,7 +16,7 @@ const router = Router()
 router.get('/', listWorkers)
 router.get('/:id', showWorker)
 router.post('/', authenticate, authorize('curator'), validate(createWorkerRules), createWorker)
-router.post('/:id', authenticate, authorize('curator'), updateWorker) // method-spoofed PUT
+router.put('/:id', authenticate, authorize('curator'), updateWorker)
 router.delete('/:id', authenticate, authorize('curator'), deleteWorker)
 router.patch('/:id/toggle', authenticate, authorize('curator'), toggleActivation)
 
