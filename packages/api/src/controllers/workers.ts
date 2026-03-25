@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express'
 import * as workerService from '../services/worker.service.js'
 import { handleError } from '../utils/handleError.js'
+import { db } from '../db.js'
 import type { CreateWorkerBody, UpdateWorkerBody, WorkerQuery } from '../interfaces/index.js'
 
 export async function listWorkers(req: Request<{}, {}, {}, WorkerQuery>, res: Response) {
@@ -226,4 +227,26 @@ export async function toggleActivation(req: Request, res: Response) {
     data: { isActive: !worker.isActive },
   })
   return res.json({ data: updated, status: 'success', code: 200 })
+}
+
+export async function listMyWorkers(req: Request, res: Response) {
+  const { page = '1', limit = '20' } = req.query
+  const curatorId = req.user!.id
+  const where = { curatorId }
+  const [workers, total] = await Promise.all([
+    db.worker.findMany({
+      where,
+      skip: (Number(page) - 1) * Number(limit),
+      take: Number(limit),
+      include: { category: true },
+      orderBy: { createdAt: 'desc' },
+    }),
+    db.worker.count({ where }),
+  ])
+  return res.json({
+    data: workers,
+    meta: { total, page: Number(page), limit: Number(limit), pages: Math.ceil(total / Number(limit)) },
+    status: 'success',
+    code: 200,
+  })
 }
