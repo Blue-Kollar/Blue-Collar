@@ -35,10 +35,10 @@ export async function register(req: Request<{}, {}, RegisterBody>, res: Response
   }
 }
 
-export async function verifyAccount(req: Request, res: Response) {
+export const verifyAccount = catchAsync(async (req: Request, res: Response) => {
   const token = (req.query.token ?? req.body.token) as string | undefined
   if (!token) {
-    return res.status(400).json({ status: 'error', message: 'Verification token is required', code: 400 })
+    throw new AppError('Verification token is required', 400)
   }
   try {
     const verified = await authService.verifyAccount(token)
@@ -76,7 +76,7 @@ export async function forgotPassword(req: Request<{}, {}, ForgotPasswordBody>, r
 export async function resetPassword(req: Request<{}, {}, ResetPasswordBody>, res: Response) {
   const { token, password } = req.body
   if (!token || !password) {
-    return res.status(400).json({ status: 'error', message: 'Token and password are required', code: 400 })
+    throw new AppError('Token and password are required', 400)
   }
   try {
     await authService.resetPassword(token, password)

@@ -26,6 +26,12 @@ app.use(helmet({
   },
 }))
 
+// Handle 404 errors for unmatched routes
+app.use(notFoundHandler)
+
+// Global error handler - must be last
+app.use(errorHandler)
+
 app.listen(PORT, () => {
   logger.info(`BlueCollar API running on port ${PORT}`)
 })
