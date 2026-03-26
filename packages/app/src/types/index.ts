@@ -14,6 +14,7 @@ export interface Worker {
   location?: string | null;
   isVerified: boolean;
   locationId?: string | null;
+  walletAddress?: string | null;
   category: Category;
 }
 
