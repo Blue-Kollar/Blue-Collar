@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import {
   listWorkers,
+  listMyWorkers,
   createWorker,
   showWorker,
   updateWorker,
@@ -15,6 +16,7 @@ import { createWorkerRules } from '../validations/worker.js'
 const router = Router()
 
 router.get('/', listWorkers)
+router.get('/mine', authenticate, authorize('curator', 'admin'), listMyWorkers)
 router.get('/:id', showWorker)
 router.post('/', authenticate, authorize('curator'), validate(createWorkerRules), createWorker)
 router.put('/:id', authenticate, authorize('curator'), updateWorker)
