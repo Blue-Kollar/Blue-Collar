@@ -10,6 +10,7 @@ import {
 } from '../controllers/auth.js'
 import { authenticate } from '../middleware/auth.js'
 import { validate } from '../middleware/validate.js'
+import { authRateLimiter } from '../config/rateLimiter.js'
 import passport from '../config/passport.js'
 import {
   registerRules,
