@@ -1,16 +1,39 @@
-import type { Metadata } from 'next'
-import { GeistSans } from 'geist/font/sans'
-import { GeistMono } from 'geist/font/mono'
-import './globals.css'
+import type { Metadata } from "next";
+import "./globals.css";
 import type { ReactNode } from "react";
 import { AuthProvider } from "@/context/AuthContext";
 
-export const metadata: Metadata = {
-  title: 'BlueCollar — Find Skilled Workers Near You',
-  description: 'Connect with trusted local tradespeople on a decentralised Stellar-powered platform.',
-}
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://bluecollar.app";
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export const metadata: Metadata = {
+  metadataBase: new URL(BASE_URL),
+  title: {
+    default: "BlueCollar — Find Skilled Workers Near You",
+    template: "%s | BlueCollar",
+  },
+  description:
+    "Connect with trusted local tradespeople on a decentralised Stellar-powered platform.",
+  keywords: ["skilled workers", "tradespeople", "Stellar", "blockchain", "local services"],
+  openGraph: {
+    type: "website",
+    siteName: "BlueCollar",
+    title: "BlueCollar — Find Skilled Workers Near You",
+    description:
+      "Connect with trusted local tradespeople on a decentralised Stellar-powered platform.",
+    url: BASE_URL,
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "BlueCollar" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "BlueCollar — Find Skilled Workers Near You",
+    description:
+      "Connect with trusted local tradespeople on a decentralised Stellar-powered platform.",
+    images: ["/og-image.png"],
+  },
+  robots: { index: true, follow: true },
+};
+
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <body>

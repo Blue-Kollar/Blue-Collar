@@ -1,6 +1,16 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import WorkerCard from "@/components/WorkerCard";
 import type { Worker, Category, ApiResponse, Meta } from "@/types";
+
+export const metadata: Metadata = {
+  title: "Browse Workers",
+  description: "Find skilled tradespeople near you — plumbers, electricians, carpenters and more.",
+  openGraph: {
+    title: "Browse Workers | BlueCollar",
+    description: "Find skilled tradespeople near you.",
+  },
+};
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/api";
 
