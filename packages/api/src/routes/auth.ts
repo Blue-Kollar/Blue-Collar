@@ -3,6 +3,7 @@ import {
   login,
   register,
   logout,
+  me,
   forgotPassword,
   resetPassword,
   verifyAccount,
@@ -40,6 +41,9 @@ router.post('/register', validate(registerRules), register)
 
 // Requires a valid JWT; stateless logout (client discards the token).
 router.delete('/logout', authenticate, logout)
+
+// Returns the currently authenticated user's profile.
+router.get('/me', authenticate, me)
 
 // ── Email verification ────────────────────────────────────────────────────────
 // Accepts ?token=<jwt> as a query param (email link) or a body field.

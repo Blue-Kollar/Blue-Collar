@@ -7,11 +7,14 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { loginSchema, type LoginInput, authApi } from "@/lib/auth";
+import { useAuth } from "@/context/AuthContext";
+import type { AuthUser } from "@/context/AuthContext";
 import FormField from "@/components/FormField";
 import { cn } from "@/lib/utils";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { login } = useAuth();
   const [apiError, setApiError] = useState<string | null>(null);
 
   const {
@@ -24,8 +27,7 @@ export default function LoginPage() {
     setApiError(null);
     try {
       const res = await authApi.login(data);
-      localStorage.setItem("bc_token", res.token);
-      localStorage.setItem("bc_user", JSON.stringify(res.data));
+      login(res.data as AuthUser, res.token);
       router.push("/workers");
     } catch (err: unknown) {
       setApiError(err instanceof Error ? err.message : "Login failed");
