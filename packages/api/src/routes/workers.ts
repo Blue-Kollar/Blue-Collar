@@ -9,6 +9,7 @@ import {
 } from '../controllers/workers.js'
 import { authenticate, authorize } from '../middleware/auth.js'
 import { validate } from '../middleware/validate.js'
+import { upload, handleMulterError } from '../middleware/upload.js'
 import { createWorkerRules } from '../validations/worker.js'
 
 const router = Router()
