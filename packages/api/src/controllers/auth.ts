@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express'
 import jwt from 'jsonwebtoken'
+import { env } from '../config/env.js'
 import * as authService from '../services/auth.service.js'
 import { handleError } from '../utils/handleError.js'
 import { UserResource } from '../resources/index.js'
@@ -50,9 +51,9 @@ export async function verifyAccount(req: Request, res: Response) {
 
 export async function googleAuthCallback(req: Request, res: Response) {
   const user = req.user as any
-  if (!user) return res.redirect(`${process.env.APP_URL}/login?error=oauth-failed`)
-  const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET!, { expiresIn: '7d' })
-  return res.redirect(`${process.env.APP_URL}/auth-callback?token=${token}`)
+  if (!user) return res.redirect(`${env.APP_URL}/login?error=oauth-failed`)
+  const token = jwt.sign({ id: user.id, role: user.role }, env.JWT_SECRET, { expiresIn: '7d' })
+  return res.redirect(`${env.APP_URL}/auth-callback?token=${token}`)
 }
 
 export async function logout(_req: Request, res: Response) {
