@@ -9,6 +9,7 @@
     "dev": "tsx src/index.ts",
     "build": "tsc",
     "test": "vitest",
+    "test:coverage": "vitest run --coverage",
     "migrate": "prisma migrate dev",
     "prisma:generate": "prisma generate",
     "seed": "tsx src/database/seed.ts",
