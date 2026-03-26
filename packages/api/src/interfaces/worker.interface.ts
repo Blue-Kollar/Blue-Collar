@@ -13,6 +13,10 @@ export interface UpdateWorkerBody extends Partial<CreateWorkerBody> {}
 
 export interface WorkerQuery {
   category?: string
+  search?: string
+  city?: string
+  state?: string
+  country?: string
   page?: string
   limit?: string
 }
