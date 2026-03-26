@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#1d4ed8"/>
+  <text x="600" y="280" font-family="system-ui, sans-serif" font-size="72" font-weight="700" fill="white" text-anchor="middle">BlueCollar</text>
+  <text x="600" y="370" font-family="system-ui, sans-serif" font-size="32" fill="#bfdbfe" text-anchor="middle">Find Skilled Workers Near You</text>
+  <text x="600" y="430" font-family="system-ui, sans-serif" font-size="22" fill="#93c5fd" text-anchor="middle">Powered by Stellar</text>
+</svg>

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { BadgeCheck, MapPin, Mail, Phone, ArrowLeft } from "lucide-react";
 import Link from "next/link";
@@ -11,6 +12,24 @@ async function fetchWorker(id: string): Promise<Worker | null> {
   if (!res.ok) return null;
   const json: ApiResponse<Worker> = await res.json();
   return json.data;
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { id: string };
+}): Promise<Metadata> {
+  const worker = await fetchWorker(params.id);
+  if (!worker) return { title: "Worker Not Found" };
+  return {
+    title: worker.name,
+    description: worker.bio ?? `View ${worker.name}'s profile on BlueCollar.`,
+    openGraph: {
+      title: `${worker.name} | BlueCollar`,
+      description: worker.bio ?? `View ${worker.name}'s profile on BlueCollar.`,
+      images: worker.avatar ? [{ url: worker.avatar }] : [{ url: "/og-image.png" }],
+    },
+  };
 }
 
 export default async function WorkerProfilePage({
