@@ -1,11 +1,12 @@
 import type { Request, Response, NextFunction } from 'express'
 import jwt from 'jsonwebtoken'
+import { env } from '../config/env.js'
 
 export function authenticate(req: Request, res: Response, next: NextFunction) {
   const token = req.headers.authorization?.split(' ')[1]
   if (!token) return res.status(401).json({ status: 'error', message: 'Unauthorized', code: 401 })
   try {
-    req.user = jwt.verify(token, process.env.JWT_SECRET!) as { id: string; role: string }
+    req.user = jwt.verify(token, env.JWT_SECRET) as { id: string; role: string }
     next()
   } catch {
     return res.status(401).json({ status: 'error', message: 'Invalid token', code: 401 })

@@ -2,6 +2,8 @@
 import express from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
+import { corsConfig } from './config/cors.js'
+import { env } from './config/env.js'
 import pinoHttp from 'pino-http'
 import methodOverride from 'method-override'
 import passport from './config/passport.js'
@@ -12,7 +14,7 @@ import workerRoutes from './routes/workers.js'
 import adminRoutes from './routes/admin.js'
 
 const app = express()
-const PORT = process.env.PORT || 3000
+const PORT = env.PORT || 3000
 
 // Apply Helmet for HTTP security headers
 // strict CSP since we only serve JSON, not HTML
