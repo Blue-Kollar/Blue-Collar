@@ -3,7 +3,7 @@
 
 #![no_std]
 
-use soroban_sdk::{contract, contractimpl, contracttype, Address, Env, String, Symbol, Vec};
+use soroban_sdk::{contract, contractimpl, contracttype, symbol_short, Address, Env, String, Symbol, Vec};
 
 #[contracttype]
 #[derive(Clone)]
@@ -75,6 +75,39 @@ impl RegistryContract {
             .persistent()
             .get(&DataKey::WorkerList)
             .unwrap_or(Vec::new(&env))
+    }
+
+    /// Update a worker's name, category, and wallet address (owner only).
+    ///
+    /// Emits: WrkUpd
+    pub fn update_worker(
+        env: Env,
+        id: Symbol,
+        caller: Address,
+        name: String,
+        category: Symbol,
+        wallet: Address,
+    ) {
+        caller.require_auth();
+
+        let mut worker: Worker = env
+            .storage()
+            .persistent()
+            .get(&DataKey::Worker(id.clone()))
+            .expect("Worker not found");
+
+        assert!(worker.owner == caller, "Not authorized");
+
+        worker.name = name.clone();
+        worker.category = category.clone();
+        worker.wallet = wallet.clone();
+        env.storage().persistent().set(&DataKey::Worker(id.clone()), &worker);
+
+        // topics: ("WrkUpd", id, caller)  data: (name, category, wallet)
+        env.events().publish(
+            (symbol_short!("WrkUpd"), id, caller),
+            (name, category, wallet),
+        );
     }
 
     /// Upgrade the contract WASM (admin only)
