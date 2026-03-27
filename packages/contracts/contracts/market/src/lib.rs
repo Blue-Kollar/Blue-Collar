@@ -266,6 +266,12 @@ impl MarketContract {
     pub fn get_escrow(env: Env, id: Symbol) -> Option<Escrow> {
         env.storage().persistent().get(&DataKey::Escrow(id))
     }
+
+    /// Upgrade the contract WASM (admin only)
+    pub fn upgrade(env: Env, admin: Address, new_wasm_hash: soroban_sdk::BytesN<32>) {
+        admin.require_auth();
+        env.deployer().update_current_contract_wasm(new_wasm_hash);
+    }
 }
 
 #[cfg(test)]

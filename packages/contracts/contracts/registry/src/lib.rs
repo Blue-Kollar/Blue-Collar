@@ -76,6 +76,12 @@ impl RegistryContract {
             .get(&DataKey::WorkerList)
             .unwrap_or(Vec::new(&env))
     }
+
+    /// Upgrade the contract WASM (admin only)
+    pub fn upgrade(env: Env, admin: Address, new_wasm_hash: soroban_sdk::BytesN<32>) {
+        admin.require_auth();
+        env.deployer().update_current_contract_wasm(new_wasm_hash);
+    }
 }
 
 #[cfg(test)]

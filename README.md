@@ -141,6 +141,7 @@ register(id, owner, name, category)  → stores Worker on-chain
 get_worker(id)                        → returns Worker struct
 toggle(id, caller)                    → flips is_active (owner only)
 list_workers()                        → returns all worker ids
+upgrade(admin, new_wasm_hash)         → upgrades contract WASM (admin only)
 ```
 
 #### Market Contract
@@ -149,6 +150,7 @@ Handles direct token transfers (tips/payments) between users and workers.
 
 ```
 tip(from, to, token_addr, amount)  → transfers Stellar tokens from user to worker
+upgrade(admin, new_wasm_hash)      → upgrades contract WASM (admin only)
 ```
 
 Both contracts are compiled to WASM and deployed to the Stellar network (testnet / mainnet).
@@ -255,6 +257,34 @@ stellar contract deploy \
   --source <your-secret-key> \
   --network testnet
 ```
+
+### Upgrading a Contract
+
+To upgrade a deployed contract without redeploying (preserving its contract ID and storage):
+
+1. Build the new WASM and install it on-chain to get its hash:
+
+```bash
+stellar contract install \
+  --wasm target/wasm32-unknown-unknown/release/bluecollar_registry.wasm \
+  --source <your-secret-key> \
+  --network testnet
+# outputs: <new_wasm_hash>
+```
+
+2. Invoke the `upgrade` function with the admin address:
+
+```bash
+stellar contract invoke \
+  --id <contract-id> \
+  --source <admin-secret-key> \
+  --network testnet \
+  -- upgrade \
+  --admin <admin-address> \
+  --new_wasm_hash <new_wasm_hash>
+```
+
+The same steps apply to the Market contract. The `admin` argument must match the signing key (`--source`), as `require_auth()` is enforced on-chain.
 
 ---
 
