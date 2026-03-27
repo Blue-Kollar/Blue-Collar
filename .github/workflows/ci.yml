@@ -1,0 +1,200 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  PNPM_VERSION: 9
+
+# ── Jobs ──────────────────────────────────────────────────────────────────────
+
+jobs:
+
+  # ── API: tests (required gate) ──────────────────────────────────────────────
+  api-test:
+    name: API Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/api
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        working-directory: .
+
+      - name: Run tests
+        run: pnpm vitest run
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          JWT_SECRET: test-secret
+
+  # ── API: type-check / lint ───────────────────────────────────────────────────
+  api-lint:
+    name: API Type-check
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/api
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        working-directory: .
+
+      - name: Type-check
+        run: pnpm tsc --noEmit
+
+  # ── App: build ───────────────────────────────────────────────────────────────
+  app-build:
+    name: App Build
+    runs-on: ubuntu-latest
+    needs: [api-test]
+    defaults:
+      run:
+        working-directory: packages/app
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        working-directory: .
+
+      - name: Restore Next.js cache
+        uses: actions/cache@v4
+        with:
+          path: packages/app/.next/cache
+          key: nextjs-${{ runner.os }}-${{ hashFiles('packages/app/pnpm-lock.yaml', 'pnpm-lock.yaml') }}-${{ hashFiles('packages/app/src/**') }}
+          restore-keys: |
+            nextjs-${{ runner.os }}-
+
+      - name: Build
+        run: pnpm build
+        env:
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
+
+  # ── App: lint ────────────────────────────────────────────────────────────────
+  app-lint:
+    name: App Lint
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/app
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        working-directory: .
+
+      - name: Lint
+        run: pnpm next lint
+
+  # ── Contracts: test ──────────────────────────────────────────────────────────
+  contracts-test:
+    name: Contracts Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Cache Cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            packages/contracts/target
+          key: cargo-${{ runner.os }}-${{ hashFiles('packages/contracts/Cargo.toml', 'packages/contracts/contracts/**/Cargo.toml') }}
+          restore-keys: |
+            cargo-${{ runner.os }}-
+
+      - name: Run contract tests
+        run: cargo test
+        working-directory: packages/contracts
+
+  # ── Contracts: WASM build ────────────────────────────────────────────────────
+  contracts-build:
+    name: Contracts WASM Build
+    runs-on: ubuntu-latest
+    needs: [contracts-test]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Cache Cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            packages/contracts/target
+          key: cargo-${{ runner.os }}-${{ hashFiles('packages/contracts/Cargo.toml', 'packages/contracts/contracts/**/Cargo.toml') }}
+          restore-keys: |
+            cargo-${{ runner.os }}-
+
+      - name: Install stellar-cli
+        run: cargo install --locked stellar-cli --features opt
+
+      - name: Build WASM contracts
+        run: stellar contract build
+        working-directory: packages/contracts
