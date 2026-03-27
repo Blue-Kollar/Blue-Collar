@@ -1,40 +1,386 @@
 # BlueCollar Soroban Contracts
 
-Two contracts deployed on Stellar (Soroban): **Registry** and **Market**.
+Two smart contracts deployed on Stellar (Soroban): **Registry** and **Market**.
+
+- **Registry** — manages on-chain worker profiles, curator-gated registration, and worker self-management.
+- **Market** — handles direct tips and escrow-based payments between users and workers, with a configurable protocol fee.
+
+---
+
+## Prerequisites
+
+| Tool          | Version | Install                                                           |
+| ------------- | ------- | ----------------------------------------------------------------- |
+| Rust          | stable  | `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \| sh` |
+| wasm32 target | —       | `rustup target add wasm32-unknown-unknown`                        |
+| Stellar CLI   | latest  | `cargo install --locked stellar-cli --features opt`               |
+
+Verify your setup:
+
+```bash
+rustc --version
+stellar --version
+```
+
+---
+
+## Build
+
+```bash
+# from packages/contracts/
+make build
+# or directly:
+cargo build --release --target wasm32-unknown-unknown
+```
+
+Output WASMs:
+
+- `target/wasm32-unknown-unknown/release/bluecollar_registry.wasm`
+- `target/wasm32-unknown-unknown/release/bluecollar_market.wasm`
+
+---
+
+## Test
+
+```bash
+make test
+# or:
+cargo test
+```
+
+Run a single contract's tests:
+
+```bash
+cargo test -p bluecollar-registry
+cargo test -p bluecollar-market
+```
+
+---
+
+## Lint & Format
+
+```bash
+make clippy   # cargo clippy -- -D warnings
+make fmt      # cargo fmt
+```
+
+---
+
+## Deploy
+
+### Testnet
+
+Set up a funded testnet identity first:
+
+```bash
+stellar keys generate --global alice --network testnet
+stellar keys fund alice --network testnet
+```
+
+Deploy Registry:
+
+```bash
+stellar contract deploy \
+  --wasm target/wasm32-unknown-unknown/release/bluecollar_registry.wasm \
+  --source alice \
+  --network testnet
+```
+
+Deploy Market:
+
+```bash
+stellar contract deploy \
+  --wasm target/wasm32-unknown-unknown/release/bluecollar_market.wasm \
+  --source alice \
+  --network testnet
+```
+
+Or use the Makefile shortcut (requires `STELLAR_ACCOUNT` env var):
+
+```bash
+STELLAR_ACCOUNT=alice make deploy-testnet
+```
+
+### Mainnet
+
+```bash
+stellar contract deploy \
+  --wasm target/wasm32-unknown-unknown/release/bluecollar_registry.wasm \
+  --source <your-mainnet-identity> \
+  --network mainnet
+
+stellar contract deploy \
+  --wasm target/wasm32-unknown-unknown/release/bluecollar_market.wasm \
+  --source <your-mainnet-identity> \
+  --network mainnet
+```
+
+> After deployment, record the returned contract IDs in the [Contract Addresses](#contract-addresses) section below.
+
+---
+
+## Contract Addresses
+
+| Contract | Testnet | Mainnet |
+| -------- | ------- | ------- |
+| Registry | `—`     | `—`     |
+| Market   | `—`     | `—`     |
 
 ---
 
 ## Registry Contract
 
-Manages worker registrations on-chain.
+### Overview
 
-### Functions
+Manages worker profiles on-chain. Registration is curator-gated — only addresses approved by the admin can register workers. Workers retain ownership of their own profiles and can toggle, update, or deregister themselves.
 
-| Function | Description |
-|---|---|
-| `register(id, owner, name, category)` | Register a new worker |
-| `get_worker(id)` | Fetch a worker by id |
-| `toggle(id, caller)` | Toggle active status (owner only) |
-| `update(id, caller, name, category)` | Update name/category (owner only) |
-| `deregister(id, caller)` | Remove a worker (owner only) |
-| `list_workers()` | List all worker ids |
+### Initialise
 
-### Events
+#### `initialize(env, admin: Address)`
 
-All events are published via `env.events().publish(topics, data)`.
+Sets the contract admin. Must be called once before any other function. Panics if already initialised.
 
-#### WorkerRegistered
+```bash
+stellar contract invoke \
+  --id <REGISTRY_CONTRACT_ID> \
+  --source alice \
+  --network testnet \
+  -- initialize \
+  --admin <ADMIN_ADDRESS>
+```
 
-Emitted when a new worker is registered.
+### Admin Functions
+
+#### `add_curator(env, admin: Address, curator: Address)`
+
+Adds a curator who is permitted to register workers. Idempotent — adding an existing curator is a no-op.
+
+- Access: admin only
+- Emits: `CuratorAdded`
+
+```bash
+stellar contract invoke \
+  --id <REGISTRY_CONTRACT_ID> \
+  --source alice \
+  --network testnet \
+  -- add_curator \
+  --admin <ADMIN_ADDRESS> \
+  --curator <CURATOR_ADDRESS>
+```
+
+#### `remove_curator(env, admin: Address, curator: Address)`
+
+Removes a curator. Removed curators can no longer register workers.
+
+- Access: admin only
+- Emits: `CuratorRemoved`
+
+```bash
+stellar contract invoke \
+  --id <REGISTRY_CONTRACT_ID> \
+  --source alice \
+  --network testnet \
+  -- remove_curator \
+  --admin <ADMIN_ADDRESS> \
+  --curator <CURATOR_ADDRESS>
+```
+
+#### `upgrade(env, admin: Address, new_wasm_hash: BytesN<32>)`
+
+Upgrades the contract WASM in-place.
+
+- Access: admin only
+
+```bash
+stellar contract invoke \
+  --id <REGISTRY_CONTRACT_ID> \
+  --source alice \
+  --network testnet \
+  -- upgrade \
+  --admin <ADMIN_ADDRESS> \
+  --new_wasm_hash <32_BYTE_HEX_HASH>
+```
+
+### Curator Functions
+
+#### `register(env, id: Symbol, owner: Address, name: String, category: Symbol, curator: Address)`
+
+Registers a new worker on-chain. The worker is set as active by default. The `owner` address is also used as the worker's payment wallet.
+
+- Access: caller must be an approved curator
+- Emits: `WorkerRegistered`
+
+| Parameter  | Type      | Description                           |
+| ---------- | --------- | ------------------------------------- |
+| `id`       | `Symbol`  | Unique worker identifier (≤ 9 chars)  |
+| `owner`    | `Address` | Wallet address that owns this profile |
+| `name`     | `String`  | Display name                          |
+| `category` | `Symbol`  | Job category (e.g. `plumber`)         |
+| `curator`  | `Address` | The calling curator's address         |
+
+```bash
+stellar contract invoke \
+  --id <REGISTRY_CONTRACT_ID> \
+  --source curator-account \
+  --network testnet \
+  -- register \
+  --id worker1 \
+  --owner <OWNER_ADDRESS> \
+  --name "Alice Smith" \
+  --category plumber \
+  --curator <CURATOR_ADDRESS>
+```
+
+### Worker Owner Functions
+
+#### `toggle(env, id: Symbol, caller: Address)`
+
+Toggles the worker's `is_active` flag. Useful for temporarily hiding a profile.
+
+- Access: worker owner only
+- Emits: `WorkerToggled`
+
+```bash
+stellar contract invoke \
+  --id <REGISTRY_CONTRACT_ID> \
+  --source owner-account \
+  --network testnet \
+  -- toggle \
+  --id worker1 \
+  --caller <OWNER_ADDRESS>
+```
+
+#### `update(env, id: Symbol, caller: Address, name: String, category: Symbol)`
+
+Updates the worker's display name and category.
+
+- Access: worker owner only
+- Emits: `WorkerUpdated`
+
+```bash
+stellar contract invoke \
+  --id <REGISTRY_CONTRACT_ID> \
+  --source owner-account \
+  --network testnet \
+  -- update \
+  --id worker1 \
+  --caller <OWNER_ADDRESS> \
+  --name "Alice Johnson" \
+  --category electrician
+```
+
+#### `deregister(env, id: Symbol, caller: Address)`
+
+Permanently removes a worker from the registry and the worker list.
+
+- Access: worker owner only
+- Emits: `WorkerDeregistered`
+
+```bash
+stellar contract invoke \
+  --id <REGISTRY_CONTRACT_ID> \
+  --source owner-account \
+  --network testnet \
+  -- deregister \
+  --id worker1 \
+  --caller <OWNER_ADDRESS>
+```
+
+### View Functions
+
+#### `get_worker(env, id: Symbol) -> Option<Worker>`
+
+Returns the full worker record, or `None` if not found.
+
+```bash
+stellar contract invoke \
+  --id <REGISTRY_CONTRACT_ID> \
+  --network testnet \
+  -- get_worker \
+  --id worker1
+```
+
+#### `list_workers(env) -> Vec<Symbol>`
+
+Returns all registered worker IDs. For large registries, prefer `list_workers_paginated`.
+
+```bash
+stellar contract invoke \
+  --id <REGISTRY_CONTRACT_ID> \
+  --network testnet \
+  -- list_workers
+```
+
+#### `list_workers_paginated(env, offset: u32, limit: u32) -> Vec<Symbol>`
+
+Returns a page of worker IDs. Returns an empty vec if `offset` >= total count or `limit` is 0.
+
+```bash
+stellar contract invoke \
+  --id <REGISTRY_CONTRACT_ID> \
+  --network testnet \
+  -- list_workers_paginated \
+  --offset 0 \
+  --limit 20
+```
+
+#### `worker_count(env) -> u32`
+
+Returns the total number of registered workers.
+
+```bash
+stellar contract invoke \
+  --id <REGISTRY_CONTRACT_ID> \
+  --network testnet \
+  -- worker_count
+```
+
+#### `is_curator(env, addr: Address) -> bool`
+
+Returns `true` if the given address is an approved curator.
+
+```bash
+stellar contract invoke \
+  --id <REGISTRY_CONTRACT_ID> \
+  --network testnet \
+  -- is_curator \
+  --addr <ADDRESS>
+```
+
+#### `get_admin(env) -> Address`
+
+Returns the admin address.
+
+```bash
+stellar contract invoke \
+  --id <REGISTRY_CONTRACT_ID> \
+  --network testnet \
+  -- get_admin
+```
+
+#### `is_initialized(env) -> bool`
+
+Returns `true` if the contract has been initialised.
+
+### Registry Events
+
+All events are published via `env.events().publish(topics, data)`. Topics are indexed and filterable via Horizon event streaming.
+
+#### CuratorAdded
 
 ```
-topics: (Symbol("WrkReg"), id: Symbol)
-data:   (owner: Address, category: Symbol)
+topics: (Symbol("CurAdd"), admin: Address, curator: Address)
+data:   ()
+```
+
+#### CuratorRemoved
+
+```
+topics: (Symbol("CurRem"), admin: Address, curator: Address)
+data:   ()
 ```
 
 #### WorkerToggled
-
-Emitted when a worker's active status is toggled.
 
 ```
 topics: (Symbol("WrkTgl"), id: Symbol)
@@ -43,16 +389,12 @@ data:   is_active: bool
 
 #### WorkerUpdated
 
-Emitted when a worker's name or category is updated.
-
 ```
 topics: (Symbol("WrkUpd"), id: Symbol)
 data:   (name: String, category: Symbol)
 ```
 
 #### WorkerDeregistered
-
-Emitted when a worker is removed from the registry.
 
 ```
 topics: (Symbol("WrkDrg"), id: Symbol)
@@ -63,23 +405,171 @@ data:   caller: Address
 
 ## Market Contract
 
-Handles direct tips and escrow-based payments between users and workers.
+### Overview
 
-### Functions
+Handles two payment flows between users and workers:
 
-| Function | Description |
-|---|---|
-| `tip(from, to, token_addr, amount)` | Send a direct tip to a worker |
-| `create_escrow(id, from, to, token_addr, amount)` | Lock funds in escrow |
-| `release_escrow(id, caller)` | Release escrow to worker (payer only) |
-| `cancel_escrow(id, caller)` | Refund escrow to payer (payer only) |
-| `get_escrow(id)` | Fetch escrow details by id |
+1. **Tip** — immediate token transfer with a protocol fee deducted.
+2. **Escrow** — tokens are locked in the contract until the payer releases them, or the payer cancels after the escrow expires.
 
-### Events
+The protocol fee is set at initialisation (max 5% / 500 bps) and can be updated by the admin.
+
+### Initialise
+
+#### `initialize(env, admin: Address, fee_bps: u32, fee_recipient: Address)`
+
+Sets the admin, protocol fee, and fee recipient. Must be called once. Panics if `fee_bps > 500`.
+
+```bash
+stellar contract invoke \
+  --id <MARKET_CONTRACT_ID> \
+  --source alice \
+  --network testnet \
+  -- initialize \
+  --admin <ADMIN_ADDRESS> \
+  --fee_bps 100 \
+  --fee_recipient <FEE_RECIPIENT_ADDRESS>
+```
+
+### Admin Functions
+
+#### `update_fee(env, admin: Address, new_fee_bps: u32)`
+
+Updates the protocol fee. Capped at 500 bps (5%).
+
+- Access: admin only
+
+```bash
+stellar contract invoke \
+  --id <MARKET_CONTRACT_ID> \
+  --source alice \
+  --network testnet \
+  -- update_fee \
+  --admin <ADMIN_ADDRESS> \
+  --new_fee_bps 200
+```
+
+### Payment Functions
+
+#### `tip(env, from: Address, to: Address, token_addr: Address, amount: i128)`
+
+Transfers tokens directly from `from` to `to`. Deducts the protocol fee from `amount` and sends it to `fee_recipient`. The worker receives `amount - fee`.
+
+- Access: `from` must authorise
+- Emits: `TipSent`
+
+| Parameter    | Type      | Description                                 |
+| ------------ | --------- | ------------------------------------------- |
+| `from`       | `Address` | Payer's address                             |
+| `to`         | `Address` | Worker's address                            |
+| `token_addr` | `Address` | SEP-41 token contract address               |
+| `amount`     | `i128`    | Total amount (fee deducted before transfer) |
+
+```bash
+stellar contract invoke \
+  --id <MARKET_CONTRACT_ID> \
+  --source payer-account \
+  --network testnet \
+  -- tip \
+  --from <PAYER_ADDRESS> \
+  --to <WORKER_ADDRESS> \
+  --token_addr <TOKEN_CONTRACT_ADDRESS> \
+  --amount 1000000
+```
+
+#### `create_escrow(env, id: Symbol, from: Address, to: Address, token_addr: Address, amount: i128, expiry: u64)`
+
+Locks `amount` tokens in the contract. The payer can release or cancel (after expiry). Panics if the escrow ID already exists or `amount <= 0`.
+
+- Access: `from` must authorise
+- Emits: `EscrowCreated`
+
+| Parameter    | Type      | Description                                 |
+| ------------ | --------- | ------------------------------------------- |
+| `id`         | `Symbol`  | Unique escrow identifier                    |
+| `from`       | `Address` | Payer's address                             |
+| `to`         | `Address` | Worker's address                            |
+| `token_addr` | `Address` | SEP-41 token contract address               |
+| `amount`     | `i128`    | Amount to lock                              |
+| `expiry`     | `u64`     | Unix timestamp after which payer may cancel |
+
+```bash
+stellar contract invoke \
+  --id <MARKET_CONTRACT_ID> \
+  --source payer-account \
+  --network testnet \
+  -- create_escrow \
+  --id job42 \
+  --from <PAYER_ADDRESS> \
+  --to <WORKER_ADDRESS> \
+  --token_addr <TOKEN_CONTRACT_ADDRESS> \
+  --amount 5000000 \
+  --expiry 1800000000
+```
+
+#### `release_escrow(env, id: Symbol, caller: Address)`
+
+Releases locked funds to the worker. Callable by either the payer (`from`) or the worker (`to`). Panics if already released or cancelled.
+
+- Access: `from` or `to`
+- Emits: `EscrowReleased`
+
+```bash
+stellar contract invoke \
+  --id <MARKET_CONTRACT_ID> \
+  --source payer-account \
+  --network testnet \
+  -- release_escrow \
+  --id job42 \
+  --caller <PAYER_ADDRESS>
+```
+
+#### `cancel_escrow(env, id: Symbol, caller: Address)`
+
+Refunds locked funds to the payer. Only callable by `from`, and only after `expiry` has passed. Panics if already released, already cancelled, or not yet expired.
+
+- Access: `from` only, after expiry
+- Emits: `EscrowCancelled`
+
+```bash
+stellar contract invoke \
+  --id <MARKET_CONTRACT_ID> \
+  --source payer-account \
+  --network testnet \
+  -- cancel_escrow \
+  --id job42 \
+  --caller <PAYER_ADDRESS>
+```
+
+### View Functions
+
+#### `get_escrow(env, id: Symbol) -> Option<Escrow>`
+
+Returns the escrow record, or `None` if not found.
+
+```bash
+stellar contract invoke \
+  --id <MARKET_CONTRACT_ID> \
+  --network testnet \
+  -- get_escrow \
+  --id job42
+```
+
+#### `get_fee_bps(env) -> u32`
+
+Returns the current protocol fee in basis points.
+
+#### `get_fee_recipient(env) -> Address`
+
+Returns the address that receives collected fees.
+
+#### `get_admin(env) -> Address`
+
+Returns the admin address.
+
+### Market Events
 
 #### TipSent
-
-Emitted when a direct tip is transferred.
 
 ```
 topics: (Symbol("TipSent"), from: Address, to: Address)
@@ -88,16 +578,12 @@ data:   (token: Address, amount: i128)
 
 #### EscrowCreated
 
-Emitted when funds are locked in escrow.
-
 ```
 topics: (Symbol("EscCrt"), id: Symbol, from: Address)
-data:   (to: Address, token: Address, amount: i128)
+data:   (to: Address, token: Address, amount: i128, expiry: u64)
 ```
 
 #### EscrowReleased
-
-Emitted when escrow funds are released to the worker.
 
 ```
 topics: (Symbol("EscRel"), id: Symbol, to: Address)
@@ -105,8 +591,6 @@ data:   amount: i128
 ```
 
 #### EscrowCancelled
-
-Emitted when escrow is cancelled and funds are refunded.
 
 ```
 topics: (Symbol("EscCnl"), id: Symbol, from: Address)
@@ -118,5 +602,7 @@ data:   amount: i128
 ## Notes
 
 - All `Symbol` topic keys are ≤ 9 characters to satisfy Soroban's `symbol_short!` constraint.
-- Topics are indexed and filterable by off-chain indexers (e.g. Horizon event streaming).
-- Data fields are ABI-encoded via `contracttype` and decodable with the Stellar SDK.
+- Topics are indexed and filterable by off-chain indexers via Horizon event streaming.
+- Storage TTL is extended automatically on write (~1 year, threshold ~6 months) to prevent entry expiry.
+- The maximum protocol fee is hard-capped at 500 bps (5%) in the contract — `update_fee` will panic above this.
+- Escrow expiry is a Unix timestamp in seconds, compared against `env.ledger().timestamp()`.
