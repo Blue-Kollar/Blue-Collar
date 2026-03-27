@@ -69,12 +69,51 @@ impl RegistryContract {
         env.storage().persistent().set(&DataKey::Worker(id), &worker);
     }
 
-    /// List all registered worker ids
+    /// List all registered worker ids.
+    ///
+    /// NOTE: returns the full list regardless of size. For large registries
+    /// this may be expensive — prefer `list_workers_paginated`.
     pub fn list_workers(env: Env) -> Vec<Symbol> {
         env.storage()
             .persistent()
             .get(&DataKey::WorkerList)
             .unwrap_or(Vec::new(&env))
+    }
+
+    /// Return a page of worker ids starting at `offset`, up to `limit` items.
+    ///
+    /// - If `offset` >= total count, returns an empty vec.
+    /// - If `offset + limit` exceeds the list, returns the remaining items.
+    /// - `limit` of 0 returns an empty vec.
+    pub fn list_workers_paginated(env: Env, offset: u32, limit: u32) -> Vec<Symbol> {
+        let list: Vec<Symbol> = env
+            .storage()
+            .persistent()
+            .get(&DataKey::WorkerList)
+            .unwrap_or(Vec::new(&env));
+
+        let total = list.len();
+        let mut page: Vec<Symbol> = Vec::new(&env);
+
+        if offset >= total || limit == 0 {
+            return page;
+        }
+
+        let end = (offset + limit).min(total);
+        for i in offset..end {
+            page.push_back(list.get(i).unwrap());
+        }
+        page
+    }
+
+    /// Return the total number of registered workers.
+    pub fn worker_count(env: Env) -> u32 {
+        let list: Vec<Symbol> = env
+            .storage()
+            .persistent()
+            .get(&DataKey::WorkerList)
+            .unwrap_or(Vec::new(&env));
+        list.len()
     }
 
     /// Upgrade the contract WASM (admin only)
