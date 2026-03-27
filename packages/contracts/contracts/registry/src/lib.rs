@@ -484,3 +484,6 @@ mod tests {
         assert_eq!(t.client().list_workers().len(), 0);
     }
 }
+
+#[cfg(test)]
+mod test;

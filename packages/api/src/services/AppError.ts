@@ -1,9 +1,2 @@
-export class AppError extends Error {
-  constructor(
-    public readonly message: string,
-    public readonly statusCode: number,
-  ) {
-    super(message)
-    this.name = 'AppError'
-  }
-}
+// Re-export the canonical AppError from utils so all services use one class
+export { AppError } from '../utils/AppError.js'
