@@ -135,3 +135,6 @@ mod tests {
         client.initialize(&admin);
     }
 }
+
+#[cfg(test)]
+mod test;
