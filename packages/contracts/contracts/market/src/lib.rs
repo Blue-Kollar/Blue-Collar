@@ -3,7 +3,15 @@
 
 #![no_std]
 
-use soroban_sdk::{contract, contractimpl, contracttype, token, Address, Env, Symbol};
+use soroban_sdk::{contract, contractimpl, contracttype, symbol_short, token, Address, Env, Symbol};
+
+// ---------------------------------------------------------------------------
+// Data types
+// ---------------------------------------------------------------------------
+
+// =============================================================================
+// Data types
+// =============================================================================
 
 // ---------------------------------------------------------------------------
 // Data types
@@ -11,12 +19,23 @@ use soroban_sdk::{contract, contractimpl, contracttype, token, Address, Env, Sym
 
 #[contracttype]
 #[derive(Clone)]
-pub struct Tip {
+pub struct Escrow {
     pub from: Address,
     pub to: Address,
     pub amount: i128,
     pub token: Address,
+    /// Unix timestamp (seconds) after which the payer may cancel
+    pub expiry: u64,
     pub released: bool,
+    pub cancelled: bool,
+}
+
+#[contracttype]
+#[derive(Clone)]
+pub struct Config {
+    pub admin: Address,
+    pub fee_bps: u32,
+    pub fee_recipient: Address,
 }
 
 #[contracttype]
@@ -29,7 +48,12 @@ pub struct Config {
 
 #[contracttype]
 pub enum DataKey {
+    /// Instance storage — admin address, set once at initialize
+    Admin,
     Tip(Symbol),
+    Admin,
+    FeeBps,
+    FeeRecipient,
     Escrow(Symbol),
     Config,
 }
@@ -46,6 +70,9 @@ pub enum EscrowStatus {
     Cancelled,
 }
 
+// =============================================================================
+// Contract
+// =============================================================================
 #[contracttype]
 #[derive(Clone)]
 pub struct Escrow {
@@ -69,6 +96,33 @@ pub struct MarketContract;
 
 #[contractimpl]
 impl MarketContract {
+    /// Initialise the contract — sets admin, fee basis points, and fee recipient
+    pub fn initialize(env: Env, admin: Address, fee_bps: u32, fee_recipient: Address) {
+        assert!(
+            !env.storage().instance().has(&DataKey::Admin),
+            "Already initialized"
+        );
+        env.storage().instance().set(&DataKey::Admin, &admin);
+        env.storage().instance().set(&DataKey::FeeBps, &fee_bps);
+        env.storage().instance().set(&DataKey::FeeRecipient, &fee_recipient);
+    }
+
+    /// Return the admin address
+    pub fn get_admin(env: Env) -> Address {
+        env.storage().instance().get(&DataKey::Admin).expect("Not initialized")
+    }
+
+    /// Return the fee in basis points (e.g. 100 = 1%)
+    pub fn get_fee_bps(env: Env) -> u32 {
+        env.storage().instance().get(&DataKey::FeeBps).expect("Not initialized")
+    }
+
+    /// Return the address that receives collected fees
+    pub fn get_fee_recipient(env: Env) -> Address {
+        env.storage().instance().get(&DataKey::FeeRecipient).expect("Not initialized")
+    }
+
+    /// Send a tip to a worker — transfers tokens directly
     // -----------------------------------------------------------------------
     // Initialise
     // -----------------------------------------------------------------------
@@ -274,5 +328,64 @@ impl MarketContract {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use soroban_sdk::testutils::Address as _;
+    use soroban_sdk::Env;
+
+    fn setup() -> (Env, MarketContractClient<'static>, Address, Address) {
+        let env = Env::default();
+        let contract_id = env.register_contract(None, MarketContract);
+        let client = MarketContractClient::new(&env, &contract_id);
+        let admin = Address::generate(&env);
+        let fee_recipient = Address::generate(&env);
+        client.initialize(&admin, &100u32, &fee_recipient);
+        (env, client, admin, fee_recipient)
+    }
+
+    #[test]
+    fn test_get_admin() {
+        let (_env, client, admin, _) = setup();
+        assert_eq!(client.get_admin(), admin);
+    }
+
+    #[test]
+    fn test_get_fee_bps() {
+        let (_env, client, _, _) = setup();
+        assert_eq!(client.get_fee_bps(), 100u32);
+    }
+
+    #[test]
+    fn test_get_fee_recipient() {
+        let (_env, client, _, fee_recipient) = setup();
+        assert_eq!(client.get_fee_recipient(), fee_recipient);
+    }
+
+    #[test]
+    #[should_panic(expected = "Already initialized")]
+    fn test_initialize_twice_panics() {
+        let t = TestEnv::new();
+        // second call must panic
+        t.client().initialize(&t.admin);
+    }
+
+    #[test]
+    #[should_panic(expected = "Already initialized")]
+    fn test_initialize_with_different_admin_panics() {
+        let t = TestEnv::new();
+        let attacker = Address::generate(&t.env);
+        t.client().initialize(&attacker);
+    }
+
+    #[test]
+    fn test_admin_cannot_be_overwritten() {
+        let t = TestEnv::new();
+        let attacker = Address::generate(&t.env);
+        // Attacker is a different address — original admin is still set
+        assert_ne!(t.client().get_admin(), attacker);
+        assert_eq!(t.client().get_admin(), t.admin);
+    }
+}
 #[cfg(test)]
 mod test;

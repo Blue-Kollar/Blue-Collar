@@ -286,6 +286,30 @@ stellar contract invoke \
 
 The same steps apply to the Market contract. The `admin` argument must match the signing key (`--source`), as `require_auth()` is enforced on-chain.
 
+### Storage TTL Strategy
+
+Soroban persistent storage entries have a TTL (time-to-live) measured in ledgers. Without extension, entries can expire and be pruned from the ledger.
+
+| Constant | Value | Approximate duration |
+|---|---|---|
+| `TTL_EXTEND_TO` | 535,000 ledgers | ~1 year (at 5s/ledger) |
+| `TTL_THRESHOLD` | 267,500 ledgers | ~6 months |
+
+**How it works:**
+- Every write to persistent storage (`register`, `toggle`) automatically calls `extend_ttl` on the affected key.
+- `extend_ttl(key, threshold, extend_to)` only extends if the current TTL is below `threshold`, avoiding unnecessary fees.
+- A public `extend_worker_ttl(id)` function is available so anyone (users, bots, the app) can refresh a worker entry's TTL without needing special permissions.
+
+```bash
+# Extend a worker's TTL via CLI
+stellar contract invoke \
+  --id <contract-id> \
+  --source <any-account> \
+  --network testnet \
+  -- extend_worker_ttl \
+  --id <worker-id>
+```
+
 ---
 
 ## Getting Started
