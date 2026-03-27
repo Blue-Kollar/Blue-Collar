@@ -203,20 +203,22 @@ stellar contract invoke \
 
 ### Curator Functions
 
-#### `register(env, id: Symbol, owner: Address, name: String, category: Symbol, curator: Address)`
+#### `register(env, id: Symbol, owner: Address, name: String, category: Symbol, location_hash: BytesN<32>, contact_hash: BytesN<32>, curator: Address)`
 
 Registers a new worker on-chain. The worker is set as active by default. The `owner` address is also used as the worker's payment wallet.
 
 - Access: caller must be an approved curator
 - Emits: `WorkerRegistered`
 
-| Parameter  | Type      | Description                           |
-| ---------- | --------- | ------------------------------------- |
-| `id`       | `Symbol`  | Unique worker identifier (≤ 9 chars)  |
-| `owner`    | `Address` | Wallet address that owns this profile |
-| `name`     | `String`  | Display name                          |
-| `category` | `Symbol`  | Job category (e.g. `plumber`)         |
-| `curator`  | `Address` | The calling curator's address         |
+| Parameter       | Type         | Description                                      |
+| --------------- | ------------ | ------------------------------------------------ |
+| `id`            | `Symbol`     | Unique worker identifier (≤ 9 chars)             |
+| `owner`         | `Address`    | Wallet address that owns this profile            |
+| `name`          | `String`     | Display name                                     |
+| `category`      | `Symbol`     | Job category (e.g. `plumber`)                    |
+| `location_hash` | `BytesN<32>` | SHA-256(lowercase(city) + ":" + lowercase(iso2)) |
+| `contact_hash`  | `BytesN<32>` | SHA-256(lowercase(email) or E.164 phone)         |
+| `curator`       | `Address`    | The calling curator's address                    |
 
 ```bash
 stellar contract invoke \
@@ -228,6 +230,8 @@ stellar contract invoke \
   --owner <OWNER_ADDRESS> \
   --name "Alice Smith" \
   --category plumber \
+  --location_hash <32_BYTE_HEX> \
+  --contact_hash <32_BYTE_HEX> \
   --curator <CURATOR_ADDRESS>
 ```
 
@@ -250,9 +254,9 @@ stellar contract invoke \
   --caller <OWNER_ADDRESS>
 ```
 
-#### `update(env, id: Symbol, caller: Address, name: String, category: Symbol)`
+#### `update(env, id: Symbol, caller: Address, name: String, category: Symbol, location_hash: BytesN<32>, contact_hash: BytesN<32>)`
 
-Updates the worker's display name and category.
+Updates the worker's display name, category, location hash, and contact hash. Pass existing hash values unchanged if only updating name/category.
 
 - Access: worker owner only
 - Emits: `WorkerUpdated`
@@ -266,7 +270,9 @@ stellar contract invoke \
   --id worker1 \
   --caller <OWNER_ADDRESS> \
   --name "Alice Johnson" \
-  --category electrician
+  --category electrician \
+  --location_hash <32_BYTE_HEX> \
+  --contact_hash <32_BYTE_HEX>
 ```
 
 #### `deregister(env, id: Symbol, caller: Address)`
@@ -595,6 +601,53 @@ data:   amount: i128
 ```
 topics: (Symbol("EscCnl"), id: Symbol, from: Address)
 data:   amount: i128
+```
+
+---
+
+## Hashing Scheme
+
+The `Worker` struct stores two `BytesN<32>` fields — raw SHA-256 digests. No PII ever touches the chain.
+
+### `location_hash`
+
+```
+SHA-256( lowercase(city) + ":" + lowercase(iso2_country_code) )
+```
+
+Examples:
+
+```
+"london:gb"   → sha256 → 32-byte hex
+"lagos:ng"    → sha256 → 32-byte hex
+```
+
+### `contact_hash`
+
+```
+SHA-256( lowercase(email)  )          # for email contacts
+SHA-256( e164_phone_number )          # for phone contacts, e.g. "+447911123456"
+```
+
+The off-chain API is responsible for computing these digests before calling `register` or `update`. To verify a worker's location or contact, the verifier independently hashes the claimed value and compares it to the on-chain digest.
+
+### Computing hashes (Node.js example)
+
+```js
+import { createHash } from "crypto";
+
+const locationHash = createHash("sha256").update("london:gb").digest("hex"); // pass as BytesN<32> to the contract
+
+const contactHash = createHash("sha256").update("[email]").digest("hex");
+```
+
+### Computing hashes (Rust example)
+
+```rust
+use sha2::{Digest, Sha256};
+
+let location_hash = Sha256::digest(b"london:gb");
+let contact_hash  = Sha256::digest(b"[email]");
 ```
 
 ---

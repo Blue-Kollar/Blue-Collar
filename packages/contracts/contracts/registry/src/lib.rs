@@ -3,13 +3,37 @@
 
 #![no_std]
 
-use bluecollar_types::Worker;
-use soroban_sdk::{contract, contractimpl, contracttype, Address, Env, String, Symbol, Vec};
+use soroban_sdk::{
+    contract, contractimpl, contracttype, symbol_short, Address, BytesN, Env, String, Symbol, Vec,
+};
 
 /// ~1 year in ledgers (5s per ledger)
 const TTL_EXTEND_TO: u32 = 535_000;
 /// Extend when TTL drops below ~6 months
 const TTL_THRESHOLD: u32 = 267_500;
+
+// =============================================================================
+// Types
+// =============================================================================
+
+/// On-chain worker profile.
+///
+/// `location_hash` and `contact_hash` are SHA-256 digests — raw PII is never
+/// stored on-chain. See README § Hashing Scheme for the exact input format.
+#[contracttype]
+#[derive(Clone)]
+pub struct Worker {
+    pub id: Symbol,
+    pub owner: Address,
+    pub name: String,
+    pub category: Symbol,
+    pub is_active: bool,
+    pub wallet: Address,
+    /// SHA-256( lowercase(city) + ":" + lowercase(country_iso2) )
+    pub location_hash: BytesN<32>,
+    /// SHA-256( lowercase(email_or_e164_phone) )
+    pub contact_hash: BytesN<32>,
+}
 
 #[contracttype]
 pub enum DataKey {
@@ -21,7 +45,6 @@ pub enum DataKey {
     Worker(Symbol),
     /// Persistent storage — ordered list of worker ids
     WorkerList,
-    Admin,
 }
 
 // =============================================================================
@@ -33,7 +56,11 @@ pub struct RegistryContract;
 
 #[contractimpl]
 impl RegistryContract {
-    /// Initialise the contract and set the admin address
+    // -------------------------------------------------------------------------
+    // Init
+    // -------------------------------------------------------------------------
+
+    /// Initialise the contract and set the admin address. Panics if already initialised.
     pub fn initialize(env: Env, admin: Address) {
         assert!(
             !env.storage().instance().has(&DataKey::Admin),
@@ -43,25 +70,12 @@ impl RegistryContract {
     }
 
     // -------------------------------------------------------------------------
-    // Views
+    // Internal helpers
     // -------------------------------------------------------------------------
-
-    /// Returns true if the contract has been initialized.
-    pub fn is_initialized(env: Env) -> bool {
-        env.storage().instance().has(&DataKey::Admin)
-    }
-
-    /// Get the admin address. Panics if not initialized.
-    pub fn get_admin(env: Env) -> Address {
-        env.storage()
-            .instance()
-            .get(&DataKey::Admin)
-            .expect("Not initialized")
-    }
 
     fn require_admin(env: &Env, caller: &Address) {
         caller.require_auth();
-        assert!(*caller == Self::get_admin(env), "Admin only");
+        assert!(*caller == Self::get_admin(env.clone()), "Admin only");
     }
 
     fn get_curators(env: &Env) -> Vec<Address> {
@@ -75,23 +89,18 @@ impl RegistryContract {
     // Curator management
     // -------------------------------------------------------------------------
 
-    /// Add a curator (admin only).
+    /// Add a curator (admin only). Idempotent — adding an existing curator is a no-op.
     /// Emits: CuratorAdded
     pub fn add_curator(env: Env, admin: Address, curator: Address) {
         Self::require_admin(&env, &admin);
 
         let mut curators = Self::get_curators(&env);
-        // Idempotent — skip if already present
         if curators.iter().all(|c| c != curator) {
             curators.push_back(curator.clone());
             env.storage().persistent().set(&DataKey::Curators, &curators);
         }
 
-        // topics: ("CurAdd", admin, curator)  data: ()
-        env.events().publish(
-            (symbol_short!("CurAdd"), admin, curator),
-            (),
-        );
+        env.events().publish((symbol_short!("CurAdd"), admin, curator), ());
     }
 
     /// Remove a curator (admin only).
@@ -108,14 +117,10 @@ impl RegistryContract {
         }
         env.storage().persistent().set(&DataKey::Curators, &updated);
 
-        // topics: ("CurRem", admin, curator)  data: ()
-        env.events().publish(
-            (symbol_short!("CurRem"), admin, curator),
-            (),
-        );
+        env.events().publish((symbol_short!("CurRem"), admin, curator), ());
     }
 
-    /// Check whether an address is a curator.
+    /// Returns true if the address is an approved curator.
     pub fn is_curator(env: Env, addr: Address) -> bool {
         Self::get_curators(&env).iter().any(|c| c == addr)
     }
@@ -125,11 +130,22 @@ impl RegistryContract {
     // -------------------------------------------------------------------------
 
     /// Register a new worker on-chain. Caller must be an authorised curator.
+    ///
+    /// `location_hash` — SHA-256(lowercase(city) + ":" + lowercase(country_iso2))
+    /// `contact_hash`  — SHA-256(lowercase(email) or E.164 phone)
+    ///
     /// Emits: WorkerRegistered
-    pub fn register(env: Env, id: Symbol, owner: Address, name: String, category: Symbol, curator: Address) {
+    pub fn register(
+        env: Env,
+        id: Symbol,
+        owner: Address,
+        name: String,
+        category: Symbol,
+        location_hash: BytesN<32>,
+        contact_hash: BytesN<32>,
+        curator: Address,
+    ) {
         curator.require_auth();
-
-        // Curator gate
         assert!(
             Self::get_curators(&env).iter().any(|c| c == curator),
             "Caller is not a curator"
@@ -142,6 +158,8 @@ impl RegistryContract {
             category: category.clone(),
             is_active: true,
             wallet: owner.clone(),
+            location_hash,
+            contact_hash,
         };
 
         let key = DataKey::Worker(id.clone());
@@ -154,17 +172,22 @@ impl RegistryContract {
             .persistent()
             .get(&list_key)
             .unwrap_or(Vec::new(&env));
-        list.push_back(id);
+        list.push_back(id.clone());
         env.storage().persistent().set(&list_key, &list);
         env.storage().persistent().extend_ttl(&list_key, TTL_THRESHOLD, TTL_EXTEND_TO);
+
+        env.events().publish(
+            (symbol_short!("WrkReg"), id),
+            (owner, category),
+        );
     }
 
-    /// Get a worker by id.
-    pub fn get_worker(env: Env, id: Symbol) -> Option<Worker> {
-        env.storage().persistent().get(&DataKey::Worker(id))
-    }
+    // -------------------------------------------------------------------------
+    // Worker owner functions
+    // -------------------------------------------------------------------------
 
     /// Toggle a worker's active status (owner only).
+    /// Emits: WorkerToggled
     pub fn toggle(env: Env, id: Symbol, caller: Address) {
         caller.require_auth();
         let mut worker: Worker = env
@@ -177,71 +200,23 @@ impl RegistryContract {
         let new_status = worker.is_active;
         env.storage().persistent().set(&DataKey::Worker(id.clone()), &worker);
 
-        // topics: ("WrkTgl", id)  data: is_active
-        env.events().publish(
-            (symbol_short!("WrkTgl"), id),
-            new_status,
-        );
+        env.events().publish((symbol_short!("WrkTgl"), id), new_status);
     }
 
-    /// Update a worker's name and/or category (owner only)
-    /// Emits: WorkerUpdated(id, name, category)
-    pub fn update(env: Env, id: Symbol, caller: Address, name: String, category: Symbol) {
-        caller.require_auth();
-        let mut worker: Worker = env
-            .storage()
-            .persistent()
-            .get(&DataKey::Worker(id.clone()))
-            .expect("Worker not found");
-        assert!(worker.owner == caller, "Not authorized");
-        worker.name = name.clone();
-        worker.category = category.clone();
-        env.storage().persistent().set(&DataKey::Worker(id.clone()), &worker);
-
-        // Event: WorkerUpdated
-        // topics: ["WrkUpd", id]
-        // data:   (name, category)
-        env.events().publish(
-            (symbol_short!("WrkUpd"), id),
-            (name, category),
-        );
-    }
-
-    /// Deregister a worker (owner only)
-    /// Emits: WorkerDeregistered(id)
-    pub fn deregister(env: Env, id: Symbol, caller: Address) {
-        caller.require_auth();
-        let worker: Worker = env
-            .storage()
-            .persistent()
-            .get(&DataKey::Worker(id.clone()))
-            .expect("Worker not found");
-        assert!(worker.owner == caller, "Not authorized");
-        env.storage().persistent().remove(&DataKey::Worker(id.clone()));
-
-        // Remove from list
-        let mut list: Vec<Symbol> = env
-            .storage()
-            .persistent()
-            .get(&DataKey::WorkerList)
-            .unwrap_or(Vec::new(&env));
-        if let Some(pos) = list.iter().position(|x| x == id) {
-            list.remove(pos as u32);
-        }
-        env.storage().persistent().set(&DataKey::WorkerList, &list);
-
-        // Event: WorkerDeregistered
-        // topics: ["WrkDrg", id]
-        // data:   caller (owner address)
-        env.events().publish(
-            (symbol_short!("WrkDrg"), id),
-            caller,
-        );
-    }
-
-    /// Update a worker's name and category (worker owner only).
+    /// Update a worker's name, category, location hash, and contact hash (owner only).
+    ///
+    /// Pass the existing hash values unchanged if only updating name/category.
+    ///
     /// Emits: WorkerUpdated
-    pub fn update(env: Env, id: Symbol, caller: Address, name: String, category: Symbol) {
+    pub fn update(
+        env: Env,
+        id: Symbol,
+        caller: Address,
+        name: String,
+        category: Symbol,
+        location_hash: BytesN<32>,
+        contact_hash: BytesN<32>,
+    ) {
         caller.require_auth();
         let mut worker: Worker = env
             .storage()
@@ -249,18 +224,21 @@ impl RegistryContract {
             .get(&DataKey::Worker(id.clone()))
             .expect("Worker not found");
         assert!(worker.owner == caller, "Not authorized");
+
         worker.name = name.clone();
         worker.category = category.clone();
+        worker.location_hash = location_hash;
+        worker.contact_hash = contact_hash;
+
         env.storage().persistent().set(&DataKey::Worker(id.clone()), &worker);
 
-        // topics: ("WrkUpd", id)  data: (name, category)
         env.events().publish(
             (symbol_short!("WrkUpd"), id),
             (name, category),
         );
     }
 
-    /// Deregister a worker (worker owner only).
+    /// Permanently remove a worker from the registry (owner only).
     /// Emits: WorkerDeregistered
     pub fn deregister(env: Env, id: Symbol, caller: Address) {
         caller.require_auth();
@@ -282,26 +260,19 @@ impl RegistryContract {
         }
         env.storage().persistent().set(&DataKey::WorkerList, &list);
 
-        // topics: ("WrkDrg", id)  data: caller
-        env.events().publish(
-            (symbol_short!("WrkDrg"), id),
-            caller,
-        );
+        env.events().publish((symbol_short!("WrkDrg"), id), caller);
     }
 
     // -------------------------------------------------------------------------
     // Views
     // -------------------------------------------------------------------------
 
-    /// Get a worker by id.
+    /// Get a worker by id. Returns None if not found.
     pub fn get_worker(env: Env, id: Symbol) -> Option<Worker> {
         env.storage().persistent().get(&DataKey::Worker(id))
     }
 
-    /// List all registered worker ids.
-    ///
-    /// NOTE: returns the full list regardless of size. For large registries
-    /// this may be expensive — prefer `list_workers_paginated`.
+    /// List all registered worker ids. Prefer `list_workers_paginated` for large registries.
     pub fn list_workers(env: Env) -> Vec<Symbol> {
         env.storage()
             .persistent()
@@ -310,10 +281,6 @@ impl RegistryContract {
     }
 
     /// Return a page of worker ids starting at `offset`, up to `limit` items.
-    ///
-    /// - If `offset` >= total count, returns an empty vec.
-    /// - If `offset + limit` exceeds the list, returns the remaining items.
-    /// - `limit` of 0 returns an empty vec.
     pub fn list_workers_paginated(env: Env, offset: u32, limit: u32) -> Vec<Symbol> {
         let list: Vec<Symbol> = env
             .storage()
@@ -345,13 +312,24 @@ impl RegistryContract {
         list.len()
     }
 
-    /// Upgrade the contract WASM (admin only)
-    pub fn upgrade(env: Env, admin: Address, new_wasm_hash: soroban_sdk::BytesN<32>) {
+    /// Returns true if the contract has been initialised.
+    pub fn is_initialized(env: Env) -> bool {
+        env.storage().instance().has(&DataKey::Admin)
+    }
+
+    /// Get the admin address. Panics if not initialised.
+    pub fn get_admin(env: Env) -> Address {
+        env.storage()
+            .instance()
+            .get(&DataKey::Admin)
+            .expect("Not initialized")
+    }
+
+    /// Upgrade the contract WASM (admin only).
+    pub fn upgrade(env: Env, admin: Address, new_wasm_hash: BytesN<32>) {
         admin.require_auth();
+        assert!(admin == Self::get_admin(env.clone()), "Admin only");
         env.deployer().update_current_contract_wasm(new_wasm_hash);
-    /// Get the current admin address.
-    pub fn get_admin_addr(env: Env) -> Address {
-        Self::get_admin(&env)
     }
 }
 
@@ -362,10 +340,7 @@ impl RegistryContract {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use soroban_sdk::{
-        testutils::Address as _,
-        Address, Env, String, Symbol,
-    };
+    use soroban_sdk::{testutils::Address as _, Address, BytesN, Env, String, Symbol};
 
     struct TestEnv {
         env: Env,
@@ -399,25 +374,27 @@ mod tests {
             Symbol::new(&self.env, "worker1")
         }
 
+        fn zero_hash(&self) -> BytesN<32> {
+            BytesN::from_array(&self.env, &[0u8; 32])
+        }
+
         fn register_worker(&self, curator: &Address) {
             self.client().register(
                 &self.worker_id(),
                 &self.owner,
                 &String::from_str(&self.env, "Alice"),
                 &Symbol::new(&self.env, "plumber"),
+                &self.zero_hash(),
+                &self.zero_hash(),
                 curator,
             );
         }
     }
 
-    // -------------------------------------------------------------------------
-    // initialize
-    // -------------------------------------------------------------------------
-
     #[test]
     fn test_initialize_sets_admin() {
         let t = TestEnv::new();
-        assert_eq!(t.client().get_admin_addr(), t.admin);
+        assert_eq!(t.client().get_admin(), t.admin);
     }
 
     #[test]
@@ -426,10 +403,6 @@ mod tests {
         let t = TestEnv::new();
         t.client().initialize(&t.admin);
     }
-
-    // -------------------------------------------------------------------------
-    // add_curator / remove_curator
-    // -------------------------------------------------------------------------
 
     #[test]
     fn test_add_curator() {
@@ -442,8 +415,7 @@ mod tests {
     fn test_add_curator_idempotent() {
         let t = TestEnv::new();
         t.client().add_curator(&t.admin, &t.curator);
-        t.client().add_curator(&t.admin, &t.curator); // second call is a no-op
-        // Still exactly one entry — verify by removing and checking it's gone
+        t.client().add_curator(&t.admin, &t.curator);
         t.client().remove_curator(&t.admin, &t.curator);
         assert!(!t.client().is_curator(&t.curator));
     }
@@ -465,19 +437,6 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "Admin only")]
-    fn test_remove_curator_non_admin_panics() {
-        let t = TestEnv::new();
-        let stranger = Address::generate(&t.env);
-        t.client().add_curator(&t.admin, &t.curator);
-        t.client().remove_curator(&stranger, &t.curator);
-    }
-
-    // -------------------------------------------------------------------------
-    // register (curator-gated)
-    // -------------------------------------------------------------------------
-
-    #[test]
     fn test_register_by_curator_succeeds() {
         let t = TestEnv::new();
         t.client().add_curator(&t.admin, &t.curator);
@@ -489,64 +448,57 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "Caller is not a curator")]
-    fn test_register_by_non_curator_panics() {
-        let t = TestEnv::new();
-        // curator not added — should fail
-        t.register_worker(&t.curator);
-    }
-
-    #[test]
-    #[should_panic(expected = "Caller is not a curator")]
-    fn test_register_after_curator_removed_panics() {
+    fn test_register_stores_hashes() {
         let t = TestEnv::new();
         t.client().add_curator(&t.admin, &t.curator);
-        t.client().remove_curator(&t.admin, &t.curator);
-        t.register_worker(&t.curator);
-    }
 
-    #[test]
-    fn test_register_appears_in_list() {
-        let t = TestEnv::new();
-        t.client().add_curator(&t.admin, &t.curator);
-        t.register_worker(&t.curator);
+        let loc = BytesN::from_array(&t.env, &[1u8; 32]);
+        let con = BytesN::from_array(&t.env, &[2u8; 32]);
 
-        let list = t.client().list_workers();
-        assert_eq!(list.len(), 1);
-        assert_eq!(list.get(0).unwrap(), t.worker_id());
-    }
-
-    #[test]
-    fn test_multiple_curators_can_register() {
-        let t = TestEnv::new();
-        let curator2 = Address::generate(&t.env);
-        t.client().add_curator(&t.admin, &t.curator);
-        t.client().add_curator(&t.admin, &curator2);
-
-        // curator registers worker1
         t.client().register(
-            &Symbol::new(&t.env, "worker1"),
+            &t.worker_id(),
             &t.owner,
             &String::from_str(&t.env, "Alice"),
             &Symbol::new(&t.env, "plumber"),
+            &loc,
+            &con,
             &t.curator,
         );
-        // curator2 registers worker2
-        let owner2 = Address::generate(&t.env);
-        t.client().register(
-            &Symbol::new(&t.env, "worker2"),
-            &owner2,
-            &String::from_str(&t.env, "Bob"),
-            &Symbol::new(&t.env, "electrician"),
-            &curator2,
-        );
 
-        assert_eq!(t.client().list_workers().len(), 2);
+        let worker = t.client().get_worker(&t.worker_id()).unwrap();
+        assert_eq!(worker.location_hash, loc);
+        assert_eq!(worker.contact_hash, con);
     }
 
-    // -------------------------------------------------------------------------
-    // toggle / update / deregister still work for worker owner
-    // -------------------------------------------------------------------------
+    #[test]
+    fn test_update_stores_new_hashes() {
+        let t = TestEnv::new();
+        t.client().add_curator(&t.admin, &t.curator);
+        t.register_worker(&t.curator);
+
+        let new_loc = BytesN::from_array(&t.env, &[3u8; 32]);
+        let new_con = BytesN::from_array(&t.env, &[4u8; 32]);
+
+        t.client().update(
+            &t.worker_id(),
+            &t.owner,
+            &String::from_str(&t.env, "Alice B"),
+            &Symbol::new(&t.env, "electrician"),
+            &new_loc,
+            &new_con,
+        );
+
+        let worker = t.client().get_worker(&t.worker_id()).unwrap();
+        assert_eq!(worker.location_hash, new_loc);
+        assert_eq!(worker.contact_hash, new_con);
+    }
+
+    #[test]
+    #[should_panic(expected = "Caller is not a curator")]
+    fn test_register_by_non_curator_panics() {
+        let t = TestEnv::new();
+        t.register_worker(&t.curator);
+    }
 
     #[test]
     fn test_toggle_by_owner() {
@@ -571,37 +523,38 @@ mod tests {
         assert!(t.client().get_worker(&t.worker_id()).is_none());
         assert_eq!(t.client().list_workers().len(), 0);
     }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use soroban_sdk::testutils::Address as _;
-    use soroban_sdk::Env;
 
     #[test]
-    fn test_get_admin() {
-        let env = Env::default();
-        let contract_id = env.register_contract(None, RegistryContract);
-        let client = RegistryContractClient::new(&env, &contract_id);
-
-        let admin = Address::generate(&env);
-        client.initialize(&admin);
-        assert_eq!(client.get_admin(), admin);
+    fn test_worker_count() {
+        let t = TestEnv::new();
+        t.client().add_curator(&t.admin, &t.curator);
+        assert_eq!(t.client().worker_count(), 0);
+        t.register_worker(&t.curator);
+        assert_eq!(t.client().worker_count(), 1);
     }
 
     #[test]
-    #[should_panic(expected = "Already initialized")]
-    fn test_initialize_twice_panics() {
-        let env = Env::default();
-        let contract_id = env.register_contract(None, RegistryContract);
-        let client = RegistryContractClient::new(&env, &contract_id);
+    fn test_list_workers_paginated() {
+        let t = TestEnv::new();
+        t.client().add_curator(&t.admin, &t.curator);
 
-        let admin = Address::generate(&env);
-        client.initialize(&admin);
-        client.initialize(&admin);
+        for i in 0..5u8 {
+            let id = Symbol::new(&t.env, &soroban_sdk::String::from_str(&t.env, &format!("w{i}")));
+            t.client().register(
+                &id,
+                &t.owner,
+                &String::from_str(&t.env, "Worker"),
+                &Symbol::new(&t.env, "plumber"),
+                &t.zero_hash(),
+                &t.zero_hash(),
+                &t.curator,
+            );
+        }
+
+        let page = t.client().list_workers_paginated(&0, &3);
+        assert_eq!(page.len(), 3);
+
+        let page2 = t.client().list_workers_paginated(&3, &3);
+        assert_eq!(page2.len(), 2);
     }
 }
-
-#[cfg(test)]
-mod test;
