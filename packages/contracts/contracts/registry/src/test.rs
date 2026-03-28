@@ -219,6 +219,65 @@ fn test_list_workers_after_toggle_still_listed() {
 }
 
 // ---------------------------------------------------------------------------
+// transfer_ownership
+// ---------------------------------------------------------------------------
+
+#[test]
+fn test_transfer_ownership_updates_owner() {
+    let (env, contract) = setup();
+    let owner = Address::generate(&env);
+    let new_owner = Address::generate(&env);
+    make_worker(&env, &contract, "w1", &owner);
+
+    let client = RegistryContractClient::new(&env, &contract);
+    client.transfer_ownership(&Symbol::new(&env, "w1"), &owner, &new_owner);
+
+    let worker = client.get_worker(&Symbol::new(&env, "w1")).unwrap();
+    assert_eq!(worker.owner, new_owner);
+    assert_eq!(worker.wallet, new_owner);
+}
+
+#[test]
+fn test_transfer_ownership_old_owner_loses_control() {
+    let (env, contract) = setup();
+    let owner = Address::generate(&env);
+    let new_owner = Address::generate(&env);
+    make_worker(&env, &contract, "w1", &owner);
+
+    let client = RegistryContractClient::new(&env, &contract);
+    client.transfer_ownership(&Symbol::new(&env, "w1"), &owner, &new_owner);
+
+    // new owner can toggle
+    client.toggle(&Symbol::new(&env, "w1"), &new_owner);
+    assert!(!client.get_worker(&Symbol::new(&env, "w1")).unwrap().is_active);
+}
+
+#[test]
+#[should_panic(expected = "Not authorized")]
+fn test_transfer_ownership_non_owner_panics() {
+    let (env, contract) = setup();
+    let owner = Address::generate(&env);
+    let stranger = Address::generate(&env);
+    let new_owner = Address::generate(&env);
+    make_worker(&env, &contract, "w1", &owner);
+
+    let client = RegistryContractClient::new(&env, &contract);
+    client.transfer_ownership(&Symbol::new(&env, "w1"), &stranger, &new_owner);
+}
+
+#[test]
+#[should_panic(expected = "Worker not found")]
+fn test_transfer_ownership_nonexistent_worker_panics() {
+    let (env, contract) = setup();
+    let owner = Address::generate(&env);
+    let new_owner = Address::generate(&env);
+
+    let client = RegistryContractClient::new(&env, &contract);
+    client.transfer_ownership(&Symbol::new(&env, "ghost"), &owner, &new_owner);
+}
+
+#[test]
+fn test_transfer_ownership_to_self_is_noop() {
 // worker_count
 // ---------------------------------------------------------------------------
 
@@ -313,6 +372,24 @@ fn test_paginated_limit_zero_returns_empty() {
     make_worker(&env, &contract, "w1", &owner);
 
     let client = RegistryContractClient::new(&env, &contract);
+    client.transfer_ownership(&Symbol::new(&env, "w1"), &owner, &owner);
+
+    assert_eq!(client.get_worker(&Symbol::new(&env, "w1")).unwrap().owner, owner);
+}
+
+#[test]
+fn test_transfer_ownership_twice() {
+    let (env, contract) = setup();
+    let owner = Address::generate(&env);
+    let second = Address::generate(&env);
+    let third = Address::generate(&env);
+    make_worker(&env, &contract, "w1", &owner);
+
+    let client = RegistryContractClient::new(&env, &contract);
+    client.transfer_ownership(&Symbol::new(&env, "w1"), &owner, &second);
+    client.transfer_ownership(&Symbol::new(&env, "w1"), &second, &third);
+
+    assert_eq!(client.get_worker(&Symbol::new(&env, "w1")).unwrap().owner, third);
     let page = client.list_workers_paginated(&0, &0);
     assert_eq!(page.len(), 0);
 }

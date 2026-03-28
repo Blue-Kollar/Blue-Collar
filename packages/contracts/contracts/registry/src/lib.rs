@@ -3,6 +3,7 @@
 
 #![no_std]
 
+use soroban_sdk::{contract, contractimpl, contracttype, symbol_short, Address, Env, String, Symbol, Vec};
 use bluecollar_types::Worker;
 use soroban_sdk::{contract, contractimpl, contracttype, Address, Env, String, Symbol, Vec};
 
@@ -309,6 +310,32 @@ impl RegistryContract {
             .unwrap_or(Vec::new(&env))
     }
 
+    /// Transfer ownership of a worker listing to a new address.
+    ///
+    /// Only the current owner may call this. Updates `worker.owner` and
+    /// `worker.wallet` to `new_owner`.
+    ///
+    /// Emits: OwnXfer
+    pub fn transfer_ownership(env: Env, id: Symbol, current_owner: Address, new_owner: Address) {
+        current_owner.require_auth();
+
+        let mut worker: Worker = env
+            .storage()
+            .persistent()
+            .get(&DataKey::Worker(id.clone()))
+            .expect("Worker not found");
+
+        assert!(worker.owner == current_owner, "Not authorized");
+
+        worker.owner = new_owner.clone();
+        worker.wallet = new_owner.clone();
+        env.storage().persistent().set(&DataKey::Worker(id.clone()), &worker);
+
+        // topics: ("OwnXfer", id, current_owner)  data: new_owner
+        env.events().publish(
+            (symbol_short!("OwnXfer"), id, current_owner),
+            new_owner,
+        );
     /// Return a page of worker ids starting at `offset`, up to `limit` items.
     ///
     /// - If `offset` >= total count, returns an empty vec.
