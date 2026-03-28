@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import WorkerCard from "@/components/WorkerCard";
-import type { Worker, Category, ApiResponse, Meta } from "@/types";
+import type { Worker, Category, ApiResponse } from "@/types";
 
 export const metadata: Metadata = {
   title: "Browse Workers",

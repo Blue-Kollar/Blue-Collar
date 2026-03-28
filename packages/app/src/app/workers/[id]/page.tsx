@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { BadgeCheck, MapPin, Mail, Phone, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import TipModal from "@/components/TipModal";
+import TransactionHistory from "@/components/TransactionHistory";
 import type { Worker, ApiResponse } from "@/types";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/api";
@@ -122,15 +123,18 @@ export default async function WorkerProfilePage({
         {/* Tip section */}
         <div className="mt-8 border-t pt-6">
           {worker.walletAddress ? (
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-700">Support this worker</p>
-                <p className="text-xs text-gray-400 mt-0.5">
-                  Send XLM directly to their Stellar wallet
-                </p>
+            <>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-700">Support this worker</p>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    Send XLM directly to their Stellar wallet
+                  </p>
+                </div>
+                <TipModal workerName={worker.name} walletAddress={worker.walletAddress} />
               </div>
-              <TipModal workerName={worker.name} walletAddress={worker.walletAddress} />
-            </div>
+              <TransactionHistory walletAddress={worker.walletAddress} />
+            </>
           ) : (
             <p className="text-sm text-gray-400 italic">
               This worker hasn&apos;t connected a wallet yet.

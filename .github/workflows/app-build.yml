@@ -1,0 +1,45 @@
+name: App Build
+
+on:
+  pull_request:
+
+env:
+  PNPM_VERSION: 9
+
+jobs:
+  build:
+    name: Next.js Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/app
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        working-directory: .
+
+      - name: Restore Next.js cache
+        uses: actions/cache@v4
+        with:
+          path: packages/app/.next/cache
+          key: nextjs-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('packages/app/src/**') }}
+          restore-keys: |
+            nextjs-${{ runner.os }}-
+
+      - name: Build
+        run: pnpm build
+        env:
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}

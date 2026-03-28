@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -10,7 +10,7 @@ import { resetPasswordSchema, type ResetPasswordInput, authApi } from "@/lib/aut
 import FormField from "@/components/FormField";
 import { cn } from "@/lib/utils";
 
-export default function ResetPasswordPage() {
+function ResetPasswordForm() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const token = searchParams.get("token");
@@ -35,7 +35,6 @@ export default function ResetPasswordPage() {
     }
   };
 
-  // No token in URL
   if (!token) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
@@ -67,9 +66,7 @@ export default function ResetPasswordPage() {
               <CheckCircle2 size={28} className="text-green-500" />
             </div>
             <h1 className="text-xl font-bold text-gray-900">Password updated</h1>
-            <p className="mt-2 text-sm text-gray-500">
-              Redirecting you to sign in…
-            </p>
+            <p className="mt-2 text-sm text-gray-500">Redirecting you to sign in…</p>
           </div>
         ) : (
           <>
@@ -132,5 +129,13 @@ export default function ResetPasswordPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense>
+      <ResetPasswordForm />
+    </Suspense>
   );
 }

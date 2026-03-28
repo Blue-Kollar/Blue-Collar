@@ -8,12 +8,12 @@ interface Category {
 }
 
 async function getCategories(): Promise<Category[]> {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/categories`, {
-    cache: 'force-cache',
-  })
-  if (!res.ok) return []
-  const json = await res.json()
-  return json.data
+  const base = process.env.NEXT_PUBLIC_API_URL;
+  if (!base) return [];
+  const res = await fetch(`${base}/api/categories`, { cache: "force-cache" });
+  if (!res.ok) return [];
+  const json = await res.json();
+  return json.data;
 }
 
 export default async function Categories() {

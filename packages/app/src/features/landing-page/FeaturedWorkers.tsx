@@ -9,12 +9,12 @@ interface Worker {
 }
 
 async function getFeaturedWorkers(): Promise<Worker[]> {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/workers?limit=6`, {
-    cache: 'force-cache',
-  })
-  if (!res.ok) return []
-  const json = await res.json()
-  return json.data
+  const base = process.env.NEXT_PUBLIC_API_URL;
+  if (!base) return [];
+  const res = await fetch(`${base}/api/workers?limit=6`, { cache: "force-cache" });
+  if (!res.ok) return [];
+  const json = await res.json();
+  return json.data;
 }
 
 export default async function FeaturedWorkers() {

@@ -16,9 +16,10 @@ import { cn } from "@/lib/utils";
 const NETWORK_PASSPHRASE = "Test SDF Network ; September 2015";
 const HORIZON_URL = "https://horizon-testnet.stellar.org";
 const SOROBAN_RPC = "https://soroban-testnet.stellar.org";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- reserved for Soroban contract path
 const MARKET_CONTRACT_ID = process.env.NEXT_PUBLIC_MARKET_CONTRACT_ID ?? "";
-// XLM native asset contract on testnet
-const XLM_TOKEN_CONTRACT = "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC";
+// XLM native asset contract on testnet — reserved for future Soroban path
+// const XLM_TOKEN_CONTRACT = "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC";
 const STROOPS_PER_XLM = 10_000_000n;
 const EXPLORER_BASE = "https://stellar.expert/explorer/testnet/tx";
 
@@ -309,7 +310,7 @@ async function buildTipTxXdr(
   amountStroops: bigint
 ): Promise<string> {
   const StellarSdk = await import("@stellar/stellar-sdk");
-  const { Keypair, TransactionBuilder, Networks, Operation, Asset, BASE_FEE } = StellarSdk;
+  const { Keypair: _Keypair, TransactionBuilder, Networks: _Networks, Operation, Asset, BASE_FEE } = StellarSdk;
 
   const server = new StellarSdk.Horizon.Server(HORIZON_URL);
   const account = await server.loadAccount(from);

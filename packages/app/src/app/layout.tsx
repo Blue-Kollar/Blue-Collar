@@ -15,6 +15,12 @@ export const metadata: Metadata = {
   description:
     "Connect with trusted local tradespeople on a decentralised Stellar-powered platform.",
   keywords: ["skilled workers", "tradespeople", "Stellar", "blockchain", "local services"],
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon.svg", type: "image/svg+xml" },
+    ],
+  },
   openGraph: {
     type: "website",
     siteName: "BlueCollar",

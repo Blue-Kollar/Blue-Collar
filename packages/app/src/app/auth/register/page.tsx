@@ -23,7 +23,7 @@ export default function RegisterPage() {
   const onSubmit = async (data: RegisterInput) => {
     setApiError(null);
     try {
-      const { confirmPassword: _, ...payload } = data;
+      const { confirmPassword: _confirmPassword, ...payload } = data;
       await authApi.register(payload);
       router.push("/auth/verify-email");
     } catch (err: unknown) {

@@ -8,7 +8,7 @@ import { Loader2, Upload, X } from "lucide-react";
 import FormField from "@/components/FormField";
 import { cn } from "@/lib/utils";
 import { getCategories } from "@/lib/api";
-import type { Category, Worker } from "@/types";
+import type { Category } from "@/types";
 
 // ─── Schema ───────────────────────────────────────────────────────────────────
 
