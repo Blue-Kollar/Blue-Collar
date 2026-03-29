@@ -1,5 +1,21 @@
-//! BlueCollar Registry Contract
-//! Deployed on Stellar (Soroban) — manages worker registrations on-chain.
+//! # BlueCollar Registry Contract
+//!
+//! Deployed on Stellar (Soroban), this contract manages on-chain worker registrations
+//! for the BlueCollar protocol. It provides a trustless, immutable record of worker
+//! listings that can be verified by anyone on the network.
+//!
+//! ## Access Control
+//! - **Admin**: Set once at [`initialize`]. Can add/remove curators and upgrade the contract.
+//! - **Curators**: Approved addresses that may register workers on behalf of owners.
+//! - **Owners**: The worker's on-chain owner address; may toggle, update, or deregister their own worker.
+//!
+//! ## Storage
+//! - Instance storage: `Admin` key (set once).
+//! - Persistent storage: `Curators` list, individual `Worker` entries, and `WorkerList` index.
+//!
+//! ## Privacy
+//! Raw PII (location, contact details) is never stored on-chain.
+//! Only SHA-256 digests are stored — see `location_hash` and `contact_hash` on [`Worker`].
 
 #![no_std]
 
@@ -8,27 +24,33 @@ use soroban_sdk::{
 };
 use bluecollar_types::Worker;
 
-/// ~1 year in ledgers (5s per ledger)
+/// Approximate TTL extension target (~1 year at 5 s/ledger).
 const TTL_EXTEND_TO: u32 = 535_000;
-/// Extend when TTL drops below ~6 months
+/// Extend TTL only when it drops below this threshold (~6 months).
 const TTL_THRESHOLD: u32 = 267_500;
 
 // =============================================================================
 // Types
 // =============================================================================
 
-/// On-chain worker profile.
+/// On-chain worker profile stored in persistent contract storage.
 ///
 /// `location_hash` and `contact_hash` are SHA-256 digests — raw PII is never
 /// stored on-chain. See README § Hashing Scheme for the exact input format.
 #[contracttype]
 #[derive(Clone)]
 pub struct Worker {
+    /// Unique worker identifier (matches the off-chain database id).
     pub id: Symbol,
+    /// Stellar address of the worker's owner account.
     pub owner: Address,
+    /// Display name of the worker.
     pub name: String,
+    /// Trade/skill category (e.g. `plumber`, `electrician`).
     pub category: Symbol,
+    /// Whether the worker is currently accepting work.
     pub is_active: bool,
+    /// Stellar wallet address used to receive tips/payments.
     pub wallet: Address,
     /// SHA-256( lowercase(city) + ":" + lowercase(country_iso2) )
     pub location_hash: BytesN<32>,
@@ -36,15 +58,16 @@ pub struct Worker {
     pub contact_hash: BytesN<32>,
 }
 
+/// Storage keys used throughout the contract.
 #[contracttype]
 pub enum DataKey {
-    /// Instance storage — set once at initialize
+    /// Instance storage — admin address, set once at [`RegistryContract::initialize`].
     Admin,
-    /// Persistent storage — set of curator addresses
+    /// Persistent storage — ordered list of approved curator [`Address`]es.
     Curators,
-    /// Persistent storage — worker record keyed by id
+    /// Persistent storage — [`Worker`] record keyed by its `id` [`Symbol`].
     Worker(Symbol),
-    /// Persistent storage — ordered list of worker ids
+    /// Persistent storage — ordered list of all registered worker id [`Symbol`]s.
     WorkerList,
 }
 
@@ -61,7 +84,13 @@ impl RegistryContract {
     // Init
     // -------------------------------------------------------------------------
 
-    /// Initialise the contract and set the admin address. Panics if already initialised.
+    /// Initialise the contract and set the admin address.
+    ///
+    /// # Parameters
+    /// - `admin`: The address that will have admin privileges.
+    ///
+    /// # Panics
+    /// Panics with `"Already initialized"` if called more than once.
     pub fn initialize(env: Env, admin: Address) {
         assert!(
             !env.storage().instance().has(&DataKey::Admin),
@@ -74,11 +103,16 @@ impl RegistryContract {
     // Internal helpers
     // -------------------------------------------------------------------------
 
+    /// Assert that `caller` is the admin and has authorised this call.
+    ///
+    /// # Panics
+    /// Panics with `"Admin only"` if `caller` is not the stored admin.
     fn require_admin(env: &Env, caller: &Address) {
         caller.require_auth();
         assert!(*caller == Self::get_admin(env.clone()), "Admin only");
     }
 
+    /// Return the current curator list, or an empty vec if none have been added yet.
     fn get_curators(env: &Env) -> Vec<Address> {
         env.storage()
             .persistent()
@@ -91,7 +125,16 @@ impl RegistryContract {
     // -------------------------------------------------------------------------
 
     /// Add a curator (admin only). Idempotent — adding an existing curator is a no-op.
-    /// Emits: CuratorAdded
+    ///
+    /// # Parameters
+    /// - `admin`: Must be the contract admin; `require_auth()` is enforced.
+    /// - `curator`: Address to grant curator privileges.
+    ///
+    /// # Panics
+    /// Panics with `"Admin only"` if `admin` is not the stored admin.
+    ///
+    /// # Events
+    /// Emits `("CurAdd", admin, curator)`.
     pub fn add_curator(env: Env, admin: Address, curator: Address) {
         Self::require_admin(&env, &admin);
 
@@ -105,7 +148,16 @@ impl RegistryContract {
     }
 
     /// Remove a curator (admin only).
-    /// Emits: CuratorRemoved
+    ///
+    /// # Parameters
+    /// - `admin`: Must be the contract admin; `require_auth()` is enforced.
+    /// - `curator`: Address to revoke curator privileges from.
+    ///
+    /// # Panics
+    /// Panics with `"Admin only"` if `admin` is not the stored admin.
+    ///
+    /// # Events
+    /// Emits `("CurRem", admin, curator)`.
     pub fn remove_curator(env: Env, admin: Address, curator: Address) {
         Self::require_admin(&env, &admin);
 
@@ -121,7 +173,10 @@ impl RegistryContract {
         env.events().publish((symbol_short!("CurRem"), admin, curator), ());
     }
 
-    /// Returns true if the address is an approved curator.
+    /// Returns `true` if `addr` is an approved curator.
+    ///
+    /// # Parameters
+    /// - `addr`: The address to check.
     pub fn is_curator(env: Env, addr: Address) -> bool {
         Self::get_curators(&env).iter().any(|c| c == addr)
     }
@@ -132,10 +187,23 @@ impl RegistryContract {
 
     /// Register a new worker on-chain. Caller must be an authorised curator.
     ///
-    /// `location_hash` — SHA-256(lowercase(city) + ":" + lowercase(country_iso2))
-    /// `contact_hash`  — SHA-256(lowercase(email) or E.164 phone)
+    /// Automatically extends the TTL of the new worker entry and the worker list
+    /// to [`TTL_EXTEND_TO`] ledgers if below [`TTL_THRESHOLD`].
     ///
-    /// Emits: WorkerRegistered
+    /// # Parameters
+    /// - `id`: Unique worker identifier (must not already exist).
+    /// - `owner`: Stellar address of the worker's owner.
+    /// - `name`: Display name.
+    /// - `category`: Trade category symbol.
+    /// - `location_hash`: SHA-256(lowercase(city) + ":" + lowercase(country_iso2)).
+    /// - `contact_hash`: SHA-256(lowercase(email) or E.164 phone).
+    /// - `curator`: Must be an approved curator; `require_auth()` is enforced.
+    ///
+    /// # Panics
+    /// Panics with `"Caller is not a curator"` if `curator` is not in the curator list.
+    ///
+    /// # Events
+    /// Emits `("WrkReg", id)` with data `(owner, category)`.
     pub fn register(
         env: Env,
         id: Symbol,
@@ -187,8 +255,18 @@ impl RegistryContract {
     // Worker owner functions
     // -------------------------------------------------------------------------
 
-    /// Toggle a worker's active status (owner only).
-    /// Emits: WorkerToggled
+    /// Toggle a worker's `is_active` status. Only the worker's owner may call this.
+    ///
+    /// # Parameters
+    /// - `id`: The worker's unique identifier.
+    /// - `caller`: Must be the worker's `owner`; `require_auth()` is enforced.
+    ///
+    /// # Panics
+    /// - `"Worker not found"` if no worker exists with the given `id`.
+    /// - `"Not authorized"` if `caller` is not the worker's owner.
+    ///
+    /// # Events
+    /// Emits `("WrkTgl", id)` with data `new_is_active: bool`.
     pub fn toggle(env: Env, id: Symbol, caller: Address) {
         caller.require_auth();
         let mut worker: Worker = env
@@ -204,11 +282,24 @@ impl RegistryContract {
         env.events().publish((symbol_short!("WrkTgl"), id), new_status);
     }
 
-    /// Update a worker's name, category, location hash, and contact hash (owner only).
+    /// Update a worker's name, category, location hash, and contact hash. Owner only.
     ///
-    /// Pass the existing hash values unchanged if only updating name/category.
+    /// Pass existing hash values unchanged if only updating name/category.
     ///
-    /// Emits: WorkerUpdated
+    /// # Parameters
+    /// - `id`: The worker's unique identifier.
+    /// - `caller`: Must be the worker's `owner`; `require_auth()` is enforced.
+    /// - `name`: New display name.
+    /// - `category`: New trade category symbol.
+    /// - `location_hash`: New or unchanged location hash.
+    /// - `contact_hash`: New or unchanged contact hash.
+    ///
+    /// # Panics
+    /// - `"Worker not found"` if no worker exists with the given `id`.
+    /// - `"Not authorized"` if `caller` is not the worker's owner.
+    ///
+    /// # Events
+    /// Emits `("WrkUpd", id)` with data `(name, category)`.
     pub fn update(
         env: Env,
         id: Symbol,
@@ -239,51 +330,21 @@ impl RegistryContract {
         );
     }
 
-    /// Permanently remove a worker from the registry (owner only).
-    /// Emits: WorkerDeregistered
-    pub fn deregister(env: Env, id: Symbol, caller: Address) {
-        caller.require_auth();
-        let worker: Worker = env
-            .storage()
-            .persistent()
-            .get(&DataKey::Worker(id.clone()))
-            .expect("Worker not found");
-        assert!(worker.owner == caller, "Not authorized");
-        env.storage().persistent().remove(&DataKey::Worker(id.clone()));
-
-        let mut list: Vec<Symbol> = env
-            .storage()
-            .persistent()
-            .get(&DataKey::WorkerList)
-            .unwrap_or(Vec::new(&env));
-        if let Some(pos) = list.iter().position(|x| x == id) {
-            list.remove(pos as u32);
-        }
-        env.storage().persistent().set(&DataKey::WorkerList, &list);
-
-        env.events().publish((symbol_short!("WrkDrg"), id), caller);
-    }
-
-    // -------------------------------------------------------------------------
-    // Views
-    // -------------------------------------------------------------------------
-
-    /// Get a worker by id. Returns None if not found.
-    pub fn get_worker(env: Env, id: Symbol) -> Option<Worker> {
-        env.storage().persistent().get(&DataKey::Worker(id))
-    }
-
-    /// List all registered worker ids. Prefer `list_workers_paginated` for large registries.
-    pub fn list_workers(env: Env) -> Vec<Symbol> {
-        env.storage()
-            .persistent()
-            .get(&DataKey::WorkerList)
-            .unwrap_or(Vec::new(&env))
-    }
-
-    /// Update a worker's name, category, and wallet address (owner only).
+    /// Update a worker's name, category, and wallet address. Owner only.
     ///
-    /// Emits: WrkUpd
+    /// # Parameters
+    /// - `id`: The worker's unique identifier.
+    /// - `caller`: Must be the worker's `owner`; `require_auth()` is enforced.
+    /// - `name`: New display name.
+    /// - `category`: New trade category symbol.
+    /// - `wallet`: New Stellar wallet address for receiving payments.
+    ///
+    /// # Panics
+    /// - `"Worker not found"` if no worker exists with the given `id`.
+    /// - `"Not authorized"` if `caller` is not the worker's owner.
+    ///
+    /// # Events
+    /// Emits `("WrkUpd", id, caller)` with data `(name, category, wallet)`.
     pub fn update_worker(
         env: Env,
         id: Symbol,
@@ -307,12 +368,86 @@ impl RegistryContract {
         worker.wallet = wallet.clone();
         env.storage().persistent().set(&DataKey::Worker(id.clone()), &worker);
 
-        // topics: ("WrkUpd", id, caller)  data: (name, category, wallet)
         env.events().publish(
             (symbol_short!("WrkUpd"), id, caller),
             (name, category, wallet),
         );
+    }
+
+    /// Permanently remove a worker from the registry. Owner only.
+    ///
+    /// Removes the worker entry from persistent storage and from the `WorkerList` index.
+    ///
+    /// # Parameters
+    /// - `id`: The worker's unique identifier.
+    /// - `caller`: Must be the worker's `owner`; `require_auth()` is enforced.
+    ///
+    /// # Panics
+    /// - `"Worker not found"` if no worker exists with the given `id`.
+    /// - `"Not authorized"` if `caller` is not the worker's owner.
+    ///
+    /// # Events
+    /// Emits `("WrkDrg", id, caller)`.
+    pub fn deregister(env: Env, id: Symbol, caller: Address) {
+        caller.require_auth();
+        let worker: Worker = env
+            .storage()
+            .persistent()
+            .get(&DataKey::Worker(id.clone()))
+            .expect("Worker not found");
+        assert!(worker.owner == caller, "Not authorized");
+        env.storage().persistent().remove(&DataKey::Worker(id.clone()));
+
+        let mut list: Vec<Symbol> = env
+            .storage()
+            .persistent()
+            .get(&DataKey::WorkerList)
+            .unwrap_or(Vec::new(&env));
+        if let Some(pos) = list.iter().position(|x| x == id) {
+            list.remove(pos as u32);
+        }
+        env.storage().persistent().set(&DataKey::WorkerList, &list);
+
+        env.events().publish(
+            (symbol_short!("WrkDrg"), id, caller),
+            (),
+        );
+    }
+
+    // -------------------------------------------------------------------------
+    // Views
+    // -------------------------------------------------------------------------
+
+    /// Get a worker by id.
+    ///
+    /// # Parameters
+    /// - `id`: The worker's unique identifier.
+    ///
+    /// # Returns
+    /// `Some(Worker)` if found, `None` otherwise.
+    pub fn get_worker(env: Env, id: Symbol) -> Option<Worker> {
+        env.storage().persistent().get(&DataKey::Worker(id))
+    }
+
+    /// List all registered worker ids.
+    ///
+    /// For large registries, prefer [`list_workers_paginated`] to avoid hitting
+    /// Soroban's read-entry limits.
+    pub fn list_workers(env: Env) -> Vec<Symbol> {
+        env.storage()
+            .persistent()
+            .get(&DataKey::WorkerList)
+            .unwrap_or(Vec::new(&env))
+    }
+
     /// Return a page of worker ids starting at `offset`, up to `limit` items.
+    ///
+    /// # Parameters
+    /// - `offset`: Zero-based index of the first item to return.
+    /// - `limit`: Maximum number of items to return.
+    ///
+    /// # Returns
+    /// A [`Vec<Symbol>`] of worker ids. Returns an empty vec if `offset >= total`.
     pub fn list_workers_paginated(env: Env, offset: u32, limit: u32) -> Vec<Symbol> {
         let list: Vec<Symbol> = env
             .storage()
@@ -341,25 +476,18 @@ impl RegistryContract {
             .persistent()
             .get(&DataKey::WorkerList)
             .unwrap_or(Vec::new(&env));
-        if let Some(pos) = list.iter().position(|x| x == id) {
-            list.remove(pos as u32);
-        }
-        env.storage().persistent().set(&DataKey::WorkerList, &list);
-
-        // topics: ("WrkDrg", id, caller)  data: ()
-        env.events().publish(
-            (symbol_short!("WrkDrg"), id, caller),
-            (),
-        );
         list.len()
     }
 
-    /// Returns true if the contract has been initialised.
+    /// Returns `true` if the contract has been initialised.
     pub fn is_initialized(env: Env) -> bool {
         env.storage().instance().has(&DataKey::Admin)
     }
 
-    /// Get the admin address. Panics if not initialised.
+    /// Get the admin address.
+    ///
+    /// # Panics
+    /// Panics with `"Not initialized"` if [`initialize`] has not been called.
     pub fn get_admin(env: Env) -> Address {
         env.storage()
             .instance()
@@ -367,7 +495,18 @@ impl RegistryContract {
             .expect("Not initialized")
     }
 
-    /// Upgrade the contract WASM (admin only).
+    // -------------------------------------------------------------------------
+    // Upgrade
+    // -------------------------------------------------------------------------
+
+    /// Upgrade the contract WASM in-place, preserving the contract ID and all storage.
+    ///
+    /// # Parameters
+    /// - `admin`: Must be the contract admin; `require_auth()` is enforced.
+    /// - `new_wasm_hash`: The hash returned by `stellar contract install` for the new WASM.
+    ///
+    /// # Panics
+    /// Panics with `"Admin only"` if `admin` is not the stored admin.
     pub fn upgrade(env: Env, admin: Address, new_wasm_hash: BytesN<32>) {
         admin.require_auth();
         assert!(admin == Self::get_admin(env.clone()), "Admin only");
