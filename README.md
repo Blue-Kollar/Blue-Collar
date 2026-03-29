@@ -26,6 +26,8 @@ Many skilled workers lack a platform to help them get noticed. Meanwhile, countl
 - [Quick Start Guide](packages/api/QUICK_START_GUIDE.md)
 - [API Documentation](packages/api/DOCUMENTATION.json)
 - [Security Policy](packages/api/SECURITY.md)
+- [Contributing Guide](CONTRIBUTING.md)
+- [Code of Conduct](CODE_OF_CONDUCT.md)
 - [Frontend Contributing Guide](packages/app/CONTRIBUTING.md)
 
 ---
