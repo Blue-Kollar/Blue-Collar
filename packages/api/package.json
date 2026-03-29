@@ -55,7 +55,7 @@
     "@types/jsonwebtoken": "^9.0.9",
     "@types/method-override": "^3.0.0",
     "@types/multer": "^1",
-    "@types/node": "^22.0.0",
+    "@types/node": "^25.5.0",
     "@types/nodemailer": "^6",
     "@types/passport": "^0",
     "@types/passport-google-oauth20": "^2",
