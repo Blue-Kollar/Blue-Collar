@@ -1,0 +1,51 @@
+{
+  "common": {
+    "home": "Inicio",
+    "about": "Acerca de",
+    "workers": "Trabajadores",
+    "dashboard": "Panel de control",
+    "logout": "Cerrar sesión",
+    "login": "Iniciar sesión",
+    "register": "Registrarse",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "loading": "Cargando...",
+    "error": "Error",
+    "success": "Éxito",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "back": "Atrás"
+  },
+  "workers": {
+    "title": "Encontrar trabajadores calificados",
+    "description": "Descubre trabajadores de confianza en tu área",
+    "noResults": "No se encontraron trabajadores",
+    "availability": "Disponibilidad",
+    "contact": "Contactar",
+    "verified": "Verificado On-Chain",
+    "rating": "Calificación",
+    "reviews": "Reseñas"
+  },
+  "auth": {
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "firstName": "Nombre",
+    "lastName": "Apellido",
+    "loginTitle": "Iniciar sesión en BlueCollar",
+    "registerTitle": "Crear cuenta",
+    "forgotPassword": "¿Olvidó su contraseña?",
+    "noAccount": "¿No tienes cuenta?",
+    "haveAccount": "¿Ya tienes cuenta?",
+    "signInWithGoogle": "Iniciar sesión con Google"
+  },
+  "dashboard": {
+    "title": "Panel de control",
+    "myWorkers": "Mis trabajadores",
+    "bookmarks": "Favoritos",
+    "contactRequests": "Solicitudes de contacto",
+    "createWorker": "Crear trabajador",
+    "noWorkers": "Sin trabajadores aún"
+  }
+}

@@ -44,6 +44,7 @@ model User {
   workers       Worker[]
   bookmarks     Bookmark[]
   reviews       Review[]
+  contactRequests ContactRequest[]
 }
 
 model Category {
@@ -57,25 +58,28 @@ model Category {
 }
 
 model Worker {
-  id            String     @id @default(cuid())
-  name          String
-  bio           String?
-  avatar        String?
-  phone         String?
-  email         String?
-  walletAddress String?
-  isActive      Boolean    @default(true)
-  isVerified    Boolean    @default(false)
-  categoryId    String
-  category      Category   @relation(fields: [categoryId], references: [id])
-  curatorId     String
-  curator       User       @relation(fields: [curatorId], references: [id])
-  locationId    String?
-  location      Location?  @relation(fields: [locationId], references: [id])
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
-  bookmarks     Bookmark[]
-  reviews       Review[]
+  id                  String          @id @default(cuid())
+  name                String
+  bio                 String?
+  avatar              String?
+  phone               String?
+  email               String?
+  walletAddress       String?
+  isActive            Boolean         @default(true)
+  isVerified          Boolean         @default(false)
+  stellarContractId   String?
+  categoryId          String
+  category            Category        @relation(fields: [categoryId], references: [id])
+  curatorId           String
+  curator             User            @relation(fields: [curatorId], references: [id])
+  locationId          String?
+  location            Location?       @relation(fields: [locationId], references: [id])
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+  bookmarks           Bookmark[]
+  reviews             Review[]
+  availability        Availability[]
+  contactRequests     ContactRequest[]
 }
 
 model Bookmark {
@@ -100,6 +104,31 @@ model Review {
   author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
 
   @@unique([authorId, workerId])
+}
+
+model Availability {
+  id        String   @id @default(cuid())
+  workerId  String
+  dayOfWeek Int      // 0-6 (Sunday-Saturday)
+  startTime String   // HH:mm format
+  endTime   String   // HH:mm format
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  worker    Worker   @relation(fields: [workerId], references: [id], onDelete: Cascade)
+
+  @@unique([workerId, dayOfWeek])
+}
+
+model ContactRequest {
+  id        String   @id @default(cuid())
+  workerId  String
+  fromUserId String
+  message   String
+  status    String   @default("pending") // pending, accepted, declined
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  worker    Worker   @relation(fields: [workerId], references: [id], onDelete: Cascade)
+  fromUser  User     @relation(fields: [fromUserId], references: [id], onDelete: Cascade)
 }
 
 enum Role {

@@ -1,11 +1,25 @@
+import createMiddleware from 'next-intl/middleware'
 import { NextRequest, NextResponse } from "next/server";
 
 const PROTECTED = ["/dashboard"];
+const locales = ['en', 'fr', 'es']
+const defaultLocale = 'en'
+
+const intlMiddleware = createMiddleware({
+  locales,
+  defaultLocale,
+  localePrefix: 'always'
+})
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  const isProtected = PROTECTED.some((p) => pathname.startsWith(p));
-  if (!isProtected) return NextResponse.next();
+  
+  // Apply i18n middleware
+  const intlResponse = intlMiddleware(req)
+  
+  // Check protected routes
+  const isProtected = PROTECTED.some((p) => pathname.includes(p));
+  if (!isProtected) return intlResponse;
 
   const token =
     req.cookies.get("bc_token")?.value ??
@@ -13,14 +27,15 @@ export function middleware(req: NextRequest) {
 
   if (!token) {
     const loginUrl = req.nextUrl.clone();
-    loginUrl.pathname = "/auth/login";
+    const locale = pathname.split('/')[1] || defaultLocale
+    loginUrl.pathname = `/${locale}/auth/login`;
     loginUrl.searchParams.set("redirect", pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  return NextResponse.next();
+  return intlResponse;
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/api/proxy/:path*"],
+  matcher: ['/((?!api|_next|_vercel|.*\\..*).*)']
 };

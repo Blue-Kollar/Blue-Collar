@@ -1,0 +1,51 @@
+{
+  "common": {
+    "home": "Accueil",
+    "about": "À propos",
+    "workers": "Travailleurs",
+    "dashboard": "Tableau de bord",
+    "logout": "Déconnexion",
+    "login": "Connexion",
+    "register": "S'inscrire",
+    "search": "Rechercher",
+    "filter": "Filtrer",
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "success": "Succès",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "back": "Retour"
+  },
+  "workers": {
+    "title": "Trouver des travailleurs qualifiés",
+    "description": "Découvrez des travailleurs de confiance dans votre région",
+    "noResults": "Aucun travailleur trouvé",
+    "availability": "Disponibilité",
+    "contact": "Contacter",
+    "verified": "Vérifié On-Chain",
+    "rating": "Évaluation",
+    "reviews": "Avis"
+  },
+  "auth": {
+    "email": "E-mail",
+    "password": "Mot de passe",
+    "firstName": "Prénom",
+    "lastName": "Nom",
+    "loginTitle": "Connexion à BlueCollar",
+    "registerTitle": "Créer un compte",
+    "forgotPassword": "Mot de passe oublié?",
+    "noAccount": "Vous n'avez pas de compte?",
+    "haveAccount": "Vous avez déjà un compte?",
+    "signInWithGoogle": "Se connecter avec Google"
+  },
+  "dashboard": {
+    "title": "Tableau de bord",
+    "myWorkers": "Mes travailleurs",
+    "bookmarks": "Favoris",
+    "contactRequests": "Demandes de contact",
+    "createWorker": "Créer un travailleur",
+    "noWorkers": "Aucun travailleur pour le moment"
+  }
+}

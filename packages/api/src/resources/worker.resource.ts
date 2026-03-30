@@ -18,6 +18,7 @@ export function WorkerResource(worker: WorkerWithRelations) {
     walletAddress: worker.walletAddress,
     isActive: worker.isActive,
     isVerified: worker.isVerified,
+    stellarContractId: worker.stellarContractId,
     categoryId: worker.categoryId,
     curatorId: worker.curatorId,
     locationId: worker.locationId,

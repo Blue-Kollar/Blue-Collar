@@ -35,3 +35,14 @@ export async function sendWelcomeEmail(to: string, name: string) {
 
   await transporter.sendMail({ from: FROM, to, subject: 'Welcome to BlueCollar 🎉', html })
 }
+
+export async function sendContactRequestEmail(to: string, workerName: string, fromUserName: string) {
+  const html = `
+    <p>Hi,</p>
+    <p><strong>${fromUserName}</strong> has sent you a contact request for your <strong>${workerName}</strong> listing.</p>
+    <p><a href="${APP_URL}/dashboard">View contact requests</a></p>
+    <p>Best regards,<br>BlueCollar Team</p>
+  `
+
+  await transporter.sendMail({ from: FROM, to, subject: 'New contact request for your worker listing', html })
+}

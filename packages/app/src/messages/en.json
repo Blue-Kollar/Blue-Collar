@@ -1,0 +1,51 @@
+{
+  "common": {
+    "home": "Home",
+    "about": "About",
+    "workers": "Workers",
+    "dashboard": "Dashboard",
+    "logout": "Logout",
+    "login": "Login",
+    "register": "Register",
+    "search": "Search",
+    "filter": "Filter",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "back": "Back"
+  },
+  "workers": {
+    "title": "Find Skilled Workers",
+    "description": "Discover trusted workers in your area",
+    "noResults": "No workers found",
+    "availability": "Availability",
+    "contact": "Contact",
+    "verified": "Verified On-Chain",
+    "rating": "Rating",
+    "reviews": "Reviews"
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Password",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "loginTitle": "Login to BlueCollar",
+    "registerTitle": "Create Account",
+    "forgotPassword": "Forgot Password?",
+    "noAccount": "Don't have an account?",
+    "haveAccount": "Already have an account?",
+    "signInWithGoogle": "Sign in with Google"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "myWorkers": "My Workers",
+    "bookmarks": "Bookmarks",
+    "contactRequests": "Contact Requests",
+    "createWorker": "Create Worker",
+    "noWorkers": "No workers yet"
+  }
+}

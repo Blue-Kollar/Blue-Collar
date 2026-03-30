@@ -1,10 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import type { ReactNode } from "react";
-import { AuthProvider } from "@/context/AuthContext";
-import { WalletProvider } from "@/context/WalletContext";
-import { ThemeProvider } from "next-themes";
-import { Toaster } from "sonner";
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://bluecollar.app";
 
@@ -43,16 +39,5 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
-  return (
-    <html lang="en" suppressHydrationWarning>
-      <body>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem storageKey="bc_theme">
-          <AuthProvider>
-            <WalletProvider>{children}</WalletProvider>
-          </AuthProvider>
-          <Toaster position="bottom-right" richColors closeButton />
-        </ThemeProvider>
-      </body>
-    </html>
-  );
+  return children;
 }
