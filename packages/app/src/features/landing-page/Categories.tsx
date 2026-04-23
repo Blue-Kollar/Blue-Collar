@@ -37,17 +37,19 @@ export default async function Categories() {
 
 export function CategoriesSkeleton() {
   return (
-    <section>
-      <h2>Browse by Category</h2>
-      <div className="categories-grid">
-        {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} className="category-card skeleton" aria-hidden="true">
-            <span className="category-icon skeleton-box" />
-            <span className="category-name skeleton-box" />
-            <span className="category-badge skeleton-box" />
-          </div>
-        ))}
+    <section className="px-4 py-12">
+      <div className="mx-auto max-w-6xl">
+        <div className="mb-8 h-7 w-48 animate-pulse rounded-md bg-gray-200 dark:bg-gray-700" />
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="flex flex-col items-center gap-2 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 p-5" aria-hidden="true">
+              <div className="h-10 w-10 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700" />
+              <div className="h-4 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+              <div className="h-3 w-14 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700" />
+            </div>
+          ))}
+        </div>
       </div>
     </section>
-  )
+  );
 }

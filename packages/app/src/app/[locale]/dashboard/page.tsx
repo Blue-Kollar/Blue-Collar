@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
+import { DashboardTableSkeleton } from "@/components/Skeleton";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/api";
 
@@ -115,8 +116,8 @@ export default function DashboardPage() {
   // ── Loading / auth guard ──────────────────────────────────────────────────
   if (authLoading || (!user && !authLoading)) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <Loader2 size={28} className="animate-spin text-blue-500" />
+      <div className="mx-auto max-w-6xl px-4 py-10">
+        <DashboardTableSkeleton />
       </div>
     );
   }
@@ -150,9 +151,7 @@ export default function DashboardPage() {
       {/* Table */}
       <div className="rounded-xl border bg-white shadow-sm overflow-hidden">
         {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 size={24} className="animate-spin text-blue-500" />
-          </div>
+          <DashboardTableSkeleton />
         ) : workers.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <p className="text-gray-500 font-medium">No workers yet</p>

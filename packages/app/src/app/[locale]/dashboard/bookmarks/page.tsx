@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Bookmark } from "lucide-react";
+import { Bookmark } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { getMyBookmarks } from "@/lib/api";
 import WorkerCard from "@/components/WorkerCard";
+import { BookmarksSkeleton } from "@/components/Skeleton";
 import type { Worker } from "@/types";
 
 export default function SavedWorkersPage() {
@@ -30,11 +31,7 @@ export default function SavedWorkersPage() {
   }, [authLoading, user]);
 
   if (authLoading || loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <Loader2 size={28} className="animate-spin text-blue-500" />
-      </div>
-    );
+    return <BookmarksSkeleton />;
   }
 
   return (

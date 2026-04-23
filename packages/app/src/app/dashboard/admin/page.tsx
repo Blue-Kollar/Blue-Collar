@@ -6,6 +6,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
 import { formatDate } from "@/lib/utils";
+import { AdminDashboardSkeleton } from "@/components/Skeleton";
 
 interface Stats {
   totalWorkers: number;
@@ -70,7 +71,7 @@ export default function AdminDashboard() {
   }, [user, router, toast]);
 
   if (!user || user.role !== "admin") return null;
-  if (isLoading) return <div className="p-8 text-center">Loading...</div>;
+  if (isLoading) return <AdminDashboardSkeleton />;
   if (!stats) return <div className="p-8 text-center">Failed to load stats</div>;
 
   return (
