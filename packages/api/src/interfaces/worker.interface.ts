@@ -19,4 +19,7 @@ export interface WorkerQuery {
   country?: string
   page?: string
   limit?: string
+  minRating?: string   // minimum average rating (1-5)
+  available?: string   // day of week 0-6
+  listedSince?: string // max years since listing (experience proxy)
 }

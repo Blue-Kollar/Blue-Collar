@@ -14,7 +14,7 @@ import type { CreateWorkerBody, UpdateWorkerBody, WorkerQuery } from '../interfa
  */
 export async function listWorkers(req: Request<{}, {}, {}, WorkerQuery>, res: Response) {
   try {
-    const { category, page = '1', limit = '20', search, city, state, country } = req.query
+    const { category, page = '1', limit = '20', search, city, state, country, minRating, available, listedSince } = req.query
     const { data, meta } = await workerService.listWorkers({
       category,
       page: Number(page),
@@ -22,7 +22,10 @@ export async function listWorkers(req: Request<{}, {}, {}, WorkerQuery>, res: Re
       search,
       city,
       state,
-      country
+      country,
+      minRating: minRating ? Number(minRating) : undefined,
+      available: available !== undefined ? Number(available) : undefined,
+      listedSince: listedSince ? Number(listedSince) : undefined,
     })
     return res.json({
       data: WorkerCollection(data as any),

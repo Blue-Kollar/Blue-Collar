@@ -25,9 +25,13 @@ export async function listWorkers(opts: {
   city?: string
   state?: string
   country?: string
+  minRating?: number
+  available?: number
+  listedSince?: number
 }) {
-  const { category, page = 1, limit = 20, search, city, state, country } = opts
-  const where = {
+  const { category, page = 1, limit = 20, search, city, state, country, minRating, available, listedSince } = opts
+
+  const where: any = {
     isActive: true,
     ...(category ? { categoryId: category } : {}),
     ...(search
@@ -47,6 +51,21 @@ export async function listWorkers(opts: {
           },
         }
       : {}),
+    ...(available !== undefined
+      ? { availability: { some: { dayOfWeek: available } } }
+      : {}),
+    ...(listedSince !== undefined
+      ? { createdAt: { gte: new Date(Date.now() - listedSince * 365 * 24 * 60 * 60 * 1000) } }
+      : {}),
+  }
+
+  if (minRating !== undefined) {
+    const qualifiedIds = await db.review.groupBy({
+      by: ['workerId'],
+      _avg: { rating: true },
+      having: { rating: { _avg: { gte: minRating } } },
+    })
+    where.id = { in: qualifiedIds.map((r) => r.workerId) }
   }
 
   const [data, total] = await Promise.all([
