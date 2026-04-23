@@ -54,5 +54,35 @@
   body {
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+  /* Reserve space for mobile bottom nav */
+  @media (max-width: 767px) {
+    body {
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+    main {
+      padding-bottom: 64px;
+    }
+  }
+}
+
+@layer utilities {
+  @keyframes slide-in-right {
+    from { transform: translateX(100%); }
+    to   { transform: translateX(0); }
+  }
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  .animate-slide-in-right {
+    animation: slide-in-right 0.25s cubic-bezier(0.32, 0.72, 0, 1);
+  }
+  .animate-fade-in {
+    animation: fade-in 0.2s ease;
+  }
+  .safe-area-pb {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 }

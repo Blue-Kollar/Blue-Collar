@@ -5,6 +5,7 @@ import { ThemeProvider } from "next-themes";
 import { Toaster } from "sonner";
 import { NextIntlClientProvider } from 'next-intl'
 import { getMessages } from 'next-intl/server'
+import BottomNav from "@/components/BottomNav";
 
 export default async function LocaleLayout({ 
   children, 
@@ -21,7 +22,10 @@ export default async function LocaleLayout({
         <NextIntlClientProvider messages={messages}>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem storageKey="bc_theme">
             <AuthProvider>
-              <WalletProvider>{children}</WalletProvider>
+              <WalletProvider>
+                {children}
+                <BottomNav />
+              </WalletProvider>
             </AuthProvider>
             <Toaster position="bottom-right" richColors closeButton />
           </ThemeProvider>
