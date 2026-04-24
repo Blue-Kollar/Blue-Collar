@@ -43,17 +43,17 @@ function Step({ icon, title, description, index }: (typeof steps)[0] & { index: 
         ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
     >
       <span className="text-5xl">{icon}</span>
-      <h3 className="mt-4 text-lg font-semibold text-gray-900">{title}</h3>
-      <p className="mt-2 text-gray-500 max-w-xs">{description}</p>
+      <h3 className="mt-4 text-lg font-semibold text-gray-900 dark:text-gray-100">{title}</h3>
+      <p className="mt-2 text-gray-500 dark:text-gray-400 max-w-xs">{description}</p>
     </div>
   )
 }
 
 export default function HowItWorks() {
   return (
-    <section className="px-4 py-16 bg-gray-50">
+    <section className="px-4 py-16 bg-gray-50 dark:bg-gray-950">
       <div className="max-w-4xl mx-auto">
-        <h2 className="text-2xl font-bold text-center text-gray-900 sm:text-3xl">How It Works</h2>
+        <h2 className="text-2xl font-bold text-center text-gray-900 dark:text-gray-100 sm:text-3xl">How It Works</h2>
         <div className="mt-12 grid gap-10 sm:grid-cols-3">
           {steps.map((step, i) => (
             <Step key={step.title} {...step} index={i} />

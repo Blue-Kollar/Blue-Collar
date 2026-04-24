@@ -30,13 +30,13 @@ function TelegramIcon() {
 
 export default function Footer() {
   return (
-    <footer className="border-t bg-gray-50 mt-auto">
+    <footer className="border-t bg-gray-50 dark:bg-gray-900 dark:border-gray-800 mt-auto">
       <div className="mx-auto max-w-7xl px-4 py-12">
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
           {/* About */}
           <div className="flex flex-col gap-3">
             <span className="text-lg font-bold text-blue-600">BlueCollar</span>
-            <p className="text-sm text-gray-500 leading-relaxed">
+            <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
               Find skilled workers near you. A decentralised protocol connecting
               local tradespeople with the communities that need them.
             </p>
@@ -44,11 +44,11 @@ export default function Footer() {
 
           {/* Quick Links */}
           <div>
-            <h3 className="mb-3 text-sm font-semibold text-gray-700">Quick Links</h3>
+            <h3 className="mb-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Quick Links</h3>
             <ul className="flex flex-col gap-2">
               {LINKS.quick.map((l) => (
                 <li key={l.href}>
-                  <Link href={l.href} className="text-sm text-gray-500 hover:text-blue-600 transition-colors">
+                  <Link href={l.href} className="text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 transition-colors">
                     {l.label}
                   </Link>
                 </li>
@@ -58,11 +58,11 @@ export default function Footer() {
 
           {/* Legal */}
           <div>
-            <h3 className="mb-3 text-sm font-semibold text-gray-700">Legal</h3>
+            <h3 className="mb-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Legal</h3>
             <ul className="flex flex-col gap-2">
               {LINKS.legal.map((l) => (
                 <li key={l.href}>
-                  <Link href={l.href} className="text-sm text-gray-500 hover:text-blue-600 transition-colors">
+                  <Link href={l.href} className="text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 transition-colors">
                     {l.label}
                   </Link>
                 </li>
@@ -72,7 +72,7 @@ export default function Footer() {
 
           {/* Social */}
           <div>
-            <h3 className="mb-3 text-sm font-semibold text-gray-700">Community</h3>
+            <h3 className="mb-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Community</h3>
             <div className="flex gap-4">
               <a
                 href="https://t.me/bluecollar"
@@ -88,7 +88,7 @@ export default function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="GitHub"
-                className="text-gray-400 hover:text-gray-800 transition-colors"
+                className="text-gray-400 dark:hover:text-gray-200 hover:text-gray-800 transition-colors"
               >
                 <GithubIcon />
               </a>
@@ -96,7 +96,7 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-10 border-t pt-6 text-center text-xs text-gray-400">
+        <div className="mt-10 border-t dark:border-gray-800 pt-6 text-center text-xs text-gray-400">
           © {new Date().getFullYear()} BlueCollar. All rights reserved.
         </div>
       </div>

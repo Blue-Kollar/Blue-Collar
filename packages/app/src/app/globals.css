@@ -54,5 +54,6 @@
   body {
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
+    transition: background-color 0.2s ease, color 0.2s ease;
   }
 }
