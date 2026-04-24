@@ -57,6 +57,8 @@ Many skilled workers lack a platform to help them get noticed. Meanwhile, countl
 
 ## Architecture
 
+![BlueCollar Architecture](docs/architecture/system-overview.svg)
+
 ```
 User / Browser
       │
@@ -76,6 +78,8 @@ User / Browser
 - The **Registry Contract** (Rust/Soroban) anchors worker registrations on the Stellar blockchain, providing immutable proof of listing.
 - The **Market Contract** (Rust/Soroban) handles on-chain tip/payment transfers between users and workers using Stellar tokens (XLM or custom assets).
 - The **App** is a Next.js frontend that consumes the API and interacts with Stellar wallets (Freighter, etc.).
+
+Diagram maintenance note: update `docs/architecture/system-overview.svg` whenever major architectural relationships or data flows change.
 
 ---
 

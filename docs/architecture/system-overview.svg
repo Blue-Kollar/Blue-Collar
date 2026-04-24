@@ -1,0 +1,138 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900" role="img" aria-labelledby="title desc">
+  <title id="title">BlueCollar System Architecture</title>
+  <desc id="desc">Overview of frontend, API, PostgreSQL, Soroban contracts, Stellar network, and key operation flows.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f7fbff"/>
+      <stop offset="100%" stop-color="#eef4ff"/>
+    </linearGradient>
+    <linearGradient id="frontend" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#165dff"/>
+      <stop offset="100%" stop-color="#0b3fb3"/>
+    </linearGradient>
+    <linearGradient id="api" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#00875a"/>
+      <stop offset="100%" stop-color="#046c4e"/>
+    </linearGradient>
+    <linearGradient id="db" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#a855f7"/>
+      <stop offset="100%" stop-color="#7e22ce"/>
+    </linearGradient>
+    <linearGradient id="stellar" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#d97706"/>
+    </linearGradient>
+    <linearGradient id="contract" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0ea5e9"/>
+      <stop offset="100%" stop-color="#0369a1"/>
+    </linearGradient>
+    <marker id="arrowBlue" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1d4ed8"/>
+    </marker>
+    <marker id="arrowGreen" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#047857"/>
+    </marker>
+    <marker id="arrowAmber" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#b45309"/>
+    </marker>
+    <style>
+      .label { font: 600 18px 'Segoe UI', Tahoma, sans-serif; fill: #0f172a; }
+      .small { font: 500 14px 'Segoe UI', Tahoma, sans-serif; fill: #1e293b; }
+      .tiny { font: 500 12px 'Segoe UI', Tahoma, sans-serif; fill: #334155; }
+      .box-title { font: 700 20px 'Segoe UI', Tahoma, sans-serif; fill: #ffffff; }
+      .box-sub { font: 500 13px 'Segoe UI', Tahoma, sans-serif; fill: #e2e8f0; }
+      .flow-title { font: 700 16px 'Segoe UI', Tahoma, sans-serif; fill: #0f172a; }
+      .legend { font: 600 13px 'Segoe UI', Tahoma, sans-serif; fill: #0f172a; }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1400" height="900" fill="url(#bg)"/>
+  <text x="50" y="58" style="font: 800 34px 'Segoe UI', Tahoma, sans-serif; fill: #0f172a;">BlueCollar Architecture Overview</text>
+  <text x="50" y="86" class="small">Next.js frontend, Express API, PostgreSQL, Soroban contracts, Stellar network, and operational data flows</text>
+
+  <rect x="50" y="130" width="250" height="120" rx="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="78" y="170" class="label">Users</text>
+  <text x="78" y="195" class="small">Clients and Curators</text>
+  <text x="78" y="218" class="tiny">Browser + Wallet Actions</text>
+
+  <rect x="380" y="120" width="290" height="150" rx="20" fill="url(#frontend)"/>
+  <text x="410" y="170" class="box-title">Next.js App</text>
+  <text x="410" y="198" class="box-sub">packages/app</text>
+  <text x="410" y="220" class="box-sub">UI, Auth screens, Worker discovery</text>
+  <text x="410" y="242" class="box-sub">Freighter wallet integration</text>
+
+  <rect x="760" y="120" width="310" height="150" rx="20" fill="url(#api)"/>
+  <text x="790" y="170" class="box-title">Express API</text>
+  <text x="790" y="198" class="box-sub">packages/api</text>
+  <text x="790" y="220" class="box-sub">Auth, Workers, Payments, Admin</text>
+  <text x="790" y="242" class="box-sub">Prisma + Business logic</text>
+
+  <rect x="1100" y="120" width="250" height="150" rx="20" fill="url(#db)"/>
+  <text x="1130" y="170" class="box-title">PostgreSQL</text>
+  <text x="1130" y="198" class="box-sub">Worker, User, Category</text>
+  <text x="1130" y="220" class="box-sub">Reviews, Bookmarks, Contact</text>
+
+  <rect x="820" y="340" width="250" height="120" rx="18" fill="url(#contract)"/>
+  <text x="846" y="385" class="box-title">Registry Contract</text>
+  <text x="846" y="411" class="box-sub">Worker registration</text>
+  <text x="846" y="432" class="box-sub">Hashes: location/contact</text>
+
+  <rect x="1110" y="340" width="240" height="120" rx="18" fill="url(#contract)"/>
+  <text x="1135" y="385" class="box-title">Market Contract</text>
+  <text x="1135" y="411" class="box-sub">Tips + Escrow</text>
+  <text x="1135" y="432" class="box-sub">Fee and settlement</text>
+
+  <rect x="790" y="510" width="560" height="130" rx="20" fill="url(#stellar)"/>
+  <text x="820" y="560" class="box-title">Stellar Network (Soroban)</text>
+  <text x="820" y="586" class="box-sub">Transaction execution, ledger state, event stream</text>
+  <text x="820" y="610" class="box-sub">Wallet signing and on-chain verification</text>
+
+  <rect x="380" y="340" width="290" height="120" rx="18" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="408" y="382" class="label">Freighter Wallet</text>
+  <text x="408" y="406" class="small">Connect + Sign Tx</text>
+  <text x="408" y="428" class="tiny">Used by frontend for contract ops</text>
+
+  <line x1="300" y1="190" x2="380" y2="190" stroke="#1d4ed8" stroke-width="4" marker-end="url(#arrowBlue)"/>
+  <text x="312" y="176" class="tiny">HTTPS</text>
+
+  <line x1="670" y1="190" x2="760" y2="190" stroke="#1d4ed8" stroke-width="4" marker-end="url(#arrowBlue)"/>
+  <text x="685" y="176" class="tiny">REST/JSON</text>
+
+  <line x1="1070" y1="190" x2="1100" y2="190" stroke="#047857" stroke-width="4" marker-end="url(#arrowGreen)"/>
+  <text x="1042" y="175" class="tiny">Prisma</text>
+
+  <line x1="915" y1="270" x2="915" y2="340" stroke="#b45309" stroke-width="4" marker-end="url(#arrowAmber)"/>
+  <text x="925" y="312" class="tiny">Invoke</text>
+
+  <line x1="1200" y1="270" x2="1230" y2="340" stroke="#b45309" stroke-width="4" marker-end="url(#arrowAmber)"/>
+  <text x="1210" y="312" class="tiny">Invoke</text>
+
+  <line x1="670" y1="380" x2="820" y2="380" stroke="#1d4ed8" stroke-width="4" marker-end="url(#arrowBlue)"/>
+  <text x="700" y="365" class="tiny">Signed tx payload</text>
+
+  <line x1="945" y1="460" x2="945" y2="510" stroke="#b45309" stroke-width="4" marker-end="url(#arrowAmber)"/>
+  <line x1="1230" y1="460" x2="1230" y2="510" stroke="#b45309" stroke-width="4" marker-end="url(#arrowAmber)"/>
+
+  <rect x="50" y="520" width="700" height="320" rx="20" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="80" y="560" class="flow-title">Key Operation Data Flows</text>
+
+  <text x="80" y="600" class="label">1) Registration Flow</text>
+  <text x="80" y="624" class="small">User/Curator -> Next.js -> API -> PostgreSQL (user/worker records)</text>
+  <text x="80" y="646" class="small">Curator registration on-chain -> Registry Contract -> Stellar ledger event</text>
+
+  <text x="80" y="690" class="label">2) Payment / Escrow Flow</text>
+  <text x="80" y="714" class="small">Frontend requests payment -> wallet signs -> API validates -> Market Contract</text>
+  <text x="80" y="736" class="small">Market executes tip/escrow -> settlement events consumed by app/backend</text>
+
+  <text x="80" y="780" class="label">3) Worker Discovery Flow</text>
+  <text x="80" y="804" class="small">Frontend fetches paginated workers from API with filters (category, city, search)</text>
+
+  <rect x="790" y="680" width="560" height="160" rx="20" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="820" y="718" class="flow-title">Legend</text>
+  <line x1="820" y1="744" x2="900" y2="744" stroke="#1d4ed8" stroke-width="4" marker-end="url(#arrowBlue)"/>
+  <text x="914" y="749" class="legend">Web/API traffic and app-level calls</text>
+  <line x1="820" y1="774" x2="900" y2="774" stroke="#047857" stroke-width="4" marker-end="url(#arrowGreen)"/>
+  <text x="914" y="779" class="legend">Database queries</text>
+  <line x1="820" y1="804" x2="900" y2="804" stroke="#b45309" stroke-width="4" marker-end="url(#arrowAmber)"/>
+  <text x="914" y="809" class="legend">On-chain contract invocation</text>
+</svg>
