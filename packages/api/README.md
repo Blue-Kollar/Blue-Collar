@@ -11,17 +11,17 @@ REST API for the BlueCollar platform — connecting skilled workers with users v
 
 ## Tech Stack
 
-| Layer        | Technology                                      |
-| ------------ | ----------------------------------------------- |
-| Runtime      | Node.js >= 20                                   |
-| Framework    | Express 4                                       |
-| Language     | TypeScript 5                                    |
-| ORM          | Prisma 7 (PostgreSQL)                           |
-| Auth         | JWT · Argon2 · Passport (Google OAuth 2.0)      |
-| File uploads | Multer · Sharp (image processing)               |
-| Email        | Nodemailer (SMTP)                               |
-| Testing      | Vitest · Supertest                              |
-| Logging      | Pino                                            |
+| Layer        | Technology                                 |
+| ------------ | ------------------------------------------ |
+| Runtime      | Node.js >= 20                              |
+| Framework    | Express 4                                  |
+| Language     | TypeScript 5                               |
+| ORM          | Prisma 7 (PostgreSQL)                      |
+| Auth         | JWT · Argon2 · Passport (Google OAuth 2.0) |
+| File uploads | Multer · Sharp (image processing)          |
+| Email        | Nodemailer (SMTP)                          |
+| Testing      | Vitest · Supertest                         |
+| Logging      | Pino                                       |
 
 ---
 
@@ -78,35 +78,35 @@ See [QUICK_START_GUIDE.md](./QUICK_START_GUIDE.md) for detailed troubleshooting.
 
 ### Useful Scripts
 
-| Script              | Description                              |
-| ------------------- | ---------------------------------------- |
-| `pnpm dev`          | Start dev server with `tsx`              |
-| `pnpm build`        | Compile TypeScript to `dist/`            |
-| `pnpm test`         | Run tests with Vitest                    |
-| `pnpm test:coverage`| Run tests with coverage report           |
-| `pnpm migrate`      | Run Prisma migrations                    |
-| `pnpm seed`         | Seed default categories                  |
-| `pnpm admin:create` | Create an admin user via CLI             |
-| `pnpm db:reset`     | Reset the database (dev only)            |
+| Script               | Description                    |
+| -------------------- | ------------------------------ |
+| `pnpm dev`           | Start dev server with `tsx`    |
+| `pnpm build`         | Compile TypeScript to `dist/`  |
+| `pnpm test`          | Run tests with Vitest          |
+| `pnpm test:coverage` | Run tests with coverage report |
+| `pnpm migrate`       | Run Prisma migrations          |
+| `pnpm seed`          | Seed default categories        |
+| `pnpm admin:create`  | Create an admin user via CLI   |
+| `pnpm db:reset`      | Reset the database (dev only)  |
 
 ---
 
 ## Environment Variables
 
-| Variable              | Required | Description                                              |
-| --------------------- | -------- | -------------------------------------------------------- |
-| `DATABASE_URL`        | ✅        | PostgreSQL connection string                             |
-| `TEST_DATABASE_URL`   | ✅        | Separate DB for tests                                    |
-| `JWT_SECRET`          | ✅        | Secret for signing JWTs                                  |
-| `PORT`                | —        | Server port (default: `3000`)                            |
-| `APP_URL`             | —        | Frontend base URL (OAuth redirects, emails, CORS)        |
-| `ALLOWED_ORIGINS`     | —        | Comma-separated CORS origins                             |
-| `GOOGLE_CLIENT_ID`    | —        | Google OAuth 2.0 client ID                               |
-| `GOOGLE_CLIENT_SECRET`| —        | Google OAuth 2.0 client secret                           |
-| `MAIL_HOST`           | —        | SMTP host                                                |
-| `MAIL_PORT`           | —        | SMTP port (typically `587`)                              |
-| `MAIL_USER`           | —        | SMTP username                                            |
-| `MAIL_PASS`           | —        | SMTP password                                            |
+| Variable               | Required | Description                                       |
+| ---------------------- | -------- | ------------------------------------------------- |
+| `DATABASE_URL`         | ✅       | PostgreSQL connection string                      |
+| `TEST_DATABASE_URL`    | ✅       | Separate DB for tests                             |
+| `JWT_SECRET`           | ✅       | Secret for signing JWTs                           |
+| `PORT`                 | —        | Server port (default: `3000`)                     |
+| `APP_URL`              | —        | Frontend base URL (OAuth redirects, emails, CORS) |
+| `ALLOWED_ORIGINS`      | —        | Comma-separated CORS origins                      |
+| `GOOGLE_CLIENT_ID`     | —        | Google OAuth 2.0 client ID                        |
+| `GOOGLE_CLIENT_SECRET` | —        | Google OAuth 2.0 client secret                    |
+| `MAIL_HOST`            | —        | SMTP host                                         |
+| `MAIL_PORT`            | —        | SMTP port (typically `587`)                       |
+| `MAIL_USER`            | —        | SMTP username                                     |
+| `MAIL_PASS`            | —        | SMTP password                                     |
 
 ---
 
@@ -115,11 +115,13 @@ See [QUICK_START_GUIDE.md](./QUICK_START_GUIDE.md) for detailed troubleshooting.
 Base URL: `http://localhost:3000/api`
 
 All authenticated endpoints require the header:
+
 ```
 Authorization: Bearer <jwt>
 ```
 
 Standard success envelope:
+
 ```json
 {
   "status": "success",
@@ -138,6 +140,7 @@ Standard success envelope:
 Create a new user account. Sends a verification email.
 
 **Body:**
+
 ```json
 {
   "firstName": "Jane",
@@ -148,6 +151,7 @@ Create a new user account. Sends a verification email.
 ```
 
 **Response `201`:**
+
 ```json
 {
   "status": "success",
@@ -170,11 +174,13 @@ curl -X POST http://localhost:3000/api/auth/register \
 Login with email and password.
 
 **Body:**
+
 ```json
 { "email": "jane@example.com", "password": "secret123" }
 ```
 
 **Response `202`:**
+
 ```json
 {
   "status": "success",
@@ -220,6 +226,7 @@ curl http://localhost:3000/api/auth/me \
 Verify email address using the token sent in the verification email.
 
 **Body:**
+
 ```json
 { "token": "<verification-token>" }
 ```
@@ -237,6 +244,7 @@ curl -X PUT http://localhost:3000/api/auth/verify-account \
 Request a password reset email. Always returns `200` to prevent email enumeration.
 
 **Body:**
+
 ```json
 { "email": "jane@example.com" }
 ```
@@ -254,6 +262,7 @@ curl -X POST http://localhost:3000/api/auth/forgot-password \
 Reset password using the token from the reset email.
 
 **Body:**
+
 ```json
 { "token": "<reset-token>", "password": "newpassword123" }
 ```
@@ -283,12 +292,11 @@ Google redirects here after the user grants access. Issues a JWT and redirects t
 List all categories.
 
 **Response `200`:**
+
 ```json
 {
   "status": "success",
-  "data": [
-    { "id": "clxyz...", "name": "Plumbing", "description": "...", "icon": "🔧" }
-  ]
+  "data": [{ "id": "clxyz...", "name": "Plumbing", "description": "...", "icon": "🔧" }]
 }
 ```
 
@@ -349,6 +357,7 @@ curl http://localhost:3000/api/workers/mine \
 Create a worker listing. Requires `curator` role.
 
 **Body (`application/json`):**
+
 ```json
 {
   "name": "John Smith",
@@ -442,17 +451,18 @@ curl http://localhost:3000/api/admin/users \
 
 ## Error Codes
 
-| HTTP Status | Meaning                                              |
-| ----------- | ---------------------------------------------------- |
-| `400`       | Validation error — check the `errors` field          |
-| `401`       | Unauthenticated — missing or invalid JWT             |
-| `403`       | Forbidden — insufficient role                        |
-| `404`       | Resource not found                                   |
-| `409`       | Conflict — e.g. email already registered             |
-| `429`       | Rate limit exceeded                                  |
-| `500`       | Internal server error                                |
+| HTTP Status | Meaning                                     |
+| ----------- | ------------------------------------------- |
+| `400`       | Validation error — check the `errors` field |
+| `401`       | Unauthenticated — missing or invalid JWT    |
+| `403`       | Forbidden — insufficient role               |
+| `404`       | Resource not found                          |
+| `409`       | Conflict — e.g. email already registered    |
+| `429`       | Rate limit exceeded                         |
+| `500`       | Internal server error                       |
 
 Error response shape:
+
 ```json
 {
   "status": "error",
