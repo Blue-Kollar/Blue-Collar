@@ -9,7 +9,7 @@ import categoryRoutes from './routes/categories.js'
 import workerRoutes from './routes/workers.js'
 import adminRoutes from './routes/admin.js'
 import userRoutes from './routes/users.js'
-
+import { rateLimiter } from './middleware/rateLimiter.js'
 const app = express()
 
 app.use(cors())
@@ -18,7 +18,7 @@ app.use(express.urlencoded({ extended: true }))
 app.use(pinoHttp({ logger }))
 app.use(methodOverride('X-HTTP-Method'))
 app.use(passport.initialize())
-
+app.use(rateLimiter)
 app.use('/api/auth', authRoutes)
 app.use('/api/categories', categoryRoutes)
 app.use('/api/workers', workerRoutes)
