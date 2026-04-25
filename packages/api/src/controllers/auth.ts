@@ -8,6 +8,7 @@ import { sanitizeUser } from "../models/user.model.js";
 import { UserResource } from "../resources/index.js";
 import { AppError } from "../services/AppError.js";
 import { catchAsync } from "../utils/catchAsync.js";
+import type { Request, Response } from "express";
 import type {
   LoginBody,
   RegisterBody,
@@ -194,5 +195,26 @@ export async function resetPassword(
       });
   } catch (err) {
     return handleError(res, err);
+  }
+}
+
+/**
+ * GET /api/auth/unsubscribe-reminders?token=<jwt>
+ * Opt a user out of verification reminder emails.
+ */
+export async function unsubscribeReminders(req: Request, res: Response) {
+  const { token } = req.query
+  if (!token || typeof token !== 'string') {
+    return res.status(400).json({ status: 'error', message: 'Token is required', code: 400 })
+  }
+  try {
+    const payload = jwt.verify(token, env.JWT_SECRET) as { id?: string; purpose?: string }
+    if (payload.purpose !== 'unsubscribe-reminders' || !payload.id) {
+      return res.status(400).json({ status: 'error', message: 'Invalid token', code: 400 })
+    }
+    await db.user.update({ where: { id: payload.id }, data: { unsubscribedReminders: true } })
+    return res.json({ status: 'success', message: 'You have been unsubscribed from reminder emails', code: 200 })
+  } catch {
+    return res.status(400).json({ status: 'error', message: 'Invalid or expired token', code: 400 })
   }
 }

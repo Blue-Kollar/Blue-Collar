@@ -13,6 +13,7 @@ import workerRoutes from './routes/workers.js'
 import portfolioRoutes from './routes/portfolio.js'
 import reviewRoutes from './routes/reviews.js'
 import subscriptionRoutes from './routes/subscriptions.js'
+import { startReminderScheduler } from './services/reminder.service.js'
 
 const app = express()
 const PORT = env.PORT || 3000
@@ -42,4 +43,5 @@ app.use(errorHandler)
 
 app.listen(PORT, () => {
   logger.info(`BlueCollar API running on port ${PORT}`)
+  startReminderScheduler()
 })

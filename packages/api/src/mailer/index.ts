@@ -64,6 +64,15 @@ export async function sendModerationEmail(
   }
 }
 
+export async function sendVerificationReminderEmail(to: string, name: string, token: string, unsubscribeToken: string) {
+  const html = loadTemplate('verification-reminder.html')
+    .replace(/{{name}}/g, name)
+    .replace(/{{verificationLink}}/g, `${APP_URL}/api/auth/verify-account?token=${token}`)
+    .replace(/{{unsubscribeLink}}/g, `${APP_URL}/api/auth/unsubscribe-reminders?token=${unsubscribeToken}`)
+
+  await transporter.sendMail({ from: FROM, to, subject: 'Reminder: Verify your BlueCollar email', html })
+}
+
 export async function sendVerificationStatusEmail(
   to: string,
   firstName: string,

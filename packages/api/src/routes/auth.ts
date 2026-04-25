@@ -8,6 +8,7 @@ import {
   resetPassword,
   verifyAccount,
   googleAuthCallback,
+  unsubscribeReminders,
 } from '../controllers/auth.js'
 import {
   setup2FA,
@@ -58,6 +59,9 @@ router.get('/me', authenticate, me)
 // Verifies the SHA-256 hash of the token against the stored hash, then marks
 // the account as verified and clears the token fields.
 router.put('/verify-account', validate(verifyAccountRules), verifyAccount)
+
+// Unsubscribe from verification reminder emails via token in email link
+router.get('/unsubscribe-reminders', unsubscribeReminders)
 
 // ── Password reset ────────────────────────────────────────────────────────────
 // Sends a reset link to the given email (always 200 to prevent enumeration).
