@@ -22,17 +22,17 @@ model Location {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  password      String?
-  googleId      String?   @unique
-  firstName     String
-  lastName      String
-  role          Role      @default(user)
-  walletAddress String?
-  avatar        String?
-  bio           String?
-  phone         String?
+  id                      String    @id @default(cuid())
+  email                   String    @unique
+  password                String?
+  googleId                String?   @unique
+  firstName               String
+  lastName                String
+  role                    Role      @default(user)
+  walletAddress           String?
+  avatar                  String?
+  bio                     String?
+  phone                   String?
   verified                Boolean   @default(false)
   verificationToken       String?
   verificationTokenExpiry DateTime?
@@ -41,22 +41,26 @@ model User {
   twoFactorSecret         String?
   twoFactorEnabled        Boolean   @default(false)
   twoFactorBackupCodes    String[]  @default([])
-  locationId    String?
-  location      Location? @relation(fields: [locationId], references: [id])
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  workers       Worker[]
-  reviews       Review[]
-  bookmarks     Bookmark[]
-  contactRequests ContactRequest[]
-  pushSubscriptions PushSubscription[]
-  disputesFiled   Dispute[] @relation("DisputesFiled")
-  disputesResolved Dispute[] @relation("DisputesResolved")
-  interactions    UserInteraction[]
-  webhooks        WebhookSubscription[]
-  verificationRequests VerificationRequest[] @relation("VerificationRequests")
-  verificationReviews  VerificationRequest[] @relation("VerificationReviews")
-  auditLogs            AuditLog[]
+  referralCode            String?   @unique
+  locationId              String?
+  location                Location? @relation(fields: [locationId], references: [id])
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+  workers                 Worker[]
+  reviews                 Review[]
+  bookmarks               Bookmark[]
+  contactRequests         ContactRequest[]
+  pushSubscriptions       PushSubscription[]
+  disputesFiled           Dispute[]            @relation("DisputesFiled")
+  disputesResolved        Dispute[]            @relation("DisputesResolved")
+  interactions            UserInteraction[]
+  webhooks                WebhookSubscription[]
+  verificationRequests    VerificationRequest[] @relation("VerificationRequests")
+  verificationReviews     VerificationRequest[] @relation("VerificationReviews")
+  auditLogs               AuditLog[]
+  referralsMade           Referral[]            @relation("ReferralsMade")
+  referralUsed            Referral?             @relation("ReferralUsed")
+  jobs                    Job[]                 @relation("JobsPosted")
 }
 
 model Category {
@@ -98,6 +102,42 @@ model Worker {
   disputes            Dispute[]
   interactions        UserInteraction[]
   verificationRequests VerificationRequest[]
+  insuranceDocuments  InsuranceDocument[]
+  portfolioItems      PortfolioItem[]
+  subscription        Subscription?
+  jobApplications     JobApplication[]
+}
+
+model Bookmark {
+  id        String   @id @default(cuid())
+  userId    String
+  workerId  String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  worker    Worker   @relation(fields: [workerId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, workerId])
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Availability {
+  id        String   @id @default(cuid())
+  workerId  String
+  dayOfWeek Int      // 0=Sun … 6=Sat
+  startTime String   // "09:00"
+  endTime   String   // "17:00"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  worker    Worker   @relation(fields: [workerId], references: [id], onDelete: Cascade)
 }
 
 model PortfolioItem {
@@ -140,57 +180,44 @@ model Subscription {
 }
 
 model Dispute {
-  id          String        @id @default(cuid())
-  workerId    String
-  filedById   String
-  reason      String
-  evidence    String?       // URL or description of evidence
-  status      DisputeStatus @default(open)
-  resolution  String?
+  id           String        @id @default(cuid())
+  workerId     String
+  filedById    String
+  reason       String
+  evidence     String?
+  status       DisputeStatus @default(open)
+  resolution   String?
   resolvedById String?
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  worker      Worker        @relation(fields: [workerId], references: [id], onDelete: Cascade)
-  filedBy     User          @relation("DisputesFiled", fields: [filedById], references: [id], onDelete: Cascade)
-  resolvedBy  User?         @relation("DisputesResolved", fields: [resolvedById], references: [id])
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  worker       Worker        @relation(fields: [workerId], references: [id], onDelete: Cascade)
+  filedBy      User          @relation("DisputesFiled", fields: [filedById], references: [id], onDelete: Cascade)
+  resolvedBy   User?         @relation("DisputesResolved", fields: [resolvedById], references: [id])
 }
 
 model UserInteraction {
-  id         String          @id @default(cuid())
-  userId     String
-  workerId   String
-  type       InteractionType
-  createdAt  DateTime        @default(now())
-  user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  worker     Worker          @relation(fields: [workerId], references: [id], onDelete: Cascade)
+  id        String          @id @default(cuid())
+  userId    String
+  workerId  String
+  type      InteractionType
+  createdAt DateTime        @default(now())
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  worker    Worker          @relation(fields: [workerId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([workerId])
 }
 
-enum Role {
-  user
-  curator
-  admin
-}
-
-enum InteractionType {
-  view
-  bookmark
-  tip
-  contact
-}
-
 model WebhookSubscription {
-  id        String         @id @default(cuid())
+  id        String       @id @default(cuid())
   userId    String
   url       String
   secret    String
-  events    String[]       // e.g. ["worker.created", "worker.updated"]
-  isActive  Boolean        @default(true)
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
-  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  events    String[]
+  isActive  Boolean      @default(true)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   logs      WebhookLog[]
 
   @@index([userId])
@@ -212,43 +239,137 @@ model WebhookLog {
 }
 
 model VerificationRequest {
-  id           String             @id @default(cuid())
-  workerId     String
+  id            String             @id @default(cuid())
+  workerId      String
   requestedById String
-  documentUrl  String
-  notes        String?
-  status       VerificationStatus @default(pending)
-  reviewedById String?
-  reviewNote   String?
-  createdAt    DateTime           @default(now())
-  updatedAt    DateTime           @updatedAt
-  worker       Worker             @relation(fields: [workerId], references: [id], onDelete: Cascade)
-  requestedBy  User               @relation("VerificationRequests", fields: [requestedById], references: [id])
-  reviewedBy   User?              @relation("VerificationReviews", fields: [reviewedById], references: [id])
+  documentUrl   String
+  notes         String?
+  status        VerificationStatus @default(pending)
+  reviewedById  String?
+  reviewNote    String?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  worker        Worker             @relation(fields: [workerId], references: [id], onDelete: Cascade)
+  requestedBy   User               @relation("VerificationRequests", fields: [requestedById], references: [id])
+  reviewedBy    User?              @relation("VerificationReviews", fields: [reviewedById], references: [id])
 
   @@index([workerId])
   @@index([status])
 }
 
-enum VerificationStatus {
-  pending
-  approved
-  rejected
-}
-
 model AuditLog {
   id         String   @id @default(cuid())
   userId     String?
-  action     String   // e.g. "auth.login", "worker.create", "admin.delete_user"
-  resource   String?  // e.g. "Worker", "User"
+  action     String
+  resource   String?
   resourceId String?
-  meta       Json?    // additional context (IP, changes, etc.)
+  meta       Json?
   createdAt  DateTime @default(now())
   user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([userId])
   @@index([action])
   @@index([createdAt])
+}
+
+// ─── Issue #329: Worker Response Time Tracking ───────────────────────────────
+
+model ContactRequest {
+  id          String               @id @default(cuid())
+  workerId    String
+  fromUserId  String
+  message     String
+  status      ContactRequestStatus @default(pending)
+  respondedAt DateTime?
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+  worker      Worker               @relation(fields: [workerId], references: [id], onDelete: Cascade)
+  fromUser    User                 @relation(fields: [fromUserId], references: [id], onDelete: Cascade)
+
+  @@index([workerId])
+}
+
+// ─── Issue #331: Worker Insurance Verification ───────────────────────────────
+
+model InsuranceDocument {
+  id           String          @id @default(cuid())
+  workerId     String
+  documentUrl  String
+  provider     String?
+  policyNumber String?
+  expiresAt    DateTime
+  status       InsuranceStatus @default(pending)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  worker       Worker          @relation(fields: [workerId], references: [id], onDelete: Cascade)
+
+  @@index([workerId])
+  @@index([expiresAt])
+}
+
+// ─── Issue #332: Referral System ─────────────────────────────────────────────
+
+model Referral {
+  id          String         @id @default(cuid())
+  referrerId  String
+  refereeId   String?        @unique
+  code        String         @unique
+  status      ReferralStatus @default(pending)
+  rewardGiven Boolean        @default(false)
+  createdAt   DateTime       @default(now())
+  convertedAt DateTime?
+  referrer    User           @relation("ReferralsMade", fields: [referrerId], references: [id], onDelete: Cascade)
+  referee     User?          @relation("ReferralUsed", fields: [refereeId], references: [id])
+
+  @@index([referrerId])
+  @@index([code])
+}
+
+model Job {
+  id           String         @id @default(cuid())
+  title        String
+  description  String
+  budget       Float?
+  categoryId   String
+  category     Category       @relation(fields: [categoryId], references: [id])
+  locationId   String?
+  location     Location?      @relation(fields: [locationId], references: [id])
+  postedById   String
+  postedBy     User           @relation("JobsPosted", fields: [postedById], references: [id])
+  status       JobStatus      @default(open)
+  expiresAt    DateTime?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  applications JobApplication[]
+}
+
+model JobApplication {
+  id          String            @id @default(cuid())
+  jobId       String
+  job         Job               @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  workerId    String
+  worker      Worker            @relation(fields: [workerId], references: [id], onDelete: Cascade)
+  coverLetter String?
+  status      ApplicationStatus @default(pending)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@unique([jobId, workerId])
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum Role {
+  user
+  curator
+  admin
+}
+
+enum InteractionType {
+  view
+  bookmark
+  tip
+  contact
 }
 
 enum DisputeStatus {
@@ -259,6 +380,12 @@ enum DisputeStatus {
 }
 
 enum ReviewStatus {
+  pending
+  approved
+  rejected
+}
+
+enum VerificationStatus {
   pending
   approved
   rejected
@@ -284,34 +411,21 @@ enum ApplicationStatus {
   withdrawn
 }
 
-model Job {
-  id          String      @id @default(cuid())
-  title       String
-  description String
-  budget      Float?
-  categoryId  String
-  category    Category    @relation(fields: [categoryId], references: [id])
-  locationId  String?
-  location    Location?   @relation(fields: [locationId], references: [id])
-  postedById  String
-  postedBy    User        @relation("JobsPosted", fields: [postedById], references: [id])
-  status      JobStatus   @default(open)
-  expiresAt   DateTime?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  applications JobApplication[]
+enum ContactRequestStatus {
+  pending
+  accepted
+  declined
 }
 
-model JobApplication {
-  id          String            @id @default(cuid())
-  jobId       String
-  job         Job               @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  workerId    String
-  worker      Worker            @relation(fields: [workerId], references: [id], onDelete: Cascade)
-  coverLetter String?
-  status      ApplicationStatus @default(pending)
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
+enum InsuranceStatus {
+  pending
+  verified
+  expired
+  rejected
+}
 
-  @@unique([jobId, workerId])
+enum ReferralStatus {
+  pending
+  converted
+  rewarded
 }

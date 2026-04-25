@@ -64,6 +64,17 @@ export async function sendModerationEmail(
   }
 }
 
+export async function sendInsuranceRenewalReminder(to: string, workerName: string, expiresAt: Date) {
+  await transporter.sendMail({
+    from: FROM,
+    to,
+    subject: `Insurance renewal required: ${workerName}`,
+    html: `<p>The insurance document for <strong>${workerName}</strong> expires on <strong>${expiresAt.toDateString()}</strong>.</p>
+<p>Please upload a renewed document to keep the worker's profile active.</p>
+<p><a href="${APP_URL}/dashboard">Go to dashboard</a></p>`,
+  })
+}
+
 export async function sendVerificationStatusEmail(
   to: string,
   firstName: string,

@@ -1,11 +1,10 @@
 import express from 'express'
 import cors from 'cors'
-import pinoHttp from 'pino-http'
 import methodOverride from 'method-override'
 import passport from './config/passport.js'
-import { logger } from './config/logger.js'
 import { redis, cacheMetrics } from './config/redis.js'
 import { db } from './db.js'
+import { requestLogger } from './middleware/requestLogger.js'
 import authRoutes from './routes/auth.js'
 import categoryRoutes from './routes/categories.js'
 import workerRoutes from './routes/workers.js'
@@ -16,6 +15,9 @@ import recommendationRoutes from './routes/recommendations.js'
 import webhookRoutes from './routes/webhooks.js'
 import verificationRoutes from './routes/verifications.js'
 import auditRoutes from './routes/audit.js'
+import responseTimeRoutes from './routes/response-time.js'
+import insuranceRoutes from './routes/insurance.js'
+import referralRoutes from './routes/referral.js'
 import { auditMiddleware } from './middleware/audit.js'
 
 const app = express()
@@ -26,7 +28,7 @@ redis.connect().catch(() => {})
 app.use(cors())
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
-app.use(pinoHttp({ logger }))
+app.use(requestLogger)
 app.use(methodOverride('X-HTTP-Method'))
 app.use(passport.initialize())
 
@@ -42,6 +44,9 @@ app.use('/api/recommendations', recommendationRoutes)
 app.use('/api/webhooks', webhookRoutes)
 app.use('/api/verifications', verificationRoutes)
 app.use('/api/audit', auditRoutes)
+app.use('/api', responseTimeRoutes)
+app.use('/api/workers', insuranceRoutes)
+app.use('/api/referrals', referralRoutes)
 
 app.get('/health', async (_req, res) => {
   const checks: Record<string, { status: 'ok' | 'error'; latencyMs?: number; error?: string }> = {}
