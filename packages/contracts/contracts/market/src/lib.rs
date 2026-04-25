@@ -19,7 +19,7 @@
 
 #![no_std]
 
-use soroban_sdk::{contract, contractimpl, contracttype, symbol_short, token, Address, Env, Symbol};
+use soroban_sdk::{contract, contractimpl, contracttype, symbol_short, token, Address, Env, Symbol, Vec};
 
 /// Maximum allowed protocol fee: 500 bps = 5%.
 pub const MAX_FEE_BPS: u32 = 500;
@@ -60,6 +60,35 @@ pub struct Escrow {
     pub cancelled: bool,
 }
 
+/// Multi-signature escrow requiring `threshold` approvals before funds are released.
+///
+/// Any address in `signers` may call [`MarketContract::approve_multisig_release`].
+/// Once `approvals` reaches `threshold` the funds are automatically transferred to `to`.
+#[contracttype]
+#[derive(Clone)]
+pub struct MultiSigEscrow {
+    /// Address that funded the escrow.
+    pub from: Address,
+    /// Address that will receive funds once threshold is met.
+    pub to: Address,
+    /// Token contract address.
+    pub token: Address,
+    /// Locked amount.
+    pub amount: i128,
+    /// Unix timestamp after which `from` may cancel.
+    pub expiry: u64,
+    /// Ordered list of addresses authorised to approve release.
+    pub signers: Vec<Address>,
+    /// Number of approvals required to release funds.
+    pub threshold: u32,
+    /// Addresses that have already approved.
+    pub approvals: Vec<Address>,
+    /// `true` once funds have been released.
+    pub released: bool,
+    /// `true` once funds have been refunded.
+    pub cancelled: bool,
+}
+
 /// Storage keys used throughout the contract.
 #[contracttype]
 pub enum DataKey {
@@ -67,6 +96,8 @@ pub enum DataKey {
     Config,
     /// Persistent storage — [`Escrow`] struct keyed by a caller-supplied id [`Symbol`].
     Escrow(Symbol),
+    /// Persistent storage — [`MultiSigEscrow`] keyed by a caller-supplied id [`Symbol`].
+    MultiSigEscrow(Symbol),
 }
 
 // =============================================================================
@@ -338,6 +369,169 @@ impl MarketContract {
     }
 
     // -------------------------------------------------------------------------
+    // Multi-sig escrow (#337)
+    // -------------------------------------------------------------------------
+
+    /// Create a multi-signature escrow requiring `threshold` approvals before release.
+    ///
+    /// Transfers `amount` tokens from `from` to the contract immediately.
+    ///
+    /// # Parameters
+    /// - `id`: Unique identifier for this multi-sig escrow.
+    /// - `from`: Payer; `require_auth()` is enforced.
+    /// - `to`: Worker that receives funds once threshold is met.
+    /// - `token_addr`: Stellar token contract address.
+    /// - `amount`: Amount to lock (must be > 0).
+    /// - `expiry`: Unix timestamp after which `from` may cancel.
+    /// - `signers`: Addresses authorised to approve release.
+    /// - `threshold`: Number of approvals required (1 ≤ threshold ≤ signers.len()).
+    ///
+    /// # Panics
+    /// - `"Amount must be positive"` if `amount <= 0`.
+    /// - `"MultiSigEscrow id already exists"` on duplicate id.
+    /// - `"Invalid threshold"` if threshold is 0 or exceeds signers count.
+    ///
+    /// # Events
+    /// Emits `("MsEscCrt", id, from)` with data `(to, amount, threshold)`.
+    pub fn create_multisig_escrow(
+        env: Env,
+        id: Symbol,
+        from: Address,
+        to: Address,
+        token_addr: Address,
+        amount: i128,
+        expiry: u64,
+        signers: Vec<Address>,
+        threshold: u32,
+    ) {
+        from.require_auth();
+        assert!(amount > 0, "Amount must be positive");
+        assert!(
+            !env.storage().persistent().has(&DataKey::MultiSigEscrow(id.clone())),
+            "MultiSigEscrow id already exists"
+        );
+        assert!(
+            threshold > 0 && threshold <= signers.len(),
+            "Invalid threshold"
+        );
+
+        let client = token::Client::new(&env, &token_addr);
+        client.transfer(&from, &env.current_contract_address(), &amount);
+
+        let escrow = MultiSigEscrow {
+            from: from.clone(),
+            to: to.clone(),
+            token: token_addr,
+            amount,
+            expiry,
+            signers,
+            threshold,
+            approvals: Vec::new(&env),
+            released: false,
+            cancelled: false,
+        };
+        env.storage().persistent().set(&DataKey::MultiSigEscrow(id.clone()), &escrow);
+
+        env.events().publish(
+            (symbol_short!("MsEscCrt"), id, from),
+            (to, amount, threshold),
+        );
+    }
+
+    /// Approve release of a multi-sig escrow. Funds are released automatically when
+    /// the approval count reaches `threshold`.
+    ///
+    /// # Parameters
+    /// - `id`: The multi-sig escrow identifier.
+    /// - `caller`: Must be in `signers`; `require_auth()` is enforced.
+    ///
+    /// # Panics
+    /// - `"MultiSigEscrow not found"` if no escrow exists with the given `id`.
+    /// - `"Not a signer"` if `caller` is not in the signers list.
+    /// - `"Already approved"` if `caller` has already approved.
+    /// - `"Already released"` / `"Escrow cancelled"` if escrow is finalised.
+    ///
+    /// # Events
+    /// Emits `("MsEscApv", id, caller)` with data `approvals_count`.
+    /// Emits `("MsEscRel", id, to)` with data `amount` when threshold is reached.
+    pub fn approve_multisig_release(env: Env, id: Symbol, caller: Address) {
+        caller.require_auth();
+        let mut escrow: MultiSigEscrow = env
+            .storage()
+            .persistent()
+            .get(&DataKey::MultiSigEscrow(id.clone()))
+            .expect("MultiSigEscrow not found");
+
+        assert!(!escrow.released, "Already released");
+        assert!(!escrow.cancelled, "Escrow cancelled");
+        assert!(
+            escrow.signers.iter().any(|s| s == caller),
+            "Not a signer"
+        );
+        assert!(
+            escrow.approvals.iter().all(|a| a != caller),
+            "Already approved"
+        );
+
+        escrow.approvals.push_back(caller.clone());
+        let count = escrow.approvals.len();
+
+        env.events().publish(
+            (symbol_short!("MsEscApv"), id.clone(), caller),
+            count,
+        );
+
+        if count >= escrow.threshold {
+            let client = token::Client::new(&env, &escrow.token);
+            client.transfer(&env.current_contract_address(), &escrow.to, &escrow.amount);
+            escrow.released = true;
+            env.events().publish(
+                (symbol_short!("MsEscRel"), id.clone(), escrow.to.clone()),
+                escrow.amount,
+            );
+        }
+
+        env.storage().persistent().set(&DataKey::MultiSigEscrow(id), &escrow);
+    }
+
+    /// Cancel a multi-sig escrow and refund the payer (after expiry, payer only).
+    ///
+    /// # Panics
+    /// - `"MultiSigEscrow not found"`, `"Not authorized"`, `"Already released"`,
+    ///   `"Already cancelled"`, `"Escrow not yet expired"`.
+    ///
+    /// # Events
+    /// Emits `("MsEscCnl", id, from)` with data `amount`.
+    pub fn cancel_multisig_escrow(env: Env, id: Symbol, caller: Address) {
+        caller.require_auth();
+        let mut escrow: MultiSigEscrow = env
+            .storage()
+            .persistent()
+            .get(&DataKey::MultiSigEscrow(id.clone()))
+            .expect("MultiSigEscrow not found");
+
+        assert!(escrow.from == caller, "Not authorized");
+        assert!(!escrow.released, "Already released");
+        assert!(!escrow.cancelled, "Already cancelled");
+        assert!(env.ledger().timestamp() >= escrow.expiry, "Escrow not yet expired");
+
+        let client = token::Client::new(&env, &escrow.token);
+        client.transfer(&env.current_contract_address(), &escrow.from, &escrow.amount);
+        escrow.cancelled = true;
+        env.storage().persistent().set(&DataKey::MultiSigEscrow(id.clone()), &escrow);
+
+        env.events().publish(
+            (symbol_short!("MsEscCnl"), id, escrow.from),
+            escrow.amount,
+        );
+    }
+
+    /// Fetch multi-sig escrow details by id.
+    pub fn get_multisig_escrow(env: Env, id: Symbol) -> Option<MultiSigEscrow> {
+        env.storage().persistent().get(&DataKey::MultiSigEscrow(id))
+    }
+
+    // -------------------------------------------------------------------------
     // Upgrade
     // -------------------------------------------------------------------------
 
@@ -597,5 +791,71 @@ mod tests {
         let t = TestEnv::new();
         let id = Symbol::new(&t.env, "nope");
         assert!(t.client().get_escrow(&id).is_none());
+    }
+
+    // -------------------------------------------------------------------------
+    // Multi-sig escrow tests (#337)
+    // -------------------------------------------------------------------------
+
+    #[test]
+    fn test_multisig_escrow_releases_at_threshold() {
+        let t = TestEnv::new();
+        let id = Symbol::new(&t.env, "ms1");
+        let s1 = Address::generate(&t.env);
+        let s2 = Address::generate(&t.env);
+        let signers = soroban_sdk::vec![&t.env, s1.clone(), s2.clone()];
+
+        t.client().create_multisig_escrow(&id, &t.payer, &t.worker, &t.token_addr, &200_000, &9999, &signers, &2);
+        assert_eq!(t.token_balance(&t.contract_id), 200_000);
+
+        t.client().approve_multisig_release(&id, &s1);
+        // not yet released
+        assert_eq!(t.token_balance(&t.worker), 0);
+
+        t.client().approve_multisig_release(&id, &s2);
+        // threshold reached
+        assert_eq!(t.token_balance(&t.worker), 200_000);
+        assert!(t.client().get_multisig_escrow(&id).unwrap().released);
+    }
+
+    #[test]
+    #[should_panic(expected = "Not a signer")]
+    fn test_multisig_approve_non_signer_panics() {
+        let t = TestEnv::new();
+        let id = Symbol::new(&t.env, "ms2");
+        let s1 = Address::generate(&t.env);
+        let signers = soroban_sdk::vec![&t.env, s1.clone()];
+        t.client().create_multisig_escrow(&id, &t.payer, &t.worker, &t.token_addr, &100_000, &9999, &signers, &1);
+        let stranger = Address::generate(&t.env);
+        t.client().approve_multisig_release(&id, &stranger);
+    }
+
+    #[test]
+    #[should_panic(expected = "Already approved")]
+    fn test_multisig_double_approve_panics() {
+        let t = TestEnv::new();
+        let id = Symbol::new(&t.env, "ms3");
+        let s1 = Address::generate(&t.env);
+        let s2 = Address::generate(&t.env);
+        let signers = soroban_sdk::vec![&t.env, s1.clone(), s2.clone()];
+        t.client().create_multisig_escrow(&id, &t.payer, &t.worker, &t.token_addr, &100_000, &9999, &signers, &2);
+        t.client().approve_multisig_release(&id, &s1);
+        t.client().approve_multisig_release(&id, &s1);
+    }
+
+    #[test]
+    fn test_multisig_cancel_after_expiry() {
+        let t = TestEnv::new();
+        let id = Symbol::new(&t.env, "ms4");
+        let s1 = Address::generate(&t.env);
+        let signers = soroban_sdk::vec![&t.env, s1.clone()];
+
+        t.set_time(1000);
+        t.client().create_multisig_escrow(&id, &t.payer, &t.worker, &t.token_addr, &100_000, &2000, &signers, &1);
+        t.set_time(3000);
+        t.client().cancel_multisig_escrow(&id, &t.payer);
+
+        assert_eq!(t.token_balance(&t.payer), 1_000_000);
+        assert!(t.client().get_multisig_escrow(&id).unwrap().cancelled);
     }
 }
