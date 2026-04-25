@@ -10,7 +10,7 @@ import {
 } from '../controllers/workers.js'
 import { toggleBookmark } from '../controllers/bookmarks.js'
 import { createReview, listReviews } from '../controllers/reviews.js'
-import { getAvailability, upsertAvailability } from '../controllers/availability.js'
+import { getAvailability, upsertAvailability, addAvailabilitySlot, deleteAvailabilitySlot } from '../controllers/availability.js'
 import { registerOnChain } from '../controllers/stellar.js'
 import { createContactRequest, getContactRequests, updateContactRequestStatus } from '../controllers/contact-request.js'
 import { authenticate, authorize } from '../middleware/auth.js'
@@ -33,6 +33,8 @@ router.patch('/:id/toggle', authenticate, authorize('curator'), toggleActivation
 // Availability
 router.get('/:id/availability', cacheMiddleware(TTL.SHORT), getAvailability)
 router.put('/:id/availability', authenticate, authorize('curator'), upsertAvailability)
+router.post('/:id/availability', authenticate, authorize('curator'), addAvailabilitySlot)
+router.delete('/:id/availability/:slotId', authenticate, authorize('curator'), deleteAvailabilitySlot)
 
 // On-chain registration
 router.post('/:id/register-on-chain', authenticate, authorize('curator'), registerOnChain)

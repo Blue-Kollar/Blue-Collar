@@ -43,6 +43,7 @@ model User {
   updatedAt     DateTime  @updatedAt
   workers       Worker[]
   reviews       Review[]
+  bookmarks     Bookmark[]
   contactRequests ContactRequest[]
   pushSubscriptions PushSubscription[]
   disputesFiled   Dispute[] @relation("DisputesFiled")
@@ -85,6 +86,8 @@ model Worker {
   availability        Availability[]
   contactRequests     ContactRequest[]
   disputes            Dispute[]
+  portfolio           PortfolioItem[]
+  subscription        Subscription?
 }
 
 model PortfolioItem {
@@ -142,6 +145,52 @@ model Dispute {
   resolvedBy  User?         @relation("DisputesResolved", fields: [resolvedById], references: [id])
 }
 
+model Availability {
+  id          String   @id @default(cuid())
+  workerId    String
+  worker      Worker   @relation(fields: [workerId], references: [id], onDelete: Cascade)
+  dayOfWeek   Int      // 0=Sun … 6=Sat
+  startTime   String   // "HH:MM" in worker's timezone
+  endTime     String   // "HH:MM" in worker's timezone
+  timezone    String   @default("UTC")
+  isRecurring Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([workerId, dayOfWeek, startTime, endTime])
+}
+
+model Bookmark {
+  id       String @id @default(cuid())
+  userId   String
+  workerId String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  worker   Worker @relation(fields: [workerId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, workerId])
+}
+
+model ContactRequest {
+  id         String   @id @default(cuid())
+  workerId   String
+  fromUserId String
+  message    String
+  status     String   @default("pending")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  worker     Worker   @relation(fields: [workerId], references: [id], onDelete: Cascade)
+  fromUser   User     @relation(fields: [fromUserId], references: [id], onDelete: Cascade)
+}
+
+model PushSubscription {
+  id       String @id @default(cuid())
+  userId   String
+  endpoint String @unique
+  p256dh   String
+  auth     String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
 enum Role {
   user
   curator
@@ -153,4 +202,16 @@ enum DisputeStatus {
   under_review
   resolved
   dismissed
+}
+
+enum ReviewStatus {
+  pending
+  approved
+  rejected
+}
+
+enum SubscriptionTier {
+  free
+  pro
+  premium
 }
