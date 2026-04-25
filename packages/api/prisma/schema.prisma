@@ -43,6 +43,10 @@ model User {
   updatedAt     DateTime  @updatedAt
   workers       Worker[]
   reviews       Review[]
+  contactRequests ContactRequest[]
+  pushSubscriptions PushSubscription[]
+  disputesFiled   Dispute[] @relation("DisputesFiled")
+  disputesResolved Dispute[] @relation("DisputesResolved")
 }
 
 model Category {
@@ -56,27 +60,31 @@ model Category {
 }
 
 model Worker {
-  id            String            @id @default(cuid())
-  name          String
-  bio           String?
-  avatar        String?
-  phone         String?
-  email         String?
-  walletAddress String?
-  isActive      Boolean           @default(true)
-  isVerified    Boolean           @default(false)
-  categoryId    String
-  category      Category          @relation(fields: [categoryId], references: [id])
-  curatorId     String
-  curator       User              @relation(fields: [curatorId], references: [id])
-  locationId    String?
-  latitude      Float?
-  longitude     Float?
-  portfolio     PortfolioItem[]
-  reviews       Review[]
-  subscription  Subscription?
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
+  id                  String          @id @default(cuid())
+  name                String
+  bio                 String?
+  avatar              String?
+  phone               String?
+  email               String?
+  walletAddress       String?
+  isActive            Boolean         @default(true)
+  isVerified          Boolean         @default(false)
+  stellarContractId   String?
+  /// PostgreSQL tsvector column — maintained by DB trigger, used for full-text search
+  searchVector        Unsupported("tsvector")?
+  categoryId          String
+  category            Category        @relation(fields: [categoryId], references: [id])
+  curatorId           String
+  curator             User            @relation(fields: [curatorId], references: [id])
+  locationId          String?
+  location            Location?       @relation(fields: [locationId], references: [id])
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+  bookmarks           Bookmark[]
+  reviews             Review[]
+  availability        Availability[]
+  contactRequests     ContactRequest[]
+  disputes            Dispute[]
 }
 
 model PortfolioItem {
@@ -118,20 +126,31 @@ model Subscription {
   updatedAt          DateTime           @updatedAt
 }
 
+model Dispute {
+  id          String        @id @default(cuid())
+  workerId    String
+  filedById   String
+  reason      String
+  evidence    String?       // URL or description of evidence
+  status      DisputeStatus @default(open)
+  resolution  String?
+  resolvedById String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  worker      Worker        @relation(fields: [workerId], references: [id], onDelete: Cascade)
+  filedBy     User          @relation("DisputesFiled", fields: [filedById], references: [id], onDelete: Cascade)
+  resolvedBy  User?         @relation("DisputesResolved", fields: [resolvedById], references: [id])
+}
+
 enum Role {
   user
   curator
   admin
 }
 
-enum ReviewStatus {
-  pending
-  approved
-  rejected
-}
-
-enum SubscriptionTier {
-  free
-  pro
-  premium
+enum DisputeStatus {
+  open
+  under_review
+  resolved
+  dismissed
 }

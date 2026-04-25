@@ -22,7 +22,6 @@
 use soroban_sdk::{
     contract, contractimpl, contracttype, symbol_short, Address, BytesN, Env, String, Symbol, Vec,
 };
-use bluecollar_types::Worker;
 
 /// Approximate TTL extension target (~1 year at 5 s/ledger).
 const TTL_EXTEND_TO: u32 = 535_000;
@@ -56,6 +55,9 @@ pub struct Worker {
     pub location_hash: BytesN<32>,
     /// SHA-256( lowercase(email_or_e164_phone) )
     pub contact_hash: BytesN<32>,
+    /// Reputation score in basis points (0–10000, where 10000 = 100.00%).
+    /// Updated by the admin via [`RegistryContract::update_reputation`].
+    pub reputation: u32,
 }
 
 /// Storage keys used throughout the contract.
@@ -229,6 +231,7 @@ impl RegistryContract {
             wallet: owner.clone(),
             location_hash,
             contact_hash,
+            reputation: 0,
         };
 
         let key = DataKey::Worker(id.clone());
@@ -496,6 +499,40 @@ impl RegistryContract {
     }
 
     // -------------------------------------------------------------------------
+    // Reputation
+    // -------------------------------------------------------------------------
+
+    /// Update a worker's on-chain reputation score (admin only).
+    ///
+    /// # Parameters
+    /// - `admin`: Must be the contract admin; `require_auth()` is enforced.
+    /// - `id`: The worker's unique identifier.
+    /// - `score`: New reputation score in basis points (0–10000).
+    ///
+    /// # Panics
+    /// - `"Admin only"` if `admin` is not the stored admin.
+    /// - `"Worker not found"` if no worker exists with the given `id`.
+    /// - `"Score out of range"` if `score > 10000`.
+    ///
+    /// # Events
+    /// Emits `("RepUpd", id)` with data `score`.
+    pub fn update_reputation(env: Env, admin: Address, id: Symbol, score: u32) {
+        Self::require_admin(&env, &admin);
+        assert!(score <= 10_000, "Score out of range");
+
+        let mut worker: Worker = env
+            .storage()
+            .persistent()
+            .get(&DataKey::Worker(id.clone()))
+            .expect("Worker not found");
+
+        worker.reputation = score;
+        env.storage().persistent().set(&DataKey::Worker(id.clone()), &worker);
+
+        env.events().publish((symbol_short!("RepUpd"), id), score);
+    }
+
+    // -------------------------------------------------------------------------
     // Upgrade
     // -------------------------------------------------------------------------
 
@@ -715,6 +752,42 @@ mod tests {
     }
 
     #[test]
+    fn test_reputation_defaults_to_zero() {
+        let t = TestEnv::new();
+        t.client().add_curator(&t.admin, &t.curator);
+        t.register_worker(&t.curator);
+        let worker = t.client().get_worker(&t.worker_id()).unwrap();
+        assert_eq!(worker.reputation, 0);
+    }
+
+    #[test]
+    fn test_update_reputation() {
+        let t = TestEnv::new();
+        t.client().add_curator(&t.admin, &t.curator);
+        t.register_worker(&t.curator);
+        t.client().update_reputation(&t.admin, &t.worker_id(), &8500);
+        let worker = t.client().get_worker(&t.worker_id()).unwrap();
+        assert_eq!(worker.reputation, 8500);
+    }
+
+    #[test]
+    #[should_panic(expected = "Score out of range")]
+    fn test_update_reputation_out_of_range() {
+        let t = TestEnv::new();
+        t.client().add_curator(&t.admin, &t.curator);
+        t.register_worker(&t.curator);
+        t.client().update_reputation(&t.admin, &t.worker_id(), &10_001);
+    }
+
+    #[test]
+    #[should_panic(expected = "Admin only")]
+    fn test_update_reputation_non_admin_panics() {
+        let t = TestEnv::new();
+        t.client().add_curator(&t.admin, &t.curator);
+        t.register_worker(&t.curator);
+        let stranger = Address::generate(&t.env);
+        t.client().update_reputation(&stranger, &t.worker_id(), &5000);
+    }    #[test]
     fn test_list_workers_paginated() {
         let t = TestEnv::new();
         t.client().add_curator(&t.admin, &t.curator);

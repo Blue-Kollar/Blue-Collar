@@ -5,11 +5,13 @@ import methodOverride from 'method-override'
 import passport from './config/passport.js'
 import { logger } from './config/logger.js'
 import { redis, cacheMetrics } from './config/redis.js'
+import { db } from './db.js'
 import authRoutes from './routes/auth.js'
 import categoryRoutes from './routes/categories.js'
 import workerRoutes from './routes/workers.js'
 import adminRoutes from './routes/admin.js'
 import userRoutes from './routes/users.js'
+import disputeRoutes from './routes/disputes.js'
 
 const app = express()
 
@@ -28,9 +30,36 @@ app.use('/api/categories', categoryRoutes)
 app.use('/api/workers', workerRoutes)
 app.use('/api/admin', adminRoutes)
 app.use('/api/users', userRoutes)
+app.use('/api/disputes', disputeRoutes)
 
-app.get('/health', (_req, res) => {
-  res.json({ status: 'ok', service: 'bluecollar-api' })
+app.get('/health', async (_req, res) => {
+  const checks: Record<string, { status: 'ok' | 'error'; latencyMs?: number; error?: string }> = {}
+
+  // Database check
+  const dbStart = Date.now()
+  try {
+    await db.$queryRaw`SELECT 1`
+    checks.database = { status: 'ok', latencyMs: Date.now() - dbStart }
+  } catch (err: any) {
+    checks.database = { status: 'error', latencyMs: Date.now() - dbStart, error: err?.message }
+  }
+
+  // Redis check
+  const redisStart = Date.now()
+  try {
+    await redis.ping()
+    checks.redis = { status: 'ok', latencyMs: Date.now() - redisStart }
+  } catch (err: any) {
+    checks.redis = { status: 'error', latencyMs: Date.now() - redisStart, error: err?.message }
+  }
+
+  const allOk = Object.values(checks).every((c) => c.status === 'ok')
+  res.status(allOk ? 200 : 503).json({
+    status: allOk ? 'ok' : 'degraded',
+    service: 'bluecollar-api',
+    checks,
+    timestamp: new Date().toISOString(),
+  })
 })
 
 app.get('/metrics/cache', (_req, res) => {
