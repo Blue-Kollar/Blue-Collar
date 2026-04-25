@@ -130,3 +130,9 @@ export const createReview = (workerId: string, data: { rating: number; comment?:
 // Categories
 export const getCategories = () =>
   request<ApiResponse<Category[]>>("/categories");
+
+// Search autocomplete
+export const searchWorkers = (query: string, limit = 6) =>
+  request<ApiResponse<Worker[]>>(
+    `/workers?search=${encodeURIComponent(query)}&limit=${limit}`
+  );
