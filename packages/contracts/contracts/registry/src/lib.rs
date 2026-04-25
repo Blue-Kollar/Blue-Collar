@@ -65,6 +65,8 @@ pub struct Worker {
 pub enum DataKey {
     /// Instance storage — admin address, set once at [`RegistryContract::initialize`].
     Admin,
+    /// Instance storage — paused flag; when `true` all state-mutating functions revert.
+    Paused,
     /// Persistent storage — ordered list of approved curator [`Address`]es.
     Curators,
     /// Persistent storage — [`Worker`] record keyed by its `id` [`Symbol`].
@@ -114,6 +116,63 @@ impl RegistryContract {
         assert!(*caller == Self::get_admin(env.clone()), "Admin only");
     }
 
+    /// Assert that the contract is not paused.
+    ///
+    /// # Panics
+    /// Panics with `"Contract is paused"` if the paused flag is set.
+    fn require_not_paused(env: &Env) {
+        let paused: bool = env
+            .storage()
+            .instance()
+            .get(&DataKey::Paused)
+            .unwrap_or(false);
+        assert!(!paused, "Contract is paused");
+    }
+
+    // -------------------------------------------------------------------------
+    // Pause / Unpause (admin only)
+    // -------------------------------------------------------------------------
+
+    /// Pause the contract, blocking all state-mutating operations.
+    ///
+    /// # Parameters
+    /// - `admin`: Must be the contract admin; `require_auth()` is enforced.
+    ///
+    /// # Panics
+    /// Panics with `"Admin only"` if `admin` is not the stored admin.
+    ///
+    /// # Events
+    /// Emits `("Paused", admin)`.
+    pub fn pause(env: Env, admin: Address) {
+        Self::require_admin(&env, &admin);
+        env.storage().instance().set(&DataKey::Paused, &true);
+        env.events().publish((symbol_short!("Paused"), admin), ());
+    }
+
+    /// Unpause the contract, re-enabling all state-mutating operations.
+    ///
+    /// # Parameters
+    /// - `admin`: Must be the contract admin; `require_auth()` is enforced.
+    ///
+    /// # Panics
+    /// Panics with `"Admin only"` if `admin` is not the stored admin.
+    ///
+    /// # Events
+    /// Emits `("Unpaused", admin)`.
+    pub fn unpause(env: Env, admin: Address) {
+        Self::require_admin(&env, &admin);
+        env.storage().instance().set(&DataKey::Paused, &false);
+        env.events().publish((symbol_short!("Unpaused"), admin), ());
+    }
+
+    /// Returns `true` if the contract is currently paused.
+    pub fn is_paused(env: Env) -> bool {
+        env.storage()
+            .instance()
+            .get(&DataKey::Paused)
+            .unwrap_or(false)
+    }
+
     /// Return the current curator list, or an empty vec if none have been added yet.
     fn get_curators(env: &Env) -> Vec<Address> {
         env.storage()
@@ -139,6 +198,7 @@ impl RegistryContract {
     /// Emits `("CurAdd", admin, curator)`.
     pub fn add_curator(env: Env, admin: Address, curator: Address) {
         Self::require_admin(&env, &admin);
+        Self::require_not_paused(&env);
 
         let mut curators = Self::get_curators(&env);
         if curators.iter().all(|c| c != curator) {
@@ -162,6 +222,7 @@ impl RegistryContract {
     /// Emits `("CurRem", admin, curator)`.
     pub fn remove_curator(env: Env, admin: Address, curator: Address) {
         Self::require_admin(&env, &admin);
+        Self::require_not_paused(&env);
 
         let curators = Self::get_curators(&env);
         let mut updated: Vec<Address> = Vec::new(&env);
@@ -217,6 +278,7 @@ impl RegistryContract {
         curator: Address,
     ) {
         curator.require_auth();
+        Self::require_not_paused(&env);
         assert!(
             Self::get_curators(&env).iter().any(|c| c == curator),
             "Caller is not a curator"
@@ -272,6 +334,7 @@ impl RegistryContract {
     /// Emits `("WrkTgl", id)` with data `new_is_active: bool`.
     pub fn toggle(env: Env, id: Symbol, caller: Address) {
         caller.require_auth();
+        Self::require_not_paused(&env);
         let mut worker: Worker = env
             .storage()
             .persistent()
@@ -313,6 +376,7 @@ impl RegistryContract {
         contact_hash: BytesN<32>,
     ) {
         caller.require_auth();
+        Self::require_not_paused(&env);
         let mut worker: Worker = env
             .storage()
             .persistent()
@@ -357,6 +421,7 @@ impl RegistryContract {
         wallet: Address,
     ) {
         caller.require_auth();
+        Self::require_not_paused(&env);
 
         let mut worker: Worker = env
             .storage()
@@ -393,6 +458,7 @@ impl RegistryContract {
     /// Emits `("WrkDrg", id, caller)`.
     pub fn deregister(env: Env, id: Symbol, caller: Address) {
         caller.require_auth();
+        Self::require_not_paused(&env);
         let worker: Worker = env
             .storage()
             .persistent()
@@ -518,6 +584,7 @@ impl RegistryContract {
     /// Emits `("RepUpd", id)` with data `score`.
     pub fn update_reputation(env: Env, admin: Address, id: Symbol, score: u32) {
         Self::require_admin(&env, &admin);
+        Self::require_not_paused(&env);
         assert!(score <= 10_000, "Score out of range");
 
         let mut worker: Worker = env

@@ -65,6 +65,8 @@ pub struct Escrow {
 pub enum DataKey {
     /// Instance storage — [`Config`] struct, set once at [`MarketContract::initialize`].
     Config,
+    /// Instance storage — paused flag; when `true` all state-mutating functions revert.
+    Paused,
     /// Persistent storage — [`Escrow`] struct keyed by a caller-supplied id [`Symbol`].
     Escrow(Symbol),
 }
@@ -132,6 +134,77 @@ impl MarketContract {
     }
 
     // -------------------------------------------------------------------------
+    // Pause / Unpause (admin only)
+    // -------------------------------------------------------------------------
+
+    /// Assert that the contract is not paused.
+    ///
+    /// # Panics
+    /// Panics with `"Contract is paused"` if the paused flag is set.
+    fn require_not_paused(env: &Env) {
+        let paused: bool = env
+            .storage()
+            .instance()
+            .get(&DataKey::Paused)
+            .unwrap_or(false);
+        assert!(!paused, "Contract is paused");
+    }
+
+    /// Pause the contract, blocking all state-mutating operations.
+    ///
+    /// # Parameters
+    /// - `admin`: Must be the contract admin; `require_auth()` is enforced.
+    ///
+    /// # Panics
+    /// - `"Not initialized"` if [`initialize`] has not been called.
+    /// - `"Unauthorized"` if `admin` does not match the stored admin.
+    ///
+    /// # Events
+    /// Emits `("Paused", admin)`.
+    pub fn pause(env: Env, admin: Address) {
+        admin.require_auth();
+        let config: Config = env
+            .storage()
+            .instance()
+            .get(&DataKey::Config)
+            .expect("Not initialized");
+        assert!(config.admin == admin, "Unauthorized");
+        env.storage().instance().set(&DataKey::Paused, &true);
+        env.events().publish((symbol_short!("Paused"), admin), ());
+    }
+
+    /// Unpause the contract, re-enabling all state-mutating operations.
+    ///
+    /// # Parameters
+    /// - `admin`: Must be the contract admin; `require_auth()` is enforced.
+    ///
+    /// # Panics
+    /// - `"Not initialized"` if [`initialize`] has not been called.
+    /// - `"Unauthorized"` if `admin` does not match the stored admin.
+    ///
+    /// # Events
+    /// Emits `("Unpaused", admin)`.
+    pub fn unpause(env: Env, admin: Address) {
+        admin.require_auth();
+        let config: Config = env
+            .storage()
+            .instance()
+            .get(&DataKey::Config)
+            .expect("Not initialized");
+        assert!(config.admin == admin, "Unauthorized");
+        env.storage().instance().set(&DataKey::Paused, &false);
+        env.events().publish((symbol_short!("Unpaused"), admin), ());
+    }
+
+    /// Returns `true` if the contract is currently paused.
+    pub fn is_paused(env: Env) -> bool {
+        env.storage()
+            .instance()
+            .get(&DataKey::Paused)
+            .unwrap_or(false)
+    }
+
+    // -------------------------------------------------------------------------
     // Tip
     // -------------------------------------------------------------------------
 
@@ -154,6 +227,7 @@ impl MarketContract {
     /// Emits `("TipSent", from, to)` with data `(token_addr, amount)`.
     pub fn tip(env: Env, from: Address, to: Address, token_addr: Address, amount: i128) {
         from.require_auth();
+        Self::require_not_paused(&env);
         assert!(amount > 0, "Amount must be positive");
 
         let config: Config = env
@@ -210,6 +284,7 @@ impl MarketContract {
         expiry: u64,
     ) {
         from.require_auth();
+        Self::require_not_paused(&env);
         assert!(amount > 0, "Amount must be positive");
         assert!(
             !env.storage().persistent().has(&DataKey::Escrow(id.clone())),
@@ -255,6 +330,7 @@ impl MarketContract {
     /// Emits `("EscRel", id, escrow.to)` with data `escrow.amount`.
     pub fn release_escrow(env: Env, id: Symbol, caller: Address) {
         caller.require_auth();
+        Self::require_not_paused(&env);
         let mut escrow: Escrow = env
             .storage()
             .persistent()
@@ -300,6 +376,7 @@ impl MarketContract {
     /// Emits `("EscCnl", id, escrow.from)` with data `escrow.amount`.
     pub fn cancel_escrow(env: Env, id: Symbol, caller: Address) {
         caller.require_auth();
+        Self::require_not_paused(&env);
         let mut escrow: Escrow = env
             .storage()
             .persistent()
