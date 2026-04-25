@@ -1,47 +1,87 @@
-# feat: worker map view, notification center, portfolio gallery & search autocomplete
+# feat: Worker Map View, Notification Center, Portfolio Gallery & Search Autocomplete
 
-## Summary
+## Overview
 
-This PR implements four frontend features across issues #281, #273, #272, and #274.
+This PR ships four frontend features that significantly improve worker discoverability, user engagement, and profile richness on the BlueCollar platform.
 
 ---
 
-## Changes
+## What's Changed
 
-### #281 — Worker Map View
+### 🗺️ Worker Map View — closes #281
 
-- `WorkerMap.tsx` — Leaflet map with OpenStreetMap tiles, plots workers as markers using `latitude`/`longitude` fields. Dynamically imports `leaflet.markercluster` for dense-area clustering. Custom popup on marker click shows avatar, name, category, location and a "View Profile" link.
-- `WorkersViewToggle.tsx` — Client component with List/Map toggle buttons. Map loaded via `next/dynamic` (SSR disabled). Replaces the static grid in the workers page.
-- `workers/page.tsx` — Swapped static grid + EmptyState for `WorkersViewToggle`. Pagination remains server-rendered.
-- `package.json` — Added `leaflet.markercluster` + `@types/leaflet.markercluster`.
-- `types/index.ts` — Added `latitude`, `longitude` fields to `Worker`.
+Workers can now be explored on an interactive map alongside the existing list view.
 
-### #273 — Notification Center
+- Added a **List / Map toggle** on the workers browse page — state is client-side, no page reload needed
+- Map renders with **Leaflet + OpenStreetMap** (no API key required), loaded client-side via `next/dynamic` to avoid SSR issues
+- Workers are plotted as markers using `latitude` / `longitude` fields on the `Worker` type
+- **Marker clustering** via `leaflet.markercluster` keeps dense areas clean and performant
+- Clicking a marker opens a **custom popup** with the worker's avatar, name, category, location, and a direct "View Profile" link
+- Map and cluster CSS loaded from CDN to avoid webpack asset issues with Leaflet
 
-- `NotificationContext.tsx` — React context providing `notifications`, `unreadCount`, `markRead`, `markAllRead`, `addNotification`, `clearAll`. Persists to `localStorage`.
-- `NotificationDropdown.tsx` — Bell icon with unread badge in the Navbar. Dropdown lists notifications with type badges (tip/review/contact/system), relative timestamps, per-item mark-as-read, mark-all-read, and clear-all.
-- `notifications/preferences/page.tsx` — Toggle switches for each notification type, persisted to `localStorage`.
-- `[locale]/layout.tsx` — Wrapped providers with `NotificationProvider`.
-- `Navbar.tsx` — Added `NotificationDropdown` to desktop action bar.
+**Files:** `WorkerMap.tsx`, `WorkersViewToggle.tsx`, `workers/page.tsx`, `types/index.ts`, `package.json`
 
-### #272 — Worker Portfolio Gallery
+---
 
-- `PortfolioGallery.tsx` — Grid gallery with lightbox (reuses `ImageLightbox`), multi-file upload, drag-and-drop reordering, inline caption editing, and per-image remove. Read-only mode for public profile view.
-- `workers/[id]/page.tsx` — Renders `PortfolioGallery` (read-only) when `portfolioImages` are present.
-- `dashboard/workers/[id]/edit/page.tsx` — Adds editable `PortfolioGallery` section below the worker form.
-- `types/index.ts` — Added `PortfolioImage` type and `portfolioImages` field to `Worker`.
+### 🔔 Notification Center — closes #273
 
-### #274 — Worker Search Autocomplete
+A centralised in-app notification system accessible from the navbar.
 
-- `SearchAutocomplete.tsx` — Fully accessible autocomplete input:
-  - Debounced API calls (300ms) against `/workers?search=` with `AbortController` to cancel stale requests
-  - Shows up to 6 suggestions with worker avatar/initials, name, category, and location
-  - Highlights matching text in both name and category fields
-  - Full keyboard navigation: `↑`/`↓` to move, `Enter` to select, `Escape` to dismiss
-  - ARIA attributes: `role="listbox"`, `aria-expanded`, `aria-activedescendant`
-  - Loading spinner while fetching
-- `workers/page.tsx` — Replaced plain search `<input>` in the sidebar with `SearchAutocomplete`.
-- `api.ts` — Added `searchWorkers` helper function.
+- **Bell icon with unread badge** added to the desktop navbar — badge caps at `9+`
+- Dropdown lists notifications grouped by type: `tip`, `review`, `contact`, `system` — each with a colour-coded badge, title, message, and relative timestamp (e.g. "3h ago")
+- Unread notifications are visually highlighted; individual **mark-as-read** button per item
+- **Mark all as read** and **Clear all** actions in the dropdown header
+- Notifications persist across sessions via `localStorage`
+- **Notification preferences page** at `/notifications/preferences` — toggle switches per notification type, also persisted to `localStorage`
+- `NotificationContext` exposes `addNotification` so any part of the app (tip confirmations, review submissions, contact requests) can push notifications programmatically
+- Dropdown closes on outside click and `Escape` key
+
+**Files:** `NotificationContext.tsx`, `NotificationDropdown.tsx`, `notifications/preferences/page.tsx`, `[locale]/layout.tsx`, `Navbar.tsx`
+
+---
+
+### 🖼️ Worker Portfolio Gallery — closes #272
+
+Workers can now showcase their work with a rich photo gallery on their profile.
+
+- **Grid layout** (2-col mobile, 3-col desktop) displayed on the public worker profile page
+- Clicking any image opens the existing **`ImageLightbox`** component for full-size viewing with zoom, pan, and pinch-to-zoom support
+- In the **dashboard edit page**, the gallery is fully editable:
+  - **Multi-file upload** via a styled "Add photos" button
+  - **Drag-and-drop reordering** — grab the grip handle and drop to reposition
+  - **Inline caption editing** — click the caption area on any image, type, then blur or press `Enter` to save
+  - **Per-image remove** button appears on hover
+- Read-only and editable modes are controlled by a single `editable` prop
+- Added `PortfolioImage` type and `portfolioImages` field to the `Worker` type
+
+**Files:** `PortfolioGallery.tsx`, `workers/[id]/page.tsx`, `dashboard/workers/[id]/edit/page.tsx`, `types/index.ts`
+
+---
+
+### 🔍 Worker Search Autocomplete — closes #274
+
+The search input in the workers sidebar now shows live suggestions as you type.
+
+- **Debounced API calls** (300ms) against the existing `/workers?search=` endpoint — no new backend changes needed
+- Requests are cancelled via `AbortController` when a new keystroke arrives, preventing stale results
+- Suggestions show up to **6 workers** with avatar (or initials fallback), name, category, and location
+- **Matching text is highlighted** in both the worker name and category fields
+- Full **keyboard navigation**: `↑` / `↓` to move through suggestions, `Enter` to select, `Escape` to dismiss
+- Fully accessible: `role="listbox"`, `aria-expanded`, `aria-activedescendant`, `aria-selected` on each option
+- Loading spinner shown during fetch; gracefully handles network errors and empty results
+
+**Files:** `SearchAutocomplete.tsx`, `workers/page.tsx`, `api.ts`
+
+---
+
+## Testing
+
+1. Run `npm install` in `packages/app` to pull in `leaflet.markercluster`
+2. `npm run dev` — browse to `/workers`
+3. Toggle between List and Map views
+4. Type in the search box and verify autocomplete suggestions appear with highlighted text and keyboard nav works
+5. Open the notification bell — use browser console to call `addNotification` from `NotificationContext` to seed test data
+6. Edit a worker profile from the dashboard and add/reorder/caption portfolio images
 
 ---
 
