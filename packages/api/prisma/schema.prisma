@@ -48,6 +48,7 @@ model User {
   disputesFiled   Dispute[] @relation("DisputesFiled")
   disputesResolved Dispute[] @relation("DisputesResolved")
   interactions    UserInteraction[]
+  webhooks        WebhookSubscription[]
 }
 
 model Category {
@@ -168,6 +169,36 @@ enum InteractionType {
   bookmark
   tip
   contact
+}
+
+model WebhookSubscription {
+  id        String         @id @default(cuid())
+  userId    String
+  url       String
+  secret    String
+  events    String[]       // e.g. ["worker.created", "worker.updated"]
+  isActive  Boolean        @default(true)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  logs      WebhookLog[]
+
+  @@index([userId])
+}
+
+model WebhookLog {
+  id             String              @id @default(cuid())
+  subscriptionId String
+  event          String
+  payload        Json
+  statusCode     Int?
+  attempts       Int                 @default(0)
+  success        Boolean             @default(false)
+  error          String?
+  createdAt      DateTime            @default(now())
+  subscription   WebhookSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@index([subscriptionId])
 }
 
 enum DisputeStatus {

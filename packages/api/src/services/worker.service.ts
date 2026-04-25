@@ -2,6 +2,7 @@ import { db } from '../db.js'
 import { AppError } from './AppError.js'
 import { formatWorker } from '../models/worker.model.js'
 import type { CreateWorkerBody, UpdateWorkerBody } from '../interfaces/index.js'
+import { publishEvent } from './webhook.service.js'
 
 const workerInclude = { category: true, curator: true } as const
 
@@ -222,16 +223,19 @@ export async function getWorker(id: string) {
 
 export async function createWorker(data: CreateWorkerBody, curatorId: string) {
   const worker = await db.worker.create({ data: { ...data, curatorId } as any, include: workerInclude })
+  publishEvent('worker.created', { worker: formatWorker(worker) }).catch(() => {})
   return formatWorker(worker)
 }
 
 export async function updateWorker(id: string, data: UpdateWorkerBody) {
   const worker = await db.worker.update({ where: { id }, data: data as any, include: workerInclude })
+  publishEvent('worker.updated', { worker: formatWorker(worker) }).catch(() => {})
   return formatWorker(worker)
 }
 
 export async function deleteWorker(id: string) {
   await db.worker.delete({ where: { id } })
+  publishEvent('worker.deleted', { workerId: id }).catch(() => {})
 }
 
 export async function toggleWorker(id: string) {
