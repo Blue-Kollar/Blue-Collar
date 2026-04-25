@@ -6,38 +6,62 @@ import { WorkerResource, WorkerCollection } from '../resources/index.js'
 import type { CreateWorkerBody, UpdateWorkerBody, WorkerQuery } from '../interfaces/index.js'
 import { invalidateCachePattern } from '../middleware/cache.js'
 
-/**
- * GET /api/workers
- * List active workers with optional filters and pagination.
- *
- * @param req - Query params: `category`, `page`, `limit`, `search`, `city`, `state`, `country`.
- * @param res - JSON `{ data: Worker[], meta, status, code }`.
- */
-export async function listWorkers(req: Request<{}, {}, {}, WorkerQuery>, res: Response) {
-  try {
-    const { category, page = '1', limit = '20', search, lang, city, state, country, minRating, available, listedSince } = req.query
-    const { data, meta } = await workerService.listWorkers({
-      category,
-      page: Number(page),
-      limit: Number(limit),
-      search,
-      lang,
-      city,
-      state,
-      country,
-      minRating: minRating ? Number(minRating) : undefined,
-      available: available !== undefined ? Number(available) : undefined,
-      listedSince: listedSince ? Number(listedSince) : undefined,
+// Haversine distance in km between two lat/lng points
+function haversine(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371
+  const dLat = ((lat2 - lat1) * Math.PI) / 180
+  const dLon = ((lon2 - lon1) * Math.PI) / 180
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) ** 2
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+}
+
+export async function listWorkers(req: Request, res: Response) {
+  const { category, page = '1', limit = '20', lat, lng, radius } = req.query
+
+  // Geo search: if lat/lng/radius provided, filter by proximity using Haversine
+  if (lat && lng) {
+    const userLat = Number(lat)
+    const userLng = Number(lng)
+    const radiusKm = radius ? Number(radius) : 10
+
+    if (isNaN(userLat) || isNaN(userLng) || isNaN(radiusKm))
+      return res.status(400).json({ status: 'error', message: 'Invalid lat, lng, or radius', code: 400 })
+
+    // Bounding box pre-filter (1 degree ≈ 111 km)
+    const delta = radiusKm / 111
+    const workers = await db.worker.findMany({
+      where: {
+        isActive: true,
+        latitude: { gte: userLat - delta, lte: userLat + delta },
+        longitude: { gte: userLng - delta, lte: userLng + delta },
+        ...(category ? { categoryId: String(category) } : {}),
+      },
+      include: { category: true },
     })
-    return res.json({
-      data: WorkerCollection(data as any),
-      meta,
-      status: 'success',
-      code: 200
-    })
-  } catch (err) {
-    return handleError(res, err)
+
+    const withDistance = workers
+      .map(w => ({ ...w, distanceKm: haversine(userLat, userLng, w.latitude!, w.longitude!) }))
+      .filter(w => w.distanceKm <= radiusKm)
+      .sort((a, b) => a.distanceKm - b.distanceKm)
+
+    const pageNum = Number(page)
+    const limitNum = Number(limit)
+    const paginated = withDistance.slice((pageNum - 1) * limitNum, pageNum * limitNum)
+    return res.json({ data: paginated, status: 'success', code: 200 })
   }
+
+  const workers = await db.worker.findMany({
+    where: {
+      isActive: true,
+      ...(category ? { categoryId: String(category) } : {}),
+    },
+    skip: (Number(page) - 1) * Number(limit),
+    take: Number(limit),
+    include: { category: true },
+  })
+  return res.json({ data: workers, status: 'success', code: 200 })
 }
 
 /**
@@ -48,15 +72,12 @@ export async function listWorkers(req: Request<{}, {}, {}, WorkerQuery>, res: Re
  * @param res - JSON `{ data: Worker, status, code }` or 404.
  */
 export async function showWorker(req: Request, res: Response) {
-  try {
-    const worker = await workerService.getWorker(req.params.id as string)
-    if (!worker) {
-      return res.status(404).json({ status: 'error', message: 'Worker not found', code: 404 })
-    }
-    return res.json({ data: WorkerResource(worker as any), status: 'success', code: 200 })
-  } catch (err) {
-    return handleError(res, err)
-  }
+  const worker = await db.worker.findUnique({
+    where: { id: req.params.id },
+    include: { category: true, portfolio: { orderBy: { order: 'asc' } } },
+  })
+  if (!worker) return res.status(404).json({ status: 'error', message: 'Not found', code: 404 })
+  return res.json({ data: worker, status: 'success', code: 200 })
 }
 
 /**

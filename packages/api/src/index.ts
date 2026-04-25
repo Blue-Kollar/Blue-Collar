@@ -7,8 +7,12 @@ import { env } from './config/env.js'
 import pinoHttp from 'pino-http'
 import methodOverride from 'method-override'
 import passport from './config/passport.js'
-import { logger } from './config/logger.js'
-import app from './app.js'
+import authRoutes from './routes/auth.js'
+import categoryRoutes from './routes/categories.js'
+import workerRoutes from './routes/workers.js'
+import portfolioRoutes from './routes/portfolio.js'
+import reviewRoutes from './routes/reviews.js'
+import subscriptionRoutes from './routes/subscriptions.js'
 
 const app = express()
 const PORT = env.PORT || 3000
@@ -26,8 +30,12 @@ app.use(helmet({
   },
 }))
 
-// Handle 404 errors for unmatched routes
-app.use(notFoundHandler)
+app.use('/api/auth', authRoutes)
+app.use('/api/categories', categoryRoutes)
+app.use('/api/workers', workerRoutes)
+app.use('/api/workers/:workerId/portfolio', portfolioRoutes)
+app.use('/api/workers/:workerId/reviews', reviewRoutes)
+app.use('/api/subscriptions', subscriptionRoutes)
 
 // Global error handler - must be last
 app.use(errorHandler)
