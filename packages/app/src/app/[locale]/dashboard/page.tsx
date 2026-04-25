@@ -13,6 +13,7 @@ import {
   Loader2,
   X,
   AlertTriangle,
+  Settings,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
@@ -138,6 +139,13 @@ export default function DashboardPage() {
         >
           <Plus size={16} />
           Create New Worker
+        </Link>
+        <Link
+          href="/dashboard/settings"
+          className="flex items-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+          title="Settings"
+        >
+          <Settings size={16} />
         </Link>
       </div>
 

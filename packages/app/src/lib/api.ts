@@ -131,8 +131,15 @@ export const createReview = (workerId: string, data: { rating: number; comment?:
 export const getCategories = () =>
   request<ApiResponse<Category[]>>("/categories");
 
-// Search autocomplete
-export const searchWorkers = (query: string, limit = 6) =>
-  request<ApiResponse<Worker[]>>(
-    `/workers?search=${encodeURIComponent(query)}&limit=${limit}`
-  );
+// User profile
+export const updateProfile = (data: { firstName?: string; lastName?: string; phone?: string; bio?: string }) =>
+  request<ApiResponse<unknown>>("/users/me", { method: "PATCH", body: data });
+
+export const changePassword = (currentPassword: string, newPassword: string) =>
+  request<{ status: string; message: string }>("/users/me/password", {
+    method: "PUT",
+    body: { currentPassword, newPassword },
+  });
+
+export const deleteAccount = () =>
+  request<{ status: string; message: string }>("/users/me", { method: "DELETE" });

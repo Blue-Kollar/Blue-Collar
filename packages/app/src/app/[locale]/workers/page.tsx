@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import WorkersViewToggle from "@/components/WorkersViewToggle";
-import SearchAutocomplete from "@/components/SearchAutocomplete";
+import WorkerInfiniteList from "@/components/WorkerInfiniteList";
 import type { Worker, Category, ApiResponse } from "@/types";
 
 export const metadata: Metadata = {
@@ -176,36 +175,14 @@ export default async function WorkersPage({ searchParams }: PageProps) {
           </form>
         </aside>
 
-        {/* Results — list/map toggle */}
-        <WorkersViewToggle
-          workers={workers}
-          hasFilters={!!(
-            searchParams.search || searchParams.category || searchParams.location ||
-            searchParams.minRating || searchParams.available || searchParams.listedSince
-          )}
-        />
-
-        {/* Pagination (list view only, rendered server-side) */}
-        {meta && meta.pages > 1 && (
-          <div className="mt-8 flex items-center justify-center gap-2 col-span-full">
-            {Array.from({ length: meta.pages }, (_, i) => i + 1).map((p) => {
-              const sp = new URLSearchParams({ ...params, page: String(p) });
-              return (
-                <Link
-                  key={p}
-                  href={`/workers?${sp.toString()}`}
-                  className={`rounded-md px-3 py-1.5 text-sm font-medium border transition-colors ${
-                    p === meta.page
-                      ? "bg-blue-600 text-white border-blue-600"
-                      : "bg-white text-gray-600 hover:bg-gray-50"
-                  }`}
-                >
-                  {p}
-                </Link>
-              );
-            })}
+          {/* Results */}
+          <div className="flex-1">
+            <WorkerInfiniteList
+              initialWorkers={workers}
+              initialMeta={meta}
+              params={params}
+            />
           </div>
-        )}
       </div>
     </div>
   );

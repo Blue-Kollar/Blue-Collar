@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Users, Info, LayoutDashboard, User } from "lucide-react";
+import { Home, Users, Info, LayoutDashboard, User, Settings } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 
@@ -19,7 +19,10 @@ export default function BottomNav() {
   const links = [
     ...BASE_LINKS,
     ...(user
-      ? [{ href: "/dashboard", label: "Dashboard", icon: LayoutDashboard }]
+      ? [
+          { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+          { href: "/dashboard/settings", label: "Settings", icon: Settings },
+        ]
       : [{ href: "/auth/login", label: "Account", icon: User }]),
   ];
 

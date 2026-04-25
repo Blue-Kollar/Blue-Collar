@@ -69,6 +69,8 @@ model Worker {
   isActive            Boolean         @default(true)
   isVerified          Boolean         @default(false)
   stellarContractId   String?
+  /// PostgreSQL tsvector column — maintained by DB trigger, used for full-text search
+  searchVector        Unsupported("tsvector")?
   categoryId          String
   category            Category        @relation(fields: [categoryId], references: [id])
   curatorId           String

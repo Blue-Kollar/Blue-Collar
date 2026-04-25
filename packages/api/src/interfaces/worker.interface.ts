@@ -14,6 +14,7 @@ export interface UpdateWorkerBody extends Partial<CreateWorkerBody> {}
 export interface WorkerQuery {
   category?: string
   search?: string
+  lang?: string        // PostgreSQL regconfig language for FTS (default: 'simple')
   city?: string
   state?: string
   country?: string
