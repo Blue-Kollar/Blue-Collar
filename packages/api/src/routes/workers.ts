@@ -13,6 +13,7 @@ import { createReview, listReviews } from '../controllers/reviews.js'
 import { getAvailability, upsertAvailability, addAvailabilitySlot, deleteAvailabilitySlot } from '../controllers/availability.js'
 import { registerOnChain } from '../controllers/stellar.js'
 import { createContactRequest, getContactRequests, updateContactRequestStatus } from '../controllers/contact-request.js'
+import { getWorkerVerifications } from '../controllers/verifications.js'
 import { authenticate, authorize } from '../middleware/auth.js'
 import { validate } from '../middleware/validate.js'
 import { upload, handleMulterError } from '../middleware/upload.js'
@@ -50,5 +51,8 @@ router.post('/:id/bookmark', authenticate, toggleBookmark)
 // Reviews
 router.get('/:id/reviews', cacheMiddleware(TTL.SHORT), listReviews)
 router.post('/:id/reviews', authenticate, createReview)
+
+// Verifications
+router.get('/:id/verifications', authenticate, authorize('curator', 'admin'), getWorkerVerifications)
 
 export default router

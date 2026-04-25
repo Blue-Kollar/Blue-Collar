@@ -63,3 +63,24 @@ export async function sendModerationEmail(
     console.log('[mailer] Moderation email (dev stub):', JSON.parse((info as any).message))
   }
 }
+
+export async function sendVerificationStatusEmail(
+  to: string,
+  firstName: string,
+  workerName: string,
+  status: 'approved' | 'rejected',
+  reviewNote?: string,
+) {
+  const action = status === 'approved' ? 'approved ✅' : 'rejected ❌'
+  const noteHtml = reviewNote ? `<p><strong>Note:</strong> ${reviewNote}</p>` : ''
+  await transporter.sendMail({
+    from: FROM,
+    to,
+    subject: `Worker verification ${status}: ${workerName}`,
+    html: `<p>Hi <strong>${firstName}</strong>,</p>
+<p>The verification request for <strong>${workerName}</strong> has been <strong>${action}</strong>.</p>
+${noteHtml}
+<p><a href="${APP_URL}/dashboard">View your dashboard</a></p>
+<p>Best regards,<br>BlueCollar Team</p>`,
+  })
+}
