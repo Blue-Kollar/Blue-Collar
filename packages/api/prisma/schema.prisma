@@ -42,10 +42,7 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   workers       Worker[]
-  bookmarks     Bookmark[]
   reviews       Review[]
-  contactRequests ContactRequest[]
-  pushSubscriptions PushSubscription[]
 }
 
 model Category {
@@ -59,95 +56,82 @@ model Category {
 }
 
 model Worker {
-  id                  String          @id @default(cuid())
-  name                String
-  bio                 String?
-  avatar              String?
-  phone               String?
-  email               String?
-  walletAddress       String?
-  isActive            Boolean         @default(true)
-  isVerified          Boolean         @default(false)
-  stellarContractId   String?
-  /// PostgreSQL tsvector column — maintained by DB trigger, used for full-text search
-  searchVector        Unsupported("tsvector")?
-  categoryId          String
-  category            Category        @relation(fields: [categoryId], references: [id])
-  curatorId           String
-  curator             User            @relation(fields: [curatorId], references: [id])
-  locationId          String?
-  location            Location?       @relation(fields: [locationId], references: [id])
-  createdAt           DateTime        @default(now())
-  updatedAt           DateTime        @updatedAt
-  bookmarks           Bookmark[]
-  reviews             Review[]
-  availability        Availability[]
-  contactRequests     ContactRequest[]
+  id            String            @id @default(cuid())
+  name          String
+  bio           String?
+  avatar        String?
+  phone         String?
+  email         String?
+  walletAddress String?
+  isActive      Boolean           @default(true)
+  isVerified    Boolean           @default(false)
+  categoryId    String
+  category      Category          @relation(fields: [categoryId], references: [id])
+  curatorId     String
+  curator       User              @relation(fields: [curatorId], references: [id])
+  locationId    String?
+  latitude      Float?
+  longitude     Float?
+  portfolio     PortfolioItem[]
+  reviews       Review[]
+  subscription  Subscription?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
 }
 
-model Bookmark {
-  id        String   @id @default(cuid())
-  userId    String
-  workerId  String
-  createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  worker    Worker   @relation(fields: [workerId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, workerId])
+model PortfolioItem {
+  id          String   @id @default(cuid())
+  workerId    String
+  worker      Worker   @relation(fields: [workerId], references: [id], onDelete: Cascade)
+  imageUrl    String
+  description String?
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model Review {
-  id        String   @id @default(cuid())
-  rating    Int
-  comment   String?
-  workerId  String
-  authorId  String
-  createdAt DateTime @default(now())
-  worker    Worker   @relation(fields: [workerId], references: [id], onDelete: Cascade)
-  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
-
-  @@unique([authorId, workerId])
+  id          String        @id @default(cuid())
+  workerId    String
+  worker      Worker        @relation(fields: [workerId], references: [id], onDelete: Cascade)
+  authorId    String
+  author      User          @relation(fields: [authorId], references: [id])
+  rating      Int
+  comment     String?
+  status      ReviewStatus  @default(pending)
+  flagged     Boolean       @default(false)
+  flagReason  String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
 }
 
-model Availability {
-  id        String   @id @default(cuid())
-  workerId  String
-  dayOfWeek Int      // 0-6 (Sunday-Saturday)
-  startTime String   // HH:mm format
-  endTime   String   // HH:mm format
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  worker    Worker   @relation(fields: [workerId], references: [id], onDelete: Cascade)
-
-  @@unique([workerId, dayOfWeek])
-}
-
-model ContactRequest {
-  id        String   @id @default(cuid())
-  workerId  String
-  fromUserId String
-  message   String
-  status    String   @default("pending") // pending, accepted, declined
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  worker    Worker   @relation(fields: [workerId], references: [id], onDelete: Cascade)
-  fromUser  User     @relation(fields: [fromUserId], references: [id], onDelete: Cascade)
-}
-
-model PushSubscription {
-  id        String   @id @default(cuid())
-  userId    String
-  endpoint  String
-  auth      String
-  p256dh    String
-  createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, endpoint])
+model Subscription {
+  id                 String             @id @default(cuid())
+  workerId           String             @unique
+  worker             Worker             @relation(fields: [workerId], references: [id], onDelete: Cascade)
+  tier               SubscriptionTier   @default(free)
+  stripeCustomerId   String?
+  stripeSubId        String?
+  currentPeriodEnd   DateTime?
+  cancelAtPeriodEnd  Boolean            @default(false)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
 }
 
 enum Role {
   user
   curator
   admin
+}
+
+enum ReviewStatus {
+  pending
+  approved
+  rejected
+}
+
+enum SubscriptionTier {
+  free
+  pro
+  premium
 }
