@@ -10,6 +10,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useWallet } from "@/hooks/useWallet";
 import { useLocale } from "next-intl";
 import { cn } from "@/lib/utils";
+import NotificationDropdown from "@/components/NotificationDropdown";
 
 const NAV_LINKS = [
   { href: "/", label: "Home" },
@@ -108,6 +109,7 @@ export default function Navbar() {
           {/* Desktop actions */}
           <div className="hidden items-center gap-3 md:flex">
             <ThemeToggle />
+            <NotificationDropdown />
 
             {/* Language */}
             <DropdownMenu.Root>

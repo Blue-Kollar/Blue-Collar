@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useRef, useEffect, type ChangeEvent } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Loader2, Upload, X } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import FormField from "@/components/FormField";
+import ImageUpload from "@/components/ImageUpload";
 import { cn } from "@/lib/utils";
 import { getCategories } from "@/lib/api";
 import type { Category } from "@/types";
@@ -16,9 +17,17 @@ export const workerSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   bio: z.string().max(500, "Bio must be under 500 characters").optional(),
   categoryId: z.string().min(1, "Please select a category"),
-  phone: z.string().optional(),
+  phone: z
+    .string()
+    .regex(/^\+?[\d\s\-().]{7,20}$/, "Enter a valid phone number")
+    .optional()
+    .or(z.literal("")),
   email: z.string().email("Invalid email").optional().or(z.literal("")),
-  walletAddress: z.string().optional(),
+  walletAddress: z
+    .string()
+    .regex(/^G[A-Z2-7]{55}$/, "Must be a valid Stellar public key (starts with G)")
+    .optional()
+    .or(z.literal("")),
 });
 
 export type WorkerFormInput = z.infer<typeof workerSchema>;
@@ -40,16 +49,16 @@ export default function WorkerForm({
 }: Props) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(existingAvatar ?? null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    watch,
+    formState: { errors, touchedFields, dirtyFields },
   } = useForm<WorkerFormInput>({
     resolver: zodResolver(workerSchema),
     defaultValues,
+    mode: "onChange",
   });
 
   useEffect(() => {
@@ -58,94 +67,65 @@ export default function WorkerForm({
       .catch(() => {});
   }, []);
 
-  const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setImageFile(file);
-    setImagePreview(URL.createObjectURL(file));
-  };
+  const isValid = (field: keyof WorkerFormInput) =>
+    dirtyFields[field] && !errors[field];
 
-  const clearImage = () => {
-    setImageFile(null);
-    setImagePreview(existingAvatar ?? null);
-    if (fileInputRef.current) fileInputRef.current.value = "";
-  };
+  const bioValue = watch("bio") ?? "";
 
-  const inputClass = (hasError?: boolean) =>
+  const inputClass = (hasError?: boolean, valid?: boolean) =>
     cn(
-      "w-full rounded-lg border px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500",
-      hasError && "border-red-400"
+      "w-full rounded-lg border px-3 py-2.5 pr-9 text-sm outline-none focus:ring-2 focus:ring-blue-500 transition-colors",
+      hasError && "border-red-400 focus:ring-red-300",
+      valid && !hasError && "border-green-400 focus:ring-green-300"
     );
 
   return (
     <form
-      onSubmit={handleSubmit((data: WorkerFormInput) => onSubmit(data, imageFile))}
+      onSubmit={handleSubmit((data) => onSubmit(data, imageFile))}
       className="flex flex-col gap-5"
       noValidate
     >
-      {/* Profile image */}
+      {/* Profile image — issue #271 */}
       <div>
         <p className="mb-2 text-sm font-medium text-gray-700">Profile Image</p>
-        <div className="flex items-center gap-4">
-          <div className="relative h-20 w-20 shrink-0">
-            {imagePreview ? (
-              <>
-                <img
-                  src={imagePreview}
-                  alt="Preview"
-                  className="h-20 w-20 rounded-full object-cover ring-2 ring-blue-100"
-                />
-                <button
-                  type="button"
-                  onClick={clearImage}
-                  className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white hover:bg-red-600"
-                >
-                  <X size={10} />
-                </button>
-              </>
-            ) : (
-              <div className="flex h-20 w-20 items-center justify-center rounded-full bg-gray-100 text-gray-400">
-                <Upload size={20} />
-              </div>
-            )}
-          </div>
-          <div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleImageChange}
-              id="avatar-upload"
-            />
-            <label
-              htmlFor="avatar-upload"
-              className="cursor-pointer rounded-lg border px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
-            >
-              {imagePreview ? "Change image" : "Upload image"}
-            </label>
-            <p className="mt-1 text-xs text-gray-400">JPG, PNG or WebP. Max 5MB.</p>
-          </div>
-        </div>
+        <ImageUpload
+          existingUrl={existingAvatar}
+          onChange={(file) => setImageFile(file)}
+        />
       </div>
 
       {/* Name */}
-      <FormField label="Full name" id="name" error={errors.name?.message}>
+      <FormField
+        label="Full name"
+        id="name"
+        error={touchedFields.name ? errors.name?.message : undefined}
+        isValid={isValid("name")}
+        hint="Use your real name so clients can find you"
+      >
         <input
           id="name"
           type="text"
           placeholder="e.g. John Doe"
           {...register("name")}
-          className={inputClass(!!errors.name)}
+          className={inputClass(touchedFields.name && !!errors.name, isValid("name"))}
         />
       </FormField>
 
       {/* Category */}
-      <FormField label="Category" id="categoryId" error={errors.categoryId?.message}>
+      <FormField
+        label="Category"
+        id="categoryId"
+        error={touchedFields.categoryId ? errors.categoryId?.message : undefined}
+        isValid={isValid("categoryId")}
+        hint="Choose the trade that best describes your work"
+      >
         <select
           id="categoryId"
           {...register("categoryId")}
-          className={inputClass(!!errors.categoryId)}
+          className={inputClass(
+            touchedFields.categoryId && !!errors.categoryId,
+            isValid("categoryId")
+          )}
         >
           <option value="">Select a category…</option>
           {categories.map((c: Category) => (
@@ -157,47 +137,76 @@ export default function WorkerForm({
       </FormField>
 
       {/* Bio */}
-      <FormField label="Bio" id="bio" error={errors.bio?.message}>
+      <FormField
+        label="Bio"
+        id="bio"
+        error={touchedFields.bio ? errors.bio?.message : undefined}
+        isValid={isValid("bio")}
+        hint={`${bioValue.length}/500 — describe your skills and experience`}
+      >
         <textarea
           id="bio"
           rows={3}
           placeholder="Brief description of skills and experience…"
           {...register("bio")}
-          className={cn(inputClass(!!errors.bio), "resize-none")}
+          className={cn(
+            inputClass(touchedFields.bio && !!errors.bio, isValid("bio")),
+            "resize-none"
+          )}
         />
       </FormField>
 
       {/* Phone + Email */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <FormField label="Phone" id="phone" error={errors.phone?.message}>
+        <FormField
+          label="Phone"
+          id="phone"
+          error={touchedFields.phone ? errors.phone?.message : undefined}
+          isValid={isValid("phone")}
+          hint="Include country code, e.g. +1 234 567 8900"
+        >
           <input
             id="phone"
             type="tel"
             placeholder="+1 234 567 8900"
             {...register("phone")}
-            className={inputClass(!!errors.phone)}
+            className={inputClass(touchedFields.phone && !!errors.phone, isValid("phone"))}
           />
         </FormField>
 
-        <FormField label="Email" id="email" error={errors.email?.message}>
+        <FormField
+          label="Email"
+          id="email"
+          error={touchedFields.email ? errors.email?.message : undefined}
+          isValid={isValid("email")}
+        >
           <input
             id="email"
             type="email"
             placeholder="worker@example.com"
             {...register("email")}
-            className={inputClass(!!errors.email)}
+            className={inputClass(touchedFields.email && !!errors.email, isValid("email"))}
           />
         </FormField>
       </div>
 
       {/* Wallet address */}
-      <FormField label="Stellar Wallet Address" id="walletAddress" error={errors.walletAddress?.message}>
+      <FormField
+        label="Stellar Wallet Address"
+        id="walletAddress"
+        error={touchedFields.walletAddress ? errors.walletAddress?.message : undefined}
+        isValid={isValid("walletAddress")}
+        hint="Your Stellar public key starts with G and is 56 characters long"
+      >
         <input
           id="walletAddress"
           type="text"
           placeholder="G…"
           {...register("walletAddress")}
-          className={inputClass(!!errors.walletAddress)}
+          className={inputClass(
+            touchedFields.walletAddress && !!errors.walletAddress,
+            isValid("walletAddress")
+          )}
         />
       </FormField>
 

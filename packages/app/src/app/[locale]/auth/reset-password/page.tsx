@@ -8,6 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import { resetPasswordSchema, type ResetPasswordInput, authApi } from "@/lib/auth";
 import FormField from "@/components/FormField";
+import PasswordStrength from "@/components/PasswordStrength";
 import { cn } from "@/lib/utils";
 
 function ResetPasswordForm() {
@@ -20,8 +21,18 @@ function ResetPasswordForm() {
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<ResetPasswordInput>({ resolver: zodResolver(resetPasswordSchema) });
+    watch,
+    formState: { errors, isSubmitting, touchedFields, dirtyFields },
+  } = useForm<ResetPasswordInput>({
+    resolver: zodResolver(resetPasswordSchema),
+    mode: "onChange",
+  });
+
+  const passwordValue = watch("password") ?? "";
+  const confirmValue = watch("confirmPassword") ?? "";
+
+  const isValid = (field: keyof ResetPasswordInput) =>
+    dirtyFields[field] && !errors[field];
 
   const onSubmit = async (data: ResetPasswordInput) => {
     if (!token) return;
@@ -34,6 +45,13 @@ function ResetPasswordForm() {
       setApiError(err instanceof Error ? err.message : "Something went wrong");
     }
   };
+
+  const inputClass = (hasError?: boolean, valid?: boolean) =>
+    cn(
+      "w-full rounded-lg border px-3 py-2.5 pr-9 text-sm outline-none focus:ring-2 focus:ring-blue-500 transition-colors",
+      hasError && "border-red-400 focus:ring-red-300",
+      valid && !hasError && "border-green-400 focus:ring-green-300"
+    );
 
   if (!token) {
     return (
@@ -84,24 +102,36 @@ function ResetPasswordForm() {
                 </div>
               )}
 
-              <FormField label="New password" id="password" error={errors.password?.message}>
+              <FormField
+                label="New password"
+                id="password"
+                error={touchedFields.password ? errors.password?.message : undefined}
+                isValid={isValid("password")}
+                hint="At least 8 characters — mix uppercase, numbers and symbols"
+              >
                 <input
                   id="password"
                   type="password"
                   autoComplete="new-password"
                   placeholder="Min. 8 characters"
                   {...register("password")}
-                  className={cn(
-                    "rounded-lg border px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500",
-                    errors.password && "border-red-400"
+                  className={inputClass(
+                    touchedFields.password && !!errors.password,
+                    isValid("password")
                   )}
                 />
+                <PasswordStrength password={passwordValue} />
               </FormField>
 
               <FormField
                 label="Confirm password"
                 id="confirmPassword"
-                error={errors.confirmPassword?.message}
+                error={touchedFields.confirmPassword ? errors.confirmPassword?.message : undefined}
+                isValid={
+                  !!confirmValue &&
+                  !errors.confirmPassword &&
+                  confirmValue === passwordValue
+                }
               >
                 <input
                   id="confirmPassword"
@@ -109,9 +139,9 @@ function ResetPasswordForm() {
                   autoComplete="new-password"
                   placeholder="••••••••"
                   {...register("confirmPassword")}
-                  className={cn(
-                    "rounded-lg border px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500",
-                    errors.confirmPassword && "border-red-400"
+                  className={inputClass(
+                    touchedFields.confirmPassword && !!errors.confirmPassword,
+                    !!confirmValue && !errors.confirmPassword && confirmValue === passwordValue
                   )}
                 />
               </FormField>

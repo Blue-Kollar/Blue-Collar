@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import WorkerForm, { type WorkerFormInput } from "@/components/WorkerForm";
+import PortfolioGallery, { type PortfolioImage } from "@/components/PortfolioGallery";
 import ToastContainer from "@/components/Toast";
 import { useToast } from "@/hooks/useToast";
 import { getWorker, updateWorker } from "@/lib/api";
@@ -16,10 +17,20 @@ export default function EditWorkerPage({ params }: { params: { id: string } }) {
   const [worker, setWorker] = useState<Worker | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [portfolioImages, setPortfolioImages] = useState<PortfolioImage[]>([]);
 
   useEffect(() => {
     getWorker(params.id)
-      .then((res) => setWorker(res.data))
+      .then((res) => {
+        setWorker(res.data);
+        setPortfolioImages(
+          (res.data.portfolioImages ?? []).map((img) => ({
+            id: img.id,
+            url: img.url,
+            caption: img.caption ?? undefined,
+          }))
+        );
+      })
       .catch(() => toast("Failed to load worker", "error"))
       .finally(() => setLoading(false));
   }, [params.id]);
@@ -43,6 +54,30 @@ export default function EditWorkerPage({ params }: { params: { id: string } }) {
     }
   };
 
+  const handleAddPortfolioImages = (files: File[]) => {
+    const newImages: PortfolioImage[] = files.map((file) => ({
+      id: crypto.randomUUID(),
+      url: URL.createObjectURL(file),
+      caption: "",
+    }));
+    setPortfolioImages((prev) => [...prev, ...newImages]);
+    toast(`${files.length} image${files.length > 1 ? "s" : ""} added`);
+  };
+
+  const handleRemovePortfolioImage = (id: string) => {
+    setPortfolioImages((prev) => prev.filter((img) => img.id !== id));
+  };
+
+  const handleReorderPortfolioImages = (images: PortfolioImage[]) => {
+    setPortfolioImages(images);
+  };
+
+  const handleCaptionChange = (id: string, caption: string) => {
+    setPortfolioImages((prev) =>
+      prev.map((img) => (img.id === id ? { ...img, caption } : img))
+    );
+  };
+
   return (
     <div className="mx-auto max-w-2xl px-4 py-10">
       <Link
@@ -61,20 +96,38 @@ export default function EditWorkerPage({ params }: { params: { id: string } }) {
             <Loader2 size={24} className="animate-spin text-blue-500" />
           </div>
         ) : worker ? (
-          <WorkerForm
-            defaultValues={{
-              name: worker.name,
-              bio: worker.bio ?? "",
-              categoryId: worker.category.id,
-              phone: worker.phone ?? "",
-              email: worker.email ?? "",
-              walletAddress: worker.walletAddress ?? "",
-            }}
-            existingAvatar={worker.avatar}
-            onSubmit={handleSubmit}
-            submitLabel="Save Changes"
-            isSubmitting={isSubmitting}
-          />
+          <>
+            <WorkerForm
+              defaultValues={{
+                name: worker.name,
+                bio: worker.bio ?? "",
+                categoryId: worker.category.id,
+                phone: worker.phone ?? "",
+                email: worker.email ?? "",
+                walletAddress: worker.walletAddress ?? "",
+              }}
+              existingAvatar={worker.avatar}
+              onSubmit={handleSubmit}
+              submitLabel="Save Changes"
+              isSubmitting={isSubmitting}
+            />
+
+            {/* Portfolio gallery */}
+            <div className="mt-8 border-t pt-6">
+              <h2 className="mb-1 text-sm font-semibold text-gray-900">Portfolio Gallery</h2>
+              <p className="mb-4 text-xs text-gray-500">
+                Showcase your work. Drag to reorder, click a photo to view full size.
+              </p>
+              <PortfolioGallery
+                images={portfolioImages}
+                editable
+                onAdd={handleAddPortfolioImages}
+                onRemove={handleRemovePortfolioImage}
+                onReorder={handleReorderPortfolioImages}
+                onCaptionChange={handleCaptionChange}
+              />
+            </div>
+          </>
         ) : (
           <p className="text-sm text-gray-500">Worker not found.</p>
         )}

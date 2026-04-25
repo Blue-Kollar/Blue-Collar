@@ -8,6 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { registerSchema, type RegisterInput, authApi } from "@/lib/auth";
 import FormField from "@/components/FormField";
+import PasswordStrength from "@/components/PasswordStrength";
 import { cn } from "@/lib/utils";
 
 export default function RegisterPage() {
@@ -17,13 +18,23 @@ export default function RegisterPage() {
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<RegisterInput>({ resolver: zodResolver(registerSchema) });
+    watch,
+    formState: { errors, isSubmitting, touchedFields, dirtyFields },
+  } = useForm<RegisterInput>({
+    resolver: zodResolver(registerSchema),
+    mode: "onChange",
+  });
+
+  const passwordValue = watch("password") ?? "";
+  const confirmValue = watch("confirmPassword") ?? "";
+
+  const isValid = (field: keyof RegisterInput) =>
+    dirtyFields[field] && !errors[field];
 
   const onSubmit = async (data: RegisterInput) => {
     setApiError(null);
     try {
-      const { confirmPassword: _confirmPassword, ...payload } = data;
+      const { confirmPassword: _cp, ...payload } = data;
       await authApi.register(payload);
       router.push("/auth/verify-email");
     } catch (err: unknown) {
@@ -31,10 +42,11 @@ export default function RegisterPage() {
     }
   };
 
-  const inputClass = (hasError?: boolean) =>
+  const inputClass = (hasError?: boolean, valid?: boolean) =>
     cn(
-      "rounded-lg border px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500",
-      hasError && "border-red-400"
+      "w-full rounded-lg border px-3 py-2.5 pr-9 text-sm outline-none focus:ring-2 focus:ring-blue-500 transition-colors",
+      hasError && "border-red-400 focus:ring-red-300",
+      valid && !hasError && "border-green-400 focus:ring-green-300"
     );
 
   return (
@@ -55,55 +67,95 @@ export default function RegisterPage() {
           )}
 
           <div className="grid grid-cols-2 gap-3">
-            <FormField label="First name" id="firstName" error={errors.firstName?.message}>
+            <FormField
+              label="First name"
+              id="firstName"
+              error={touchedFields.firstName ? errors.firstName?.message : undefined}
+              isValid={isValid("firstName")}
+            >
               <input
                 id="firstName"
                 type="text"
                 autoComplete="given-name"
                 placeholder="John"
                 {...register("firstName")}
-                className={inputClass(!!errors.firstName)}
+                className={inputClass(
+                  touchedFields.firstName && !!errors.firstName,
+                  isValid("firstName")
+                )}
               />
             </FormField>
 
-            <FormField label="Last name" id="lastName" error={errors.lastName?.message}>
+            <FormField
+              label="Last name"
+              id="lastName"
+              error={touchedFields.lastName ? errors.lastName?.message : undefined}
+              isValid={isValid("lastName")}
+            >
               <input
                 id="lastName"
                 type="text"
                 autoComplete="family-name"
                 placeholder="Doe"
                 {...register("lastName")}
-                className={inputClass(!!errors.lastName)}
+                className={inputClass(
+                  touchedFields.lastName && !!errors.lastName,
+                  isValid("lastName")
+                )}
               />
             </FormField>
           </div>
 
-          <FormField label="Email" id="email" error={errors.email?.message}>
+          <FormField
+            label="Email"
+            id="email"
+            error={touchedFields.email ? errors.email?.message : undefined}
+            isValid={isValid("email")}
+            hint="We'll send a verification link to this address"
+          >
             <input
               id="email"
               type="email"
               autoComplete="email"
               placeholder="you@example.com"
               {...register("email")}
-              className={inputClass(!!errors.email)}
+              className={inputClass(
+                touchedFields.email && !!errors.email,
+                isValid("email")
+              )}
             />
           </FormField>
 
-          <FormField label="Password" id="password" error={errors.password?.message}>
+          <FormField
+            label="Password"
+            id="password"
+            error={touchedFields.password ? errors.password?.message : undefined}
+            isValid={isValid("password")}
+            hint="At least 8 characters — mix uppercase, numbers and symbols for a stronger password"
+          >
             <input
               id="password"
               type="password"
               autoComplete="new-password"
               placeholder="Min. 8 characters"
               {...register("password")}
-              className={inputClass(!!errors.password)}
+              className={inputClass(
+                touchedFields.password && !!errors.password,
+                isValid("password")
+              )}
             />
+            <PasswordStrength password={passwordValue} />
           </FormField>
 
           <FormField
             label="Confirm password"
             id="confirmPassword"
-            error={errors.confirmPassword?.message}
+            error={touchedFields.confirmPassword ? errors.confirmPassword?.message : undefined}
+            isValid={
+              !!confirmValue &&
+              !errors.confirmPassword &&
+              confirmValue === passwordValue
+            }
           >
             <input
               id="confirmPassword"
@@ -111,7 +163,10 @@ export default function RegisterPage() {
               autoComplete="new-password"
               placeholder="••••••••"
               {...register("confirmPassword")}
-              className={inputClass(!!errors.confirmPassword)}
+              className={inputClass(
+                touchedFields.confirmPassword && !!errors.confirmPassword,
+                !!confirmValue && !errors.confirmPassword && confirmValue === passwordValue
+              )}
             />
           </FormField>
 

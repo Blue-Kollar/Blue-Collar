@@ -2,12 +2,14 @@ import type { ReactNode } from "react";
 import { AuthProvider } from "@/context/AuthContext";
 import { WalletProvider } from "@/context/WalletContext";
 import { CompareProvider } from "@/context/CompareContext";
+import { NotificationProvider } from "@/context/NotificationContext";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "sonner";
 import { NextIntlClientProvider } from 'next-intl'
 import { getMessages } from 'next-intl/server'
 import CompareDrawer from "@/components/CompareDrawer";
 import BottomNav from "@/components/BottomNav";
+import OnboardingTour from "@/components/OnboardingTour";
 
 export default async function LocaleLayout({ 
   children, 
@@ -28,6 +30,7 @@ export default async function LocaleLayout({
                 <CompareProvider>
                   {children}
                   <CompareDrawer />
+                  <OnboardingTour />
                 </CompareProvider>
               </WalletProvider>
             </AuthProvider>

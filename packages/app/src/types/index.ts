@@ -4,6 +4,13 @@ export interface Category {
   icon?: string | null;
 }
 
+export interface PortfolioImage {
+  id: string;
+  url: string;
+  caption?: string | null;
+  order?: number;
+}
+
 export interface Worker {
   id: string;
   name: string;
@@ -12,12 +19,15 @@ export interface Worker {
   phone?: string | null;
   email?: string | null;
   location?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
   isVerified: boolean;
   locationId?: string | null;
   walletAddress?: string | null;
   category: Category;
   averageRating?: number | null;
   reviewCount?: number;
+  portfolioImages?: PortfolioImage[];
 }
 
 export interface Review {

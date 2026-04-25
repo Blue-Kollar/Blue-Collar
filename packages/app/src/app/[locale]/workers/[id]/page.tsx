@@ -12,6 +12,7 @@ import QRCodeButton from "@/components/QRCodeButton";
 import EmptyState from "@/components/EmptyState";
 import AvailabilityCalendar from "@/components/AvailabilityCalendar";
 import ZoomableAvatar from "@/components/ZoomableAvatar";
+import PortfolioGallery from "@/components/PortfolioGallery";
 import type { Worker, ApiResponse, Review } from "@/types";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/api";
@@ -163,6 +164,14 @@ export default async function WorkerProfilePage({
         <div className="mt-8 border-t pt-6">
           <AvailabilityCalendar availability={availability} />
         </div>
+
+        {/* Portfolio gallery */}
+        {worker.portfolioImages && worker.portfolioImages.length > 0 && (
+          <div className="mt-8 border-t pt-6">
+            <h2 className="text-base font-semibold text-gray-900 mb-4">Portfolio</h2>
+            <PortfolioGallery images={worker.portfolioImages.map((img) => ({ id: img.id, url: img.url, caption: img.caption ?? undefined }))} />
+          </div>
+        )}
 
         {/* Tip section */}
         <div className="mt-8 border-t pt-6">
