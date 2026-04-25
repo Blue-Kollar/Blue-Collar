@@ -25,6 +25,21 @@ use soroban_sdk::{contract, contractimpl, contracttype, symbol_short, token, Add
 pub const MAX_FEE_BPS: u32 = 500;
 
 // =============================================================================
+// Roles
+// =============================================================================
+
+/// Full admin — can grant/revoke any role.
+pub const ROLE_ADMIN: &str = "admin";
+/// May pause and unpause the contract.
+pub const ROLE_PAUSER: &str = "pauser";
+/// May update the protocol fee.
+pub const ROLE_FEE_MANAGER: &str = "fee_mgr";
+/// May resolve disputed milestones.
+pub const ROLE_DISPUTE_MGR: &str = "dispute_mgr";
+/// May upgrade the contract WASM.
+pub const ROLE_UPGRADER: &str = "upgrader";
+
+// =============================================================================
 // Types
 // =============================================================================
 
@@ -67,6 +82,8 @@ pub enum DataKey {
     Config,
     /// Instance storage — paused flag; when `true` all state-mutating functions revert.
     Paused,
+    /// Persistent storage — `Vec<Address>` of members for a given role [`Symbol`].
+    RoleMembers(Symbol),
     /// Persistent storage — [`Escrow`] struct keyed by a caller-supplied id [`Symbol`].
     Escrow(Symbol),
     /// Persistent storage — [`MilestoneEscrow`] struct keyed by a caller-supplied id [`Symbol`].
@@ -137,8 +154,14 @@ impl MarketContract {
             "Already initialized"
         );
         assert!(fee_bps <= MAX_FEE_BPS, "fee_bps exceeds maximum (500)");
-        let config = Config { admin, fee_bps, fee_recipient };
+        let config = Config { admin: admin.clone(), fee_bps, fee_recipient };
         env.storage().instance().set(&DataKey::Config, &config);
+        // Bootstrap: grant ROLE_ADMIN to the initial admin.
+        let role = Symbol::new(&env, ROLE_ADMIN);
+        let mut members: Vec<Address> = Vec::new(&env);
+        members.push_back(admin.clone());
+        env.storage().persistent().set(&DataKey::RoleMembers(role.clone()), &members);
+        env.events().publish((symbol_short!("RlGrnt"), role, admin), ());
     }
 
     // -------------------------------------------------------------------------
@@ -156,16 +179,115 @@ impl MarketContract {
     /// - `"Unauthorized"` if `admin` does not match the stored admin.
     /// - `"Not initialized"` if [`initialize`] has not been called.
     pub fn update_fee(env: Env, admin: Address, new_fee_bps: u32) {
-        admin.require_auth();
+        Self::require_role(&env, &Symbol::new(&env, ROLE_FEE_MANAGER), &admin);
         assert!(new_fee_bps <= MAX_FEE_BPS, "fee_bps exceeds maximum (500)");
         let mut config: Config = env
             .storage()
             .instance()
             .get(&DataKey::Config)
             .expect("Not initialized");
-        assert!(config.admin == admin, "Unauthorized");
         config.fee_bps = new_fee_bps;
         env.storage().instance().set(&DataKey::Config, &config);
+    }
+
+    // -------------------------------------------------------------------------
+    // Internal RBAC helpers
+    // -------------------------------------------------------------------------
+
+    /// Return the member list for a role, or empty vec if no members exist.
+    fn get_role_members(env: &Env, role: &Symbol) -> Vec<Address> {
+        env.storage()
+            .persistent()
+            .get(&DataKey::RoleMembers(role.clone()))
+            .unwrap_or(Vec::new(env))
+    }
+
+    /// Assert that `caller` holds `role` and has authorised this call.
+    ///
+    /// # Panics
+    /// Panics with `"Missing role"` if `caller` does not hold the role.
+    fn require_role(env: &Env, role: &Symbol, caller: &Address) {
+        caller.require_auth();
+        let members = Self::get_role_members(env, role);
+        assert!(members.iter().any(|m| m == *caller), "Missing role");
+    }
+
+    // -------------------------------------------------------------------------
+    // Role management (ROLE_ADMIN only)
+    // -------------------------------------------------------------------------
+
+    /// Grant a role to an address. Caller must hold [`ROLE_ADMIN`].
+    ///
+    /// Idempotent — granting an already-held role is a no-op.
+    ///
+    /// # Parameters
+    /// - `caller`: Must hold `ROLE_ADMIN`; `require_auth()` is enforced.
+    /// - `role`: The role symbol to grant.
+    /// - `account`: Address to receive the role.
+    ///
+    /// # Panics
+    /// - `"Missing role"` if `caller` does not hold `ROLE_ADMIN`.
+    /// - `"Contract is paused"` if paused.
+    ///
+    /// # Events
+    /// Emits `("RlGrnt", role, account)`.
+    pub fn grant_role(env: Env, caller: Address, role: Symbol, account: Address) {
+        let admin_role = Symbol::new(&env, ROLE_ADMIN);
+        Self::require_role(&env, &admin_role, &caller);
+        Self::require_not_paused(&env);
+
+        let mut members = Self::get_role_members(&env, &role);
+        if members.iter().all(|m| m != account) {
+            members.push_back(account.clone());
+            env.storage().persistent().set(&DataKey::RoleMembers(role.clone()), &members);
+        }
+
+        env.events().publish((symbol_short!("RlGrnt"), role, account), ());
+    }
+
+    /// Revoke a role from an address. Caller must hold [`ROLE_ADMIN`].
+    ///
+    /// # Parameters
+    /// - `caller`: Must hold `ROLE_ADMIN`; `require_auth()` is enforced.
+    /// - `role`: The role symbol to revoke.
+    /// - `account`: Address to lose the role.
+    ///
+    /// # Panics
+    /// - `"Missing role"` if `caller` does not hold `ROLE_ADMIN`.
+    /// - `"Account does not hold role"` if `account` is not a member.
+    /// - `"Contract is paused"` if paused.
+    ///
+    /// # Events
+    /// Emits `("RlRvkd", role, account)`.
+    pub fn revoke_role(env: Env, caller: Address, role: Symbol, account: Address) {
+        let admin_role = Symbol::new(&env, ROLE_ADMIN);
+        Self::require_role(&env, &admin_role, &caller);
+        Self::require_not_paused(&env);
+
+        let members = Self::get_role_members(&env, &role);
+        let mut updated: Vec<Address> = Vec::new(&env);
+        let mut found = false;
+        for m in members.iter() {
+            if m == account {
+                found = true;
+            } else {
+                updated.push_back(m);
+            }
+        }
+        assert!(found, "Account does not hold role");
+        env.storage().persistent().set(&DataKey::RoleMembers(role.clone()), &updated);
+
+        env.events().publish((symbol_short!("RlRvkd"), role, account), ());
+    }
+
+    /// Returns `true` if `account` holds `role`.
+    pub fn has_role(env: Env, role: Symbol, account: Address) -> bool {
+        Self::get_role_members(&env, &role).iter().any(|m| m == account)
+    }
+
+    /// Return all members of a role.
+    pub fn get_role_members_list(env: Env, role: Symbol) -> Vec<Address> {
+        Self::get_role_members(&env, &role)
     }
 
     // -------------------------------------------------------------------------
@@ -188,22 +310,15 @@ impl MarketContract {
     /// Pause the contract, blocking all state-mutating operations.
     ///
     /// # Parameters
-    /// - `admin`: Must be the contract admin; `require_auth()` is enforced.
+    /// - `admin`: Must hold [`ROLE_PAUSER`]; `require_auth()` is enforced.
     ///
     /// # Panics
-    /// - `"Not initialized"` if [`initialize`] has not been called.
-    /// - `"Unauthorized"` if `admin` does not match the stored admin.
+    /// - `"Missing role"` if `admin` does not hold `ROLE_PAUSER`.
     ///
     /// # Events
     /// Emits `("Paused", admin)`.
     pub fn pause(env: Env, admin: Address) {
-        admin.require_auth();
-        let config: Config = env
-            .storage()
-            .instance()
-            .get(&DataKey::Config)
-            .expect("Not initialized");
-        assert!(config.admin == admin, "Unauthorized");
+        Self::require_role(&env, &Symbol::new(&env, ROLE_PAUSER), &admin);
         env.storage().instance().set(&DataKey::Paused, &true);
         env.events().publish((symbol_short!("Paused"), admin), ());
     }
@@ -211,22 +326,15 @@ impl MarketContract {
     /// Unpause the contract, re-enabling all state-mutating operations.
     ///
     /// # Parameters
-    /// - `admin`: Must be the contract admin; `require_auth()` is enforced.
+    /// - `admin`: Must hold [`ROLE_PAUSER`]; `require_auth()` is enforced.
     ///
     /// # Panics
-    /// - `"Not initialized"` if [`initialize`] has not been called.
-    /// - `"Unauthorized"` if `admin` does not match the stored admin.
+    /// - `"Missing role"` if `admin` does not hold `ROLE_PAUSER`.
     ///
     /// # Events
     /// Emits `("Unpaused", admin)`.
     pub fn unpause(env: Env, admin: Address) {
-        admin.require_auth();
-        let config: Config = env
-            .storage()
-            .instance()
-            .get(&DataKey::Config)
-            .expect("Not initialized");
-        assert!(config.admin == admin, "Unauthorized");
+        Self::require_role(&env, &Symbol::new(&env, ROLE_PAUSER), &admin);
         env.storage().instance().set(&DataKey::Paused, &false);
         env.events().publish((symbol_short!("Unpaused"), admin), ());
     }
@@ -644,15 +752,8 @@ impl MarketContract {
         milestone_index: u32,
         release_to_worker: bool,
     ) {
-        admin.require_auth();
+        Self::require_role(&env, &Symbol::new(&env, ROLE_DISPUTE_MGR), &admin);
         Self::require_not_paused(&env);
-
-        let config: Config = env
-            .storage()
-            .instance()
-            .get(&DataKey::Config)
-            .expect("Not initialized");
-        assert!(config.admin == admin, "Unauthorized");
 
         let mut escrow: MilestoneEscrow = env
             .storage()
@@ -758,13 +859,7 @@ impl MarketContract {
     /// - `"Not initialized"` if [`initialize`] has not been called.
     /// - `"Unauthorized"` if `admin` does not match the stored admin.
     pub fn upgrade(env: Env, admin: Address, new_wasm_hash: soroban_sdk::BytesN<32>) {
-        admin.require_auth();
-        let config: Config = env
-            .storage()
-            .instance()
-            .get(&DataKey::Config)
-            .expect("Not initialized");
-        assert!(config.admin == admin, "Unauthorized");
+        Self::require_role(&env, &Symbol::new(&env, ROLE_UPGRADER), &admin);
         env.deployer().update_current_contract_wasm(new_wasm_hash);
     }
 }
@@ -806,6 +901,13 @@ mod tests {
 
             let contract_id = env.register_contract(None, MarketContract);
             MarketContractClient::new(&env, &contract_id).initialize(&admin, &0, &admin);
+
+            // Grant all operational roles to the bootstrap admin for convenience in tests.
+            let client = MarketContractClient::new(&env, &contract_id);
+            client.grant_role(&admin, &Symbol::new(&env, ROLE_PAUSER), &admin);
+            client.grant_role(&admin, &Symbol::new(&env, ROLE_FEE_MANAGER), &admin);
+            client.grant_role(&admin, &Symbol::new(&env, ROLE_DISPUTE_MGR), &admin);
+            client.grant_role(&admin, &Symbol::new(&env, ROLE_UPGRADER), &admin);
 
             TestEnv { env, contract_id, admin, payer, worker, token_addr }
         }
@@ -1140,5 +1242,76 @@ mod tests {
         t.set_time(500);
         t.client().create_milestone_escrow(&id, &t.payer, &t.worker, &t.token_addr, &two_milestones(&t), &2000);
         t.client().cancel_milestone_escrow(&id, &t.payer);
+    }
+
+    // -------------------------------------------------------------------------
+    // RBAC tests
+    // -------------------------------------------------------------------------
+
+    #[test]
+    fn test_initialize_grants_admin_role() {
+        let t = TestEnv::new();
+        assert!(t.client().has_role(&Symbol::new(&t.env, ROLE_ADMIN), &t.admin));
+    }
+
+    #[test]
+    fn test_grant_role_allows_new_pauser() {
+        let t = TestEnv::new();
+        let pauser = Address::generate(&t.env);
+        t.client().grant_role(&t.admin, &Symbol::new(&t.env, ROLE_PAUSER), &pauser);
+        assert!(t.client().has_role(&Symbol::new(&t.env, ROLE_PAUSER), &pauser));
+        t.client().pause(&pauser);
+        assert!(t.client().is_paused());
+    }
+
+    #[test]
+    fn test_multiple_admins_can_grant_roles() {
+        let t = TestEnv::new();
+        let admin2 = Address::generate(&t.env);
+        t.client().grant_role(&t.admin, &Symbol::new(&t.env, ROLE_ADMIN), &admin2);
+        let fee_mgr = Address::generate(&t.env);
+        t.client().grant_role(&admin2, &Symbol::new(&t.env, ROLE_FEE_MANAGER), &fee_mgr);
+        assert!(t.client().has_role(&Symbol::new(&t.env, ROLE_FEE_MANAGER), &fee_mgr));
+    }
+
+    #[test]
+    fn test_revoke_role_removes_access() {
+        let t = TestEnv::new();
+        let pauser = Address::generate(&t.env);
+        t.client().grant_role(&t.admin, &Symbol::new(&t.env, ROLE_PAUSER), &pauser);
+        t.client().revoke_role(&t.admin, &Symbol::new(&t.env, ROLE_PAUSER), &pauser);
+        assert!(!t.client().has_role(&Symbol::new(&t.env, ROLE_PAUSER), &pauser));
+    }
+
+    #[test]
+    #[should_panic(expected = "Missing role")]
+    fn test_non_admin_cannot_grant_role() {
+        let t = TestEnv::new();
+        let stranger = Address::generate(&t.env);
+        t.client().grant_role(&stranger, &Symbol::new(&t.env, ROLE_PAUSER), &stranger);
+    }
+
+    #[test]
+    #[should_panic(expected = "Missing role")]
+    fn test_missing_fee_manager_role_panics() {
+        let t = TestEnv::new();
+        let stranger = Address::generate(&t.env);
+        t.client().update_fee(&stranger, &100);
+    }
+
+    #[test]
+    fn test_role_based_fee_update() {
+        let t = TestEnv::new();
+        let fee_mgr = Address::generate(&t.env);
+        t.client().grant_role(&t.admin, &Symbol::new(&t.env, ROLE_FEE_MANAGER), &fee_mgr);
+        t.client().update_fee(&fee_mgr, &200);
+    }
+
+    #[test]
+    #[should_panic(expected = "Account does not hold role")]
+    fn test_revoke_nonexistent_role_panics() {
+        let t = TestEnv::new();
+        let stranger = Address::generate(&t.env);
+        t.client().revoke_role(&t.admin, &Symbol::new(&t.env, ROLE_PAUSER), &stranger);
     }
 }

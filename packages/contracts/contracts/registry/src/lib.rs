@@ -60,13 +60,30 @@ pub struct Worker {
     pub reputation: u32,
 }
 
+// =============================================================================
+// Roles
+// =============================================================================
+
+/// Full admin — can grant/revoke any role and call all privileged functions.
+pub const ROLE_ADMIN: &str = "admin";
+/// May pause and unpause the contract.
+pub const ROLE_PAUSER: &str = "pauser";
+/// May add and remove curators.
+pub const ROLE_CURATOR_MGR: &str = "curator_mgr";
+/// May update worker reputation scores.
+pub const ROLE_REP_MGR: &str = "rep_mgr";
+/// May upgrade the contract WASM.
+pub const ROLE_UPGRADER: &str = "upgrader";
+
 /// Storage keys used throughout the contract.
 #[contracttype]
 pub enum DataKey {
-    /// Instance storage — admin address, set once at [`RegistryContract::initialize`].
+    /// Instance storage — bootstrap admin address, set once at [`RegistryContract::initialize`].
     Admin,
     /// Instance storage — paused flag; when `true` all state-mutating functions revert.
     Paused,
+    /// Persistent storage — `Vec<Address>` of members for a given role [`Symbol`].
+    RoleMembers(Symbol),
     /// Persistent storage — ordered list of approved curator [`Address`]es.
     Curators,
     /// Persistent storage — [`Worker`] record keyed by its `id` [`Symbol`].
@@ -103,6 +120,8 @@ impl RegistryContract {
 
     /// Initialise the contract and set the admin address.
     ///
+    /// Grants [`ROLE_ADMIN`] to `admin` automatically.
+    ///
     /// # Parameters
     /// - `admin`: The address that will have admin privileges.
     ///
@@ -114,19 +133,34 @@ impl RegistryContract {
             "Already initialized"
         );
         env.storage().instance().set(&DataKey::Admin, &admin);
+        // Bootstrap: grant ROLE_ADMIN to the initial admin.
+        let role = Symbol::new(&env, ROLE_ADMIN);
+        let mut members: Vec<Address> = Vec::new(&env);
+        members.push_back(admin.clone());
+        env.storage().persistent().set(&DataKey::RoleMembers(role.clone()), &members);
+        env.events().publish((symbol_short!("RlGrnt"), role, admin), ());
     }
 
     // -------------------------------------------------------------------------
     // Internal helpers
     // -------------------------------------------------------------------------
 
-    /// Assert that `caller` is the admin and has authorised this call.
+    /// Return the member list for a role, or empty vec if no members exist.
+    fn get_role_members(env: &Env, role: &Symbol) -> Vec<Address> {
+        env.storage()
+            .persistent()
+            .get(&DataKey::RoleMembers(role.clone()))
+            .unwrap_or(Vec::new(env))
+    }
+
+    /// Assert that `caller` holds `role` and has authorised this call.
     ///
     /// # Panics
-    /// Panics with `"Admin only"` if `caller` is not the stored admin.
-    fn require_admin(env: &Env, caller: &Address) {
+    /// Panics with `"Missing role"` if `caller` does not hold the role.
+    fn require_role(env: &Env, role: &Symbol, caller: &Address) {
         caller.require_auth();
-        assert!(*caller == Self::get_admin(env.clone()), "Admin only");
+        let members = Self::get_role_members(env, role);
+        assert!(members.iter().any(|m| m == *caller), "Missing role");
     }
 
     /// Assert that the contract is not paused.
@@ -164,6 +198,84 @@ impl RegistryContract {
             d.address == *caller && (d.expires_at == 0 || d.expires_at > now)
         });
         assert!(is_valid_delegate, "Not authorized");
+    }
+
+    // -------------------------------------------------------------------------
+    // Role management (ROLE_ADMIN only)
+    // -------------------------------------------------------------------------
+
+    /// Grant a role to an address. Caller must hold [`ROLE_ADMIN`].
+    ///
+    /// Idempotent — granting an already-held role is a no-op.
+    ///
+    /// # Parameters
+    /// - `caller`: Must hold `ROLE_ADMIN`; `require_auth()` is enforced.
+    /// - `role`: The role symbol to grant (e.g. `Symbol::new(&env, "pauser")`).
+    /// - `account`: Address to receive the role.
+    ///
+    /// # Panics
+    /// - `"Missing role"` if `caller` does not hold `ROLE_ADMIN`.
+    /// - `"Contract is paused"` if paused.
+    ///
+    /// # Events
+    /// Emits `("RlGrnt", role, account)`.
+    pub fn grant_role(env: Env, caller: Address, role: Symbol, account: Address) {
+        let admin_role = Symbol::new(&env, ROLE_ADMIN);
+        Self::require_role(&env, &admin_role, &caller);
+        Self::require_not_paused(&env);
+
+        let mut members = Self::get_role_members(&env, &role);
+        if members.iter().all(|m| m != account) {
+            members.push_back(account.clone());
+            env.storage().persistent().set(&DataKey::RoleMembers(role.clone()), &members);
+        }
+
+        env.events().publish((symbol_short!("RlGrnt"), role, account), ());
+    }
+
+    /// Revoke a role from an address. Caller must hold [`ROLE_ADMIN`].
+    ///
+    /// # Parameters
+    /// - `caller`: Must hold `ROLE_ADMIN`; `require_auth()` is enforced.
+    /// - `role`: The role symbol to revoke.
+    /// - `account`: Address to lose the role.
+    ///
+    /// # Panics
+    /// - `"Missing role"` if `caller` does not hold `ROLE_ADMIN`.
+    /// - `"Account does not hold role"` if `account` is not a member.
+    /// - `"Contract is paused"` if paused.
+    ///
+    /// # Events
+    /// Emits `("RlRvkd", role, account)`.
+    pub fn revoke_role(env: Env, caller: Address, role: Symbol, account: Address) {
+        let admin_role = Symbol::new(&env, ROLE_ADMIN);
+        Self::require_role(&env, &admin_role, &caller);
+        Self::require_not_paused(&env);
+
+        let members = Self::get_role_members(&env, &role);
+        let mut updated: Vec<Address> = Vec::new(&env);
+        let mut found = false;
+        for m in members.iter() {
+            if m == account {
+                found = true;
+            } else {
+                updated.push_back(m);
+            }
+        }
+        assert!(found, "Account does not hold role");
+        env.storage().persistent().set(&DataKey::RoleMembers(role.clone()), &updated);
+
+        env.events().publish((symbol_short!("RlRvkd"), role, account), ());
+    }
+
+    /// Returns `true` if `account` holds `role`.
+    pub fn has_role(env: Env, role: Symbol, account: Address) -> bool {
+        Self::get_role_members(&env, &role).iter().any(|m| m == account)
+    }
+
+    /// Return all members of a role.
+    pub fn get_role_members_list(env: Env, role: Symbol) -> Vec<Address> {
+        Self::get_role_members(&env, &role)
     }
 
     // -------------------------------------------------------------------------
@@ -284,15 +396,15 @@ impl RegistryContract {
     /// Pause the contract, blocking all state-mutating operations.
     ///
     /// # Parameters
-    /// - `admin`: Must be the contract admin; `require_auth()` is enforced.
+    /// - `admin`: Must hold [`ROLE_PAUSER`]; `require_auth()` is enforced.
     ///
     /// # Panics
-    /// Panics with `"Admin only"` if `admin` is not the stored admin.
+    /// Panics with `"Missing role"` if `admin` does not hold `ROLE_PAUSER`.
     ///
     /// # Events
     /// Emits `("Paused", admin)`.
     pub fn pause(env: Env, admin: Address) {
-        Self::require_admin(&env, &admin);
+        Self::require_role(&env, &Symbol::new(&env, ROLE_PAUSER), &admin);
         env.storage().instance().set(&DataKey::Paused, &true);
         env.events().publish((symbol_short!("Paused"), admin), ());
     }
@@ -300,15 +412,15 @@ impl RegistryContract {
     /// Unpause the contract, re-enabling all state-mutating operations.
     ///
     /// # Parameters
-    /// - `admin`: Must be the contract admin; `require_auth()` is enforced.
+    /// - `admin`: Must hold [`ROLE_PAUSER`]; `require_auth()` is enforced.
     ///
     /// # Panics
-    /// Panics with `"Admin only"` if `admin` is not the stored admin.
+    /// Panics with `"Missing role"` if `admin` does not hold `ROLE_PAUSER`.
     ///
     /// # Events
     /// Emits `("Unpaused", admin)`.
     pub fn unpause(env: Env, admin: Address) {
-        Self::require_admin(&env, &admin);
+        Self::require_role(&env, &Symbol::new(&env, ROLE_PAUSER), &admin);
         env.storage().instance().set(&DataKey::Paused, &false);
         env.events().publish((symbol_short!("Unpaused"), admin), ());
     }
@@ -345,7 +457,7 @@ impl RegistryContract {
     /// # Events
     /// Emits `("CurAdd", admin, curator)`.
     pub fn add_curator(env: Env, admin: Address, curator: Address) {
-        Self::require_admin(&env, &admin);
+        Self::require_role(&env, &Symbol::new(&env, ROLE_CURATOR_MGR), &admin);
         Self::require_not_paused(&env);
 
         let mut curators = Self::get_curators(&env);
@@ -369,7 +481,7 @@ impl RegistryContract {
     /// # Events
     /// Emits `("CurRem", admin, curator)`.
     pub fn remove_curator(env: Env, admin: Address, curator: Address) {
-        Self::require_admin(&env, &admin);
+        Self::require_role(&env, &Symbol::new(&env, ROLE_CURATOR_MGR), &admin);
         Self::require_not_paused(&env);
 
         let curators = Self::get_curators(&env);
@@ -731,7 +843,7 @@ impl RegistryContract {
     /// # Events
     /// Emits `("RepUpd", id)` with data `score`.
     pub fn update_reputation(env: Env, admin: Address, id: Symbol, score: u32) {
-        Self::require_admin(&env, &admin);
+        Self::require_role(&env, &Symbol::new(&env, ROLE_REP_MGR), &admin);
         Self::require_not_paused(&env);
         assert!(score <= 10_000, "Score out of range");
 
@@ -760,8 +872,7 @@ impl RegistryContract {
     /// # Panics
     /// Panics with `"Admin only"` if `admin` is not the stored admin.
     pub fn upgrade(env: Env, admin: Address, new_wasm_hash: BytesN<32>) {
-        admin.require_auth();
-        assert!(admin == Self::get_admin(env.clone()), "Admin only");
+        Self::require_role(&env, &Symbol::new(&env, ROLE_UPGRADER), &admin);
         env.deployer().update_current_contract_wasm(new_wasm_hash);
     }
 }
@@ -795,6 +906,12 @@ mod tests {
             let contract_id = env.register_contract(None, RegistryContract);
             let client = RegistryContractClient::new(&env, &contract_id);
             client.initialize(&admin);
+
+            // Grant all operational roles to the bootstrap admin for convenience in tests.
+            client.grant_role(&admin, &Symbol::new(&env, ROLE_PAUSER), &admin);
+            client.grant_role(&admin, &Symbol::new(&env, ROLE_CURATOR_MGR), &admin);
+            client.grant_role(&admin, &Symbol::new(&env, ROLE_REP_MGR), &admin);
+            client.grant_role(&admin, &Symbol::new(&env, ROLE_UPGRADER), &admin);
 
             TestEnv { env, contract_id, admin, curator, owner }
         }
@@ -854,7 +971,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "Admin only")]
+    #[should_panic(expected = "Missing role")]
     fn test_add_curator_non_admin_panics() {
         let t = TestEnv::new();
         let stranger = Address::generate(&t.env);
@@ -995,7 +1112,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "Admin only")]
+    #[should_panic(expected = "Missing role")]
     fn test_update_reputation_non_admin_panics() {
         let t = TestEnv::new();
         t.client().add_curator(&t.admin, &t.curator);
@@ -1173,5 +1290,97 @@ mod tests {
 
         let stranger = Address::generate(&t.env);
         t.client().toggle(&t.worker_id(), &stranger);
+    }
+
+    // -------------------------------------------------------------------------
+    // RBAC tests
+    // -------------------------------------------------------------------------
+
+    #[test]
+    fn test_initialize_grants_admin_role() {
+        let t = TestEnv::new();
+        assert!(t.client().has_role(&Symbol::new(&t.env, ROLE_ADMIN), &t.admin));
+    }
+
+    #[test]
+    fn test_grant_role_allows_new_pauser() {
+        let t = TestEnv::new();
+        let pauser = Address::generate(&t.env);
+        t.client().grant_role(&t.admin, &Symbol::new(&t.env, ROLE_PAUSER), &pauser);
+        assert!(t.client().has_role(&Symbol::new(&t.env, ROLE_PAUSER), &pauser));
+        // New pauser can pause
+        t.client().pause(&pauser);
+        assert!(t.client().is_paused());
+    }
+
+    #[test]
+    fn test_revoke_role_removes_access() {
+        let t = TestEnv::new();
+        let pauser = Address::generate(&t.env);
+        t.client().grant_role(&t.admin, &Symbol::new(&t.env, ROLE_PAUSER), &pauser);
+        t.client().revoke_role(&t.admin, &Symbol::new(&t.env, ROLE_PAUSER), &pauser);
+        assert!(!t.client().has_role(&Symbol::new(&t.env, ROLE_PAUSER), &pauser));
+    }
+
+    #[test]
+    fn test_grant_role_idempotent() {
+        let t = TestEnv::new();
+        let mgr = Address::generate(&t.env);
+        t.client().grant_role(&t.admin, &Symbol::new(&t.env, ROLE_CURATOR_MGR), &mgr);
+        t.client().grant_role(&t.admin, &Symbol::new(&t.env, ROLE_CURATOR_MGR), &mgr);
+        let members = t.client().get_role_members_list(&Symbol::new(&t.env, ROLE_CURATOR_MGR));
+        // admin + mgr = 2 (admin was granted in new())
+        assert_eq!(members.iter().filter(|m| *m == mgr).count(), 1);
+    }
+
+    #[test]
+    fn test_multiple_admins_can_grant_roles() {
+        let t = TestEnv::new();
+        let admin2 = Address::generate(&t.env);
+        // Grant ROLE_ADMIN to a second admin
+        t.client().grant_role(&t.admin, &Symbol::new(&t.env, ROLE_ADMIN), &admin2);
+        assert!(t.client().has_role(&Symbol::new(&t.env, ROLE_ADMIN), &admin2));
+        // Second admin can grant roles too
+        let rep_mgr = Address::generate(&t.env);
+        t.client().grant_role(&admin2, &Symbol::new(&t.env, ROLE_REP_MGR), &rep_mgr);
+        assert!(t.client().has_role(&Symbol::new(&t.env, ROLE_REP_MGR), &rep_mgr));
+    }
+
+    #[test]
+    #[should_panic(expected = "Missing role")]
+    fn test_non_admin_cannot_grant_role() {
+        let t = TestEnv::new();
+        let stranger = Address::generate(&t.env);
+        t.client().grant_role(&stranger, &Symbol::new(&t.env, ROLE_PAUSER), &stranger);
+    }
+
+    #[test]
+    #[should_panic(expected = "Account does not hold role")]
+    fn test_revoke_nonexistent_role_panics() {
+        let t = TestEnv::new();
+        let stranger = Address::generate(&t.env);
+        t.client().revoke_role(&t.admin, &Symbol::new(&t.env, ROLE_PAUSER), &stranger);
+    }
+
+    #[test]
+    #[should_panic(expected = "Missing role")]
+    fn test_missing_curator_mgr_role_panics() {
+        let t = TestEnv::new();
+        let stranger = Address::generate(&t.env);
+        t.client().add_curator(&stranger, &t.curator);
+    }
+
+    #[test]
+    fn test_role_based_reputation_update() {
+        let t = TestEnv::new();
+        t.client().add_curator(&t.admin, &t.curator);
+        t.register_worker(&t.curator);
+
+        let rep_mgr = Address::generate(&t.env);
+        t.client().grant_role(&t.admin, &Symbol::new(&t.env, ROLE_REP_MGR), &rep_mgr);
+        t.client().update_reputation(&rep_mgr, &t.worker_id(), &7500);
+
+        let worker = t.client().get_worker(&t.worker_id()).unwrap();
+        assert_eq!(worker.reputation, 7500);
     }
 }
