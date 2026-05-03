@@ -9,7 +9,7 @@ description = "Property-based fuzz tests for BlueCollar Soroban contracts"
 name = "bluecollar_fuzz"
 
 [dev-dependencies]
-soroban-sdk = { version = "21.0.0", features = ["testutils"] }
+soroban-sdk = { version = "25.3.1", features = ["testutils"] }
 bluecollar-registry = { path = "../registry" }
 bluecollar-market = { path = "../market" }
 proptest = "1.4"

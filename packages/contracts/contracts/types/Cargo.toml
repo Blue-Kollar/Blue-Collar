@@ -7,4 +7,4 @@ license = "MIT"
 [lib]
 
 [dependencies]
-soroban-sdk = { version = "21.0.0", features = ["alloc"] }
+soroban-sdk = { version = "25.3.1", features = ["alloc"] }
