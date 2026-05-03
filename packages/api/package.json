@@ -59,7 +59,7 @@
     "@opentelemetry/api": "^1.7.0",
     "@opentelemetry/sdk-node": "^0.45.0",
     "@opentelemetry/auto-instrumentations-node": "^0.40.0",
-    "@opentelemetry/exporter-jaeger": "^1.18.0",
+    "@opentelemetry/exporter-jaeger": "^2.7.1",
     "@opentelemetry/exporter-prometheus": "^0.45.0",
     "prom-client": "^15.1.0",
     "v8-profiler-next": "^1.9.0"
