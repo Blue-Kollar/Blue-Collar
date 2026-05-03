@@ -243,7 +243,7 @@ jobs:
             type=sha
 
       - name: Build and push API image
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v7
         with:
           context: ./packages/api
           push: true
