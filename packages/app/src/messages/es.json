@@ -4,6 +4,8 @@
     "about": "Acerca de",
     "workers": "Trabajadores",
     "dashboard": "Panel de control",
+    "settings": "Configuración",
+    "account": "Cuenta",
     "logout": "Cerrar sesión",
     "login": "Iniciar sesión",
     "register": "Registrarse",
@@ -16,7 +18,51 @@
     "save": "Guardar",
     "delete": "Eliminar",
     "edit": "Editar",
-    "back": "Atrás"
+    "back": "Atrás",
+    "profile": "Perfil",
+    "adminAnalytics": "Analítica admin",
+    "connectWallet": "Conectar wallet",
+    "connecting": "Conectando...",
+    "language": "Idioma",
+    "toggleTheme": "Cambiar tema",
+    "openMenu": "Abrir menú",
+    "closeMenu": "Cerrar menú"
+  },
+  "homePage": {
+    "hero": {
+      "title": "Encuentra trabajadores calificados cerca de ti",
+      "description": "Conecta con profesionales locales de confianza — fontaneros, electricistas, carpinteros y más.",
+      "categoryPlaceholder": "Categoría (ej. fontanero)",
+      "locationPlaceholder": "Ubicación (ej. Lagos)",
+      "browseWorkers": "Explorar trabajadores"
+    },
+    "categories": {
+      "title": "Explorar por categoría",
+      "workerCount": "{count, plural, one {# trabajador} other {# trabajadores}}"
+    },
+    "howItWorks": {
+      "title": "Cómo funciona",
+      "steps": {
+        "search": {
+          "title": "Busca una habilidad",
+          "description": "Explora categorías o busca por habilidad y ubicación para encontrar al profesional adecuado."
+        },
+        "verified": {
+          "title": "Encuentra un trabajador verificado",
+          "description": "Cada perfil está curado por la comunidad y anclado on-chain para mayor transparencia."
+        },
+        "pay": {
+          "title": "Paga seguro on-chain",
+          "description": "Envía propinas y pagos directamente a los trabajadores mediante Stellar — sin intermediarios."
+        }
+      }
+    },
+    "featuredWorkers": {
+      "title": "Trabajadores destacados",
+      "noWorkers": "Aún no hay trabajadores disponibles. Vuelve pronto.",
+      "viewProfile": "Ver perfil",
+      "seeAll": "Ver todos los trabajadores"
+    }
   },
   "workers": {
     "title": "Encontrar trabajadores calificados",
@@ -24,9 +70,38 @@
     "noResults": "No se encontraron trabajadores",
     "availability": "Disponibilidad",
     "contact": "Contactar",
-    "verified": "Verificado On-Chain",
+    "verified": "Verificado on-chain",
     "rating": "Calificación",
-    "reviews": "Reseñas"
+    "reviews": "Reseñas",
+    "page": {
+      "title": "Explorar trabajadores",
+      "search": "Buscar",
+      "searchPlaceholder": "Nombre del trabajador...",
+      "location": "Ubicación",
+      "locationPlaceholder": "Ciudad o zona...",
+      "minRating": "Calificación mínima",
+      "any": "Cualquiera",
+      "ratingOption": "{rating}+",
+      "availableOn": "Disponible el",
+      "anyDay": "Cualquier día",
+      "listedWithin": "Publicado en",
+      "anyTime": "Cualquier momento",
+      "lastYear": "El último año",
+      "lastYears": "Últimos {count} años",
+      "category": "Categoría",
+      "all": "Todas",
+      "applyFilters": "Aplicar filtros",
+      "clearAll": "Borrar todo",
+      "days": {
+        "sun": "Dom",
+        "mon": "Lun",
+        "tue": "Mar",
+        "wed": "Mié",
+        "thu": "Jue",
+        "fri": "Vie",
+        "sat": "Sáb"
+      }
+    }
   },
   "auth": {
     "email": "Correo electrónico",
@@ -47,5 +122,16 @@
     "contactRequests": "Solicitudes de contacto",
     "createWorker": "Crear trabajador",
     "noWorkers": "Sin trabajadores aún"
+  },
+  "footer": {
+    "description": "Encuentra trabajadores calificados cerca de ti. Un protocolo descentralizado que conecta profesionales locales con las comunidades que los necesitan.",
+    "quickLinks": "Enlaces rápidos",
+    "categories": "Categorías",
+    "howItWorks": "Cómo funciona",
+    "legal": "Legal",
+    "privacyPolicy": "Política de privacidad",
+    "termsOfService": "Términos del servicio",
+    "community": "Comunidad",
+    "rights": "Todos los derechos reservados."
   }
 }

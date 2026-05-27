@@ -1,5 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
+import { getLocale, getTranslations } from 'next-intl/server'
+import { localizedPath } from '@/lib/i18n'
 
 interface Worker {
   id: string
@@ -40,14 +42,16 @@ export function FeaturedWorkersSkeleton() {
 }
 
 export default async function FeaturedWorkers() {
+  const locale = await getLocale()
+  const t = await getTranslations('homePage.featuredWorkers')
   const workers = await getFeaturedWorkers()
 
   return (
     <section className="px-4 py-16 max-w-6xl mx-auto">
-      <h2 className="text-2xl font-bold text-gray-900 sm:text-3xl">Featured Workers</h2>
+      <h2 className="text-2xl font-bold text-gray-900 sm:text-3xl">{t('title')}</h2>
 
       {workers.length === 0 ? (
-        <p className="mt-6 text-gray-500">No workers available yet. Check back soon.</p>
+        <p className="mt-6 text-gray-500">{t('noWorkers')}</p>
       ) : (
         <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {workers.map((worker) => (
@@ -74,10 +78,10 @@ export default async function FeaturedWorkers() {
                 </div>
               </div>
               <Link
-                href={`/workers/${worker.id}`}
+                href={localizedPath(`/workers/${worker.id}`, locale)}
                 className="mt-auto text-center rounded-lg border border-blue-700 text-blue-700 font-medium py-2 hover:bg-blue-50 transition-colors"
               >
-                View Profile
+                {t('viewProfile')}
               </Link>
             </div>
           ))}
@@ -86,10 +90,10 @@ export default async function FeaturedWorkers() {
 
       <div className="mt-10 text-center">
         <Link
-          href="/workers"
+          href={localizedPath('/workers', locale)}
           className="inline-block rounded-lg bg-blue-700 text-white font-semibold px-8 py-3 hover:bg-blue-800 transition-colors"
         >
-          See All Workers
+          {t('seeAll')}
         </Link>
       </div>
     </section>

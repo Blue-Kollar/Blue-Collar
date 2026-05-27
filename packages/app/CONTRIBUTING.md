@@ -32,6 +32,14 @@ pnpm dev   # starts on :3001
 - Page-level components live in `src/app/` following Next.js App Router conventions
 - Use Tailwind utility classes; avoid inline styles
 
+## Translation Workflow
+
+- Supported locales are defined in `src/lib/i18n.ts`. Add new locales there first so middleware, navigation, and tests stay in sync.
+- User-facing copy belongs in `src/messages/<locale>.json`. Keep matching keys across every locale file.
+- Client components should read copy with `useTranslations`; server components should use `getTranslations`.
+- Use `localizedPath()` or `switchLocalePath()` from `src/lib/i18n.ts` when building internal links or changing language.
+- Run `npm test -- --run src/__tests__/i18n.test.ts src/__tests__/Navbar.test.tsx` after changing translations or locale navigation.
+
 ## Design
 
 Figma design file: [BlueCollar UI Kit](https://www.figma.com/file/bluecollar-ui) *(request access from a maintainer)*

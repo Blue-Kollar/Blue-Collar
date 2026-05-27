@@ -11,8 +11,26 @@ vi.mock('next/link', () => ({
 }))
 
 vi.mock('next/navigation', () => ({
-  usePathname: () => '/',
+  usePathname: () => '/en',
   useRouter: () => ({ push: vi.fn() }),
+}))
+
+vi.mock('next-intl', () => ({
+  useLocale: () => 'en',
+  useTranslations: () => (key: string) => ({
+    adminAnalytics: 'Admin Analytics',
+    closeMenu: 'Close menu',
+    connectWallet: 'Connect Wallet',
+    connecting: 'Connecting...',
+    dashboard: 'Dashboard',
+    language: 'Language',
+    login: 'Login',
+    logout: 'Logout',
+    openMenu: 'Open menu',
+    profile: 'Profile',
+    register: 'Register',
+    toggleTheme: 'Toggle theme',
+  }[key] ?? key),
 }))
 
 const mockLogout = vi.fn()
@@ -26,6 +44,10 @@ vi.mock('@/hooks/useWallet', () => ({
   useWallet: () => ({ address: null, connecting: false, connect: mockConnect }),
 }))
 
+vi.mock('@/components/NotificationDropdown', () => ({
+  default: () => <button aria-label="Notifications" />,
+}))
+
 // lucide-react stubs
 vi.mock('lucide-react', () => ({
   Menu: () => <span />,
@@ -34,6 +56,8 @@ vi.mock('lucide-react', () => ({
   User: () => <span />,
   Sun: () => <span data-testid="sun-icon" />,
   Moon: () => <span data-testid="moon-icon" />,
+  Globe: () => <span />,
+  X: () => <span />,
 }))
 
 vi.mock('next-themes', () => ({

@@ -1,0 +1,137 @@
+{
+  "common": {
+    "home": "Início",
+    "about": "Sobre",
+    "workers": "Trabalhadores",
+    "dashboard": "Painel",
+    "settings": "Definições",
+    "account": "Conta",
+    "logout": "Terminar sessão",
+    "login": "Entrar",
+    "register": "Registar",
+    "search": "Pesquisar",
+    "filter": "Filtrar",
+    "loading": "A carregar...",
+    "error": "Erro",
+    "success": "Sucesso",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "back": "Voltar",
+    "profile": "Perfil",
+    "adminAnalytics": "Análises de administração",
+    "connectWallet": "Ligar carteira",
+    "connecting": "A ligar...",
+    "language": "Idioma",
+    "toggleTheme": "Alternar tema",
+    "openMenu": "Abrir menu",
+    "closeMenu": "Fechar menu"
+  },
+  "homePage": {
+    "hero": {
+      "title": "Encontre trabalhadores qualificados perto de si",
+      "description": "Ligue-se a profissionais locais de confiança — canalizadores, eletricistas, carpinteiros e muito mais.",
+      "categoryPlaceholder": "Categoria (ex. canalizador)",
+      "locationPlaceholder": "Localização (ex. Lagos)",
+      "browseWorkers": "Ver trabalhadores"
+    },
+    "categories": {
+      "title": "Explorar por categoria",
+      "workerCount": "{count, plural, one {# trabalhador} other {# trabalhadores}}"
+    },
+    "howItWorks": {
+      "title": "Como funciona",
+      "steps": {
+        "search": {
+          "title": "Pesquise uma competência",
+          "description": "Explore categorias ou pesquise por competência e localização para encontrar o profissional certo."
+        },
+        "verified": {
+          "title": "Encontre um trabalhador verificado",
+          "description": "Cada perfil é curado pela comunidade e registado on-chain para maior transparência."
+        },
+        "pay": {
+          "title": "Pague com segurança on-chain",
+          "description": "Envie gorjetas e pagamentos diretamente aos trabalhadores através da Stellar — sem intermediários."
+        }
+      }
+    },
+    "featuredWorkers": {
+      "title": "Trabalhadores em destaque",
+      "noWorkers": "Ainda não há trabalhadores disponíveis. Volte em breve.",
+      "viewProfile": "Ver perfil",
+      "seeAll": "Ver todos os trabalhadores"
+    }
+  },
+  "workers": {
+    "title": "Encontrar trabalhadores qualificados",
+    "description": "Descubra trabalhadores de confiança na sua área",
+    "noResults": "Nenhum trabalhador encontrado",
+    "availability": "Disponibilidade",
+    "contact": "Contacto",
+    "verified": "Verificado on-chain",
+    "rating": "Avaliação",
+    "reviews": "Avaliações",
+    "page": {
+      "title": "Explorar trabalhadores",
+      "search": "Pesquisar",
+      "searchPlaceholder": "Nome do trabalhador...",
+      "location": "Localização",
+      "locationPlaceholder": "Cidade ou zona...",
+      "minRating": "Avaliação mínima",
+      "any": "Qualquer",
+      "ratingOption": "{rating}+",
+      "availableOn": "Disponível em",
+      "anyDay": "Qualquer dia",
+      "listedWithin": "Listado nos últimos",
+      "anyTime": "Qualquer altura",
+      "lastYear": "Último ano",
+      "lastYears": "Últimos {count} anos",
+      "category": "Categoria",
+      "all": "Todas",
+      "applyFilters": "Aplicar filtros",
+      "clearAll": "Limpar tudo",
+      "days": {
+        "sun": "Dom",
+        "mon": "Seg",
+        "tue": "Ter",
+        "wed": "Qua",
+        "thu": "Qui",
+        "fri": "Sex",
+        "sat": "Sáb"
+      }
+    }
+  },
+  "auth": {
+    "email": "E-mail",
+    "password": "Palavra-passe",
+    "firstName": "Nome",
+    "lastName": "Apelido",
+    "loginTitle": "Entrar no BlueCollar",
+    "registerTitle": "Criar conta",
+    "forgotPassword": "Esqueceu-se da palavra-passe?",
+    "noAccount": "Ainda não tem conta?",
+    "haveAccount": "Já tem uma conta?",
+    "signInWithGoogle": "Entrar com Google"
+  },
+  "dashboard": {
+    "title": "Painel",
+    "myWorkers": "Os meus trabalhadores",
+    "bookmarks": "Favoritos",
+    "contactRequests": "Pedidos de contacto",
+    "createWorker": "Criar trabalhador",
+    "noWorkers": "Ainda não há trabalhadores"
+  },
+  "footer": {
+    "description": "Encontre trabalhadores qualificados perto de si. Um protocolo descentralizado que liga profissionais locais às comunidades que precisam deles.",
+    "quickLinks": "Links rápidos",
+    "categories": "Categorias",
+    "howItWorks": "Como funciona",
+    "legal": "Legal",
+    "privacyPolicy": "Política de privacidade",
+    "termsOfService": "Termos de serviço",
+    "community": "Comunidade",
+    "rights": "Todos os direitos reservados."
+  }
+}

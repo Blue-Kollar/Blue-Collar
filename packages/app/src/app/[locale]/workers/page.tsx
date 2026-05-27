@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { getLocale, getTranslations } from "next-intl/server";
 import WorkerInfiniteList from "@/components/WorkerInfiniteList";
+import SearchAutocomplete from "@/components/SearchAutocomplete";
+import { localizedPath } from "@/lib/i18n";
 import type { Worker, Category, ApiResponse } from "@/types";
 
 export const metadata: Metadata = {
@@ -41,9 +44,18 @@ interface PageProps {
   }
 }
 
-const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
-
 export default async function WorkersPage({ searchParams }: PageProps) {
+  const locale = await getLocale()
+  const t = await getTranslations('workers.page')
+  const days = [
+    t('days.sun'),
+    t('days.mon'),
+    t('days.tue'),
+    t('days.wed'),
+    t('days.thu'),
+    t('days.fri'),
+    t('days.sat'),
+  ]
   const page = searchParams.page ?? "1"
   const params: Record<string, string> = { page, limit: "20" }
   if (searchParams.category) params.category = searchParams.category
@@ -60,7 +72,7 @@ export default async function WorkersPage({ searchParams }: PageProps) {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10">
-      <h1 className="mb-8 text-2xl font-bold text-gray-800">Browse Workers</h1>
+      <h1 className="mb-8 text-2xl font-bold text-gray-800">{t('title')}</h1>
 
       <div className="flex flex-col gap-8 lg:flex-row">
         {/* Sidebar filters */}
@@ -68,21 +80,21 @@ export default async function WorkersPage({ searchParams }: PageProps) {
           <form className="flex flex-col gap-6 rounded-xl border bg-white p-5 shadow-sm">
             {/* Search */}
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-gray-700">Search</label>
+              <label className="mb-1.5 block text-sm font-medium text-gray-700">{t('search')}</label>
               <SearchAutocomplete
                 name="search"
                 defaultValue={searchParams.search ?? ""}
-                placeholder="Worker name…"
+                placeholder={t('searchPlaceholder')}
               />
             </div>
 
             {/* Location */}
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-gray-700">Location</label>
+              <label className="mb-1.5 block text-sm font-medium text-gray-700">{t('location')}</label>
               <input
                 name="location"
                 defaultValue={searchParams.location ?? ""}
-                placeholder="City or area…"
+                placeholder={t('locationPlaceholder')}
                 className="w-full rounded-md border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -90,16 +102,16 @@ export default async function WorkersPage({ searchParams }: PageProps) {
             {/* Min Rating */}
             <div>
               <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                Min Rating
+                {t('minRating')}
               </label>
               <select
                 name="minRating"
                 defaultValue={searchParams.minRating ?? ""}
                 className="w-full rounded-md border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="">Any</option>
+                <option value="">{t('any')}</option>
                 {[1, 2, 3, 4, 5].map((r) => (
-                  <option key={r} value={r}>{"★".repeat(r)} {r}+</option>
+                  <option key={r} value={r}>{"★".repeat(r)} {t('ratingOption', { rating: r })}</option>
                 ))}
               </select>
             </div>
@@ -107,15 +119,15 @@ export default async function WorkersPage({ searchParams }: PageProps) {
             {/* Availability */}
             <div>
               <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                Available On
+                {t('availableOn')}
               </label>
               <select
                 name="available"
                 defaultValue={searchParams.available ?? ""}
                 className="w-full rounded-md border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="">Any day</option>
-                {DAYS.map((d, i) => (
+                <option value="">{t('anyDay')}</option>
+                {days.map((d, i) => (
                   <option key={i} value={i}>{d}</option>
                 ))}
               </select>
@@ -124,27 +136,27 @@ export default async function WorkersPage({ searchParams }: PageProps) {
             {/* Listed Since (experience proxy) */}
             <div>
               <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                Listed Within
+                {t('listedWithin')}
               </label>
               <select
                 name="listedSince"
                 defaultValue={searchParams.listedSince ?? ""}
                 className="w-full rounded-md border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="">Any time</option>
-                <option value="1">Last year</option>
-                <option value="2">Last 2 years</option>
-                <option value="5">Last 5 years</option>
+                <option value="">{t('anyTime')}</option>
+                <option value="1">{t('lastYear')}</option>
+                <option value="2">{t('lastYears', { count: 2 })}</option>
+                <option value="5">{t('lastYears', { count: 5 })}</option>
               </select>
             </div>
 
             {/* Categories */}
             <div>
-              <p className="mb-2 text-sm font-medium text-gray-700">Category</p>
+              <p className="mb-2 text-sm font-medium text-gray-700">{t('category')}</p>
               <div className="flex flex-col gap-2">
                 <label className="flex items-center gap-2 text-sm text-gray-600">
                   <input type="radio" name="category" value="" defaultChecked={!searchParams.category} />
-                  All
+                  {t('all')}
                 </label>
                 {categories.map((c) => (
                   <label key={c.id} className="flex items-center gap-2 text-sm text-gray-600">
@@ -164,13 +176,13 @@ export default async function WorkersPage({ searchParams }: PageProps) {
               type="submit"
               className="rounded-md bg-blue-600 py-2 text-sm font-medium text-white hover:bg-blue-700"
             >
-              Apply Filters
+              {t('applyFilters')}
             </button>
             <Link
-              href="/workers"
+              href={localizedPath('/workers', locale)}
               className="text-center text-xs text-gray-400 hover:text-gray-600"
             >
-              Clear all
+              {t('clearAll')}
             </Link>
           </form>
         </aside>

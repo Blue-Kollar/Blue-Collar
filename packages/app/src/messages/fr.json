@@ -4,6 +4,8 @@
     "about": "À propos",
     "workers": "Travailleurs",
     "dashboard": "Tableau de bord",
+    "settings": "Paramètres",
+    "account": "Compte",
     "logout": "Déconnexion",
     "login": "Connexion",
     "register": "S'inscrire",
@@ -16,7 +18,51 @@
     "save": "Enregistrer",
     "delete": "Supprimer",
     "edit": "Modifier",
-    "back": "Retour"
+    "back": "Retour",
+    "profile": "Profil",
+    "adminAnalytics": "Analyses admin",
+    "connectWallet": "Connecter le wallet",
+    "connecting": "Connexion...",
+    "language": "Langue",
+    "toggleTheme": "Changer de thème",
+    "openMenu": "Ouvrir le menu",
+    "closeMenu": "Fermer le menu"
+  },
+  "homePage": {
+    "hero": {
+      "title": "Trouvez des travailleurs qualifiés près de chez vous",
+      "description": "Entrez en contact avec des artisans locaux de confiance — plombiers, électriciens, menuisiers et plus encore.",
+      "categoryPlaceholder": "Catégorie (ex. plombier)",
+      "locationPlaceholder": "Lieu (ex. Lagos)",
+      "browseWorkers": "Parcourir les travailleurs"
+    },
+    "categories": {
+      "title": "Parcourir par catégorie",
+      "workerCount": "{count, plural, one {# travailleur} other {# travailleurs}}"
+    },
+    "howItWorks": {
+      "title": "Comment ça marche",
+      "steps": {
+        "search": {
+          "title": "Recherchez une compétence",
+          "description": "Parcourez les catégories ou recherchez par compétence et lieu pour trouver le bon professionnel."
+        },
+        "verified": {
+          "title": "Trouvez un travailleur vérifié",
+          "description": "Chaque fiche est validée par la communauté et ancrée on-chain pour plus de transparence."
+        },
+        "pay": {
+          "title": "Payez en toute sécurité on-chain",
+          "description": "Envoyez des pourboires et paiements directement aux travailleurs via Stellar — sans intermédiaires."
+        }
+      }
+    },
+    "featuredWorkers": {
+      "title": "Travailleurs en vedette",
+      "noWorkers": "Aucun travailleur disponible pour le moment. Revenez bientôt.",
+      "viewProfile": "Voir le profil",
+      "seeAll": "Voir tous les travailleurs"
+    }
   },
   "workers": {
     "title": "Trouver des travailleurs qualifiés",
@@ -24,9 +70,38 @@
     "noResults": "Aucun travailleur trouvé",
     "availability": "Disponibilité",
     "contact": "Contacter",
-    "verified": "Vérifié On-Chain",
+    "verified": "Vérifié on-chain",
     "rating": "Évaluation",
-    "reviews": "Avis"
+    "reviews": "Avis",
+    "page": {
+      "title": "Parcourir les travailleurs",
+      "search": "Recherche",
+      "searchPlaceholder": "Nom du travailleur...",
+      "location": "Lieu",
+      "locationPlaceholder": "Ville ou zone...",
+      "minRating": "Note minimale",
+      "any": "Toutes",
+      "ratingOption": "{rating}+",
+      "availableOn": "Disponible le",
+      "anyDay": "Tous les jours",
+      "listedWithin": "Inscrit depuis",
+      "anyTime": "N'importe quand",
+      "lastYear": "L'année dernière",
+      "lastYears": "{count} dernières années",
+      "category": "Catégorie",
+      "all": "Toutes",
+      "applyFilters": "Appliquer les filtres",
+      "clearAll": "Tout effacer",
+      "days": {
+        "sun": "Dim",
+        "mon": "Lun",
+        "tue": "Mar",
+        "wed": "Mer",
+        "thu": "Jeu",
+        "fri": "Ven",
+        "sat": "Sam"
+      }
+    }
   },
   "auth": {
     "email": "E-mail",
@@ -47,5 +122,16 @@
     "contactRequests": "Demandes de contact",
     "createWorker": "Créer un travailleur",
     "noWorkers": "Aucun travailleur pour le moment"
+  },
+  "footer": {
+    "description": "Trouvez des travailleurs qualifiés près de chez vous. Un protocole décentralisé qui connecte les artisans locaux aux communautés qui ont besoin d'eux.",
+    "quickLinks": "Liens rapides",
+    "categories": "Catégories",
+    "howItWorks": "Comment ça marche",
+    "legal": "Mentions légales",
+    "privacyPolicy": "Politique de confidentialité",
+    "termsOfService": "Conditions d'utilisation",
+    "community": "Communauté",
+    "rights": "Tous droits réservés."
   }
 }

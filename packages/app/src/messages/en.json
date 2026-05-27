@@ -4,6 +4,8 @@
     "about": "About",
     "workers": "Workers",
     "dashboard": "Dashboard",
+    "settings": "Settings",
+    "account": "Account",
     "logout": "Logout",
     "login": "Login",
     "register": "Register",
@@ -16,7 +18,51 @@
     "save": "Save",
     "delete": "Delete",
     "edit": "Edit",
-    "back": "Back"
+    "back": "Back",
+    "profile": "Profile",
+    "adminAnalytics": "Admin Analytics",
+    "connectWallet": "Connect Wallet",
+    "connecting": "Connecting...",
+    "language": "Language",
+    "toggleTheme": "Toggle theme",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu"
+  },
+  "homePage": {
+    "hero": {
+      "title": "Find Skilled Workers Near You",
+      "description": "Connect with trusted local tradespeople — plumbers, electricians, carpenters, and more.",
+      "categoryPlaceholder": "Category (e.g. Plumber)",
+      "locationPlaceholder": "Location (e.g. Lagos)",
+      "browseWorkers": "Browse Workers"
+    },
+    "categories": {
+      "title": "Browse by Category",
+      "workerCount": "{count, plural, one {# worker} other {# workers}}"
+    },
+    "howItWorks": {
+      "title": "How It Works",
+      "steps": {
+        "search": {
+          "title": "Search for a Skill",
+          "description": "Browse categories or search by skill and location to find the right tradesperson."
+        },
+        "verified": {
+          "title": "Find a Verified Worker",
+          "description": "Every listing is community-curated and anchored on-chain for transparency."
+        },
+        "pay": {
+          "title": "Pay Securely On-Chain",
+          "description": "Send tips and payments directly to workers via Stellar — no middlemen."
+        }
+      }
+    },
+    "featuredWorkers": {
+      "title": "Featured Workers",
+      "noWorkers": "No workers available yet. Check back soon.",
+      "viewProfile": "View Profile",
+      "seeAll": "See All Workers"
+    }
   },
   "workers": {
     "title": "Find Skilled Workers",
@@ -26,7 +72,36 @@
     "contact": "Contact",
     "verified": "Verified On-Chain",
     "rating": "Rating",
-    "reviews": "Reviews"
+    "reviews": "Reviews",
+    "page": {
+      "title": "Browse Workers",
+      "search": "Search",
+      "searchPlaceholder": "Worker name...",
+      "location": "Location",
+      "locationPlaceholder": "City or area...",
+      "minRating": "Min Rating",
+      "any": "Any",
+      "ratingOption": "{rating}+",
+      "availableOn": "Available On",
+      "anyDay": "Any day",
+      "listedWithin": "Listed Within",
+      "anyTime": "Any time",
+      "lastYear": "Last year",
+      "lastYears": "Last {count} years",
+      "category": "Category",
+      "all": "All",
+      "applyFilters": "Apply Filters",
+      "clearAll": "Clear all",
+      "days": {
+        "sun": "Sun",
+        "mon": "Mon",
+        "tue": "Tue",
+        "wed": "Wed",
+        "thu": "Thu",
+        "fri": "Fri",
+        "sat": "Sat"
+      }
+    }
   },
   "auth": {
     "email": "Email",
@@ -47,5 +122,16 @@
     "contactRequests": "Contact Requests",
     "createWorker": "Create Worker",
     "noWorkers": "No workers yet"
+  },
+  "footer": {
+    "description": "Find skilled workers near you. A decentralised protocol connecting local tradespeople with the communities that need them.",
+    "quickLinks": "Quick Links",
+    "categories": "Categories",
+    "howItWorks": "How It Works",
+    "legal": "Legal",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service",
+    "community": "Community",
+    "rights": "All rights reserved."
   }
 }

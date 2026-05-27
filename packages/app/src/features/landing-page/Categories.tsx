@@ -1,4 +1,6 @@
 import Link from 'next/link'
+import { getLocale, getTranslations } from 'next-intl/server'
+import { localizedPath } from '@/lib/i18n'
 
 interface Category {
   id: string
@@ -17,17 +19,19 @@ async function getCategories(): Promise<Category[]> {
 }
 
 export default async function Categories() {
+  const locale = await getLocale()
+  const t = await getTranslations('homePage.categories')
   const categories = await getCategories()
 
   return (
     <section>
-      <h2>Browse by Category</h2>
+      <h2>{t('title')}</h2>
       <div className="categories-grid">
         {categories.map((cat) => (
-          <Link key={cat.id} href={`/workers?category=${cat.id}`} className="category-card">
+          <Link key={cat.id} href={`${localizedPath('/workers', locale)}?category=${cat.id}`} className="category-card">
             {cat.icon && <span className="category-icon">{cat.icon}</span>}
             <span className="category-name">{cat.name}</span>
-            <span className="category-badge">{cat._count.workers} workers</span>
+            <span className="category-badge">{t('workerCount', { count: cat._count.workers })}</span>
           </Link>
         ))}
       </div>

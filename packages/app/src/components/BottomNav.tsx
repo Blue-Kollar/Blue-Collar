@@ -3,27 +3,35 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Home, Users, Info, LayoutDashboard, User, Settings } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
+import { localizedPath } from "@/lib/i18n";
 
 const BASE_LINKS = [
-  { href: "/", label: "Home", icon: Home },
-  { href: "/workers", label: "Workers", icon: Users },
-  { href: "/about", label: "About", icon: Info },
+  { href: "/", labelKey: "home", icon: Home },
+  { href: "/workers", labelKey: "workers", icon: Users },
+  { href: "/about", labelKey: "about", icon: Info },
 ];
 
 export default function BottomNav() {
   const pathname = usePathname();
+  const locale = useLocale();
+  const t = useTranslations("common");
   const { user } = useAuth();
 
   const links = [
-    ...BASE_LINKS,
+    ...BASE_LINKS.map((link) => ({
+      href: localizedPath(link.href, locale),
+      label: t(link.labelKey),
+      icon: link.icon,
+    })),
     ...(user
       ? [
-          { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-          { href: "/dashboard/settings", label: "Settings", icon: Settings },
+          { href: localizedPath("/dashboard", locale), label: t("dashboard"), icon: LayoutDashboard },
+          { href: localizedPath("/dashboard/settings", locale), label: t("settings"), icon: Settings },
         ]
-      : [{ href: "/auth/login", label: "Account", icon: User }]),
+      : [{ href: localizedPath("/auth/login", locale), label: t("account"), icon: User }]),
   ];
 
   return (

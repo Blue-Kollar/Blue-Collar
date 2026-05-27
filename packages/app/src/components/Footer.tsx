@@ -1,16 +1,6 @@
 import Link from "next/link";
-
-const LINKS = {
-  quick: [
-    { href: "/workers", label: "Workers" },
-    { href: "/categories", label: "Categories" },
-    { href: "/how-it-works", label: "How It Works" },
-  ],
-  legal: [
-    { href: "/privacy", label: "Privacy Policy" },
-    { href: "/terms", label: "Terms of Service" },
-  ],
-};
+import { getLocale, getTranslations } from "next-intl/server";
+import { localizedPath } from "@/lib/i18n";
 
 function GithubIcon() {
   return (
@@ -28,7 +18,22 @@ function TelegramIcon() {
   );
 }
 
-export default function Footer() {
+export default async function Footer() {
+  const locale = await getLocale();
+  const common = await getTranslations("common");
+  const footer = await getTranslations("footer");
+  const links = {
+    quick: [
+      { href: "/workers", label: common("workers") },
+      { href: "/categories", label: footer("categories") },
+      { href: "/how-it-works", label: footer("howItWorks") },
+    ],
+    legal: [
+      { href: "/privacy", label: footer("privacyPolicy") },
+      { href: "/terms", label: footer("termsOfService") },
+    ],
+  };
+
   return (
     <footer className="border-t bg-gray-50 dark:bg-gray-900 dark:border-gray-800 mt-auto">
       <div className="mx-auto max-w-7xl px-4 py-12">
@@ -37,18 +42,17 @@ export default function Footer() {
           <div className="flex flex-col gap-3">
             <span className="text-lg font-bold text-blue-600">BlueCollar</span>
             <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
-              Find skilled workers near you. A decentralised protocol connecting
-              local tradespeople with the communities that need them.
+              {footer("description")}
             </p>
           </div>
 
           {/* Quick Links */}
           <div>
-            <h3 className="mb-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Quick Links</h3>
+            <h3 className="mb-3 text-sm font-semibold text-gray-700 dark:text-gray-300">{footer("quickLinks")}</h3>
             <ul className="flex flex-col gap-2">
-              {LINKS.quick.map((l) => (
+              {links.quick.map((l) => (
                 <li key={l.href}>
-                  <Link href={l.href} className="text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 transition-colors">
+                  <Link href={localizedPath(l.href, locale)} className="text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 transition-colors">
                     {l.label}
                   </Link>
                 </li>
@@ -58,11 +62,11 @@ export default function Footer() {
 
           {/* Legal */}
           <div>
-            <h3 className="mb-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Legal</h3>
+            <h3 className="mb-3 text-sm font-semibold text-gray-700 dark:text-gray-300">{footer("legal")}</h3>
             <ul className="flex flex-col gap-2">
-              {LINKS.legal.map((l) => (
+              {links.legal.map((l) => (
                 <li key={l.href}>
-                  <Link href={l.href} className="text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 transition-colors">
+                  <Link href={localizedPath(l.href, locale)} className="text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 transition-colors">
                     {l.label}
                   </Link>
                 </li>
@@ -72,7 +76,7 @@ export default function Footer() {
 
           {/* Social */}
           <div>
-            <h3 className="mb-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Community</h3>
+            <h3 className="mb-3 text-sm font-semibold text-gray-700 dark:text-gray-300">{footer("community")}</h3>
             <div className="flex gap-4">
               <a
                 href="https://t.me/bluecollar"
@@ -97,7 +101,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-10 border-t dark:border-gray-800 pt-6 text-center text-xs text-gray-400">
-          © {new Date().getFullYear()} BlueCollar. All rights reserved.
+          © {new Date().getFullYear()} BlueCollar. {footer("rights")}
         </div>
       </div>
     </footer>

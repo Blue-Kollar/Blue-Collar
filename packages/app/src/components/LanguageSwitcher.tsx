@@ -1,5 +1,8 @@
+"use client"
+
 import { useLocale } from 'next-intl'
 import { useRouter, usePathname } from 'next/navigation'
+import { localeLabels, locales, switchLocalePath } from '@/lib/i18n'
 import { Button } from './ui/button'
 
 export function LanguageSwitcher() {
@@ -7,27 +10,20 @@ export function LanguageSwitcher() {
   const router = useRouter()
   const pathname = usePathname()
 
-  const languages = [
-    { code: 'en', label: 'English' },
-    { code: 'fr', label: 'Français' },
-    { code: 'es', label: 'Español' }
-  ]
-
   const handleLanguageChange = (newLocale: string) => {
-    const newPathname = pathname.replace(`/${locale}`, `/${newLocale}`)
-    router.push(newPathname)
+    router.push(switchLocalePath(pathname, locale, newLocale))
   }
 
   return (
     <div className="flex gap-2">
-      {languages.map(lang => (
+      {locales.map(code => (
         <Button
-          key={lang.code}
-          variant={locale === lang.code ? 'default' : 'outline'}
+          key={code}
+          variant={locale === code ? 'default' : 'outline'}
           size="sm"
-          onClick={() => handleLanguageChange(lang.code)}
+          onClick={() => handleLanguageChange(code)}
         >
-          {lang.label}
+          {localeLabels[code]}
         </Button>
       ))}
     </div>

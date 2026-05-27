@@ -1,9 +1,8 @@
 import createMiddleware from 'next-intl/middleware'
 import { NextRequest, NextResponse } from "next/server";
+import { defaultLocale, isLocale, locales } from "@/lib/i18n";
 
 const PROTECTED = ["/dashboard"];
-const locales = ['en', 'fr', 'es']
-const defaultLocale = 'en'
 
 const intlMiddleware = createMiddleware({
   locales,
@@ -27,7 +26,8 @@ export function middleware(req: NextRequest) {
 
   if (!token) {
     const loginUrl = req.nextUrl.clone();
-    const locale = pathname.split('/')[1] || defaultLocale
+    const requestedLocale = pathname.split('/')[1] ?? defaultLocale
+    const locale = isLocale(requestedLocale) ? requestedLocale : defaultLocale
     loginUrl.pathname = `/${locale}/auth/login`;
     loginUrl.searchParams.set("redirect", pathname);
     return NextResponse.redirect(loginUrl);
