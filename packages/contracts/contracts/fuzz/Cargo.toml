@@ -22,4 +22,4 @@ bluecollar-registry = { path = "../registry" }
 bluecollar-market = { path = "../market" }
 proptest = "1.4"
 libfuzzer-sys = "0.4"
-arbitrary = { version = "1.3", features = ["derive"] }
+arbitrary = { version = "1.4", features = ["derive"] }
