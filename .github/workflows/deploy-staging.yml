@@ -34,7 +34,7 @@ jobs:
           echo "${{ secrets.STAGING_APP_ENV }}" > packages/app/.env.staging
 
       - name: Deploy staging stack
-        uses: appleboy/ssh-action@v1.0.3
+        uses: appleboy/ssh-action@v1.2.5
         with:
           host: ${{ secrets.STAGING_HOST }}
           username: ${{ secrets.STAGING_USER }}

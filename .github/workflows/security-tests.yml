@@ -113,7 +113,7 @@ jobs:
         run: |
           for i in $(seq 1 30); do curl -sf http://localhost:3000/api/workers && break; sleep 2; done
       - name: OWASP ZAP Baseline Scan
-        uses: zaproxy/action-baseline@v0.12.0
+        uses: zaproxy/action-baseline@v0.15.0
         with:
           target: 'http://localhost:3000/api'
           rules_file_name: '.zap/rules.tsv'
