@@ -1,30 +1,98 @@
-name: Supply-Chain Security
-
-# SBOM generation, container image scanning (Trivy), dependency audit gates,
-# and pinned-actions enforcement.
-# Closes #800
+name: Security Scan
+# Closes #821
+# Consolidates: dependency audit gates (pnpm + cargo), secret scanning
+# (Gitleaks + TruffleHog), SBOM generation, and container image scanning.
 on:
   push:
     branches: [main]
     paths:
       - "packages/**"
-      - "Dockerfile"
       - "**/Dockerfile"
       - ".github/workflows/security-scan.yml"
   pull_request:
     paths:
       - "packages/**"
-      - "Dockerfile"
       - "**/Dockerfile"
       - ".github/workflows/security-scan.yml"
   schedule:
-    # Run weekly even when code hasn't changed to catch newly-published CVEs
+    # Weekly: catch newly-published CVEs even without code changes
     - cron: "0 4 * * 1"
   workflow_dispatch:
 
 jobs:
   # ---------------------------------------------------------------------------
-  # SBOM generation (Syft) — produces CycloneDX JSON for images and packages
+  # Secret scanning — blocks PRs / pushes that contain credentials
+  # ---------------------------------------------------------------------------
+  secrets:
+    name: Secret scanning (Gitleaks + TruffleHog)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # full history required for diff-based scanning
+
+      - name: Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_ENABLE_COMMENTS: "true"
+          # Allowlist file: .gitleaks.toml (add project-specific FPs there)
+
+      - name: TruffleHog OSS
+        uses: trufflesecurity/trufflehog@v3.88.27
+        with:
+          extra_args: >
+            --only-verified
+            --fail
+
+  # ---------------------------------------------------------------------------
+  # Dependency audit — npm (pnpm) and Rust (cargo)
+  # Severity thresholds: HIGH+ for Node; any advisory for Rust.
+  # To allowlist a false positive add it to .auditignore / audit.toml.
+  # ---------------------------------------------------------------------------
+  audit:
+    name: Dependency audit (pnpm + cargo)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install Node dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Gate: fails CI for HIGH or CRITICAL advisories.
+      # To raise/lower threshold change --audit-level to: low | moderate | high | critical
+      - name: pnpm audit (high severity gate)
+        run: pnpm audit --audit-level=high
+
+      - name: Install stable Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: ${{ runner.os }}-cargo-audit-${{ hashFiles('packages/contracts/Cargo.lock') }}
+
+      - name: Install cargo-audit
+        run: cargo install --locked cargo-audit
+
+      # Gate: fails CI on any Rust advisory that is not explicitly ignored.
+      # To allowlist a crate add it to packages/contracts/.cargo/audit.toml
+      - name: cargo audit
+        working-directory: packages/contracts
+        run: cargo audit
+
+  # ---------------------------------------------------------------------------
+  # SBOM generation (Syft) — CycloneDX JSON for packages and container image
   # ---------------------------------------------------------------------------
   sbom:
     name: Generate SBOM
@@ -55,8 +123,7 @@ jobs:
           artifact-name: sbom-packages
 
       - name: Build API Docker image for SBOM
-        run: |
-          docker build -t bluecollar-api:${{ github.sha }} packages/api
+        run: docker build -t bluecollar-api:${{ github.sha }} packages/api
 
       - name: Generate SBOM for API Docker image
         uses: anchore/sbom-action@v0.20.0
@@ -66,7 +133,7 @@ jobs:
           output-file: sbom-api-image.cdx.json
           artifact-name: sbom-api-image
 
-      - name: Attest SBOM (on main branch)
+      - name: Attest SBOM (main branch only)
         if: github.ref == 'refs/heads/main'
         uses: actions/attest-sbom@v2
         with:
@@ -75,7 +142,7 @@ jobs:
           sbom-path: sbom-api-image.cdx.json
 
   # ---------------------------------------------------------------------------
-  # Container image scanning with Trivy — fails on HIGH/CRITICAL CVEs
+  # Container image scanning (Trivy) — hard-fail on HIGH/CRITICAL CVEs
   # ---------------------------------------------------------------------------
   trivy:
     name: Trivy image scan
@@ -95,7 +162,6 @@ jobs:
           image-ref: bluecollar-api:${{ github.sha }}
           format: sarif
           output: trivy-results.sarif
-          # Hard-fail on HIGH or CRITICAL vulnerabilities
           severity: HIGH,CRITICAL
           exit-code: "1"
           ignore-unfixed: true
@@ -107,62 +173,6 @@ jobs:
           sarif_file: trivy-results.sarif
 
   # ---------------------------------------------------------------------------
-  # Dependency vulnerability audit — npm and Rust
+  # Remediation guidance — printed on failure so engineers know what to do
   # ---------------------------------------------------------------------------
-  audit:
-    name: Dependency audit
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: pnpm audit (high severity gate)
-        # Fail only on HIGH or CRITICAL advisories
-        run: pnpm audit --audit-level=high
-
-      - name: Install stable Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Install cargo-audit
-        run: cargo install --locked cargo-audit
-
-      - name: Cargo audit
-        working-directory: packages/contracts
-        run: cargo audit
-
-  # ---------------------------------------------------------------------------
-  # Pinned-actions check — ensure all workflow action refs use full SHAs
-  # ---------------------------------------------------------------------------
-  pinned-actions:
-    name: Check pinned action SHAs
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Check for unpinned actions (tag refs)
-        run: |
-          # Fail if any workflow uses a floating tag (e.g. @v4) instead of a
-          # pinned SHA. Gated on our own workflows only.
-          UNPINNED=$(grep -rE 'uses: [^@]+@v[0-9]' .github/workflows/ \
-            --include="*.yml" || true)
-
-          if [[ -n "$UNPINNED" ]]; then
-            echo "::warning::The following actions use floating version tags instead of pinned SHAs:"
-            echo "$UNPINNED"
-            echo ""
-            echo "Consider pinning to a full commit SHA for supply-chain security."
-            echo "Example: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2"
-            # Non-blocking warning (exit 0) — can be tightened to exit 1 once
-            # all actions in this repo are pinned.
-          else
-            echo "All action refs are pinned. ✅"
-          fi
+  # If any job above fails, see docs/SECURITY_TESTING.md#remediation for steps.

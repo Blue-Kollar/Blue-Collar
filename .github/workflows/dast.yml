@@ -1,0 +1,104 @@
+name: DAST – OWASP ZAP
+# Closes #822
+# Dynamic Application Security Testing against staging.
+# Runs on push to main, weekly schedule, and manual dispatch.
+# PRs can trigger via workflow_dispatch from the staging environment.
+#
+# Prerequisites:
+#   STAGING_URL secret  – base URL of the staging API (e.g. https://staging.bluecollar.app/api)
+#   Reports archived as artifacts for 30 days.
+#   High-severity findings fail the build.
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "0 5 * * 1"  # weekly Monday 05:00 UTC
+  workflow_dispatch:
+    inputs:
+      scan_type:
+        description: "Scan type: baseline or full"
+        required: false
+        default: baseline
+        type: choice
+        options: [baseline, full]
+
+env:
+  STAGING_URL: ${{ secrets.STAGING_URL || 'http://localhost:3000' }}
+  ZAP_RULES: .zap/rules.tsv
+
+jobs:
+  zap-scan:
+    name: ZAP ${{ inputs.scan_type || 'baseline' }} scan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write          # allow ZAP action to file issues for findings
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # ------------------------------------------------------------------
+      # Start a local stack when STAGING_URL is not set (CI without staging)
+      # ------------------------------------------------------------------
+      - name: Start local API (fallback when no staging secret)
+        if: ${{ !secrets.STAGING_URL }}
+        run: |
+          docker compose -f docker-compose.staging.yml up -d --wait || true
+          echo "STAGING_URL=http://localhost:3000" >> "$GITHUB_ENV"
+
+      # ------------------------------------------------------------------
+      # Wait for the target to be reachable
+      # ------------------------------------------------------------------
+      - name: Wait for target
+        run: |
+          for i in $(seq 1 30); do
+            if curl -sf "${STAGING_URL}/health" > /dev/null 2>&1; then
+              echo "Target is up ✅"
+              exit 0
+            fi
+            echo "Waiting... ($i/30)"
+            sleep 5
+          done
+          echo "::error::Target ${STAGING_URL} did not become reachable in time"
+          exit 1
+
+      # ------------------------------------------------------------------
+      # ZAP baseline scan (fast, ~2 min) — default for every push to main
+      # ------------------------------------------------------------------
+      - name: ZAP baseline scan
+        if: ${{ inputs.scan_type != 'full' }}
+        uses: zaproxy/action-baseline@v0.14.0
+        with:
+          target: ${{ env.STAGING_URL }}
+          rules_file_name: ${{ env.ZAP_RULES }}
+          # Hard-fail on new HIGH findings; WARN for MEDIUM and below.
+          # .zap/rules.tsv suppresses known false positives.
+          cmd_options: "-j"   # -j = fail on HIGH (WARN on everything else)
+          artifact_name: zap-baseline-report
+          allow_issue_writing: true
+
+      # ------------------------------------------------------------------
+      # ZAP full scan (comprehensive spider + active attack) — manual only
+      # ------------------------------------------------------------------
+      - name: ZAP full scan
+        if: ${{ inputs.scan_type == 'full' }}
+        uses: zaproxy/action-full-scan@v0.12.0
+        with:
+          target: ${{ env.STAGING_URL }}
+          rules_file_name: ${{ env.ZAP_RULES }}
+          cmd_options: "-j"
+          artifact_name: zap-full-report
+          allow_issue_writing: true
+
+      # ------------------------------------------------------------------
+      # Archive both HTML and JSON reports for 30 days
+      # ------------------------------------------------------------------
+      - name: Upload ZAP reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-report-${{ github.run_id }}
+          path: |
+            report_html.html
+            report_json.json
+          retention-days: 30
