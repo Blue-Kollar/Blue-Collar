@@ -63,7 +63,7 @@
     "typescript": "^5.4.0",
     "vitest": "^1.4.0",
     "@playwright/test": "^1.44.0",
-    "@axe-core/playwright": "^4.9.0",
+    "@axe-core/playwright": "^4.12.1",
     "axe-core": "^4.9.0",
     "@axe-core/react": "^4.9.0",
     "@percy/playwright": "^1.1.0",
