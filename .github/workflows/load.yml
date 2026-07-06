@@ -20,7 +20,7 @@ jobs:
     name: k6 – ${{ inputs.scenario || 'load' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install k6
         run: |
@@ -57,7 +57,7 @@ jobs:
 
       - name: Upload results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: load-test-results-${{ github.run_number }}
           path: load-results/
