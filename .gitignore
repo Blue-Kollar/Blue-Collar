@@ -5,3 +5,5 @@ dist
 .DS_Store
 storage/uploads/*
 !storage/uploads/.gitkeep
+target/
+test_snapshots/

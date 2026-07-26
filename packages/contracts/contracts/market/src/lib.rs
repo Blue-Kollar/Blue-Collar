@@ -39,7 +39,7 @@ pub enum DataKey {
 // ---------------------------------------------------------------------------
 
 #[contracttype]
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Debug)]
 pub enum EscrowStatus {
     Active,
     Released,
@@ -155,13 +155,14 @@ impl MarketContract {
             "Escrow id already exists"
         );
 
-        let client = token::Client::new(&env, &token_addr);
-        client.transfer(&from, &env.current_contract_address(), &amount);
-
+        // Effect before interaction: record the escrow before the external
+        // token transfer so a reentrant call (e.g. a malicious token
+        // contract calling back into create_escrow during the transfer)
+        // hits the "already exists" guard instead of double-creating.
         let escrow = Escrow {
-            from,
+            from: from.clone(),
             to,
-            token: token_addr,
+            token: token_addr.clone(),
             amount,
             expiry,
             status: EscrowStatus::Active,
@@ -169,6 +170,9 @@ impl MarketContract {
         env.storage()
             .persistent()
             .set(&DataKey::Escrow(id), &escrow);
+
+        let client = token::Client::new(&env, &token_addr);
+        client.transfer(&from, &env.current_contract_address(), &amount);
     }
 
     /// Release escrow funds to the worker (from only).
@@ -192,6 +196,15 @@ impl MarketContract {
         let fee: i128 = (escrow.amount * config.fee_bps as i128) / 10_000;
         let worker_amount = escrow.amount - fee;
 
+        // Effect before interaction: mark the escrow released before making
+        // any external token calls. If the token contract re-enters
+        // release_escrow/cancel_escrow for this id during the transfer, it
+        // now hits "Escrow not active" instead of paying out twice.
+        escrow.status = EscrowStatus::Released;
+        env.storage()
+            .persistent()
+            .set(&DataKey::Escrow(id), &escrow);
+
         let client = token::Client::new(&env, &escrow.token);
         client.transfer(&env.current_contract_address(), &escrow.to, &worker_amount);
         if fee > 0 {
@@ -201,11 +214,6 @@ impl MarketContract {
                 &fee,
             );
         }
-
-        escrow.status = EscrowStatus::Released;
-        env.storage()
-            .persistent()
-            .set(&DataKey::Escrow(id), &escrow);
     }
 
     /// Cancel escrow and refund to sender (from only, before expiry).
@@ -220,13 +228,14 @@ impl MarketContract {
         assert!(escrow.status == EscrowStatus::Active, "Escrow not active");
         assert!(escrow.from == caller, "Unauthorized");
 
-        let client = token::Client::new(&env, &escrow.token);
-        client.transfer(&env.current_contract_address(), &escrow.from, &escrow.amount);
-
+        // Effect before interaction — see release_escrow.
         escrow.status = EscrowStatus::Cancelled;
         env.storage()
             .persistent()
             .set(&DataKey::Escrow(id), &escrow);
+
+        let client = token::Client::new(&env, &escrow.token);
+        client.transfer(&env.current_contract_address(), &escrow.from, &escrow.amount);
     }
 
     /// Cancel an expired escrow — anyone can call once past expiry.
@@ -243,13 +252,14 @@ impl MarketContract {
             "Escrow not yet expired"
         );
 
-        let client = token::Client::new(&env, &escrow.token);
-        client.transfer(&env.current_contract_address(), &escrow.from, &escrow.amount);
-
+        // Effect before interaction — see release_escrow.
         escrow.status = EscrowStatus::Cancelled;
         env.storage()
             .persistent()
             .set(&DataKey::Escrow(id), &escrow);
+
+        let client = token::Client::new(&env, &escrow.token);
+        client.transfer(&env.current_contract_address(), &escrow.from, &escrow.amount);
     }
 
     // -----------------------------------------------------------------------
@@ -270,6 +280,12 @@ impl MarketContract {
     /// Upgrade the contract WASM (admin only)
     pub fn upgrade(env: Env, admin: Address, new_wasm_hash: soroban_sdk::BytesN<32>) {
         admin.require_auth();
+        let config: Config = env
+            .storage()
+            .instance()
+            .get(&DataKey::Config)
+            .expect("Not initialized");
+        assert!(config.admin == admin, "Unauthorized");
         env.deployer().update_current_contract_wasm(new_wasm_hash);
     }
 }

@@ -56,9 +56,42 @@ fn test_register_success() {
 }
 
 #[test]
-fn test_register_duplicate_id_overwrites() {
-    // Soroban persistent storage allows overwrite; registering same id twice
-    // replaces the entry. We verify the second write wins.
+fn test_register_same_owner_updates_entry() {
+    // The existing owner may re-register their own id to update their
+    // profile; the second write from the SAME owner wins.
+    let (env, contract) = setup();
+    let owner = Address::generate(&env);
+    let client = RegistryContractClient::new(&env, &contract);
+
+    client.register(
+        &Symbol::new(&env, "w1"),
+        &owner,
+        &String::from_str(&env, "Alice"),
+        &Symbol::new(&env, "plumber"),
+    );
+    client.register(
+        &Symbol::new(&env, "w1"),
+        &owner,
+        &String::from_str(&env, "Alice V2"),
+        &Symbol::new(&env, "electrician"),
+    );
+
+    let worker = client.get_worker(&Symbol::new(&env, "w1")).unwrap();
+    assert_eq!(worker.owner, owner);
+    assert_eq!(worker.category, Symbol::new(&env, "electrician"));
+
+    // re-registering the same id does not duplicate the WorkerList entry
+    let list = client.list_workers();
+    assert_eq!(list.len(), 1);
+}
+
+#[test]
+#[should_panic(expected = "Not authorized")]
+fn test_register_duplicate_id_by_different_owner_rejected() {
+    // Regression test for a missing auth check: registering an id that is
+    // already owned by someone else used to silently overwrite it — any
+    // address could hijack an existing worker's profile without the
+    // original owner's consent. It must now be rejected.
     let (env, contract) = setup();
     let owner1 = Address::generate(&env);
     let owner2 = Address::generate(&env);
@@ -76,9 +109,6 @@ fn test_register_duplicate_id_overwrites() {
         &String::from_str(&env, "Bob"),
         &Symbol::new(&env, "electrician"),
     );
-
-    let worker = client.get_worker(&Symbol::new(&env, "w1")).unwrap();
-    assert_eq!(worker.owner, owner2);
 }
 
 #[test]
@@ -216,4 +246,45 @@ fn test_list_workers_after_toggle_still_listed() {
 
     let list = client.list_workers();
     assert_eq!(list.len(), 1);
+}
+
+// ---------------------------------------------------------------------------
+// initialize / upgrade: access control
+// ---------------------------------------------------------------------------
+
+#[test]
+#[should_panic(expected = "Already initialized")]
+fn test_initialize_twice_panics() {
+    let (env, contract) = setup();
+    let admin = Address::generate(&env);
+    let client = RegistryContractClient::new(&env, &contract);
+    client.initialize(&admin);
+    client.initialize(&admin);
+}
+
+#[test]
+#[should_panic(expected = "Not initialized")]
+fn test_upgrade_before_initialize_rejected() {
+    let (env, contract) = setup();
+    let admin = Address::generate(&env);
+    let client = RegistryContractClient::new(&env, &contract);
+    let fake_hash = soroban_sdk::BytesN::from_array(&env, &[0u8; 32]);
+    client.upgrade(&admin, &fake_hash);
+}
+
+#[test]
+#[should_panic(expected = "Unauthorized")]
+fn test_upgrade_non_admin_rejected() {
+    // Regression test for a missing auth check: `upgrade` used to have no
+    // stored admin at all — it only required that *some* address sign the
+    // call, so any caller could authorize as themselves and replace the
+    // contract's WASM.
+    let (env, contract) = setup();
+    let admin = Address::generate(&env);
+    let attacker = Address::generate(&env);
+    let client = RegistryContractClient::new(&env, &contract);
+    client.initialize(&admin);
+
+    let fake_hash = soroban_sdk::BytesN::from_array(&env, &[0u8; 32]);
+    client.upgrade(&attacker, &fake_hash);
 }
