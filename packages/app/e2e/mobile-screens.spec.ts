@@ -66,11 +66,8 @@ test.describe('Mobile Screen Navigation (#1037)', () => {
     if (await hamburger.count() > 0) {
       await expect(hamburger.first()).toBeVisible({ timeout: 5_000 })
       await hamburger.first().click()
-      // After clicking, some navigation items should appear
-      const navItems = page.locator('nav a, [role="navigation"] a, [role="menu"] a')
-      await page.waitForTimeout(300)
-      // Just verify no crash
-      await expect(page.locator('body')).not.toContainText('Internal Server Error')
+      // After clicking, some navigation items should appear — verify no crash
+      await expect(page.locator('body')).not.toContainText('Internal Server Error', { timeout: 3000 })
     } else {
       // Desktop nav may be visible; just ensure page renders
       await expect(page.locator('body')).toBeVisible()
@@ -188,10 +185,11 @@ test.describe('Mobile Screen Search & Tabs (#1037)', () => {
 
     if (await searchInput.count() > 0) {
       await searchInput.fill('electrician')
-      await page.waitForTimeout(500)
+      // Wait for debounce to settle after typing
+      await expect(page.locator('body')).not.toContainText('Internal Server Error', { timeout: 3000 })
       await searchInput.fill('')
-      await page.waitForTimeout(500)
-      await expect(page.locator('body')).not.toContainText('Internal Server Error')
+      // Wait for debounce to settle after clearing
+      await expect(page.locator('body')).not.toContainText('Internal Server Error', { timeout: 3000 })
     }
   })
 })
