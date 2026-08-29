@@ -4,11 +4,20 @@ import { handleError } from '../utils/handleError.js'
 import { CategoryResource, CategoryCollection } from '../resources/index.js'
 import { ErrorMessages, HttpStatus } from '../constants/index.js'
 import { sendSuccess, sendError } from '../utils/response.js'
+import { createPaginationHelper } from '../utils/pagination.js'
 
-export async function listCategories(_req: Request, res: Response) {
+export async function listCategories(req: Request, res: Response) {
   try {
-    const categories = await categoryService.listCategories()
-    return sendSuccess(res, CategoryCollection(categories as any))
+    const { page, limit, skip, take, buildMeta } = createPaginationHelper(req.query, {
+      maxLimit: 100,
+      defaultLimit: 20,
+    })
+
+    const [categories, total] = await categoryService.listCategoriesWithPagination(skip, take)
+    return sendSuccess(res, {
+      ...CategoryCollection(categories as any),
+      meta: buildMeta(total),
+    })
   } catch (err) {
     return handleError(res, err)
   }

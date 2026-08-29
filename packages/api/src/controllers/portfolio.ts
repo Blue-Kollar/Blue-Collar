@@ -1,12 +1,29 @@
 import type { Request, Response } from 'express'
 import { db } from '../db.js'
+import { createPaginationHelper } from '../utils/pagination.js'
 
 export async function listPortfolio(req: Request, res: Response) {
-  const items = await db.portfolioItem.findMany({
-    where: { workerId: req.params.workerId },
-    orderBy: { order: 'asc' },
+  const { page, limit, skip, take, buildMeta } = createPaginationHelper(req.query, {
+    maxLimit: 100,
+    defaultLimit: 20,
   })
-  return res.json({ data: items, status: 'success', code: 200 })
+
+  const [items, total] = await Promise.all([
+    db.portfolioItem.findMany({
+      where: { workerId: req.params.workerId },
+      orderBy: { order: 'asc' },
+      skip,
+      take,
+    }),
+    db.portfolioItem.count({ where: { workerId: req.params.workerId } }),
+  ])
+
+  return res.json({
+    data: items,
+    meta: buildMeta(total),
+    status: 'success',
+    code: 200,
+  })
 }
 
 export async function addPortfolioItem(req: Request, res: Response) {
