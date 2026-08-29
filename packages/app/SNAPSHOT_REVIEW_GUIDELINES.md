@@ -165,3 +165,63 @@ No stored `.snap` files were found on disk. The two files above used
 `toMatchSnapshot()` but the snapshot files had not yet been committed (they
 are generated on first run). Replacing them now prevents those files from
 ever being created.
+
+---
+
+## #1267 — Shared UI snapshot suite
+
+> Issue: #1267 — Add snapshot tests for critical shared UI components
+
+A focused snapshot suite was added for the **high-reuse, design-system
+primitives** whose DOM is intentionally frozen. These are the approved snapshot
+candidates per the "When snapshots ARE appropriate" guidance above.
+
+**Test file:** `packages/app/src/__tests__/ui-snapshots.test.tsx`
+**Snapshot file (committed):** `packages/app/src/__tests__/__snapshots__/ui-snapshots.test.tsx.snap`
+
+### Components & states covered
+
+| Component | States / variants snapshotted |
+|---|---|
+| `Button` (`components/ui/button.tsx`) | all 6 variants × all 4 sizes + disabled |
+| `Badge` (`components/ui/badge.tsx`) | all 4 variants |
+| `Card` (`components/ui/card.tsx`) | composed Card + Header/Title/Content/Footer |
+| `Input` (`components/ui/input.tsx`) | default + disabled |
+| `IconButton` (`components/IconButton.tsx`) | default + disabled (with `aria-label`) |
+| `StarRating` (`components/StarRating.tsx`) | 3/5 and 5/5 |
+| `CategoryBadge` (`components/CategoryBadge.tsx`) | md label, md no-label, sm (electrician) |
+| `Dialog` / Modal (`components/ui/dialog.tsx`) | closed trigger + open content |
+
+### Keeping snapshots deterministic
+
+- `lucide-react` icons are mocked to stable placeholder spans so SVG internals
+  never pollute the snapshot.
+- `@/lib/utils` `cn` is mocked to a plain class join so Tailwind-merge output is
+  stable.
+- Radix `Dialog` ids use React's deterministic `useId`, so they are stable
+  across runs.
+
+### How contributors run / inspect / update
+
+```bash
+# Run the snapshot tests
+pnpm --filter @bluecollar/app test src/__tests__/ui-snapshots.test.tsx
+
+# Full app test suite (includes snapshots)
+pnpm --filter @bluecollar/app test
+
+# Inspect a diff: snapshots are committed, so `git diff` shows the change.
+# Review the diff carefully (see "Snapshot review checklist" above) — do NOT
+# blindly accept it.
+
+# Intentionally update when the component intentionally changed:
+pnpm --filter @bluecollar/app test -- --update-snapshots
+# (or the shorthand) pnpm --filter @bluecollar/app test -- -u
+```
+
+Always commit snapshot updates in a **separate commit** from the component
+change, with a message explaining the intentional change (see
+"Updating a snapshot deliberately" above). Do not use snapshots as a replacement
+for meaningful behavioural assertions — behavioural tests (roles, disabled,
+error text, aria) remain the primary coverage for stateful components.
+
