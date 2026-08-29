@@ -68,7 +68,7 @@ export const login = catchAsync(async (req: Request<{}, {}, LoginBody>, res: Res
     ipAddress,
   )
   return res.status(202).json({
-    data: UserResource(data as any),
+    data: UserResource(data),
     status: 'success',
     message: 'Login successful',
     code: 202,
@@ -87,7 +87,7 @@ export const login = catchAsync(async (req: Request<{}, {}, LoginBody>, res: Res
 export const register = catchAsync(async (req: Request<{}, {}, RegisterBody>, res: Response) => {
   const data = await authService.registerUser(req.body)
   return res.status(201).json({
-    data: UserResource(data as any),
+    data: UserResource(data),
     status: 'success',
     message: 'Registration successful. Please check your email to verify your account.',
     code: 201,
@@ -120,7 +120,7 @@ export const verifyAccount = catchAsync(async (req: Request, res: Response) => {
  * Handle the Google OAuth callback. Issues a JWT and redirects to the frontend.
  */
 export const googleAuthCallback = catchAsync(async (req: Request, res: Response) => {
-  const user = req.user as any
+  const user = req.user
   if (!user) return res.redirect(`${env.APP_URL}/login?error=oauth-failed`)
   const token = jwt.sign({ id: user.id, role: user.role }, env.JWT_SECRET, {
     expiresIn: '7d',

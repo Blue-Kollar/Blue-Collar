@@ -52,13 +52,13 @@ function sanitizeObject(obj: { [key: string]: Sanitizable }, depth = 0) {
 export function sanitize(req: Request, _res: Response, next: NextFunction) {
   if (req.body && typeof req.body === 'object') req.body = sanitizeObject(req.body)
   if (req.query && typeof req.query === 'object')
-    req.query = sanitizeObject(req.query as { [key: string]: Sanitizable }) as any
+    req.query = sanitizeObject(req.query as { [key: string]: Sanitizable }) as unknown as Request['query']
   next()
 }
 
 /** Sanitize req.params (route parameters). */
 export function sanitizeParams(req: Request, _res: Response, next: NextFunction) {
   if (req.params && typeof req.params === 'object')
-    req.params = sanitizeObject(req.params as { [key: string]: Sanitizable }) as any
+    req.params = sanitizeObject(req.params as { [key: string]: Sanitizable }) as unknown as Request['params']
   next()
 }

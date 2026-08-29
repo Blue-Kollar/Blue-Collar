@@ -2,7 +2,7 @@ import type { Request, Response } from 'express'
 import { db } from '../db.js'
 import { sendModerationEmail } from '../mailer/index.js'
 import * as reviewService from '../services/review.service.js'
-import { AppError } from '../services/AppError.js'
+import { AppError } from '../utils/AppError.js'
 import { catchAsync } from '../utils/catchAsync.js'
 
 export const listReviews = catchAsync(async (req: Request, res: Response) => {

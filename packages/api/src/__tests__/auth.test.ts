@@ -57,7 +57,7 @@ import {
   forgotPassword,
   resetPassword,
 } from "../controllers/auth.js";
-import { AppError } from "../services/AppError.js";
+import { AppError } from "../utils/AppError.js";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 

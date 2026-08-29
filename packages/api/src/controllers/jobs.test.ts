@@ -10,7 +10,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { Request, Response } from 'express'
 import { createJobsController, type JobsService } from './jobs.js'
-import { AppError } from '../services/AppError.js'
+import { AppError } from '../utils/AppError.js'
 
 function makeRes() {
   const res: Partial<Response> = {}

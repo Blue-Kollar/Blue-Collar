@@ -194,7 +194,7 @@ export async function listWorkersCursor(opts: {
   const data = rows.slice(0, limit)
 
   return {
-    data: WorkerCollection(data as any),
+    data: WorkerCollection(data),
     nextCursor: rows.length > limit ? data[data.length - 1]?.id ?? null : null,
   }
 }
@@ -358,12 +358,13 @@ async function listWorkersFullText(opts: FtsOpts) {
   const total = Number(countResult[0]?.count ?? 0)
 
   const data = rows.map((row: Record<string, unknown>) => ({
+    // Raw SQL row (row_to_json sub-selects) — genuinely dynamic shape, not modeled by Prisma.
     ...formatWorker({
       ...row,
       category: row['category'],
       curator:  row['curator'],
       location: row['location'],
-    } as any),
+    } as unknown as Parameters<typeof formatWorker>[0]),
     highlight: {
       name: (row['nameHighlight'] as string) ?? null,
       bio:  (row['bioHighlight']  as string) ?? null,

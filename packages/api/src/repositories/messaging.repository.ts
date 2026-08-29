@@ -11,7 +11,7 @@ export interface IMessagingRepository extends IRepository<Conversation, Prisma.C
   findMessage(id: string): Promise<Message | null>
   updateMessage(id: string, data: Prisma.MessageUpdateInput): Promise<Message>
   updateParticipantReadAt(conversationId: string, userId: string): Promise<ConversationParticipant>
-  findConversationsForUnreadCount(userId: string): Promise<Conversation[]>
+  findConversationsForUnreadCount(userId: string): Promise<(Conversation & { participants: ConversationParticipant[]; messages: Message[] })[]>
   searchMessages(conversationId: string, searchQuery: string): Promise<Message[]>
 }
 
@@ -93,7 +93,7 @@ export class MessagingRepository implements IMessagingRepository {
     })
   }
 
-  async findConversationsForUnreadCount(userId: string): Promise<Conversation[]> {
+  async findConversationsForUnreadCount(userId: string) {
     return db.conversation.findMany({
       where: { participants: { some: { userId } } },
       include: {

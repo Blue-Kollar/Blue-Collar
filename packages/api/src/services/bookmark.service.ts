@@ -1,5 +1,5 @@
 import { bookmarkRepository as defaultBookmarkRepository } from '../repositories/bookmark.repository.js'
-import { AppError } from './AppError.js'
+import { AppError } from '../utils/AppError.js'
 import { updateBookmarkCount } from './analytics.service.js'
 import type { BookmarkServiceDeps } from '../container/types.js'
 
@@ -41,7 +41,7 @@ export function createBookmarkService(deps: BookmarkServiceDeps) {
       })
 
       return {
-        data: bookmarks.map((b: any) => b.worker),
+        data: bookmarks.map((b) => b.worker),
         meta: { total, page, limit, pages: Math.ceil(total / limit) },
       }
     },

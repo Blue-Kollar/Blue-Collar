@@ -1,5 +1,6 @@
+import type { Category } from '@prisma/client'
 import { categoryRepository as defaultCategoryRepository } from '../repositories/category.repository.js'
-import { AppError } from './AppError.js'
+import { AppError } from '../utils/AppError.js'
 import type { CategoryServiceDeps } from '../container/types.js'
 
 // ── Service instance type ─────────────────────────────────────────────────────
@@ -9,11 +10,11 @@ import type { CategoryServiceDeps } from '../container/types.js'
  * All methods are bound to the injected dependencies.
  */
 export interface CategoryServiceInstance {
-  listCategories(): Promise<unknown[]>
-  getCategory(id: string): Promise<unknown>
-  createCategory(data: { name: string; icon?: string; description?: string }): Promise<unknown>
-  updateCategory(id: string, data: { name?: string; icon?: string; description?: string }): Promise<unknown>
-  deleteCategory(id: string): Promise<unknown>
+  listCategories(): Promise<Category[]>
+  getCategory(id: string): Promise<Category>
+  createCategory(data: { name: string; icon?: string; description?: string }): Promise<Category>
+  updateCategory(id: string, data: { name?: string; icon?: string; description?: string }): Promise<Category>
+  deleteCategory(id: string): Promise<Category>
 }
 
 // ── Factory ───────────────────────────────────────────────────────────────────
@@ -59,7 +60,7 @@ export function createCategoryService(deps: CategoryServiceDeps): CategoryServic
     async createCategory(data: { name: string; icon?: string; description?: string }) {
       const existing = await repo.findByName(data.name)
       if (existing) throw new AppError('Category already exists', 409)
-      return repo.create(data as any)
+      return repo.create(data)
     },
 
     /**
@@ -69,7 +70,7 @@ export function createCategoryService(deps: CategoryServiceDeps): CategoryServic
     async updateCategory(id: string, data: { name?: string; icon?: string; description?: string }) {
       const category = await repo.findById(id)
       if (!category) throw new AppError('Category not found', 404)
-      return repo.update(id, data as any)
+      return repo.update(id, data)
     },
 
     /**

@@ -101,15 +101,15 @@ export function createBookingService(deps: BookingServiceDeps) {
         note,
         serviceDescription,
         status: 'pending',
-      } as any)
+      })
 
       logger.info({ bookingId: booking.id, workerId, requesterId }, 'Booking request created')
 
       await enqueueNotification({
-        userId: (booking as any).worker.userId,
+        userId: booking.worker.userId,
         type: 'booking_request',
         title: 'New booking request',
-        message: `${(booking as any).requester.firstName ?? 'A user'} has requested a booking on ${startTime.toUTCString()}.`,
+        message: `${booking.requester.firstName ?? 'A user'} has requested a booking on ${startTime.toUTCString()}.`,
         channels: ['email', 'push', 'inapp'],
         href: `/bookings/${booking.id}`,
       })
@@ -123,16 +123,16 @@ export function createBookingService(deps: BookingServiceDeps) {
     async confirmBooking(bookingId: string, workerId: string) {
       const booking = await repo.findBookingWithWorker(bookingId)
       if (!booking) throw new AppError('Booking not found', 404)
-      if ((booking as any).workerId !== workerId) throw new AppError('Unauthorized', 403)
-      if ((booking as any).status !== 'pending') throw new AppError(`Cannot confirm a booking with status: ${(booking as any).status}`, 400)
+      if (booking.workerId !== workerId) throw new AppError('Unauthorized', 403)
+      if (booking.status !== 'pending') throw new AppError(`Cannot confirm a booking with status: ${booking.status}`, 400)
 
-      const updated = await repo.updateBooking(bookingId, { status: 'confirmed' } as any)
+      const updated = await repo.updateBooking(bookingId, { status: 'confirmed' })
 
       await enqueueNotification({
-        userId: (booking as any).requesterId,
+        userId: booking.requesterId,
         type: 'booking_confirmed',
         title: 'Booking confirmed!',
-        message: `Your booking on ${(booking as any).startTime.toUTCString()} has been confirmed.`,
+        message: `Your booking on ${booking.startTime.toUTCString()} has been confirmed.`,
         channels: ['email', 'push', 'inapp'],
         href: `/bookings/${bookingId}`,
       })
@@ -147,22 +147,22 @@ export function createBookingService(deps: BookingServiceDeps) {
       const booking = await repo.findBookingWithCancelInfo(bookingId)
       if (!booking) throw new AppError('Booking not found', 404)
 
-      const isRequester = (booking as any).requesterId === userId
-      const isWorker = (booking as any).worker.userId === userId
+      const isRequester = booking.requesterId === userId
+      const isWorker = booking.worker.userId === userId
       if (!isRequester && !isWorker) throw new AppError('Unauthorized', 403)
 
-      if (['completed', 'cancelled'].includes((booking as any).status)) {
-        throw new AppError(`Cannot cancel a booking with status: ${(booking as any).status}`, 400)
+      if (['completed', 'cancelled'].includes(booking.status)) {
+        throw new AppError(`Cannot cancel a booking with status: ${booking.status}`, 400)
       }
 
-      const updated = await repo.updateBooking(bookingId, { status: 'cancelled', cancellationReason: reason } as any)
+      const updated = await repo.updateBooking(bookingId, { status: 'cancelled', cancellationReason: reason })
 
-      const notifyUserId = isWorker ? (booking as any).requesterId : (booking as any).worker.userId
+      const notifyUserId = isWorker ? booking.requesterId : booking.worker.userId
       await enqueueNotification({
         userId: notifyUserId,
         type: 'booking_cancelled',
         title: 'Booking cancelled',
-        message: `A booking on ${(booking as any).startTime.toUTCString()} has been cancelled.${reason ? ` Reason: ${reason}` : ''}`,
+        message: `A booking on ${booking.startTime.toUTCString()} has been cancelled.${reason ? ` Reason: ${reason}` : ''}`,
         channels: ['email', 'inapp'],
       })
 

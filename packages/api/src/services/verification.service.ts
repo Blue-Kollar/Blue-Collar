@@ -1,5 +1,6 @@
+import type { Prisma } from '@prisma/client'
 import { verificationRepository as defaultVerificationRepository } from '../repositories/verification.repository.js'
-import { AppError } from './AppError.js'
+import { AppError } from '../utils/AppError.js'
 import { logger } from '../config/logger.js'
 import { sendVerificationStatusEmail } from '../mailer/index.js'
 import type { VerificationServiceDeps } from '../container/types.js'
@@ -14,17 +15,17 @@ export function createVerificationService(deps: VerificationServiceDeps) {
     async requestVerification(workerId: string, requestedById: string, documentUrl: string, notes?: string) {
       const worker = await repo.findWorkerById(workerId)
       if (!worker) throw new AppError('Worker not found', 404)
-      if ((worker as any).isVerified) throw new AppError('Worker is already verified', 409)
+      if (worker.isVerified) throw new AppError('Worker is already verified', 409)
 
       const existing = await repo.findPendingByWorker(workerId)
       if (existing) throw new AppError('A pending verification request already exists', 409)
 
-      return repo.createRequest({ workerId, requestedById, documentUrl, notes } as any)
+      return repo.createRequest({ workerId, requestedById, documentUrl, notes })
     },
 
     /** List verification requests (admin) */
     async listRequests(status?: string, page = 1, limit = 20) {
-      const where = status ? { status: status as any } : {}
+      const where = status ? { status: status as Prisma.VerificationRequestWhereInput['status'] } : {}
       const { data, total } = await repo.findManyRequests(where, {
         skip: (page - 1) * limit,
         take: limit,
@@ -38,16 +39,16 @@ export function createVerificationService(deps: VerificationServiceDeps) {
       if (!request) throw new AppError('Verification request not found', 404)
       if (request.status !== 'pending') throw new AppError('Request already reviewed', 409)
 
-      const updated = await repo.updateRequest(id, { status, reviewedById: adminId, reviewNote } as any)
+      const updated = await repo.updateRequest(id, { status, reviewedById: adminId, reviewNote })
 
       if (status === 'approved') {
         await repo.updateWorkerVerified(request.workerId, true)
       }
 
       sendVerificationStatusEmail(
-        (request as any).requestedBy.email,
-        (request as any).requestedBy.firstName,
-        (request as any).worker.name,
+        request.requestedBy.email,
+        request.requestedBy.firstName,
+        request.worker.name,
         status,
         reviewNote,
       ).catch((err) => logger.error({ err }, 'Failed to send verification status email'))

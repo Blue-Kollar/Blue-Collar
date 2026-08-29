@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { AppError } from './AppError.js'
+import { AppError } from '../utils/AppError.js'
 import * as categoryService from './category.service.js'
 
 vi.mock('../repositories/category.repository.js', () => ({

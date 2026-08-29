@@ -13,6 +13,14 @@ export interface RolloutConfig {
   featureFlags?: Record<string, boolean>
 }
 
+declare global {
+  namespace Express {
+    interface Request {
+      rolloutConfig?: RolloutConfig
+    }
+  }
+}
+
 /**
  * Rollout configuration for managing gradual deployments
  */
@@ -98,7 +106,7 @@ export function getCanaryStats(version: string): {
  */
 export function versionRolloutMiddleware(req: Request, res: Response, next: NextFunction) {
   const version = req.apiVersion || 'v1'
-  const userId = (req as any).user?.id
+  const userId = req.user?.id
 
   if (!isVersionEnabled(version, userId)) {
     return res.status(503).json({
@@ -112,7 +120,7 @@ export function versionRolloutMiddleware(req: Request, res: Response, next: Next
   }
 
   // Store rollout info in request
-  ;(req as any).rolloutConfig = ROLLOUT_CONFIG[version]
+  req.rolloutConfig = ROLLOUT_CONFIG[version]
 
   next()
 }
@@ -170,7 +178,7 @@ export function updateRolloutConfig(
 /**
  * Get current rollout status for all versions
  */
-export function getRolloutStatus(): Record<string, any> {
+export function getRolloutStatus(): Record<string, unknown> {
   return Object.entries(ROLLOUT_CONFIG).reduce(
     (acc, [version, config]) => {
       acc[version] = {
@@ -182,7 +190,7 @@ export function getRolloutStatus(): Record<string, any> {
       }
       return acc
     },
-    {} as Record<string, any>
+    {} as Record<string, unknown>
   )
 }
 

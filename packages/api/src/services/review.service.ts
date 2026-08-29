@@ -1,5 +1,5 @@
 import { reviewRepository as defaultReviewRepository } from '../repositories/review.repository.js'
-import { AppError } from './AppError.js'
+import { AppError } from '../utils/AppError.js'
 import { createServiceLogger } from '../utils/logger.js'
 import type { ReviewServiceDeps } from '../container/types.js'
 
@@ -61,7 +61,7 @@ export function createReviewService(deps: ReviewServiceDeps) {
         transactionHash,
         isVerified,
         status: 'pending',
-      } as any)
+      })
     },
 
     /**
@@ -96,7 +96,7 @@ export function createReviewService(deps: ReviewServiceDeps) {
         averageRating: agg._avg.rating ? Math.round(agg._avg.rating * 10) / 10 : null,
         reviewCount: totalReviews,
         distribution,
-        verified: reviews.filter((r: any) => r.isVerified).length,
+        verified: reviews.filter((r) => r.isVerified).length,
       }
     },
 
@@ -106,7 +106,7 @@ export function createReviewService(deps: ReviewServiceDeps) {
     async flagReview(reviewId: string, reason: string) {
       const review = await repo.findById(reviewId)
       if (!review) throw new AppError('Review not found', 404)
-      return repo.updateReview(reviewId, { flagged: true, flagReason: reason } as any)
+      return repo.updateReview(reviewId, { flagged: true, flagReason: reason })
     },
 
     /**
@@ -115,7 +115,7 @@ export function createReviewService(deps: ReviewServiceDeps) {
     async approveReview(reviewId: string) {
       const review = await repo.findById(reviewId)
       if (!review) throw new AppError('Review not found', 404)
-      return repo.updateReview(reviewId, { status: 'approved' } as any)
+      return repo.updateReview(reviewId, { status: 'approved' })
     },
 
     /**
@@ -124,7 +124,7 @@ export function createReviewService(deps: ReviewServiceDeps) {
     async rejectReview(reviewId: string, reason?: string) {
       const review = await repo.findById(reviewId)
       if (!review) throw new AppError('Review not found', 404)
-      return repo.updateReview(reviewId, { status: 'rejected', flagReason: reason } as any)
+      return repo.updateReview(reviewId, { status: 'rejected', flagReason: reason })
     },
   }
 }

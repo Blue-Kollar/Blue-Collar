@@ -1,5 +1,6 @@
+import type { NotificationType } from '@prisma/client'
 import { notificationRepository as defaultNotificationRepository } from '../repositories/notification.repository.js'
-import { AppError } from './AppError.js'
+import { AppError } from '../utils/AppError.js'
 import { logger } from '../config/logger.js'
 import { mailer } from '../mailer/index.js'
 import * as pushService from './push.service.js'
@@ -88,9 +89,14 @@ export function createNotificationService(deps: NotificationServiceDeps) {
         return
       }
 
+      // NOTE: payload.type is used across the codebase with many values that are not in
+      // the NotificationType enum (tip/review/contact/system/message) — e.g. 'booking_request',
+      // 'booking_confirmed'. Those calls will fail Prisma's enum validation at runtime, but every
+      // dispatchNotification() call site swallows the error via .catch(() => {}), so it fails
+      // silently. This any-cleanup surfaced the mismatch but does not fix it (out of scope).
       const notification = await repo.createNotification({
         userId: payload.userId,
-        type: payload.type as any,
+        type: payload.type as unknown as NotificationType,
         title: payload.title,
         message: payload.message,
         href: payload.href,

@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import argon2 from 'argon2'
 import jwt from 'jsonwebtoken'
 import crypto from 'node:crypto'
-import { AppError } from './AppError.js'
+import { AppError } from '../utils/AppError.js'
 import * as authService from './auth.service.js'
 
 // Mock dependencies

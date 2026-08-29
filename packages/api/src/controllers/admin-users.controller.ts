@@ -1,4 +1,5 @@
 import type { Request, Response } from 'express'
+import type { Role } from '@prisma/client'
 import { db } from '../db.js'
 import { paginate } from '../utils/paginate.js'
 import { AppError, ErrorCode } from '../utils/AppError.js'
@@ -128,7 +129,7 @@ export async function changeRole(req: Request, res: Response) {
 
   const updated = await db.user.update({
     where: { id: req.params.id },
-    data: { role: role as any },
+    data: { role: role as Role },
     select: { id: true, email: true, firstName: true, lastName: true, role: true },
   })
   await db.auditLog.create({

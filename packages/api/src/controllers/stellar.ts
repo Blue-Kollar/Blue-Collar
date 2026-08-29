@@ -12,7 +12,7 @@ export async function registerOnChain(req: Request, res: Response) {
     }
     const worker = await stellarService.registerOnChain(req.params.id, contractId)
     return res.json({
-      data: WorkerResource(worker as any),
+      data: WorkerResource(worker),
       status: 'success',
       code: 200
     })
