@@ -5,6 +5,7 @@ import passport from './config/passport.js'
 import { redis, cacheMetrics } from './config/redis.js'
 import { db } from './db.js'
 import { requestLogger } from './middleware/requestLogger.js'
+import { requestId } from './middleware/requestId.js'
 import { registerEventHandlers } from './events/index.js'
 import authRoutes from './routes/auth.js'
 import categoryRoutes from './routes/categories.js'
@@ -58,6 +59,7 @@ app.use(cors())
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use(sanitize)
+app.use(requestId)          // generate/propagate X-Request-ID before logging
 app.use(metricsMiddleware)
 app.use(requestLogger)
 app.use(methodOverride('X-HTTP-Method'))

@@ -22,6 +22,7 @@ import messagesRoutes from './routes/messages.js'
 import { startAllJobs } from './jobs/index.js'
 import { metricsRecorder } from './monitoring/business-metrics.js'
 import { errorHandler } from './middleware/errorHandler.js'
+import { requestId } from './middleware/requestId.js'
 import { logger } from './config/logger.js'
 import { WebSocketServer } from './websocket/server.js'
 
@@ -54,6 +55,7 @@ app.use(helmet({
 app.use(cors(corsConfig))
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
+app.use(requestId)      // generate/propagate X-Request-ID before logging
 app.use(pinoHttp())
 app.use(methodOverride('X-HTTP-Method'))
 app.use(passport.initialize())
