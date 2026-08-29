@@ -21,7 +21,7 @@
 
 #![no_std]
 
-use bluecollar_types::{helpers, storage::extend_ttl, ContractError};
+use bluecollar_types::{helpers, split_fee, storage::extend_ttl, ContractError};
 use soroban_sdk::{
     contract, contractimpl, contracttype, symbol_short, token, Address, BytesN, Env, Symbol, Vec,
 };
@@ -212,19 +212,6 @@ impl PaymentContract {
             .ok_or(ContractError::NotInitialized)
     }
 
-    fn compute_fee(amount: i128, fee_bps: u32) -> (i128, i128) {
-        if fee_bps == 0 {
-            return (0, amount);
-        }
-        let fee = amount
-            .checked_mul(fee_bps as i128)
-            .expect("overflow")
-            .checked_div(10_000)
-            .expect("div zero");
-        let net = amount.checked_sub(fee).expect("underflow");
-        (fee, net)
-    }
-
     fn extend_payment_ttl(env: &Env, id: &Symbol) {
         extend_ttl(env, &DataKey::Payment(id.clone()));
     }
@@ -329,6 +316,7 @@ impl PaymentContract {
         Ok(())
     }
 
+    /// Returns `true` if the contract is currently paused.
     pub fn is_paused(env: Env) -> Result<bool, ContractError> {
         Ok(env
             .storage()
@@ -337,6 +325,10 @@ impl PaymentContract {
             .unwrap_or(false))
     }
 
+    /// Return the admin address.
+    ///
+    /// # Errors
+    /// - [`ContractError::NotInitialized`] if the contract has not been initialised.
     pub fn get_admin(env: Env) -> Result<Address, ContractError> {
         env.storage()
             .persistent()
@@ -344,6 +336,10 @@ impl PaymentContract {
             .ok_or(ContractError::NotInitialized)
     }
 
+    /// Return the current protocol configuration (fee_bps and fee_recipient).
+    ///
+    /// # Errors
+    /// - [`ContractError::NotInitialized`] if the contract has not been initialised.
     pub fn get_config_view(env: Env) -> Result<Config, ContractError> {
         Self::get_config(&env)
     }
@@ -378,7 +374,7 @@ impl PaymentContract {
         let config = Self::get_config(&env)?;
 
         // --- Effects (compute fee split) ---
-        let (fee, net) = Self::compute_fee(amount, config.fee_bps);
+        let (fee, net) = split_fee(amount, config.fee_bps);
 
         // --- Interactions ---
         let token = token::Client::new(&env, &token_addr);

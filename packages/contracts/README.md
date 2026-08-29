@@ -278,3 +278,56 @@ analysis, and migration pattern.
 | [CERTIFICATION_TRACKING.md](./CERTIFICATION_TRACKING.md) | Registry's certification sub-API in depth |
 | [ADR 0001: Monorepo Package Boundaries](../../docs/adr/0001-monorepo-package-boundaries.md) | Architectural decision on monorepo package boundaries |
 | [ADR 0002: Soroban Smart Contract Upgrade Strategy](../../docs/adr/0002-soroban-contract-upgrade-strategy.md) | Architectural decision on Soroban in-place WASM upgrades and governance |
+
+---
+
+## API Documentation (#1256)
+
+All public entrypoints across every contract are documented with `///` doc
+comments that describe the purpose, parameters, and panic/error conditions.
+
+Generate and open the docs locally:
+
+```bash
+cd packages/contracts
+cargo doc --workspace --no-deps --open
+```
+
+The docs include:
+
+- Every public `fn` on every `#[contractimpl]` block.
+- The shared [`bluecollar_types::helpers`] module, including the canonical
+  [`split_fee`](bluecollar_types::helpers::split_fee) fee-calculation helper.
+- All exported error codes in [`bluecollar_types::errors::ContractError`].
+
+---
+
+## Address Policy (#1255)
+
+No Stellar public key (`G…`) or other hardcoded network address appears in
+contract source files.  All admin, treasury, and configurable addresses are
+passed as parameters at `initialize`-time and stored in contract instance or
+persistent storage.
+
+The CI pipeline enforces this with the following check (exit 1 = match found
+= build fails):
+
+```bash
+! grep -rn --include="*.rs" 'G[A-Z2-7]\{55\}' contracts/*/src/
+```
+
+---
+
+## Shared Math Helpers (#1257)
+
+The fee-split calculation (`amount * fee_bps / 10_000`) was previously
+duplicated between the Market and Payment contracts.  It now lives in a single
+canonical location:
+
+```
+packages/contracts/contracts/types/src/helpers.rs — split_fee()
+```
+
+Both contracts import it via `bluecollar_types::helpers::split_fee`.  Any
+future contract that needs a protocol-fee deduction should use the same
+import.

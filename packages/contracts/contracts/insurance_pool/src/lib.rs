@@ -166,7 +166,18 @@ impl InsurancePoolContract {
         helpers::require_not_paused(paused)
     }
 
-    /// Grant a role to an address.
+    /// Grant a role to an address. Caller must hold [`ROLE_ADMIN`].
+    ///
+    /// Idempotent — granting a role that `account` already holds is a no-op.
+    ///
+    /// # Parameters
+    /// - `caller`  — must hold `ROLE_ADMIN` and have authorised this call.
+    /// - `role`    — symbolic role identifier.
+    /// - `account` — address to grant the role to.
+    ///
+    /// # Errors
+    /// - [`ContractError::MissingRole`] if `caller` does not hold `ROLE_ADMIN`.
+    /// - [`ContractError::ContractIsPaused`] if the contract is paused.
     pub fn grant_role(
         env: Env,
         caller: Address,
@@ -189,7 +200,17 @@ impl InsurancePoolContract {
         Ok(())
     }
 
-    /// Revoke a role from an address.
+    /// Revoke a role from an address. Caller must hold [`ROLE_ADMIN`].
+    ///
+    /// # Parameters
+    /// - `caller`  — must hold `ROLE_ADMIN` and have authorised this call.
+    /// - `role`    — symbolic role identifier.
+    /// - `account` — address to remove from the role.
+    ///
+    /// # Errors
+    /// - [`ContractError::MissingRole`] if `caller` does not hold `ROLE_ADMIN`.
+    /// - [`ContractError::ContractIsPaused`] if the contract is paused.
+    /// - [`ContractError::AccountDoesNotHoldRole`] if `account` is not in the role.
     pub fn revoke_role(
         env: Env,
         caller: Address,
@@ -221,7 +242,13 @@ impl InsurancePoolContract {
         Ok(())
     }
 
-    /// Pause the contract.
+    /// Pause the contract, blocking all state-mutating operations.
+    ///
+    /// # Parameters
+    /// - `caller` — must hold [`ROLE_PAUSER`] and have authorised this call.
+    ///
+    /// # Errors
+    /// - [`ContractError::MissingRole`] if `caller` does not hold `ROLE_PAUSER`.
     pub fn pause(env: Env, caller: Address) -> Result<(), ContractError> {
         let pauser_role = Symbol::new(&env, ROLE_PAUSER);
         Self::require_role(&env, &pauser_role, &caller)?;
@@ -230,7 +257,13 @@ impl InsurancePoolContract {
         Ok(())
     }
 
-    /// Unpause the contract.
+    /// Unpause the contract, re-enabling all state-mutating operations.
+    ///
+    /// # Parameters
+    /// - `caller` — must hold [`ROLE_ADMIN`] and have authorised this call.
+    ///
+    /// # Errors
+    /// - [`ContractError::MissingRole`] if `caller` does not hold `ROLE_ADMIN`.
     pub fn unpause(env: Env, caller: Address) -> Result<(), ContractError> {
         let admin_role = Symbol::new(&env, ROLE_ADMIN);
         Self::require_role(&env, &admin_role, &caller)?;
