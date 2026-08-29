@@ -1,6 +1,7 @@
 import crypto from 'node:crypto'
 import { db } from '../db.js'
 import { logger } from '../config/logger.js'
+import { getErrorMessage } from '../utils/getErrorMessage.js'
 
 const MAX_ATTEMPTS = 3
 const RETRY_DELAYS = [5_000, 30_000, 120_000] // 5s, 30s, 2min
@@ -36,10 +37,10 @@ async function deliver(logId: string, url: string, secret: string, event: string
     if (!res.ok && attempt < MAX_ATTEMPTS - 1) {
       setTimeout(() => deliver(logId, url, secret, event, payload, attempt + 1), RETRY_DELAYS[attempt])
     }
-  } catch (err: any) {
+  } catch (err) {
     await db.webhookLog.update({
       where: { id: logId },
-      data: { attempts: attempt + 1, error: err?.message ?? 'Unknown error' },
+      data: { attempts: attempt + 1, error: getErrorMessage(err) },
     })
     if (attempt < MAX_ATTEMPTS - 1) {
       setTimeout(() => deliver(logId, url, secret, event, payload, attempt + 1), RETRY_DELAYS[attempt])

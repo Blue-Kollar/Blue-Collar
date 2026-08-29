@@ -1,105 +1,98 @@
-import { db } from '../db.js'
-import { AppError } from '../services/AppError.js'
+import { messagingRepository as defaultMessagingRepository } from '../repositories/messaging.repository.js'
+import { AppError, ErrorCode } from '../utils/AppError.js'
+import type { MessagingServiceDeps } from '../container/types.js'
 
-export async function createConversation(participantIds: string[], subject?: string) {
-  const conversation = await db.conversation.create({
-    data: {
-      subject,
-      participants: {
-        create: participantIds.map(id => ({ userId: id })),
-      },
-    },
-    include: { participants: true },
-  })
-  return conversation
-}
+// ── Factory ───────────────────────────────────────────────────────────────────
 
-export async function getConversation(conversationId: string, userId: string) {
-  const conversation = await db.conversation.findFirst({
-    where: {
-      id: conversationId,
-      participants: { some: { userId } },
-    },
-    include: {
-      participants: { include: { user: { select: { id: true, firstName: true, lastName: true, avatar: true } } } },
-      messages: { take: 50, orderBy: { createdAt: 'asc' } },
-    },
-  })
-  if (!conversation) throw new AppError('Conversation not found', 404)
-  return conversation
-}
+export function createMessagingService(deps: MessagingServiceDeps) {
+  const { messagingRepository: repo } = deps
 
-export async function getUserConversations(userId: string, page: number = 1, limit: number = 20) {
-  const skip = (page - 1) * limit
-  const [conversations, total] = await Promise.all([
-    db.conversation.findMany({
-      where: { participants: { some: { userId } } },
-      include: {
-        participants: true,
-        messages: { orderBy: { createdAt: 'desc' }, take: 1 },
-      },
-      orderBy: { updatedAt: 'desc' },
-      skip,
-      take: limit,
-    }),
-    db.conversation.count({ where: { participants: { some: { userId } } } }),
-  ])
   return {
-    data: conversations,
-    meta: { total, page, limit, pages: Math.ceil(total / limit) },
+    async createConversation(participantIds: string[], subject?: string) {
+      return repo.createConversation({
+        subject,
+        participants: {
+          create: participantIds.map(id => ({ userId: id })),
+        },
+      } as any)
+    },
+
+    async getConversation(conversationId: string, userId: string) {
+      const conversation = await repo.findConversation(conversationId, userId)
+      if (!conversation) throw new AppError('Conversation not found', 404, true, ErrorCode.NOT_FOUND)
+      return conversation
+    },
+
+    async getUserConversations(userId: string, page = 1, limit = 20) {
+      const skip = (page - 1) * limit
+      const { data, total } = await repo.findUserConversations(userId, { skip, take: limit })
+      return {
+        data,
+        meta: { total, page, limit, pages: Math.ceil(total / limit) },
+      }
+    },
+
+    async searchMessages(conversationId: string, query: string, userId: string) {
+      const conversation = await repo.findConversation(conversationId, userId)
+      if (!conversation) throw new AppError('Conversation not found', 404, true, ErrorCode.NOT_FOUND)
+
+      return repo.searchMessages(conversationId, query)
+    },
+
+    async deleteMessage(messageId: string, userId: string) {
+      const message = await repo.findMessage(messageId)
+      if (!message) throw new AppError('Message not found', 404, true, ErrorCode.NOT_FOUND)
+      if ((message as any).senderId !== userId) throw new AppError('Unauthorized', 403, true, ErrorCode.FORBIDDEN)
+
+      return repo.updateMessage(messageId, { body: '[deleted]' } as any)
+    },
+
+    async markConversationAsRead(conversationId: string, userId: string) {
+      return repo.updateParticipantReadAt(conversationId, userId)
+    },
+
+    async getUnreadCount(userId: string) {
+      const conversations = await repo.findConversationsForUnreadCount(userId)
+
+      return conversations.reduce((count: number, conv: any) => {
+        const participant = conv.participants[0]
+        if (!participant?.lastReadAt) return count + conv.messages.length
+        return count + conv.messages.filter((m: any) => m.createdAt > participant.lastReadAt).length
+      }, 0)
+    },
   }
 }
 
-export async function searchMessages(conversationId: string, query: string, userId: string) {
-  const conversation = await db.conversation.findFirst({
-    where: {
-      id: conversationId,
-      participants: { some: { userId } },
-    },
-  })
-  if (!conversation) throw new AppError('Conversation not found', 404)
+// ── Default service instance (backward-compatible module-level API) ───────────
 
-  return db.message.findMany({
-    where: {
-      conversationId,
-      body: { search: query.split(' ').join(' | ') },
-    },
-    orderBy: { createdAt: 'desc' },
-    take: 50,
-  })
+const _defaultService = createMessagingService({
+  messagingRepository: defaultMessagingRepository,
+})
+
+export async function createConversation(participantIds: string[], subject?: string) {
+  return _defaultService.createConversation(participantIds, subject)
+}
+
+export async function getConversation(conversationId: string, userId: string) {
+  return _defaultService.getConversation(conversationId, userId)
+}
+
+export async function getUserConversations(userId: string, page = 1, limit = 20) {
+  return _defaultService.getUserConversations(userId, page, limit)
+}
+
+export async function searchMessages(conversationId: string, query: string, userId: string) {
+  return _defaultService.searchMessages(conversationId, query, userId)
 }
 
 export async function deleteMessage(messageId: string, userId: string) {
-  const message = await db.message.findUnique({ where: { id: messageId } })
-  if (!message) throw new AppError('Message not found', 404)
-  if (message.senderId !== userId) throw new AppError('Unauthorized', 403)
-
-  // Soft delete by setting body
-  return db.message.update({
-    where: { id: messageId },
-    data: { body: '[deleted]' },
-  })
+  return _defaultService.deleteMessage(messageId, userId)
 }
 
 export async function markConversationAsRead(conversationId: string, userId: string) {
-  return db.conversationParticipant.update({
-    where: { conversationId_userId: { conversationId, userId } },
-    data: { lastReadAt: new Date() },
-  })
+  return _defaultService.markConversationAsRead(conversationId, userId)
 }
 
 export async function getUnreadCount(userId: string) {
-  const conversations = await db.conversation.findMany({
-    where: { participants: { some: { userId } } },
-    include: {
-      participants: { where: { userId } },
-      messages: { where: { createdAt: { gt: { lastReadAt: {} } } } },
-    },
-  })
-
-  return conversations.reduce((count, conv) => {
-    const participant = conv.participants[0]
-    if (!participant?.lastReadAt) return count + conv.messages.length
-    return count + conv.messages.filter(m => m.createdAt > participant.lastReadAt!).length
-  }, 0)
+  return _defaultService.getUnreadCount(userId)
 }

@@ -8,7 +8,7 @@ type WorkerWithRelations = Worker & {
   curator?: User | null
 }
 
-export type SerializedWorker = Omit<Worker, 'searchVector'> & {
+export type SerializedWorker = Omit<Worker, 'searchVector' | 'phone' | 'email'> & {
   category?: SerializedCategory
   curator?: SerializedUser
   images?: { thumb: string | null; medium: string | null; full: string | null }
@@ -16,7 +16,8 @@ export type SerializedWorker = Omit<Worker, 'searchVector'> & {
 
 export class WorkerSerializer extends BaseSerializer<WorkerWithRelations, SerializedWorker> {
   serialize(worker: WorkerWithRelations): SerializedWorker {
-    const { searchVector, category, curator, ...rest } = worker as any
+    // PII SAFETY: phone and email are excluded from public API responses
+    const { searchVector, phone, email, category, curator, ...rest } = worker as any
     return {
       ...rest,
       images: {

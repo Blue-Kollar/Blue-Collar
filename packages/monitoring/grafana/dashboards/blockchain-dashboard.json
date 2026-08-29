@@ -1,0 +1,27 @@
+{
+  "title": "Blockchain Dashboard",
+  "uid": "blockchain-dashboard",
+  "version": 1,
+  "panels": [
+    {
+      "title": "Block Height",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "blockchain_block_height",
+          "legendFormat": "{{network}}"
+        }
+      ]
+    },
+    {
+      "title": "Contract Calls",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "rate(contract_calls_total[5m])",
+          "legendFormat": "{{contract}}.{{method}} ({{status}})"
+        }
+      ]
+    }
+  ]
+}

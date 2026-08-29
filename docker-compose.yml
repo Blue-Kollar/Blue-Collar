@@ -4,7 +4,7 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: bluecollar
-      POSTGRES_PASSWORD: bluecollar
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-bluecollar}
       POSTGRES_DB: bluecollar
     ports:
       - "5432:5432"
@@ -42,7 +42,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      DATABASE_URL: postgresql://bluecollar:bluecollar@db:5432/bluecollar
+      DATABASE_URL: postgresql://bluecollar:${POSTGRES_PASSWORD:-bluecollar}@db:5432/bluecollar
       REDIS_URL: redis://redis:6379
       NODE_ENV: production
     env_file:

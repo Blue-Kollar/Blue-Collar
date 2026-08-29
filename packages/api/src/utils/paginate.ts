@@ -5,6 +5,8 @@ export type PaginationMeta = {
   page: number
   limit: number
   totalPages: number
+  /** Alias of `totalPages` — several frontend pages read `meta.pages`. */
+  pages: number
   hasNextPage: boolean
   hasPrevPage: boolean
 }
@@ -62,6 +64,7 @@ export async function paginate<T>({
       page,
       limit,
       totalPages,
+      pages: totalPages,
       hasNextPage: page < totalPages,
       hasPrevPage: page > 1,
     },

@@ -8,6 +8,7 @@ import { getMyBookmarks } from "@/lib/api";
 import WorkerCard from "@/components/WorkerCard";
 import EmptyState from "@/components/EmptyState";
 import { BookmarksSkeleton } from "@/components/Skeleton";
+import ErrorState from "@/components/ErrorState";
 import type { Worker } from "@/types";
 
 export default function SavedWorkersPage() {
@@ -45,9 +46,7 @@ export default function SavedWorkersPage() {
         </div>
       </div>
 
-      {error && (
-        <div className="mb-6 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">{error}</div>
-      )}
+      {error && <ErrorState variant="inline" message={error} className="mb-6" />}
 
       {workers.length === 0 ? (
         <EmptyState variant="no-bookmarks" />

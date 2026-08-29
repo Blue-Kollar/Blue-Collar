@@ -8,6 +8,14 @@ members = [
     "contracts/insurance_pool",
     "contracts/fuzz",
     "contracts/integration",
+    # Issue #1017 — reputation contract (security-audited)
+    "contracts/reputation",
+    # Issue #1018 — job-registry contract (modular: storage/logic/lib)
+    "contracts/job_registry",
+    # Issue #1019 — payment contract (comprehensive test coverage)
+    "contracts/payment",
+    # Issue #1020 — escrow contract (modular: storage/logic/lib)
+    "contracts/escrow",
 ]
 resolver = "2"
 

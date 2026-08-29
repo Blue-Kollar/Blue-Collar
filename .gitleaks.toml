@@ -1,0 +1,38 @@
+title = "Blue-Collar Gitleaks config"
+
+# Gitleaks 8.18 accepts a single global `[allowlist]` table, so every exemption
+# is merged here. Each entry is a regex, not a glob.
+[allowlist]
+description = "Placeholder credentials in tests, example env files, and deploy templates"
+
+regexes = [
+  # Test JWT secrets
+  '(?i)test.secret',
+  '(?i)test.jwt.secret.key.for.testing',
+  # Test passwords
+  '(?i)test123!@#',
+  # E2E test credentials
+  '(?i)e2e\+[0-9]+@example\.com',
+]
+
+paths = [
+  # Password123! used exclusively in e2e and integration tests
+  "packages/api/src/__tests__/",
+  "packages/api/src/controllers/.*\\.test\\.ts",
+  "packages/api/src/services/.*\\.test\\.ts",
+  "packages/api/src/middleware/.*\\.test\\.ts",
+  "packages/api/src/utils/.*\\.test\\.ts",
+  "packages/api/src/config/.*\\.test\\.ts",
+  "packages/app/e2e/",
+  "deploy/load-tests/",
+  # Example env files with placeholder credentials
+  "\\.env\\.example",
+  "packages/api/\\.env\\.example",
+  "packages/api/\\.env\\.staging\\.example",
+  "deploy/monitoring/\\.env\\.example",
+  "packages/monitoring/\\.env\\.example",
+  # Kubernetes secrets template
+  "deploy/k8s/secrets\\.yaml",
+  # Docker compose dev default password
+  "docker-compose\\.yml",
+]

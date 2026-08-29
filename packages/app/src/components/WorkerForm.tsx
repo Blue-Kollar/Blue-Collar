@@ -3,34 +3,18 @@
 import { useState, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { Loader2, CheckCircle2 } from "lucide-react";
 import FormField from "@/components/FormField";
 import ImageUpload from "@/components/ImageUpload";
 import { cn } from "@/lib/utils";
 import { getCategories } from "@/lib/api";
 import type { Category } from "@/types";
+// ─── Schema (single source of truth in @bluecollar/types) ────────────────────
+import { createWorkerSchema as workerSchema } from "@bluecollar/types";
+import type { CreateWorkerInput as WorkerFormInput } from "@bluecollar/types";
 
-// ─── Schema ───────────────────────────────────────────────────────────────────
-
-export const workerSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  bio: z.string().max(500, "Bio must be under 500 characters").optional(),
-  categoryId: z.string().min(1, "Please select a category"),
-  phone: z
-    .string()
-    .regex(/^\+?[\d\s\-().]{7,20}$/, "Enter a valid phone number")
-    .optional()
-    .or(z.literal("")),
-  email: z.string().email("Invalid email").optional().or(z.literal("")),
-  walletAddress: z
-    .string()
-    .regex(/^G[A-Z2-7]{55}$/, "Must be a valid Stellar public key (starts with G)")
-    .optional()
-    .or(z.literal("")),
-});
-
-export type WorkerFormInput = z.infer<typeof workerSchema>;
+export { workerSchema };
+export type { WorkerFormInput };
 
 // ─── Profile completion ──────────────────────────────────────────────────────
 

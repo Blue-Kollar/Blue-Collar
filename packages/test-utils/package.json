@@ -1,0 +1,32 @@
+{
+  "name": "@bluecollar/test-utils",
+  "version": "1.0.0",
+  "description": "Shared test utilities, factories, and render helpers for BlueCollar packages",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./factories": "./src/factories/index.ts",
+    "./react": "./src/react/index.ts"
+  },
+  "scripts": {
+    "type-check": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "react": ">=18",
+    "react-dom": ">=18"
+  },
+  "peerDependenciesMeta": {
+    "react": { "optional": true },
+    "react-dom": { "optional": true }
+  },
+  "devDependencies": {
+    "@faker-js/faker": "^9.0.0",
+    "@testing-library/react": "^14.0.0",
+    "@bluecollar/types": "workspace:*",
+    "typescript": "^5.4.0",
+    "vitest": "^1.4.0"
+  },
+  "license": "MIT"
+}

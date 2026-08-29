@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { Loader2 } from "lucide-react";
 import { Input } from "@/components/Form/Input";
 import { Select } from "@/components/Form/Select";
@@ -11,27 +10,11 @@ import { FileUpload } from "@/components/Form/FileUpload";
 import { getCategories } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import type { Category } from "@/types";
+// ─── Schema (single source of truth in @bluecollar/types) ────────────────────
+import { createWorkerSchema as schema } from "@bluecollar/types";
+import type { CreateWorkerInput as Fields } from "@bluecollar/types";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/api";
-
-const schema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  bio: z.string().max(500, "Bio too long").optional(),
-  categoryId: z.string().min(1, "Please select a category"),
-  phone: z
-    .string()
-    .regex(/^\+?[\d\s\-().]{7,20}$/, "Invalid phone number")
-    .optional()
-    .or(z.literal("")),
-  email: z.string().email("Invalid email").optional().or(z.literal("")),
-  walletAddress: z
-    .string()
-    .regex(/^G[A-Z2-7]{55}$/, "Must be a valid Stellar public key")
-    .optional()
-    .or(z.literal("")),
-});
-
-type Fields = z.infer<typeof schema>;
 
 export interface ListingFormProps {
   /** If provided, the form is in edit mode and uses the X-HTTP-Method: PUT pattern */

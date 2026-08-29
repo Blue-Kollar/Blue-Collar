@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronRight, CheckCircle, User, Wallet, Users } from "lucide-react";
+import { ChevronRight, User, Wallet, Users } from "lucide-react";
 
 interface OnboardingModalProps {
   isOpen: boolean;

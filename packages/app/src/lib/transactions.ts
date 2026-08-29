@@ -187,7 +187,7 @@ export function buildTransactionSummary(
   xdr: string,
   networkPassphrase: string
 ): TransactionSummary {
-  const tx = StellarSdk.TransactionBuilder.fromXDR(xdr, networkPassphrase);
+  const tx = StellarSdk.Transaction.fromXDR(xdr, networkPassphrase);
   const ops = tx.operations;
 
   const networkName =
@@ -265,11 +265,11 @@ export function assertXdrNotTampered(
   let signed: StellarSdk.Transaction | StellarSdk.FeeBumpTransaction;
 
   try {
-    original = StellarSdk.TransactionBuilder.fromXDR(
+    original = StellarSdk.Transaction.fromXDR(
       originalXdr,
       networkPassphrase
     );
-    signed = StellarSdk.TransactionBuilder.fromXDR(
+    signed = StellarSdk.Transaction.fromXDR(
       signedXdr,
       networkPassphrase
     );
@@ -298,7 +298,7 @@ function stripSignatures(
   tx: StellarSdk.Transaction | StellarSdk.FeeBumpTransaction
 ): string {
   // Clone via XDR round-trip, clear signatures, re-serialise
-  const cloned = StellarSdk.TransactionBuilder.fromXDR(
+  const cloned = StellarSdk.Transaction.fromXDR(
     tx.toXDR(),
     tx instanceof StellarSdk.Transaction
       ? tx.networkPassphrase

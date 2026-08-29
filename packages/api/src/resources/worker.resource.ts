@@ -7,14 +7,15 @@ type WorkerWithRelations = Worker & {
   curator?: User | null
 }
 
+// PII SAFETY: phone and email are excluded from public API responses.
+// Contact details are only shared through the contact request flow
+// and never via public listing responses.
 export function WorkerResource(worker: WorkerWithRelations) {
   return {
     id: worker.id,
     name: worker.name,
     bio: worker.bio,
     avatar: worker.avatar,
-    phone: worker.phone,
-    email: worker.email,
     walletAddress: worker.walletAddress,
     isActive: worker.isActive,
     isVerified: worker.isVerified,

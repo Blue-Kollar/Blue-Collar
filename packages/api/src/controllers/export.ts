@@ -8,10 +8,10 @@ import type { Request, Response } from 'express'
 import { db } from '../db.js'
 import { log } from '../services/audit.service.js'
 
-function toCSV(rows: Record<string, any>[]): string {
+function toCSV(rows: Record<string, unknown>[]): string {
   if (rows.length === 0) return ''
   const headers = Object.keys(rows[0])
-  const escape = (v: any) => {
+  const escape = (v: unknown) => {
     const s = v == null ? '' : String(v)
     return s.includes(',') || s.includes('"') || s.includes('\n')
       ? `"${s.replace(/"/g, '""')}"`
@@ -65,7 +65,7 @@ export async function exportWorkers(req: Request, res: Response) {
 
   res.setHeader('Content-Type', 'application/json')
   res.setHeader('Content-Disposition', 'attachment; filename="workers.json"')
-  return res.json({ data: rows, count: rows.length })
+  return res.json({ status: 'success', code: 200, data: rows, meta: { count: rows.length } })
 }
 
 export async function exportUsers(req: Request, res: Response) {
@@ -110,5 +110,5 @@ export async function exportUsers(req: Request, res: Response) {
 
   res.setHeader('Content-Type', 'application/json')
   res.setHeader('Content-Disposition', 'attachment; filename="users.json"')
-  return res.json({ data: rows, count: rows.length })
+  return res.json({ status: 'success', code: 200, data: rows, meta: { count: rows.length } })
 }

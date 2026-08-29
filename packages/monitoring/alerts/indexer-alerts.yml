@@ -1,0 +1,49 @@
+# Indexer Service Alerts
+groups:
+  - name: indexer-alerts
+    interval: 30s
+    rules:
+      # Indexer Lag Alert
+      - alert: IndexerLag
+        expr: |
+          (time() - indexer_last_processed_block_timestamp) > 300
+        for: 5m
+        labels:
+          severity: critical
+          team: indexer
+          service: indexer
+        annotations:
+          summary: "Indexer lag exceeds 5 minutes"
+          description: "Indexer is {{ $value }}s behind"
+          runbook: "https://github.com/Blue-Kollar/Blue-Collar/docs/INCIDENT_RUNBOOK.md#indexer-lag"
+
+      # Indexer Not Processing Alert
+      - alert: IndexerNotProcessing
+        expr: |
+          rate(indexer_blocks_processed[5m]) == 0
+        for: 10m
+        labels:
+          severity: critical
+          team: indexer
+          service: indexer
+        annotations:
+          summary: "Indexer is not processing blocks"
+          description: "No blocks processed in the last 10 minutes"
+          runbook: "https://github.com/Blue-Kollar/Blue-Collar/docs/INCIDENT_RUNBOOK.md#indexer-not-processing"
+
+      # Indexer Error Rate Alert
+      - alert: IndexerHighErrorRate
+        expr: |
+          (
+            sum(rate(indexer_errors_total[5m]))
+            /
+            sum(rate(indexer_operations_total[5m]))
+          ) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          team: indexer
+          service: indexer
+        annotations:
+          summary: "Indexer error rate exceeds 10%"
+          description: "Error rate is {{ $value | humanizePercentage }} over the last 5 minutes"

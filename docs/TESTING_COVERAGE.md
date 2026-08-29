@@ -2,16 +2,55 @@
 
 ## Overview
 
-This guide covers the comprehensive testing strategy to achieve and maintain 90%+ test coverage for the Blue-Collar API.
+This guide covers the comprehensive testing strategy to achieve and maintain 85%+ test coverage for the Blue-Collar monorepo.
+
+> **Issue #1055** — Minimum coverage thresholds are now **enforced** in each package's
+> `vitest.config.ts`. Any PR that causes coverage to drop below the thresholds will fail
+> CI. See the [Enforced Thresholds](#enforced-thresholds) section for details.
+
+---
+
+## Enforced Thresholds
+
+Thresholds are configured in each package's `vitest.config.ts` and fail the test run
+(`exit 1`) when not met:
+
+| Package | Lines | Functions | Branches | Statements |
+|---------|-------|-----------|----------|------------|
+| `packages/api` | 85% | 85% | 80% | 85% |
+| `packages/app` | 85% | 85% | 80% | 85% |
+| `packages/sdk` | 85% | 85% | 80% | 85% |
+
+**Why 80% for branches?**
+Branch coverage measures all conditional paths (if/else, ternaries, switch cases, optional
+chaining). Several middleware branches in `packages/api` are conditional on runtime
+environment flags not exercisable in unit tests without a live DB (e.g., Redis availability,
+SMTP connectivity). These paths are tested by the e2e suite only.
+
+**Why 85% instead of 90%?**
+The 85% floor is the initial enforced baseline, established from the current coverage
+report. The goal is to prevent *regressions*, not to retroactively demand coverage for
+existing untested legacy paths. The threshold can be raised incrementally as more tests
+are added.
+
+**Running coverage locally:**
+```bash
+# Per-package
+pnpm --filter @bluecollar/api test:coverage
+pnpm --filter @bluecollar/app test:coverage
+pnpm --filter @bluecollar/sdk test:coverage
+```
+
+---
 
 ## Current Coverage Status
 
 ### Target Coverage
-- **Overall**: 90%+
-- **Statements**: 90%+
-- **Branches**: 85%+
-- **Functions**: 90%+
-- **Lines**: 90%+
+- **Overall**: 85%+
+- **Statements**: 85%+
+- **Branches**: 80%+
+- **Functions**: 85%+
+- **Lines**: 85%+
 
 ### Coverage by Module
 | Module | Statements | Branches | Functions | Lines |

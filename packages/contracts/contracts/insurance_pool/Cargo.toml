@@ -4,13 +4,12 @@ version = "0.1.0"
 edition = "2021"
 
 [lib]
-crate-type = ["cdylib"]
+# "rlib" lets the integration test crate link this contract as a Rust dependency.
+crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 soroban-sdk = { version = "26.1.0", features = ["alloc"] }
+bluecollar-types = { path = "../types" }
 
-[profile.release]
-opt-level = "z"
-lto = true
-codegen-units = 1
-strip = true
+[dev-dependencies]
+soroban-sdk = { version = "26.1.0", features = ["testutils"] }

@@ -5,6 +5,9 @@
 //! preserve every stored value and advance the schema version by exactly one.
 //! The `fuzz_migrate` libFuzzer target covers the same invariant under
 //! coverage-guided fuzzing.
+// `Env::register_contract` is deprecated in favour of `Env::register`; the test
+// helpers here are migrated alongside the contracts, not ahead of them.
+#![allow(deprecated)]
 
 use proptest::prelude::*;
 use soroban_sdk::{
@@ -12,8 +15,8 @@ use soroban_sdk::{
     Address, BytesN, Env, String as SorobanString, Symbol,
 };
 
-use bluecollar_registry::{RegistryContract, RegistryContractClient};
 use bluecollar_market::{MarketContract, MarketContractClient};
+use bluecollar_registry::{RegistryContract, RegistryContractClient};
 
 fn arb_worker_id() -> impl Strategy<Value = String> {
     "[a-z0-9]{1,16}".prop_map(|s| s)
@@ -131,7 +134,7 @@ proptest! {
         env.mock_all_auths();
         env.ledger().set(LedgerInfo {
             timestamp: 1000,
-            protocol_version: 22,
+            protocol_version: 26,
             sequence_number: 1,
             network_id: Default::default(),
             base_reserve: 10,

@@ -1,8 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, ExternalLink, Loader2, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import LoadingState from "@/components/LoadingState";
+import ErrorState from "@/components/ErrorState";
+import { formatStellarAddress } from "@/lib/utils";
 
 const DEFAULT_LIMIT = 10;
 const MARKET_CONTRACT_ID = process.env.NEXT_PUBLIC_MARKET_CONTRACT_ID ?? "";
@@ -35,11 +38,6 @@ type HistoryItem = {
   hash: string;
 };
 
-function truncate(value: string) {
-  if (value.length <= 14) return value;
-  return `${value.slice(0, 6)}...${value.slice(-6)}`;
-}
-
 function formatAmount(amount: string) {
   const parsed = Number(amount);
   return Number.isFinite(parsed) ? parsed.toLocaleString(undefined, { maximumFractionDigits: 7 }) : amount;
@@ -52,6 +50,30 @@ function isMarketPayment(record: HorizonPayment, publicKey: string) {
 
   return !MARKET_CONTRACT_ID || record.to === MARKET_CONTRACT_ID;
 }
+
+const TransactionRow = memo(function TransactionRow({ item }: { item: HistoryItem }) {
+  return (
+    <tr className="border-b last:border-0">
+      <td className="whitespace-nowrap px-6 py-4 text-gray-600">
+        {new Date(item.date).toLocaleString()}
+      </td>
+      <td className="px-6 py-4 font-mono text-gray-700">{truncate(item.recipient)}</td>
+      <td className="whitespace-nowrap px-6 py-4 font-medium text-gray-900">
+        {formatAmount(item.amount)} XLM
+      </td>
+      <td className="px-6 py-4">
+        <a
+          href={`https://stellar.expert/explorer/${EXPLORER_NETWORK}/tx/${item.hash}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700"
+        >
+          View <ExternalLink size={14} />
+        </a>
+      </td>
+    </tr>
+  );
+});
 
 export default function TransactionHistory({ publicKey }: { publicKey: string }) {
   const [items, setItems] = useState<HistoryItem[]>([]);
@@ -111,30 +133,34 @@ export default function TransactionHistory({ publicKey }: { publicKey: string })
     [items]
   );
 
-  const goNext = () => {
+  const goNext = useCallback(() => {
     if (!nextCursor) return;
     setCursorStack((stack) => [...stack, cursor]);
     setCursor(nextCursor);
     void loadPage(nextCursor);
-  };
+  }, [nextCursor, cursor, loadPage]);
 
-  const goPrevious = () => {
+  const goPrevious = useCallback(() => {
     setCursorStack((stack) => {
       const previous = stack.at(-1) ?? null;
       setCursor(previous);
       void loadPage(previous);
       return stack.slice(0, -1);
     });
-  };
+  }, [loadPage]);
+
+  const refresh = useCallback(() => {
+    void loadPage(cursor);
+  }, [loadPage, cursor]);
 
   return (
     <section className="rounded-xl border bg-white shadow-sm">
       <div className="flex flex-col gap-3 border-b p-6 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-lg font-semibold text-gray-900">On-chain activity</h2>
-          <p className="mt-1 font-mono text-xs text-gray-500">{truncate(publicKey)}</p>
+          <p className="mt-1 font-mono text-xs text-gray-500">{formatStellarAddress(publicKey, { prefixLength: 6, suffixLength: 6 })}</p>
         </div>
-        <Button variant="outline" size="sm" onClick={() => loadPage(cursor)} disabled={loading}>
+        <Button variant="outline" size="sm" onClick={refresh} disabled={loading}>
           {loading ? <Loader2 size={15} className="mr-2 animate-spin" /> : <RefreshCw size={15} className="mr-2" />}
           Refresh
         </Button>
@@ -150,20 +176,15 @@ export default function TransactionHistory({ publicKey }: { publicKey: string })
         <div className="sm:text-right">
           <p className="text-xs font-medium uppercase text-gray-400">Market contract</p>
           <p className="mt-1 font-mono text-sm text-gray-600">
-            {MARKET_CONTRACT_ID ? truncate(MARKET_CONTRACT_ID) : "Not configured"}
+            {MARKET_CONTRACT_ID ? formatStellarAddress(MARKET_CONTRACT_ID, { prefixLength: 6, suffixLength: 6 }) : "Not configured"}
           </p>
         </div>
       </div>
 
-      {error && (
-        <div className="m-6 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">{error}</div>
-      )}
+      {error && <ErrorState variant="inline" message={error} className="m-6" />}
 
       {loading && !error ? (
-        <div className="flex items-center justify-center gap-2 p-10 text-sm text-gray-500">
-          <Loader2 size={18} className="animate-spin" />
-          Loading transactions...
-        </div>
+        <LoadingState variant="inline" message="Loading transactions..." className="justify-center p-10" />
       ) : null}
 
       {!loading && !error && items.length === 0 ? (
@@ -192,7 +213,7 @@ export default function TransactionHistory({ publicKey }: { publicKey: string })
                   <td className="whitespace-nowrap px-6 py-4 text-gray-600">
                     {new Date(item.date).toLocaleString()}
                   </td>
-                  <td className="px-6 py-4 font-mono text-gray-700">{truncate(item.recipient)}</td>
+                  <td className="px-6 py-4 font-mono text-gray-700">{formatStellarAddress(item.recipient, { prefixLength: 6, suffixLength: 6 })}</td>
                   <td className="whitespace-nowrap px-6 py-4 font-medium text-gray-900">
                     {formatAmount(item.amount)} XLM
                   </td>

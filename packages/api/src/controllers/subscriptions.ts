@@ -77,5 +77,5 @@ export async function stripeWebhook(req: Request, res: Response) {
       data: { tier: 'free', stripeSubId: null, currentPeriodEnd: null, cancelAtPeriodEnd: false },
     })
   }
-  return res.json({ received: true })
+  return res.json({ status: 'success', code: 200, message: 'Webhook received' })
 }

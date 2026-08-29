@@ -21,13 +21,15 @@ import { getAvailability, upsertAvailability, addAvailabilitySlot, deleteAvailab
 import { registerOnChain } from '../controllers/stellar.js'
 import { createContactRequest, getContactRequests, updateContactRequestStatus } from '../controllers/contact-request.js'
 import { getWorkerVerifications } from '../controllers/verifications.js'
-import { getAnalytics, trackView, getViewTrends } from '../controllers/analytics.js'
+import { getAnalytics, trackView, getViewTrends, getWorkerPersonalDashboard, exportWorkerPersonalCsv } from '../controllers/analytics.js'
 import { authenticate, authorize } from '../middleware/auth.js'
 import { validate } from '../middleware/validate.js'
 import { withAuth, withAuthAndValidation } from '../middleware/composition.js'
 import { upload, handleMulterError } from '../middleware/upload.js'
 import { createWorkerRules, listWorkersQuerySchema, searchWorkersQuerySchema, advancedSearchRules } from '../validations/index.js'
 import { cacheMiddleware, invalidateCachePattern, TTL } from '../middleware/cache.js'
+import { createWorkerRules } from '../validations/index.js'
+import { cacheMiddleware, invalidateCachePattern, CacheTTL } from '../middleware/cache.js'
 import { contactRateLimit, generalRateLimit } from '../middleware/userRateLimit.js'
 import { db } from '../db.js'
 
@@ -58,9 +60,12 @@ async function showWorkerWithRatings(req: Request, res: Response) {
 router.get('/', generalRateLimit, validate(listWorkersQuerySchema, 'query'), cacheMiddleware(TTL.SHORT), listWorkers)
 router.get('/search', generalRateLimit, validate(searchWorkersQuerySchema, 'query'), cacheMiddleware(TTL.SHORT), searchWorkersHandler)
 router.get('/search/advanced', generalRateLimit, validate(advancedSearchRules, 'query'), cacheMiddleware(TTL.SHORT), advancedSearch)
+router.get('/', generalRateLimit, cacheMiddleware(CacheTTL.SHORT), listWorkers)
+router.get('/search', generalRateLimit, cacheMiddleware(CacheTTL.SHORT), searchWorkersHandler)
+router.get('/search/advanced', generalRateLimit, cacheMiddleware(CacheTTL.SHORT), advancedSearch)
 router.get('/mine', authenticate, authorize('curator', 'admin'), listMyWorkers)
 router.get('/mine', withAuth(['curator', 'admin']), listMyWorkers)
-router.get('/:id', generalRateLimit, cacheMiddleware(TTL.MEDIUM), showWorkerWithRatings)
+router.get('/:id', generalRateLimit, cacheMiddleware(CacheTTL.MEDIUM), showWorkerWithRatings)
 router.post('/', authenticate, authorize('curator'), idempotency, validate(createWorkerRules), createWorker)
 router.put('/:id', authenticate, authorize('curator'), updateWorker)
 router.delete('/:id', authenticate, authorize('curator'), deleteWorker)
@@ -71,7 +76,7 @@ router.delete('/:id', withAuth('curator'), deleteWorker)
 router.patch('/:id/toggle', withAuth('curator'), toggleActivation)
 
 // Availability
-router.get('/:id/availability', cacheMiddleware(TTL.SHORT), getAvailability)
+router.get('/:id/availability', cacheMiddleware(CacheTTL.SHORT), getAvailability)
 router.put('/:id/availability', authenticate, authorize('curator'), upsertAvailability)
 router.post('/:id/availability', authenticate, authorize('curator'), addAvailabilitySlot)
 router.delete('/:id/availability/:slotId', authenticate, authorize('curator'), deleteAvailabilitySlot)
@@ -96,7 +101,7 @@ router.post('/:id/bookmark', authenticate, toggleBookmark)
 router.post('/:id/bookmark', withAuth(), toggleBookmark)
 
 // Reviews
-router.get('/:id/reviews', cacheMiddleware(TTL.SHORT), listWorkerReviews)
+router.get('/:id/reviews', cacheMiddleware(CacheTTL.SHORT), listWorkerReviews)
 router.post('/:id/reviews', authenticate, createWorkerReview)
 router.post('/:id/reviews', withAuth(), createWorkerReview)
 router.delete('/reviews/:id', authenticate, deleteReview)
@@ -107,12 +112,14 @@ router.get('/:id/verifications', withAuth(['curator', 'admin']), getWorkerVerifi
 
 // Analytics
 router.post('/:id/analytics/view', trackView)
+router.get('/:id/analytics/dashboard', authenticate, authorize('curator', 'admin'), getWorkerPersonalDashboard)
+router.get('/:id/analytics/export', authenticate, authorize('curator', 'admin'), exportWorkerPersonalCsv)
 router.get('/:id/analytics', authenticate, authorize('curator', 'admin'), getAnalytics)
 router.get('/:id/analytics/trends', authenticate, authorize('curator', 'admin'), getViewTrends)
 router.get('/:id/analytics', withAuth(['curator', 'admin']), getAnalytics)
 
 // Reputation (#677)
-router.get('/:id/reputation', cacheMiddleware(TTL.SHORT), getReputation)
+router.get('/:id/reputation', cacheMiddleware(CacheTTL.SHORT), getReputation)
 router.post('/:id/reputation/sync', authenticate, authorize('admin'), syncReputation)
 router.post('/:id/reputation/sync', withAuth('admin'), syncReputation)
 

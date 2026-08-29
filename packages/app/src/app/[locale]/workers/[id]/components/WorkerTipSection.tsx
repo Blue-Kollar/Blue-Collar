@@ -1,5 +1,8 @@
-import TipModal from "@/components/TipModal";
-import TransactionHistory from "@/components/TransactionHistory";
+import dynamic from "next/dynamic";
+import TransactionList from "@/components/TransactionList";
+
+// Pulls in @stellar/stellar-sdk — split out so it isn't bundled into the initial route chunk.
+const TipModal = dynamic(() => import("@/components/TipModal"));
 
 interface Props {
   workerName: string;
@@ -25,7 +28,7 @@ export function WorkerTipSection({ workerName, walletAddress }: Props) {
         </div>
         <TipModal workerName={workerName} walletAddress={walletAddress} />
       </div>
-      <TransactionHistory walletAddress={walletAddress} />
+      <TransactionList walletAddress={walletAddress} />
     </>
   );
 }

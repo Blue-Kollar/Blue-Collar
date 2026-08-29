@@ -9,11 +9,12 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
+import LoadingState from "@/components/LoadingState";
 import {
   getJob, applyToJob, withdrawJobApplication, getJobApplications,
   updateJobApplicationStatus, getJobMessages, sendJobMessage, renewJob,
   getMyApplications,
-} from "@/lib/api";
+} from "@/lib/api/jobs";
 import type { Job, JobApplication, JobMessage } from "@/types";
 
 const STATUS_STYLE: Record<string, string> = {
@@ -147,11 +148,7 @@ export default function JobDetailPage() {
   };
 
   if (loading) {
-    return (
-      <div className="flex justify-center py-32">
-        <Loader2 className="animate-spin text-gray-400" size={28} />
-      </div>
-    );
+    return <LoadingState className="py-32" />;
   }
 
   if (!job) {

@@ -1,0 +1,16 @@
+apiVersion: v2
+name: blue-collar
+description: Blue-Collar - Full stack deployment
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - blue-collar
+  - api
+  - indexer
+home: https://github.com/Blue-Kollar/Blue-Collar
+sources:
+  - https://github.com/Blue-Kollar/Blue-Collar
+maintainers:
+  - name: DevOps Team
+    email: devops@blue-collar.io

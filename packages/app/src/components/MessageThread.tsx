@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import MessageInput from "./MessageInput";
@@ -45,14 +45,25 @@ export default function MessageThread({
   currentUserId,
 }: Props) {
   const bottomRef = useRef<HTMLDivElement>(null);
+  const messagesRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "End" && e.ctrlKey) {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, []);
+
   if (!conversationId) {
     return (
-      <div className="flex flex-1 items-center justify-center text-gray-400">
+      <div
+        className="flex flex-1 items-center justify-center text-gray-400"
+        role="status"
+        aria-label="No conversation selected"
+      >
         <div className="text-center">
           <p className="text-sm font-medium">Select a conversation</p>
           <p className="text-xs mt-1">Choose a conversation from the list to start chatting</p>
@@ -62,19 +73,35 @@ export default function MessageThread({
   }
 
   return (
-    <div className="flex flex-1 flex-col">
-      <div className="flex-1 overflow-y-auto px-4 py-4">
+    <div className="flex flex-1 flex-col" role="main" aria-label="Message thread">
+      <div
+        className="flex-1 overflow-y-auto px-4 py-4"
+        ref={messagesRef}
+        role="region"
+        aria-label="Messages"
+        aria-live="polite"
+        aria-atomic="false"
+        onKeyDown={handleKeyDown}
+        tabIndex={0}
+      >
         {messages.length === 0 ? (
-          <div className="flex h-full items-center justify-center text-gray-400">
+          <div
+            className="flex h-full items-center justify-center text-gray-400"
+            role="status"
+            aria-label="No messages"
+          >
             <p className="text-sm">No messages yet. Start the conversation!</p>
           </div>
         ) : (
-          <div className="space-y-1">
+          <div className="space-y-1" role="log" aria-label="Conversation messages">
             {messages.map((msg, idx) => (
               <div key={msg.id}>
                 {shouldShowDate(messages, idx) && (
                   <div className="flex justify-center py-2">
-                    <span className="rounded-full bg-gray-100 px-3 py-1 text-[10px] font-medium text-gray-500 dark:bg-gray-800 dark:text-gray-400">
+                    <span
+                      className="rounded-full bg-gray-100 px-3 py-1 text-[10px] font-medium text-gray-500 dark:bg-gray-800 dark:text-gray-400"
+                      role="doc-subtitle"
+                    >
                       {formatDate(msg.createdAt)}
                     </span>
                   </div>
@@ -84,6 +111,8 @@ export default function MessageThread({
                     "flex items-end gap-2",
                     msg.senderId === currentUserId ? "flex-row-reverse" : "flex-row"
                   )}
+                  role="article"
+                  aria-label={`Message from ${msg.sender.name} at ${formatTime(msg.createdAt)}`}
                 >
                   <div
                     className={cn(
@@ -94,12 +123,15 @@ export default function MessageThread({
                     {msg.sender.avatar ? (
                       <img
                         src={msg.sender.avatar}
-                        alt=""
+                        alt={`${msg.sender.name}'s avatar`}
                         className="h-6 w-6 shrink-0 rounded-full object-cover"
                       />
                     ) : (
-                      <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gray-200 dark:bg-gray-700">
-                        <User size={12} className="text-gray-500" />
+                      <div
+                        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gray-200 dark:bg-gray-700"
+                        aria-label={`${msg.sender.name}'s default avatar`}
+                      >
+                        <User size={12} className="text-gray-500" aria-hidden="true" />
                       </div>
                     )}
                     <div>
@@ -118,12 +150,13 @@ export default function MessageThread({
                           "mt-0.5 flex items-center gap-1 px-1",
                           msg.senderId === currentUserId ? "justify-end" : "justify-start"
                         )}
+                        aria-label={msg.senderId === currentUserId ? `Sent at ${formatTime(msg.createdAt)}. ${msg.readAt ? "Read" : "Sent"}` : ""}
                       >
                         <span className="text-[10px] text-gray-400">
                           {formatTime(msg.createdAt)}
                         </span>
                         {msg.senderId === currentUserId && (
-                          <span className="text-[10px] text-gray-400">
+                          <span className="text-[10px] text-gray-400" aria-label={msg.readAt ? "Message read" : "Message sent"}>
                             {msg.readAt ? "Read" : "Sent"}
                           </span>
                         )}
@@ -135,7 +168,7 @@ export default function MessageThread({
             ))}
           </div>
         )}
-        <div ref={bottomRef} />
+        <div ref={bottomRef} aria-live="assertive" />
       </div>
       <MessageInput onSend={onSend} />
     </div>

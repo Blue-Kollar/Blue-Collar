@@ -85,11 +85,6 @@ export default function WorkerMap({ workers }: Props) {
     };
   }, []);
 
-  // Update markers when workers change
-  useEffect(() => {
-    if (!ready || !mapInstanceRef.current || !L) return;
-    // markers are set on initial load; for live updates a full re-init would be needed
-  }, [workers, ready]);
 
   return (
     <div className="relative w-full h-full rounded-xl overflow-hidden border shadow-sm">

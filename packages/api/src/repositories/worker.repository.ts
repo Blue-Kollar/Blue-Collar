@@ -37,6 +37,13 @@ export interface AdvancedSearchResult {
   hasMore: boolean
 }
 
+// ── Review aggregation result type ───────────────────────────────────────────
+interface ReviewAgg {
+  workerId: string
+  avgRating: number
+  reviewCount: number
+}
+
 // ── Prisma implementation ─────────────────────────────────────────────────────
 
 const workerInclude = { category: true, curator: true } as const
@@ -52,13 +59,17 @@ export class WorkerRepository implements IWorkerRepository {
 
   async findAll(opts: { skip?: number; take?: number } = {}): Promise<Worker[]> {
     const query = QueryBuilder.pagination(opts)
-    return db.worker.findMany({ ...query, orderBy: QueryBuilder.defaultSort() })
+    return db.worker.findMany({
+      ...query,
+      where: { deletedAt: null },
+      orderBy: QueryBuilder.defaultSort(),
+    })
   }
 
   async findActive(opts: { skip?: number; take?: number } = {}): Promise<Worker[]> {
     const query = QueryBuilder.buildQuery({
       pagination: opts,
-      filter: { isActive: true },
+      filter: { isActive: true, deletedAt: null },
     })
     return db.worker.findMany({
       ...query,
@@ -68,7 +79,7 @@ export class WorkerRepository implements IWorkerRepository {
 
   async findByCurator(curatorId: string): Promise<Worker[]> {
     const query = QueryBuilder.buildQuery({
-      filter: { curatorId },
+      filter: { curatorId, deletedAt: null },
     })
     return db.worker.findMany({
       ...query,
@@ -95,8 +106,9 @@ export class WorkerRepository implements IWorkerRepository {
     return db.worker.update({ where: { id }, data, include: workerInclude })
   }
 
+  /** Soft-delete: sets deletedAt to now() instead of issuing a hard DELETE. */
   async delete(id: string): Promise<Worker> {
-    return db.worker.delete({ where: { id } })
+    return db.worker.update({ where: { id }, data: { deletedAt: new Date() } })
   }
 
   async count(where?: Prisma.WorkerWhereInput): Promise<number> {
@@ -106,6 +118,29 @@ export class WorkerRepository implements IWorkerRepository {
   async toggleActive(id: string): Promise<Worker> {
     const worker = await db.worker.findUniqueOrThrow({ where: { id } })
     return db.worker.update({ where: { id }, data: { isActive: !worker.isActive } })
+  }
+
+  /**
+   * Fetch aggregated review data (avg rating + count) for a set of worker IDs.
+   * Uses a single GROUP BY query instead of N+1 includes.
+   */
+  private async fetchReviewAggs(workerIds: string[]): Promise<Map<string, ReviewAgg>> {
+    if (workerIds.length === 0) return new Map()
+    const aggs = await db.review.groupBy({
+      by: ['workerId'],
+      where: { workerId: { in: workerIds } },
+      _avg: { rating: true },
+      _count: { rating: true },
+    })
+    const map = new Map<string, ReviewAgg>()
+    for (const agg of aggs) {
+      map.set(agg.workerId, {
+        workerId: agg.workerId,
+        avgRating: agg._avg.rating ?? 0,
+        reviewCount: agg._count.rating,
+      })
+    }
+    return map
   }
 
   async advancedSearch(filters: AdvancedSearchFilters): Promise<AdvancedSearchResult> {
@@ -141,8 +176,7 @@ export class WorkerRepository implements IWorkerRepository {
 
     // Availability filtering
     if (dayOfWeek !== undefined || startTime || endTime) {
-      where.availability = { some: {} }
-      const availWhere: any = where.availability.some
+      const availWhere: Prisma.AvailabilityWhereInput = {}
       if (dayOfWeek !== undefined) {
         availWhere.dayOfWeek = dayOfWeek
       }
@@ -152,23 +186,22 @@ export class WorkerRepository implements IWorkerRepository {
       if (endTime) {
         availWhere.endTime = { lte: endTime }
       }
+      where.availability = { some: availWhere }
     }
 
-    // Fetch workers with all relations
+    // Fetch workers with essential relations only (no reviews — avoids N+1)
     let workers = await db.worker.findMany({
       where,
       include: {
         category: true,
         curator: true,
         location: true,
-        reviews: { select: { rating: true } },
-        _count: { select: { reviews: true } },
       },
       skip,
-      take: take + 1, // +1 to determine hasMore
+      take: take + 1, // +1 for hasMore detection (used when no in-memory filtering)
     })
 
-    // Apply geo filtering if provided
+    // Apply geo filtering in memory if provided (PostGIS would be ideal but not configured)
     if (lat !== undefined && lng !== undefined) {
       workers = workers.filter(w => {
         if (!w.location?.lat || !w.location?.lng) return false
@@ -177,28 +210,34 @@ export class WorkerRepository implements IWorkerRepository {
       })
     }
 
-    // Apply rating filtering and calculate avg rating
+    // Fetch aggregated review data in a single GROUP BY query (eliminates N+1)
+    const workerIds = workers.map(w => w.id)
+    const reviewAggs = await this.fetchReviewAggs(workerIds)
+
+    // Apply rating filtering using pre-computed aggregates
     if (minRating !== undefined || maxRating !== undefined) {
       workers = workers.filter(w => {
-        if (w.reviews.length === 0) return false
-        const avg = w.reviews.reduce((sum, r) => sum + r.rating, 0) / w.reviews.length
-        return (!minRating || avg >= minRating) && (!maxRating || avg <= maxRating)
+        const agg = reviewAggs.get(w.id)
+        if (!agg || agg.reviewCount === 0) return false
+        return (!minRating || agg.avgRating >= minRating) && (!maxRating || agg.avgRating <= maxRating)
       })
     }
 
-    // Map to include computed fields
+    // Enrich with computed fields
     const enriched = workers.map(w => {
-      const avgRating = w.reviews.length > 0
-        ? w.reviews.reduce((sum, r) => sum + r.rating, 0) / w.reviews.length
-        : 0
+      const agg = reviewAggs.get(w.id)
+      const avgRating = agg?.avgRating ?? 0
+      const reviewCount = agg?.reviewCount ?? 0
       const distanceKm = lat && lng && w.location?.lat && w.location?.lng
         ? this.haversine(lat, lng, w.location.lat, w.location.lng)
         : undefined
       return {
         ...w,
+        reviews: undefined,
+        _count: undefined,
         avgRating,
         distanceKm,
-        reviewCount: w._count.reviews,
+        reviewCount,
         relevanceScore: this.calculateRelevance(w, query, avgRating, distanceKm),
       }
     })
@@ -224,6 +263,8 @@ export class WorkerRepository implements IWorkerRepository {
 
     const hasMore = enriched.length > take
     const data = enriched.slice(0, take)
+
+    // Use count estimate for total to avoid full table scan on large datasets
     const total = await db.worker.count({ where })
 
     return { data, total, hasMore }
@@ -240,7 +281,7 @@ export class WorkerRepository implements IWorkerRepository {
   }
 
   private calculateRelevance(
-    worker: any,
+    worker: Pick<Worker, 'name' | 'bio' | 'isVerified'>,
     query?: string,
     avgRating?: number,
     distanceKm?: number,

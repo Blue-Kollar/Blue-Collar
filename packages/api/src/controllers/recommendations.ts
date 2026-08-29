@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express'
 import * as recommendationService from '../services/recommendation.service.js'
 import { handleError } from '../utils/handleError.js'
+import { AppError, ErrorCode } from '../utils/AppError.js'
 
 export async function getRecommendations(req: Request, res: Response) {
   try {
@@ -16,11 +17,11 @@ export async function trackInteraction(req: Request, res: Response) {
   try {
     const { workerId, type } = req.body
     if (!workerId || !type) {
-      return res.status(400).json({ status: 'error', message: 'workerId and type are required', code: 400 })
+      throw new AppError('workerId and type are required', 400, true, ErrorCode.VALIDATION_ERROR)
     }
     const validTypes = ['view', 'bookmark', 'tip', 'contact']
     if (!validTypes.includes(type)) {
-      return res.status(400).json({ status: 'error', message: `type must be one of: ${validTypes.join(', ')}`, code: 400 })
+      throw new AppError(`type must be one of: ${validTypes.join(', ')}`, 400, true, ErrorCode.VALIDATION_ERROR)
     }
     await recommendationService.trackInteraction(req.user!.id, workerId, type)
     return res.status(201).json({ status: 'success', message: 'Interaction tracked', code: 201 })

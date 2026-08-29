@@ -1,48 +1,63 @@
-import type { Request, Response, NextFunction } from 'express'
-import { redis, cacheMetrics } from '../config/redis.js'
-
 /**
- * TTL presets (seconds) for different endpoint types.
+ * Cache middleware — Issue #773
+ *
+ * Express middleware that serves GET responses from Redis and stores
+ * fresh responses back into the cache.  Delegates to the cache service
+ * for all Redis I/O so metrics and error handling are consistent.
  */
-export const TTL = {
-  SHORT: 60,        // 1 min  — frequently changing data (reviews, availability)
-  MEDIUM: 300,      // 5 min  — worker profiles
-  LONG: 600,        // 10 min — semi-static lists
-  HOUR: 3600,       // 1 hr   — categories (rarely change)
-}
+
+import type { Request, Response, NextFunction } from 'express'
+import {
+  cacheGet,
+  cacheSet,
+  cacheInvalidatePattern,
+  cacheDel,
+  CacheTTL,
+  CacheKeys,
+} from '../services/cache.service.js'
+
+export { CacheTTL, CacheKeys }
 
 /**
  * Cache middleware for GET endpoints.
- * Skips caching when Redis is unavailable.
  *
- * @param ttl - Time-to-live in seconds
- * @param keyFn - Optional function to derive a custom cache key from the request
+ * - Skips non-GET requests.
+ * - Serves from cache on HIT (adds `X-Cache: HIT` header).
+ * - Intercepts `res.json` on MISS to store the response (adds `X-Cache: MISS`).
+ * - Gracefully skips caching when Redis is unavailable.
+ *
+ * @param ttl     - Time-to-live in seconds (use `CacheTTL.*` presets).
+ * @param keyFn   - Optional function to derive a custom key from the request.
+ *                  Defaults to `cache:<originalUrl>`.
+ *
+ * @example
+ * router.get('/workers', cacheMiddleware(CacheTTL.LONG), workersController.list)
  */
-export function cacheMiddleware(ttl: number, keyFn?: (req: Request) => string) {
-  return async (req: Request, res: Response, next: NextFunction) => {
-    // Only cache GET requests
+export function cacheMiddleware(
+  ttl: number,
+  keyFn?: (req: Request) => string,
+) {
+  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     if (req.method !== 'GET') return next()
 
     const key = keyFn ? keyFn(req) : `cache:${req.originalUrl}`
 
-    try {
-      const cached = await redis.get(key)
-      if (cached) {
-        cacheMetrics.hits++
-        res.setHeader('X-Cache', 'HIT')
-        return res.json(JSON.parse(cached))
-      }
-      cacheMetrics.misses++
-      res.setHeader('X-Cache', 'MISS')
-    } catch {
-      // Redis unavailable — pass through without caching
-      return next()
+    const cached = await cacheGet(key)
+    if (cached !== null) {
+      res.setHeader('X-Cache', 'HIT')
+      res.json(cached)
+      return
     }
 
-    // Intercept res.json to store the response in cache
+    res.setHeader('X-Cache', 'MISS')
+
+    // Intercept res.json to persist the response
     const originalJson = res.json.bind(res)
     res.json = (body: unknown) => {
-      redis.setex(key, ttl, JSON.stringify(body)).catch(() => {})
+      // Only cache successful responses
+      if (res.statusCode >= 200 && res.statusCode < 300) {
+        cacheSet(key, body, ttl).catch(() => {})
+      }
       return originalJson(body)
     }
 
@@ -51,24 +66,15 @@ export function cacheMiddleware(ttl: number, keyFn?: (req: Request) => string) {
 }
 
 /**
- * Invalidate one or more cache keys (supports glob patterns via SCAN).
+ * Invalidate one or more exact cache keys.
+ * Use after writes to keep the cache consistent.
  */
-export async function invalidateCache(...keys: string[]) {
-  try {
-    await Promise.all(keys.map((k) => redis.del(k)))
-  } catch {
-    // Silently ignore Redis errors during invalidation
-  }
-}
+export { cacheDel as invalidateCache }
 
 /**
- * Invalidate all cache keys matching a pattern (e.g. "cache:/api/workers*").
+ * Invalidate all cache keys matching a glob pattern.
+ *
+ * @example
+ * await invalidateCachePattern('cache:/api/workers*')
  */
-export async function invalidateCachePattern(pattern: string) {
-  try {
-    const keys = await redis.keys(pattern)
-    if (keys.length) await redis.del(...keys)
-  } catch {
-    // Silently ignore
-  }
-}
+export { cacheInvalidatePattern as invalidateCachePattern }

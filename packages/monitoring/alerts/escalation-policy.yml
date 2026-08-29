@@ -1,0 +1,74 @@
+# Escalation Policy
+
+teams:
+  - name: backend
+    members:
+      - alice@blue-collar.io
+      - bob@blue-collar.io
+    oncall:
+      - monday: alice
+      - tuesday: bob
+      - wednesday: alice
+      - thursday: bob
+      - friday: alice
+
+  - name: indexer
+    members:
+      - charlie@blue-collar.io
+      - dave@blue-collar.io
+    oncall:
+      - monday: charlie
+      - wednesday: dave
+      - friday: charlie
+
+  - name: blockchain
+    members:
+      - eve@blue-collar.io
+      - frank@blue-collar.io
+    oncall:
+      - tuesday: eve
+      - thursday: frank
+      - weekend: rotating
+
+escalation_policies:
+  - name: backend-critical
+    levels:
+      - level: 1
+        timeout: 5m
+        notifications:
+          - email
+          - slack
+        target: oncall-backend
+      - level: 2
+        timeout: 10m
+        target: backend-team-lead
+      - level: 3
+        timeout: 15m
+        target: devops-manager
+
+  - name: indexer-critical
+    levels:
+      - level: 1
+        timeout: 5m
+        target: oncall-indexer
+      - level: 2
+        timeout: 15m
+        target: indexer-team-lead
+
+  - name: blockchain-critical
+    levels:
+      - level: 1
+        timeout: 5m
+        target: oncall-blockchain
+      - level: 2
+        timeout: 15m
+        target: blockchain-team-lead
+
+  - name: default
+    levels:
+      - level: 1
+        timeout: 10m
+        target: oncall-backend
+      - level: 2
+        timeout: 20m
+        target: devops-manager

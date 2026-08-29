@@ -9,30 +9,72 @@ import path from 'node:path'
 import { logger } from '../config/logger.js'
 
 // ── Lazy S3 import (optional dep — graceful fallback) ─────────────────────────
-let s3Client: any = null
-let PutObjectCommand: any = null
-let GetObjectCommand: any = null
-let DeleteObjectCommand: any = null
-let getSignedUrl: any = null
+// `@aws-sdk/*` is an optional dependency that may not be installed, so its types
+// aren't available at build time. We model only the small surface we use with
+// local structural interfaces instead of falling back to `any`.
+interface S3CommandInput {
+  Bucket: string
+  Key: string
+  Body?: unknown
+  ContentType?: string
+}
+type S3Command = object
+interface S3CommandCtor {
+  new (input: S3CommandInput): S3Command
+}
+interface S3ClientLike {
+  send(command: S3Command): Promise<unknown>
+}
+type SignUrlFn = (
+  client: S3ClientLike,
+  command: S3Command,
+  options: { expiresIn: number },
+) => Promise<string>
 
-async function getS3() {
-  if (s3Client) return { s3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand, getSignedUrl }
+interface S3Bundle {
+  s3Client: S3ClientLike
+  PutObjectCommand: S3CommandCtor
+  GetObjectCommand: S3CommandCtor
+  DeleteObjectCommand: S3CommandCtor
+  getSignedUrl: SignUrlFn
+}
+
+let cachedS3: S3Bundle | null = null
+
+// Resolved through variables so TypeScript does not try to load the optional
+// packages at build time; the shapes we rely on are modelled above.
+const S3_CLIENT_MODULE = '@aws-sdk/client-s3'
+const S3_PRESIGNER_MODULE = '@aws-sdk/s3-request-presigner'
+
+interface S3ClientModule {
+  S3Client: new (config: unknown) => S3ClientLike
+  PutObjectCommand: S3CommandCtor
+  GetObjectCommand: S3CommandCtor
+  DeleteObjectCommand: S3CommandCtor
+}
+
+async function getS3(): Promise<S3Bundle | null> {
+  if (cachedS3) return cachedS3
   try {
-    const s3Module = await import('@aws-sdk/client-s3')
-    const signModule = await import('@aws-sdk/s3-request-presigner')
-    PutObjectCommand = s3Module.PutObjectCommand
-    GetObjectCommand = s3Module.GetObjectCommand
-    DeleteObjectCommand = s3Module.DeleteObjectCommand
-    getSignedUrl = signModule.getSignedUrl
-    s3Client = new s3Module.S3Client({
-      region: process.env['S3_REGION'] ?? 'us-east-1',
-      endpoint: process.env['S3_ENDPOINT'],           // for MinIO / R2
-      forcePathStyle: !!process.env['S3_ENDPOINT'],   // required for MinIO
-      credentials: process.env['S3_ACCESS_KEY']
-        ? { accessKeyId: process.env['S3_ACCESS_KEY']!, secretAccessKey: process.env['S3_SECRET_KEY']! }
-        : undefined,                                  // falls back to IAM role / env chain
-    })
-    return { s3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand, getSignedUrl }
+    const s3Module = (await import(S3_CLIENT_MODULE)) as unknown as S3ClientModule
+    const signModule = (await import(S3_PRESIGNER_MODULE)) as unknown as {
+      getSignedUrl: SignUrlFn
+    }
+    cachedS3 = {
+      s3Client: new s3Module.S3Client({
+        region: process.env['S3_REGION'] ?? 'us-east-1',
+        endpoint: process.env['S3_ENDPOINT'],           // for MinIO / R2
+        forcePathStyle: !!process.env['S3_ENDPOINT'],   // required for MinIO
+        credentials: process.env['S3_ACCESS_KEY']
+          ? { accessKeyId: process.env['S3_ACCESS_KEY']!, secretAccessKey: process.env['S3_SECRET_KEY']! }
+          : undefined,                                  // falls back to IAM role / env chain
+      }),
+      PutObjectCommand: s3Module.PutObjectCommand,
+      GetObjectCommand: s3Module.GetObjectCommand,
+      DeleteObjectCommand: s3Module.DeleteObjectCommand,
+      getSignedUrl: signModule.getSignedUrl,
+    }
+    return cachedS3
   } catch {
     return null
   }

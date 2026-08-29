@@ -5,24 +5,18 @@ import type { ReactNode, ChangeEvent } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { X, Loader2, CheckCircle2, AlertCircle, ExternalLink, Zap } from "lucide-react";
 import { useTranslations } from "next-intl";
-import {
-  isConnected,
-  requestAccess,
-  getAddress,
-  signTransaction,
-} from "@stellar/freighter-api";
+import { useWallet, FreighterNotInstalledError, WalletNotConnectedError } from "@/hooks/useWallet";
 import { cn } from "@/lib/utils";
 
-const NETWORK_PASSPHRASE = "Test SDF Network ; September 2015";
+const DEFAULT_NETWORK_PASSPHRASE = "Test SDF Network ; September 2015";
 const HORIZON_URL = "https://horizon-testnet.stellar.org";
 const SOROBAN_RPC = "https://soroban-testnet.stellar.org";
-const MARKET_CONTRACT_ID = process.env.NEXT_PUBLIC_MARKET_CONTRACT_ID ?? "";
 const STROOPS_PER_XLM = 10_000_000n;
 const EXPLORER_BASE = "https://stellar.expert/explorer/testnet/tx";
 const NETWORK_FEE = 0.00001;
 
 type TxStatus = "idle" | "signing" | "pending" | "success" | "error";
-type ErrorType = "freighter_missing" | "insufficient_balance" | "user_rejected" | "network_error" | "unknown";
+type ErrorType = "freighter_missing" | "insufficient_balance" | "network_error" | "unknown";
 
 interface Props {
   workerName: string;
@@ -32,6 +26,7 @@ interface Props {
 
 export default function TipModal({ workerName, walletAddress, trigger }: Props) {
   const t = useTranslations("tip");
+  const { publicKey, networkPassphrase, connect, signTransaction } = useWallet();
   const [open, setOpen] = useState(false);
   const [amount, setAmount] = useState("");
   const [selectedToken, setSelectedToken] = useState("XLM");
@@ -53,8 +48,7 @@ export default function TipModal({ workerName, walletAddress, trigger }: Props) 
     if (!val) reset();
   };
 
-  const calculateFee = () => NETWORK_FEE;
-  const total = amount ? (Number(amount) + calculateFee()).toFixed(7) : "0";
+  const total = amount ? (Number(amount) + NETWORK_FEE).toFixed(7) : "0";
 
   const sendTip = async () => {
     if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) return;
@@ -63,9 +57,17 @@ export default function TipModal({ workerName, walletAddress, trigger }: Props) 
     setErrorMsg(null);
     setErrorType(null);
 
+    // Tracked locally: `errorType` state read inside the catch below would be a
+    // stale render-time value, which previously made every failure fall through
+    // to the generic "unknown" branch.
+    let failureType: ErrorType | null = null;
+
     try {
-      const connected = await isConnected();
-      if (!connected.isConnected) {
+      let senderAddress = publicKey;
+      if (!senderAddress) {
+        senderAddress = await connect();
+      }
+      if (!senderAddress) {
         setErrorType("freighter_missing");
         setErrorMsg(t("freighterNotFound"));
         setStatus("error");
@@ -73,10 +75,10 @@ export default function TipModal({ workerName, walletAddress, trigger }: Props) 
       }
 
       setStatus("pending");
-      await requestAccess();
-      const { address: senderAddress } = await getAddress();
 
+      const passphrase = networkPassphrase ?? DEFAULT_NETWORK_PASSPHRASE;
       const amountInStroops = BigInt(Math.round(Number(amount) * Number(STROOPS_PER_XLM)));
+      const txXdr = await buildTipTxXdr(senderAddress, walletAddress, amountInStroops, passphrase);
 
       const buildRes = await fetch(`${SOROBAN_RPC}`, {
         method: "POST",
@@ -85,33 +87,20 @@ export default function TipModal({ workerName, walletAddress, trigger }: Props) 
           jsonrpc: "2.0",
           id: 1,
           method: "simulateTransaction",
-          params: {
-            transaction: await buildTipTxXdr(senderAddress, walletAddress, amountInStroops),
-          },
+          params: { transaction: txXdr },
         }),
       });
 
       const simulation = await buildRes.json();
       if (simulation.error || simulation.result?.error) {
         const errMsg = simulation.error?.message ?? simulation.result?.error ?? "Simulation failed";
-        if (errMsg.includes("insufficient")) {
-          setErrorType("insufficient_balance");
-        } else {
-          setErrorType("network_error");
-        }
+        failureType = errMsg.includes("insufficient")
+          ? "insufficient_balance"
+          : "network_error";
         throw new Error(errMsg);
       }
 
-      const assembledXdr = await assembleTipTx(
-        senderAddress,
-        walletAddress,
-        amountInStroops,
-        simulation.result
-      );
-
-      const { signedTxXdr } = await signTransaction(assembledXdr, {
-        networkPassphrase: NETWORK_PASSPHRASE,
-      });
+      const signedTxXdr = await signTransaction(txXdr);
 
       const submitRes = await fetch(`${HORIZON_URL}/transactions`, {
         method: "POST",
@@ -127,9 +116,15 @@ export default function TipModal({ workerName, walletAddress, trigger }: Props) 
       setTxHash(submitJson.hash);
       setStatus("success");
     } catch (err: unknown) {
+      if (err instanceof FreighterNotInstalledError || err instanceof WalletNotConnectedError) {
+        setErrorType("freighter_missing");
+        setErrorMsg(t("freighterNotFound"));
+        setStatus("error");
+        return;
+      }
       const msg = err instanceof Error ? err.message : "Unknown error";
       setErrorMsg(msg);
-      if (!errorType) setErrorType("unknown");
+      setErrorType(failureType ?? "unknown");
       setStatus("error");
     }
   };
@@ -221,7 +216,7 @@ export default function TipModal({ workerName, walletAddress, trigger }: Props) 
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600 dark:text-gray-400">{t("networkFee")}</span>
-                    <span className="font-medium text-gray-900 dark:text-white">{calculateFee().toFixed(7)} {selectedToken}</span>
+                    <span className="font-medium text-gray-900 dark:text-white">{NETWORK_FEE.toFixed(7)} {selectedToken}</span>
                   </div>
                   <div className="h-px bg-gray-200 dark:bg-gray-700" />
                   <div className="flex justify-between text-sm font-semibold">
@@ -385,17 +380,18 @@ export default function TipModal({ workerName, walletAddress, trigger }: Props) 
 async function buildTipTxXdr(
   from: string,
   to: string,
-  amountStroops: bigint
+  amountStroops: bigint,
+  networkPassphrase: string
 ): Promise<string> {
   const StellarSdk = await import("@stellar/stellar-sdk");
-  const { TransactionBuilder, Operation, Asset, BASE_FEE } = StellarSdk;
+  const { Server, TransactionBuilder, Operation, Asset, BASE_FEE } = StellarSdk;
 
-  const server = new StellarSdk.Horizon.Server(HORIZON_URL);
+  const server = new Server(HORIZON_URL);
   const account = await server.loadAccount(from);
 
   const tx = new TransactionBuilder(account, {
     fee: BASE_FEE,
-    networkPassphrase: NETWORK_PASSPHRASE,
+    networkPassphrase,
   })
     .addOperation(
       Operation.payment({
@@ -408,13 +404,4 @@ async function buildTipTxXdr(
     .build();
 
   return tx.toXDR();
-}
-
-async function assembleTipTx(
-  from: string,
-  to: string,
-  amountStroops: bigint,
-  _simulationResult: unknown
-): Promise<string> {
-  return buildTipTxXdr(from, to, amountStroops);
 }

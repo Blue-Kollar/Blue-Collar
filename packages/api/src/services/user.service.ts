@@ -5,8 +5,10 @@ import { z } from 'zod'
 import { db } from '../db.js'
 import { sendVerificationEmail } from '../mailer/index.js'
 import { sanitizeUser } from '../models/user.model.js'
-import { AppError } from './AppError.js'
+import { AppError, ErrorCode } from '../utils/AppError.js'
 import { createServiceLogger } from '../utils/logger.js'
+import { userRepository as defaultUserRepository } from '../repositories/user.repository.js'
+import type { UserServiceDeps } from '../container/types.js'
 
 const logger = createServiceLogger('UserService')
 
@@ -27,65 +29,103 @@ function generateVerificationToken(userId: string) {
 
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>
 
-export async function updateProfile(userId: string, input: UpdateProfileInput) {
-  logger.debug('Updating user profile', { userId })
-  const parsed = updateProfileSchema.parse(input)
-  const current = await db.user.findUnique({ where: { id: userId } })
-  if (!current) {
-    logger.warn('Profile update failed: user not found', { userId })
-    throw new AppError('User not found', 404)
-  }
+// ── Service factory ──────────────────────────────────────────────────────────
 
-  const emailChanged = parsed.email !== undefined && parsed.email !== current.email
-  const verification = emailChanged ? generateVerificationToken(userId) : null
+/**
+ * Create a user service with injected dependencies.
+ *
+ * This enables clean unit testing without module-level mocking:
+ *
+ * ```ts
+ * const mockRepo = { findById: vi.fn(), update: vi.fn(), delete: vi.fn(), ... }
+ * const mockMailer = { sendVerificationEmail: vi.fn() }
+ * const svc = createUserService({ userRepository: mockRepo, mailer: mockMailer })
+ * await svc.updateProfile('user-1', { firstName: 'Alice' })
+ * expect(mockRepo.findById).toHaveBeenCalledWith('user-1')
+ * ```
+ */
+export function createUserService(deps: UserServiceDeps) {
+  const { userRepository: repo, mailer } = deps
 
-  const updated = await db.user.update({
-    where: { id: userId },
-    data: {
-      ...parsed,
-      ...(emailChanged
-        ? {
-            verified: false,
-            verificationToken: verification!.hash,
-            verificationTokenExpiry: verification!.expiry,
-          }
-        : {}),
+  return {
+    async updateProfile(userId: string, input: UpdateProfileInput) {
+      logger.debug('Updating user profile', { userId })
+      const parsed = updateProfileSchema.parse(input)
+      const current = await repo.findById(userId)
+      if (!current) {
+        logger.warn('Profile update failed: user not found', { userId })
+        throw new AppError('User not found', 404, true, ErrorCode.NOT_FOUND)
+      }
+
+      const emailChanged = parsed.email !== undefined && parsed.email !== current.email
+      const verification = emailChanged ? generateVerificationToken(userId) : null
+
+      const updated = await repo.update(userId, {
+        ...parsed,
+        ...(emailChanged
+          ? {
+              verified: false,
+              verificationToken: verification!.hash,
+              verificationTokenExpiry: verification!.expiry,
+            }
+          : {}),
+      })
+
+      if (emailChanged) {
+        logger.info('Email changed, verification email sent', { userId, newEmail: updated.email })
+        await mailer.sendVerificationEmail(updated.email, updated.firstName, verification!.raw)
+      } else {
+        logger.info('User profile updated successfully', { userId })
+      }
+
+      return sanitizeUser(updated)
     },
-  })
 
-  if (emailChanged) {
-    logger.info('Email changed, verification email sent', { userId, newEmail: updated.email })
-    await sendVerificationEmail(updated.email, updated.firstName, verification!.raw)
-  } else {
-    logger.info('User profile updated successfully', { userId })
+    async changePassword(userId: string, currentPassword: string, newPassword: string): Promise<void> {
+      if (newPassword.length < 8) throw new AppError('Password must be at least 8 characters', 400, true, ErrorCode.VALIDATION_ERROR)
+
+      const user = await repo.findById(userId)
+      if (!user || !user.password) throw new AppError('No password set on this account', 400, true, ErrorCode.VALIDATION_ERROR)
+
+      const valid = await argon2.verify(user.password, currentPassword)
+      if (!valid) throw new AppError('Current password is incorrect', 400, true, ErrorCode.VALIDATION_ERROR)
+
+      const hashed = await argon2.hash(newPassword)
+      await repo.update(userId, { password: hashed })
+      logger.info('Password changed', { userId })
+    },
+
+    async deleteAccount(userId: string): Promise<void> {
+      await repo.delete(userId)
+      logger.info('Account deleted', { userId })
+    },
   }
-
-  return sanitizeUser(updated)
 }
 
-/** Change a user's password. Verifies the current password before updating. */
+// ── Default service instance (backward-compatible module-level API) ───────────
+//
+// Controllers import these functions directly — these re-exports delegate to a
+// default instance wired with production dependencies.
+
+const _defaultService = createUserService({
+  userRepository: defaultUserRepository,
+  mailer: { sendVerificationEmail, sendPasswordResetEmail: async () => undefined },
+})
+
+export async function updateProfile(userId: string, input: UpdateProfileInput) {
+  return _defaultService.updateProfile(userId, input)
+}
+
 export async function changePassword(
   userId: string,
   currentPassword: string,
   newPassword: string,
 ): Promise<void> {
-  if (newPassword.length < 8) throw new AppError('Password must be at least 8 characters', 400)
-
-  const user = await db.user.findUnique({ where: { id: userId } })
-  if (!user || !user.password) throw new AppError('No password set on this account', 400)
-
-  const valid = await argon2.verify(user.password, currentPassword)
-  if (!valid) throw new AppError('Current password is incorrect', 400)
-
-  const hashed = await argon2.hash(newPassword)
-  await db.user.update({ where: { id: userId }, data: { password: hashed } })
-  logger.info('Password changed', { userId })
+  return _defaultService.changePassword(userId, currentPassword, newPassword)
 }
 
-/** Permanently delete a user account. */
 export async function deleteAccount(userId: string): Promise<void> {
-  await db.user.delete({ where: { id: userId } })
-  logger.info('Account deleted', { userId })
+  return _defaultService.deleteAccount(userId)
 }
 
 export interface PushSubscriptionInput {
@@ -93,26 +133,22 @@ export interface PushSubscriptionInput {
   keys: { auth: string; p256dh: string }
 }
 
-/** Register or update a web push subscription for a user. */
 export async function savePushSubscription(userId: string, input: PushSubscriptionInput) {
   const { endpoint, keys } = input
   return db.pushSubscription.upsert({
-    where: { userId_endpoint: { userId, endpoint } },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    where: { userId_endpoint: { userId, endpoint } } as any,
     update: { auth: keys.auth, p256dh: keys.p256dh },
     create: { userId, endpoint, auth: keys.auth, p256dh: keys.p256dh },
   })
 }
 
-/** Remove a push subscription endpoint for a user. */
 export async function deletePushSubscription(userId: string, endpoint: string): Promise<void> {
-  await db.pushSubscription.delete({ where: { userId_endpoint: { userId, endpoint } } })
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await db.pushSubscription.delete({ where: { userId_endpoint: { userId, endpoint } } as any })
 }
 
-/** Mark onboarding as completed for a user. */
 export async function completeOnboarding(userId: string) {
-  const user = await db.user.update({
-    where: { id: userId },
-    data: { onboardingCompleted: true },
-  })
+  const user = await defaultUserRepository.update(userId, { onboardingCompleted: true })
   return sanitizeUser(user)
 }

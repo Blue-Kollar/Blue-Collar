@@ -2,4 +2,8 @@ packages:
   - "packages/api"
   - "packages/app"
   - "packages/contracts"
+  - "packages/mobile"
+  - "packages/monitoring"
   - "packages/sdk"
+  - "packages/test-utils"
+  - "packages/types"

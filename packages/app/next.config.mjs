@@ -1,16 +1,28 @@
 import createNextIntlPlugin from 'next-intl/plugin'
 
-const withNextIntl = createNextIntlPlugin()
+const withNextIntl = createNextIntlPlugin('./src/i18n.ts')
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
+
+  // ── Bundle analysis (run: ANALYZE=true next build) ──────────────────────────
+  ...(process.env.ANALYZE === 'true' && {
+    webpack: (config, { isServer }) => {
+      if (!isServer) {
+        config.resolve.fallback = { ...config.resolve.fallback, "sodium-native": false };
+      }
+      return config;
+    },
+  }),
+
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.fallback = { ...config.resolve.fallback, "sodium-native": false };
     }
     return config;
   },
+
   headers: async () => [
     {
       source: '/sw.js',

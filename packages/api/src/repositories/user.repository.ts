@@ -22,7 +22,7 @@ export class UserRepository implements IUserRepository {
 
   async findAll(opts: { skip?: number; take?: number } = {}): Promise<User[]> {
     const query = QueryBuilder.pagination(opts)
-    return db.user.findMany({ ...query, orderBy: QueryBuilder.defaultSort() })
+    return db.user.findMany({ ...query, where: { deletedAt: null }, orderBy: QueryBuilder.defaultSort() })
   }
 
   async create(data: Prisma.UserCreateInput): Promise<User> {
@@ -33,8 +33,9 @@ export class UserRepository implements IUserRepository {
     return db.user.update({ where: { id }, data })
   }
 
+  /** Soft-delete: sets deletedAt to now() instead of issuing a hard DELETE. */
   async delete(id: string): Promise<User> {
-    return db.user.delete({ where: { id } })
+    return db.user.update({ where: { id }, data: { deletedAt: new Date() } })
   }
 
   async count(where?: Prisma.UserWhereInput): Promise<number> {

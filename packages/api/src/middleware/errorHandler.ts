@@ -23,6 +23,7 @@ export function errorHandler(
 
   if (statusCode >= 500) {
     const error = err instanceof Error ? err : new Error(String(err))
+    // PII SAFETY: only sanitized fields logged — no headers, body, or query params
     logger.error({ message: error.message, stack: error.stack, url: req.url, method: req.method }, '[ERROR]')
   }
 

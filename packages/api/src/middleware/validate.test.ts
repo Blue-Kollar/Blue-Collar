@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { z } from 'zod'
 import { validate } from './validate.js'
 import {
   registerRules,
@@ -28,8 +29,8 @@ describe('validate middleware', () => {
 
   describe('general middleware behavior', () => {
     it('calls next if validation passes', () => {
-      const rules = { name: 'required|string' }
-      const middleware = validate(rules)
+      const schema = z.object({ name: z.string().min(1) })
+      const middleware = validate(schema)
       const req = { body: { name: 'John Doe' } } as Request
       const res = mockRes() as Response
 
@@ -40,8 +41,8 @@ describe('validate middleware', () => {
     })
 
     it('returns 422 with errors if validation fails', () => {
-      const rules = { name: 'required|string', email: 'required|email' }
-      const middleware = validate(rules)
+      const schema = z.object({ name: z.string().min(1), email: z.string().email() })
+      const middleware = validate(schema)
       const req = { body: { name: 'John Doe' } } as Request // missing email
       const res = mockRes() as Response
 
@@ -62,8 +63,8 @@ describe('validate middleware', () => {
     })
 
     it('returns structured error response with all error details', () => {
-      const rules = { email: 'required|email', password: 'required|min:8' }
-      const middleware = validate(rules)
+      const schema = z.object({ email: z.string().email(), password: z.string().min(8) })
+      const middleware = validate(schema)
       const req = { body: { email: 'invalid-email', password: 'short' } } as Request
       const res = mockRes() as Response
 
@@ -78,14 +79,25 @@ describe('validate middleware', () => {
     })
 
     it('does not call next when validation fails', () => {
-      const rules = { name: 'required' }
-      const middleware = validate(rules)
+      const schema = z.object({ name: z.string().min(1) })
+      const middleware = validate(schema)
       const req = { body: {} } as Request
       const res = mockRes() as Response
 
       middleware(req, res, mockNext)
 
       expect(mockNext).not.toHaveBeenCalled()
+    })
+
+    it('validates query params when target is "query"', () => {
+      const schema = z.object({ page: z.coerce.number().int().min(1) })
+      const middleware = validate(schema, 'query')
+      const req = { body: {}, query: { page: '2' }, params: {} } as unknown as Request
+      const res = mockRes() as Response
+
+      middleware(req, res, mockNext)
+
+      expect(mockNext).toHaveBeenCalled()
     })
   })
 
@@ -288,7 +300,7 @@ describe('validate middleware', () => {
       expect(res.status).toHaveBeenCalledWith(422)
     })
 
-    it('passes with any password length', () => {
+    it('passes with any non-empty password', () => {
       const middleware = validate(loginRules)
       const req = {
         body: {

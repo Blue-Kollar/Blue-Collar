@@ -1,8 +1,13 @@
 import { Router } from 'express'
 import { authenticate, authorize } from '../middleware/auth.js'
-import { processTip, createEscrow, getFee, updateFee } from '../controllers/payment.js'
+import { createPaymentController } from '../controllers/payment.js'
+import { paymentService } from '../services/payment.service.js'
 
 const router = Router()
+
+// Wire the controller with the shared paymentService singleton.
+// To inject a test double, swap the service passed here.
+const { processTip, createEscrow, getFee, updateFee } = createPaymentController(paymentService)
 
 router.get('/fee', getFee)
 router.patch('/fee', authenticate, authorize('admin'), updateFee)

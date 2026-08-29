@@ -32,6 +32,16 @@ pnpm dev   # starts on :3001
 - Page-level components live in `src/app/` following Next.js App Router conventions
 - Use Tailwind utility classes; avoid inline styles
 
+## State Management
+
+The app package standardizes on **React Context + a paired `useX` hook** for any state that's shared across more than one component (auth session, wallet connection, comparison list, notifications). Local, single-component state should just use `useState`/`useReducer` — don't reach for Context until something outside the component actually needs it.
+
+- Each piece of shared state lives in `src/context/<Name>Context.tsx` and exports two things: an `<XProvider>` and a `useX()` hook that wraps `useContext` internally. Components should never call `useContext` directly — always go through the exported hook.
+- Providers are mounted once, near the root, in `src/app/layout.tsx` / `src/app/[locale]/layout.tsx`.
+- `src/hooks/` may contain a same-named re-export (e.g. `useAuth`, `useWallet`) for backwards compatibility with older import paths — these just forward to the canonical context and shouldn't hold their own state. New code should import the hook directly from `@/context/<Name>Context`.
+- Don't create a second, independent hook that re-implements state already owned by a context (this previously happened with wallet connection state and caused the navbar to fall out of sync with the rest of the app — see `src/context/WalletContext.tsx`).
+- No external state library (Redux/Zustand/Jotai/etc.) is in use — keep it to Context + hooks unless a future need (e.g. large normalized client-side caches) genuinely outgrows it, and raise that as its own discussion first.
+
 ## Design
 
 Figma design file: [BlueCollar UI Kit](https://www.figma.com/file/bluecollar-ui) *(request access from a maintainer)*

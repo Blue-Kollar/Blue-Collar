@@ -12,6 +12,7 @@ Thanks for your interest in contributing! This guide covers everything you need 
 - [Issue & PR Templates](#issue--pr-templates)
 - [Pull Request Process](#pull-request-process)
 - [Code Style](#code-style)
+- [Error Handling & Logging](#error-handling--logging)
 - [Running Tests](#running-tests)
 - [Translations](#translations)
 
@@ -26,9 +27,14 @@ Thanks for your interest in contributing! This guide covers everything you need 
    pnpm install
    ```
 
-2. Create a feature branch (see [Branch Naming](#branch-naming)).
+2. Install git hooks (runs automatically on `pnpm install`, but run manually if needed):
+   ```bash
+   pnpm prepare
+   ```
 
-3. Make your changes, commit using the [convention below](#commit-message-convention), and open a PR.
+3. Create a feature branch (see [Branch Naming](#branch-naming)).
+
+4. Make your changes, commit using the [convention below](#commit-message-convention), and open a PR.
 
 ---
 
@@ -62,7 +68,22 @@ This project uses **Conventional Commits** to power automated changelog generati
 
 ### Scopes (optional but encouraged)
 
-`api`, `app`, `contracts`, `deps`, `ci`, `docs`
+`api`, `app`, `contracts`, `deps`, `ci`, `docs`, `sdk`, `types`, `monitoring`, `mobile`
+
+### Enforcing with commitlint and husky
+
+This project uses [commitlint](https://commitlint.js.org/) to enforce the conventional commit format on every commit. The git hook is managed by [husky](https://typicode.github.io/husky/).
+
+- **Local hook**: A `commit-msg` hook is installed via `pnpm prepare` (runs automatically after `pnpm install`). It validates every commit message against the rules in `commitlint.config.js` before allowing the commit.
+- **Manual check**: Run `pnpm commitlint` to validate the last commit message, or `npx commitlint --edit <file>` to validate a specific message file.
+- **CI**: The `Commit Lint` workflow re-checks every commit in a pull request, so messages that bypass the local hook (`--no-verify`, commits made in the GitHub web UI, or a clone where `pnpm install` was never run) still fail the PR. It is a required check, not advisory.
+- **PR title**: Pull requests are squash merged, so the PR title becomes the commit subject on `main`. It is linted by the same rules and must follow the convention too.
+
+If a commit is rejected with a commitlint error, fix the message and re-commit:
+
+```bash
+git commit --amend -m "feat(sdk): description that follows the convention"
+```
 
 ### Examples
 
@@ -137,6 +158,7 @@ Fill in all relevant sections. The templates include checklists specific to the 
 - 2-space indent, double quotes
 - Run `pnpm build` to catch type errors before pushing
 - Run `pnpm test` to ensure no regressions
+- All input validation schemas live in `src/validations/`. Do not create a separate `validators/` directory — add new Zod schemas as a file there and re-export them from `src/validations/index.ts`.
 
 ### Contracts (Rust)
 
@@ -146,6 +168,30 @@ Fill in all relevant sections. The templates include checklists specific to the 
 ### App (Next.js)
 
 See [packages/app/CONTRIBUTING.md](./packages/app/CONTRIBUTING.md) for frontend-specific conventions.
+
+---
+
+## Error Handling & Logging
+
+Both packages follow a single written standard: **[docs/ERROR_HANDLING_AND_LOGGING.md](./docs/ERROR_HANDLING_AND_LOGGING.md)**.
+Read it before adding an error path or a log line. In short:
+
+- **API:** throw `AppError` with an explicit `ErrorCode` and let the global `errorHandler` format the
+  response. Do not add new `try/catch` blocks in controllers that build their own JSON, and do not
+  add new callers of `handleError` or `sendError` — both drop `errorCode` and `traceId`.
+- **API logging:** use `createServiceLogger(name)` from `utils/logger.js`. Pass structured fields as
+  the first argument and the message as the second. No `console.*` in application code. 4xx logs at
+  `warn` or below; only 5xx logs at `error`.
+- **Correlation IDs:** the OpenTelemetry trace ID is the correlation ID. Read it with `getTraceId()`;
+  never invent a per-request UUID. Work that leaves the request context (queues, workers) must carry
+  `traceId` in its payload.
+- **App:** render `parseApiError(err).message` from `lib/errors.ts` — never a raw thrown message —
+  and branch on `code`/`retryable`, not on message text.
+- **Never log PII:** no bodies, headers, tokens, emails, or IP addresses.
+
+The document ends with a [review checklist](./docs/ERROR_HANDLING_AND_LOGGING.md#review-checklist);
+reviewers are expected to use it. `packages/api/src/__tests__/error-logging-conventions.test.ts`
+fails the build if the document and the code disagree.
 
 ---
 

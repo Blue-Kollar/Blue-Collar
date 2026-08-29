@@ -39,7 +39,7 @@ afterAll(async () => {
 
 beforeEach(async () => {
   if (!prisma) return;
-  const tables = ['Review', 'Message', 'Notification', 'Job', 'Worker', 'Location', 'User'];
+  const tables = ['Booking', 'Review', 'Message', 'Notification', 'Job', 'Worker', 'Location', 'User'];
   for (const table of tables) {
     try {
       await prisma.$executeRawUnsafe(`TRUNCATE TABLE "${table}" CASCADE;`);

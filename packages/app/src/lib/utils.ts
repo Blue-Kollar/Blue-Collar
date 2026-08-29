@@ -29,9 +29,13 @@ export function truncate(str: string, maxLength: number): string {
   return str.slice(0, maxLength).trimEnd() + "…";
 }
 
-export function formatWalletAddress(address: string): string {
-  if (address.length <= 8) return address;
-  return `${address.slice(0, 4)}…${address.slice(-4)}`;
+// Show first N and last N chars of a Stellar address (account or muxed): GABC…WXYZ
+export function formatStellarAddress(
+  address: string,
+  { prefixLength = 4, suffixLength = 4 }: { prefixLength?: number; suffixLength?: number } = {}
+): string {
+  if (!address || address.length <= prefixLength + suffixLength) return address;
+  return `${address.slice(0, prefixLength)}…${address.slice(-suffixLength)}`;
 }
 
 export function formatXLM(stroops: number | bigint): string {

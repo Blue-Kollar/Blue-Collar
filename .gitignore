@@ -1,6 +1,8 @@
 node_modules
 dist
 .env
+.env.local
+.env.*.local
 *.log
 .DS_Store
 storage/uploads/*
@@ -15,6 +17,14 @@ packages/api_backup/
 # Coverage reports
 coverage/
 .nyc_output/
+
+# Playwright
+playwright-report/
+test-results/
+
+# k6 load test results
+load-results/
+performance-results/
 
 # Build artifacts
 *.tsbuildinfo
@@ -53,3 +63,7 @@ package-lock.json
 *.tmp
 *.bak
 .cache/
+
+
+
+

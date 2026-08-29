@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { X, ChevronRight, ChevronLeft, Search, Bookmark, Wallet, Star, RotateCcw } from "lucide-react";
+import { X, ChevronRight, ChevronLeft, Search, Bookmark, Wallet, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const TOUR_KEY = "bc_tour_done";
@@ -39,31 +39,19 @@ const STEPS: Step[] = [
   },
 ];
 
-interface Props {
-  /** Force the tour to show regardless of localStorage (for restart) */
-  forceShow?: boolean;
-  onClose?: () => void;
-}
-
-export default function OnboardingTour({ forceShow, onClose }: Props) {
+export default function OnboardingTour() {
   const [visible, setVisible] = useState(false);
   const [step, setStep] = useState(0);
 
   useEffect(() => {
-    if (forceShow) {
-      setVisible(true);
-      setStep(0);
-      return;
-    }
     const done = localStorage.getItem(TOUR_KEY);
     if (!done) setVisible(true);
-  }, [forceShow]);
+  }, []);
 
   const close = useCallback(() => {
     localStorage.setItem(TOUR_KEY, "1");
     setVisible(false);
-    onClose?.();
-  }, [onClose]);
+  }, []);
 
   const next = () => {
     if (step < STEPS.length - 1) setStep((s) => s + 1);
@@ -161,26 +149,5 @@ export default function OnboardingTour({ forceShow, onClose }: Props) {
         )}
       </div>
     </div>
-  );
-}
-
-/** Small button to restart the tour — place anywhere in the UI */
-export function RestartTourButton({ className }: { className?: string }) {
-  const [show, setShow] = useState(false);
-
-  return (
-    <>
-      <button
-        type="button"
-        onClick={() => setShow(true)}
-        className={cn(
-          "flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs text-gray-500 hover:bg-gray-50 transition-colors",
-          className
-        )}
-      >
-        <RotateCcw size={12} /> Restart tour
-      </button>
-      {show && <OnboardingTour forceShow onClose={() => setShow(false)} />}
-    </>
   );
 }

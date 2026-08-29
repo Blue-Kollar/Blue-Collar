@@ -81,3 +81,6 @@ export function authorize(...roles: string[]) {
     next()
   }
 }
+
+/** Alias for authenticate — used by routes that prefer this naming style. */
+export const requireAuth = authenticate;

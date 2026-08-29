@@ -1,0 +1,18 @@
+[package]
+name = "bluecollar-payment"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+soroban-sdk = { version = "26.1.0", features = ["alloc"] }
+bluecollar-types = { path = "../types" }
+
+[dev-dependencies]
+soroban-sdk = { version = "26.1.0", features = ["testutils"] }
+
+[features]
+testutils = ["soroban-sdk/testutils"]

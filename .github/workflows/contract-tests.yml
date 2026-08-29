@@ -129,7 +129,7 @@ jobs:
       - name: Install stable toolchain with wasm target
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: wasm32-unknown-unknown
+          targets: wasm32v1-none
       - name: Cache cargo
         uses: actions/cache@v4
         with:
@@ -144,7 +144,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: contract-wasm
-          path: packages/contracts/target/wasm32-unknown-unknown/release/*.wasm
+          path: packages/contracts/target/wasm32v1-none/release/*.wasm
           if-no-files-found: error
 
   # ---------------------------------------------------------------------------

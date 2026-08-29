@@ -1,24 +1,19 @@
 /**
- * Validation schemas for user profile endpoints.
+ * User validation schemas for the API.
+ * Core schemas are imported from @bluecollar/types to stay in sync with the App.
  */
+import { z } from 'zod'
 
-// PATCH /users/me
-export const updateProfileRules = {
-  firstName: 'string',
-  lastName: 'string',
-  phone: 'string',
-  bio: 'string',
-}
+export {
+  updateProfileSchema as updateProfileRules,
+  changePasswordSchema as changePasswordRules,
+} from '@bluecollar/types'
 
-// PUT /users/me/password
-export const changePasswordRules = {
-  currentPassword: 'required|string',
-  newPassword: 'required|min:8',
-}
-
-// POST /users/me/push-subscription
-export const pushSubscriptionRules = {
-  endpoint: 'required|string',
-  'keys.auth': 'required|string',
-  'keys.p256dh': 'required|string',
-}
+// POST /users/me/push-subscription — API-only
+export const pushSubscriptionRules = z.object({
+  endpoint: z.string().url('Must be a valid URL'),
+  keys: z.object({
+    auth: z.string().min(1),
+    p256dh: z.string().min(1),
+  }),
+})

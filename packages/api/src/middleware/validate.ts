@@ -21,10 +21,10 @@ export function validate(schema: ZodSchema, target: 'body' | 'query' | 'params' 
         acc[field].push(err.message)
         return acc
       }, {})
-      return res.status(400).json({
+      return res.status(422).json({
         status: 'error',
         message: 'Validation failed',
-        code: 400,
+        code: 422,
         errors,
       })
     }
@@ -68,10 +68,10 @@ export const boundedString = z.string().max(MAX_FIELD_LENGTH, `Field exceeds max
 export function validateWalletAddress(req: Request, res: Response, next: NextFunction) {
   const result = walletAddressSchema.safeParse(req.body?.walletAddress)
   if (!result.success) {
-    return res.status(400).json({
+    return res.status(422).json({
       status: 'error',
       message: 'Invalid wallet address',
-      code: 400,
+      code: 422,
       errors: { walletAddress: result.error.errors.map((e) => e.message) },
     })
   }

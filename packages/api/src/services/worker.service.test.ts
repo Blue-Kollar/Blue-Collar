@@ -13,6 +13,12 @@ vi.mock('../db.js', () => ({
       delete: vi.fn(),
       count: vi.fn(),
     },
+    review: {
+      groupBy: vi.fn(),
+    },
+    searchAnalytics: {
+      create: vi.fn(),
+    },
   },
 }))
 
@@ -25,6 +31,19 @@ vi.mock('../models/worker.model.js', () => ({
     formatted: true,
   }),
 }))
+
+// WorkerCollection is a pure resource formatter — pass rows through unchanged
+// so tests can assert on the raw query results.
+vi.mock('../resources/index.js', () => ({
+  WorkerCollection: (workers: any[]) => workers,
+}))
+
+vi.mock('../utils/imageProcessor.js', () => ({
+  processImage: vi.fn(),
+  deleteImages: vi.fn(),
+}))
+
+import { processImage, deleteImages } from '../utils/imageProcessor.js'
 
 // Mock the logger
 vi.mock('../utils/logger.js', () => ({
@@ -434,5 +453,254 @@ describe('toggleWorker', () => {
     }
 
     expect(mockDb.worker.update).not.toHaveBeenCalled()
+  })
+})
+
+// ── listWorkersCursor ────────────────────────────────────────────────────────
+
+describe('listWorkersCursor', () => {
+  it('fetches one extra row to compute nextCursor and slices it off', async () => {
+    const rows = [createMockWorker({ id: 'w1' }), createMockWorker({ id: 'w2' }), createMockWorker({ id: 'w3' })]
+    mockDb.worker.findMany.mockResolvedValue(rows)
+
+    const result = await workerService.listWorkersCursor({ limit: 2 })
+
+    expect(mockDb.worker.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ take: 3, orderBy: { createdAt: 'desc' } }),
+    )
+    expect(result.data).toHaveLength(2)
+    expect(result.nextCursor).toBe('w2')
+  })
+
+  it('returns a null nextCursor on the last page', async () => {
+    mockDb.worker.findMany.mockResolvedValue([createMockWorker({ id: 'w1' })])
+
+    const result = await workerService.listWorkersCursor({ limit: 2 })
+
+    expect(result.nextCursor).toBeNull()
+  })
+
+  it('passes the cursor id and skip through to Prisma', async () => {
+    mockDb.worker.findMany.mockResolvedValue([])
+
+    await workerService.listWorkersCursor({ limit: 2, cursor: 'w1' })
+
+    expect(mockDb.worker.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ cursor: { id: 'w1' }, skip: 1 }),
+    )
+  })
+
+  it('filters by rating via a review groupBy subquery', async () => {
+    mockDb.worker.findMany.mockResolvedValue([])
+    mockDb.review.groupBy.mockResolvedValue([{ workerId: 'w1' }, { workerId: 'w2' }])
+
+    await workerService.listWorkersCursor({ limit: 2, minRating: 4 })
+
+    expect(mockDb.review.groupBy).toHaveBeenCalledWith(
+      expect.objectContaining({ having: { rating: { _avg: { gte: 4 } } } }),
+    )
+    expect(mockDb.worker.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: expect.objectContaining({ id: { in: ['w1', 'w2'] } }) }),
+    )
+  })
+})
+
+// ── listWorkersGeo ───────────────────────────────────────────────────────────
+
+describe('listWorkersGeo', () => {
+  it('filters by radius and sorts by distance ascending', async () => {
+    mockDb.worker.findMany.mockResolvedValue([
+      { id: 'far', location: { lat: 40.9, lng: -74.0 } },
+      { id: 'near', location: { lat: 40.71, lng: -74.0 } },
+    ])
+
+    const result = await workerService.listWorkersGeo({ lat: 40.7, lng: -74.0, radiusKm: 50, page: 1, limit: 10 })
+
+    expect(result.map((w: any) => w.id)).toEqual(['near', 'far'])
+  })
+
+  it('excludes workers outside the radius', async () => {
+    mockDb.worker.findMany.mockResolvedValue([
+      { id: 'in-range', location: { lat: 40.71, lng: -74.0 } },
+      { id: 'out-of-range', location: { lat: 55, lng: -74.0 } },
+    ])
+
+    const result = await workerService.listWorkersGeo({ lat: 40.7, lng: -74.0, radiusKm: 50, page: 1, limit: 10 })
+
+    expect(result.map((w: any) => w.id)).toEqual(['in-range'])
+  })
+
+  it('excludes workers with no location', async () => {
+    mockDb.worker.findMany.mockResolvedValue([{ id: 'no-loc', location: null }])
+
+    const result = await workerService.listWorkersGeo({ lat: 40.7, lng: -74.0, radiusKm: 50, page: 1, limit: 10 })
+
+    expect(result).toHaveLength(0)
+  })
+
+  it('paginates the in-memory result set', async () => {
+    mockDb.worker.findMany.mockResolvedValue([
+      { id: 'w1', location: { lat: 40.70, lng: -74.0 } },
+      { id: 'w2', location: { lat: 40.71, lng: -74.0 } },
+      { id: 'w3', location: { lat: 40.72, lng: -74.0 } },
+    ])
+
+    const result = await workerService.listWorkersGeo({ lat: 40.7, lng: -74.0, radiusKm: 50, page: 2, limit: 1 })
+
+    expect(result).toHaveLength(1)
+    expect(result[0].id).toBe('w2')
+  })
+})
+
+// ── getWorkerWithPortfolio ───────────────────────────────────────────────────
+
+describe('getWorkerWithPortfolio', () => {
+  it('returns the worker with its portfolio included', async () => {
+    const withPortfolio = { ...createMockWorker(), portfolio: [{ id: 'p1', order: 0 }] }
+    mockDb.worker.findUnique.mockResolvedValue(withPortfolio)
+
+    const result = await workerService.getWorkerWithPortfolio('worker-1')
+
+    expect(result).toEqual(withPortfolio)
+    expect(mockDb.worker.findUnique).toHaveBeenCalledWith({
+      where: { id: 'worker-1' },
+      include: { category: true, portfolio: { orderBy: { order: 'asc' } } },
+    })
+  })
+
+  it('returns null when the worker does not exist (no throw)', async () => {
+    mockDb.worker.findUnique.mockResolvedValue(null)
+
+    await expect(workerService.getWorkerWithPortfolio('nonexistent')).resolves.toBeNull()
+  })
+})
+
+// ── listMyWorkers ────────────────────────────────────────────────────────────
+
+describe('listMyWorkers', () => {
+  it('paginates workers owned by the given curator', async () => {
+    mockDb.worker.findMany.mockResolvedValue([createMockWorker()])
+    mockDb.worker.count.mockResolvedValue(1)
+
+    const result = await workerService.listMyWorkers('curator-1', 2, 10)
+
+    expect(mockDb.worker.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { curatorId: 'curator-1' }, skip: 10, take: 10 }),
+    )
+    expect(result.meta).toEqual({ total: 1, page: 2, limit: 10, pages: 1 })
+  })
+})
+
+// ── createWorkerWithMedia / updateWorkerWithMedia / deleteWorkerWithMedia ──────
+
+describe('createWorkerWithMedia', () => {
+  it('creates the worker without touching the image processor when no file is given', async () => {
+    mockDb.worker.create.mockResolvedValue(createMockWorker())
+
+    await workerService.createWorkerWithMedia({ name: 'Jane', categoryId: 'cat-1' }, 'curator-1')
+
+    expect(processImage).not.toHaveBeenCalled()
+    expect(mockDb.worker.create).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ name: 'Jane' }) }),
+    )
+  })
+
+  it('processes the upload and merges the resulting image fields into the create payload', async () => {
+    ;(processImage as any).mockResolvedValue({ thumb: 't.webp', medium: 'm.webp', full: 'f.webp' })
+    mockDb.worker.create.mockResolvedValue(createMockWorker())
+
+    await workerService.createWorkerWithMedia({ name: 'Jane', categoryId: 'cat-1' }, 'curator-1', { path: '/tmp/x.png' })
+
+    expect(processImage).toHaveBeenCalledWith('/tmp/x.png')
+    expect(mockDb.worker.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ imageThumb: 't.webp', imageMedium: 'm.webp', imageFull: 'f.webp', avatar: 'f.webp' }),
+      }),
+    )
+  })
+})
+
+describe('updateWorkerWithMedia', () => {
+  it('updates without touching images when no file is given', async () => {
+    mockDb.worker.update.mockResolvedValue(createMockWorker())
+
+    await workerService.updateWorkerWithMedia('worker-1', { name: 'New' }, undefined)
+
+    expect(deleteImages).not.toHaveBeenCalled()
+    expect(processImage).not.toHaveBeenCalled()
+    expect(mockDb.worker.update).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ name: 'New' }) }),
+    )
+  })
+
+  it('deletes the old image variants and processes the new one when a file is uploaded', async () => {
+    mockDb.worker.findUnique.mockResolvedValue({ imageFull: 'old-full.webp' })
+    ;(processImage as any).mockResolvedValue({ thumb: 't.webp', medium: 'm.webp', full: 'f.webp' })
+    mockDb.worker.update.mockResolvedValue(createMockWorker())
+
+    await workerService.updateWorkerWithMedia('worker-1', {}, { path: '/tmp/x.png' })
+
+    expect(deleteImages).toHaveBeenCalledWith('old-full.webp')
+    expect(processImage).toHaveBeenCalledWith('/tmp/x.png')
+    expect(mockDb.worker.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ imageThumb: 't.webp', imageMedium: 'm.webp', imageFull: 'f.webp' }),
+      }),
+    )
+  })
+
+  it('does not delete images when the existing worker has none', async () => {
+    mockDb.worker.findUnique.mockResolvedValue({ imageFull: null })
+    ;(processImage as any).mockResolvedValue({ thumb: 't.webp', medium: 'm.webp', full: 'f.webp' })
+    mockDb.worker.update.mockResolvedValue(createMockWorker())
+
+    await workerService.updateWorkerWithMedia('worker-1', {}, { path: '/tmp/x.png' })
+
+    expect(deleteImages).not.toHaveBeenCalled()
+  })
+})
+
+describe('deleteWorkerWithMedia', () => {
+  it('deletes existing image variants before soft-deleting the worker', async () => {
+    mockDb.worker.findUnique.mockResolvedValue({ imageFull: 'full.webp' })
+    mockDb.worker.update.mockResolvedValue({})
+
+    await workerService.deleteWorkerWithMedia('worker-1')
+
+    expect(deleteImages).toHaveBeenCalledWith('full.webp')
+    expect(mockDb.worker.update).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { id: 'worker-1' }, data: { deletedAt: expect.any(Date) } }),
+    )
+  })
+
+  it('skips image deletion when the worker has no image', async () => {
+    mockDb.worker.findUnique.mockResolvedValue({ imageFull: null })
+    mockDb.worker.update.mockResolvedValue({})
+
+    await workerService.deleteWorkerWithMedia('worker-1')
+
+    expect(deleteImages).not.toHaveBeenCalled()
+  })
+})
+
+// ── trackSearchAnalytics ─────────────────────────────────────────────────────
+
+describe('trackSearchAnalytics', () => {
+  it('writes a search analytics record', async () => {
+    mockDb.searchAnalytics.create.mockResolvedValue({})
+
+    await workerService.trackSearchAnalytics('plumber', 5, true, '127.0.0.1')
+
+    expect(mockDb.searchAnalytics.create).toHaveBeenCalledWith({
+      data: { query: 'plumber', resultsCount: 5, hasFilters: true, ipAddress: '127.0.0.1' },
+    })
+  })
+
+  it('silently swallows errors from the database', async () => {
+    mockDb.searchAnalytics.create.mockRejectedValue(new Error('table missing'))
+
+    await expect(
+      workerService.trackSearchAnalytics('plumber', 0, false, '127.0.0.1'),
+    ).resolves.toBeUndefined()
   })
 })

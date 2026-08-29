@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { injectFreighterMock, MOCK_WALLET_ADDRESS } from './freighter-mock'
 
 const BASE = process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3001'
 
@@ -35,5 +36,35 @@ test.describe('Payment and escrow flows', () => {
       // Page should render without crashing
       await expect(page.locator('body')).not.toContainText('Internal Server Error')
     }
+  })
+})
+
+test.describe('Escrow creation flow (mocked wallet)', () => {
+  test.beforeEach(async ({ page }) => {
+    await injectFreighterMock(page)
+  })
+
+  test('creates an escrow and reflects the resulting pending status in the UI', async ({ page }) => {
+    await page.goto(`${BASE}/en/escrow`)
+
+    const connectButton = page.locator('button:has-text("Connect Wallet")')
+    if (await connectButton.count() > 0) {
+      await connectButton.click()
+    }
+
+    const amountInput = page.locator('#amount')
+    await expect(amountInput).toBeVisible({ timeout: 15_000 })
+
+    await amountInput.fill('50')
+    await page.locator('#counterparty').fill(MOCK_WALLET_ADDRESS)
+    await page.locator('#terms').fill('Deliver the agreed work before funds are released.')
+    await page.locator('button[type="submit"]').click()
+
+    // The page simulates escrow submission asynchronously — assert the resulting
+    // record renders with the real data entered, not just that a request fired.
+    await expect(page.getByText('Your Escrows (1)')).toBeVisible({ timeout: 10_000 })
+    await expect(page.getByText('Pending').first()).toBeVisible()
+    await expect(page.getByText('50 XLM').first()).toBeVisible()
+    await expect(page.getByText(MOCK_WALLET_ADDRESS).first()).toBeVisible()
   })
 })

@@ -1,10 +1,15 @@
 /**
- * Unit tests for the workers controller (src/controllers/workers.ts).
+ * Auth middleware tests (authenticate/authorize — see middleware/auth.ts),
+ * plus request→service wiring tests for the workers controller
+ * (src/controllers/workers.ts; deeper controller coverage lives in
+ * controllers/workers.test.ts, and service-level behavior in
+ * services/worker.service.test.ts).
  *
- * Auth (401/403) is enforced by the authenticate/authorize middleware, not the
- * controller itself, so those middleware functions are tested directly here.
- * Ownership-based 403s are tested by having the service mock throw AppError(403),
- * verifying the controller propagates them correctly via handleError.
+ * The worker.service.ts layer does not currently enforce per-worker
+ * ownership (any curator can update/delete/toggle any worker's listing) —
+ * the 403 propagation tests below only verify that *if* the service ever
+ * throws an AppError, the controller translates it via handleError; they
+ * are not asserting that ownership is checked today.
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
@@ -17,19 +22,23 @@ process.env.JWT_SECRET = "test-secret";
 // ─── Mocks ────────────────────────────────────────────────────────────────────
 
 vi.mock("../services/worker.service.js", () => ({
+  listWorkersCursor: vi.fn(),
+  listWorkersGeo: vi.fn(),
   listWorkers: vi.fn(),
-  getWorker: vi.fn(),
-  createWorker: vi.fn(),
-  updateWorker: vi.fn(),
-  deleteWorker: vi.fn(),
+  getWorkerWithPortfolio: vi.fn(),
+  createWorkerWithMedia: vi.fn(),
+  updateWorkerWithMedia: vi.fn(),
+  deleteWorkerWithMedia: vi.fn(),
   toggleWorker: vi.fn(),
+  listMyWorkers: vi.fn(),
 }));
 
-vi.mock("../db.js", () => ({
-  db: {
-    worker: { findMany: vi.fn(), count: vi.fn() },
-    review: { groupBy: vi.fn() },
-  },
+// search.service/stellar.service (imported by the controller) transitively
+// import the real db.ts; stub it so nothing in this file touches Prisma.
+vi.mock("../db.js", () => ({ db: {} }));
+
+vi.mock("../middleware/cache.js", () => ({
+  invalidateCachePattern: vi.fn().mockResolvedValue(undefined),
 }));
 
 // Pass workers through unchanged so tests assert on the raw mock data
@@ -45,7 +54,6 @@ vi.mock("../config/env.js", () => ({
 // ─── Imports (after mocks) ────────────────────────────────────────────────────
 
 import * as workerService from "../services/worker.service.js";
-import { db } from "../db.js";
 import {
   listWorkers,
   showWorker,
@@ -185,14 +193,14 @@ describe("listWorkers", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("returns first page in cursor mode when page is absent", async () => {
-    (db.worker.findMany as any).mockResolvedValue([mockWorker]);
+    (workerService.listWorkersCursor as any).mockResolvedValue({ data: [mockWorker], nextCursor: null });
     const req = makeReq({ query: {} });
     const res = makeRes();
 
     await listWorkers(req, res);
 
-    expect(db.worker.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({ take: 21, orderBy: { createdAt: "desc" } }),
+    expect(workerService.listWorkersCursor).toHaveBeenCalledWith(
+      expect.objectContaining({ limit: 20 }),
     );
     const body = res.json.mock.calls[0][0];
     expect(body.status).toBe("success");
@@ -202,27 +210,29 @@ describe("listWorkers", () => {
     expect(body.data).toHaveLength(1);
   });
 
-  it("returns second page using a Prisma cursor", async () => {
-    (db.worker.findMany as any).mockResolvedValue([
-      { ...mockWorker, id: "worker-2" },
-      { ...mockWorker, id: "worker-3" },
-      { ...mockWorker, id: "worker-4" },
-    ]);
+  it("passes the cursor and limit through to the service", async () => {
+    (workerService.listWorkersCursor as any).mockResolvedValue({
+      data: [{ ...mockWorker, id: "worker-3" }, { ...mockWorker, id: "worker-4" }],
+      nextCursor: "worker-4",
+    });
     const req = makeReq({ query: { cursor: "worker-1", limit: "2" } });
     const res = makeRes();
 
     await listWorkers(req, res);
 
-    expect(db.worker.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({ cursor: { id: "worker-1" }, skip: 1, take: 3 }),
+    expect(workerService.listWorkersCursor).toHaveBeenCalledWith(
+      expect.objectContaining({ cursor: "worker-1", limit: 2 }),
     );
     const body = res.json.mock.calls[0][0];
     expect(body.data).toHaveLength(2);
-    expect(body.nextCursor).toBe("worker-3");
+    expect(body.nextCursor).toBe("worker-4");
   });
 
   it("returns null nextCursor on the last cursor page", async () => {
-    (db.worker.findMany as any).mockResolvedValue([{ ...mockWorker, id: "worker-9" }]);
+    (workerService.listWorkersCursor as any).mockResolvedValue({
+      data: [{ ...mockWorker, id: "worker-9" }],
+      nextCursor: null,
+    });
     const req = makeReq({ query: { cursor: "worker-8", limit: "2" } });
     const res = makeRes();
 
@@ -256,7 +266,7 @@ describe("listWorkers", () => {
       data: [mockWorker],
       meta: { total: 1, page: 1, limit: 20, pages: 1 },
     });
-    const req = makeReq({ query: { category: "cat-1" } });
+    const req = makeReq({ query: { page: "1", category: "cat-1" } });
     const res = makeRes();
 
     await listWorkers(req, res);
@@ -271,7 +281,7 @@ describe("listWorkers", () => {
       data: [],
       meta: { total: 0, page: 1, limit: 20, pages: 0 },
     });
-    const req = makeReq({ query: { search: "plumber" } });
+    const req = makeReq({ query: { page: "1", search: "plumber" } });
     const res = makeRes();
 
     await listWorkers(req, res);
@@ -288,7 +298,7 @@ describe("showWorker", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("returns 200 with worker data when the worker exists", async () => {
-    (workerService.getWorker as any).mockResolvedValue(mockWorker);
+    (workerService.getWorkerWithPortfolio as any).mockResolvedValue(mockWorker);
     const req = makeReq({ params: { id: "worker-1" } });
     const res = makeRes();
 
@@ -298,13 +308,11 @@ describe("showWorker", () => {
     expect(body.status).toBe("success");
     expect(body.code).toBe(200);
     expect(body.data).toBeDefined();
-    expect(workerService.getWorker).toHaveBeenCalledWith("worker-1");
+    expect(workerService.getWorkerWithPortfolio).toHaveBeenCalledWith("worker-1");
   });
 
   it("returns 404 when the worker does not exist", async () => {
-    (workerService.getWorker as any).mockRejectedValue(
-      new AppError("Not found", 404),
-    );
+    (workerService.getWorkerWithPortfolio as any).mockResolvedValue(null);
     const req = makeReq({ params: { id: "ghost-id" } });
     const res = makeRes();
 
@@ -323,7 +331,7 @@ describe("createWorker", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("returns 201 with the new worker as an authorized curator", async () => {
-    (workerService.createWorker as any).mockResolvedValue(mockWorker);
+    (workerService.createWorkerWithMedia as any).mockResolvedValue(mockWorker);
     const req = makeReq({
       body: { name: "John Smith", categoryId: "cat-1", phone: "555-0100" },
       user: { id: "curator-1", role: "curator" },
@@ -336,9 +344,10 @@ describe("createWorker", () => {
     const body = res.json.mock.calls[0][0];
     expect(body.status).toBe("success");
     expect(body.code).toBe(201);
-    expect(workerService.createWorker).toHaveBeenCalledWith(
+    expect(workerService.createWorkerWithMedia).toHaveBeenCalledWith(
       expect.objectContaining({ name: "John Smith" }),
       "curator-1",
+      undefined,
     );
   });
 });
@@ -348,9 +357,9 @@ describe("createWorker", () => {
 describe("updateWorker", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it("returns 200 with updated worker data as the owner curator", async () => {
+  it("returns 200 with updated worker data", async () => {
     const updated = { ...mockWorker, name: "Updated Name" };
-    (workerService.updateWorker as any).mockResolvedValue(updated);
+    (workerService.updateWorkerWithMedia as any).mockResolvedValue(updated);
     const req = makeReq({
       params: { id: "worker-1" },
       body: { name: "Updated Name" },
@@ -363,13 +372,13 @@ describe("updateWorker", () => {
     const body = res.json.mock.calls[0][0];
     expect(body.status).toBe("success");
     expect(body.code).toBe(200);
-    expect(workerService.updateWorker).toHaveBeenCalledWith("worker-1", {
-      name: "Updated Name",
-    });
+    expect(workerService.updateWorkerWithMedia).toHaveBeenCalledWith(
+      "worker-1", { name: "Updated Name" }, undefined, "curator-1",
+    );
   });
 
-  it("returns 403 when the service rejects a non-owner curator", async () => {
-    (workerService.updateWorker as any).mockRejectedValue(
+  it("propagates a 403 the service throws (e.g. a future ownership check)", async () => {
+    (workerService.updateWorkerWithMedia as any).mockRejectedValue(
       new AppError("Forbidden", 403),
     );
     const req = makeReq({
@@ -388,7 +397,7 @@ describe("updateWorker", () => {
   });
 
   it("returns 404 when the worker does not exist", async () => {
-    (workerService.updateWorker as any).mockRejectedValue(
+    (workerService.updateWorkerWithMedia as any).mockRejectedValue(
       new AppError("Not found", 404),
     );
     const req = makeReq({
@@ -412,8 +421,8 @@ describe("updateWorker", () => {
 describe("deleteWorker", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it("returns 204 when the owner curator deletes their worker", async () => {
-    (workerService.deleteWorker as any).mockResolvedValue(undefined);
+  it("returns 204 on success", async () => {
+    (workerService.deleteWorkerWithMedia as any).mockResolvedValue(undefined);
     const req = makeReq({
       params: { id: "worker-1" },
       user: { id: "curator-1", role: "curator" },
@@ -424,11 +433,11 @@ describe("deleteWorker", () => {
 
     expect(res.status).toHaveBeenCalledWith(204);
     expect(res.send).toHaveBeenCalled();
-    expect(workerService.deleteWorker).toHaveBeenCalledWith("worker-1");
+    expect(workerService.deleteWorkerWithMedia).toHaveBeenCalledWith("worker-1");
   });
 
-  it("returns 403 when the service rejects a non-owner curator", async () => {
-    (workerService.deleteWorker as any).mockRejectedValue(
+  it("propagates a 403 the service throws (e.g. a future ownership check)", async () => {
+    (workerService.deleteWorkerWithMedia as any).mockRejectedValue(
       new AppError("Forbidden", 403),
     );
     const req = makeReq({

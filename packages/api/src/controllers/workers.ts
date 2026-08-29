@@ -1,136 +1,100 @@
 import type { Request, Response } from 'express'
 import * as workerService from '../services/worker.service.js'
-import { searchWorkers } from '../services/search.service.js'
+import * as searchService from '../services/search.service.js'
 import { handleError } from '../utils/handleError.js'
-import { db } from '../db.js'
-import { WorkerResource, WorkerCollection } from '../resources/index.js'
+import { catchAsync } from '../utils/catchAsync.js'
 import { workerSerializer } from '../serializers/index.js'
-import type { CreateWorkerBody, UpdateWorkerBody, WorkerQuery } from '../interfaces/index.js'
+import type { CreateWorkerBody, UpdateWorkerBody } from '../interfaces/index.js'
 import { invalidateCachePattern } from '../middleware/cache.js'
-import { processImage, deleteImages } from '../utils/imageProcessor.js'
 import { getWorkerReputation, syncReputationToDb } from '../services/stellar.service.js'
 
-// Haversine distance in km between two lat/lng points
-function haversine(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371
-  const dLat = ((lat2 - lat1) * Math.PI) / 180
-  const dLon = ((lon2 - lon1) * Math.PI) / 180
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) ** 2
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+// Parse a comma-separated ?fields= query param into a set for O(1) lookup.
+// An empty/absent param means "return all fields".
+function parseFields(raw: unknown): Set<string> | null {
+  if (!raw) return null
+  const fields = String(raw).split(',').map(f => f.trim()).filter(Boolean)
+  return fields.length > 0 ? new Set(fields) : null
 }
 
-export async function listWorkers(req: Request, res: Response) {
-  const {
-    category, page, cursor, limit = '20', lat, lng, radius,
-    search, lang, city, state, country,
-    minRating, maxRating, available, listedSince,
-    categories, sortBy, sortOrder, isVerified,
-  } = req.query
-  const limitNum = Math.min(Math.max(Number(limit) || 20, 1), 100)
+// Apply a sparse fieldset to an object, keeping only the requested keys.
+function sparseFields(
+  obj: Record<string, unknown>,
+  fields: Set<string> | null,
+): Record<string, unknown> {
+  if (!fields) return obj
+  return Object.fromEntries([...fields].filter(f => f in obj).map(f => [f, obj[f]]))
+}
 
-  if (!page && !lat && !lng) {
-    const categoryIds = categories
-      ? String(categories).split(',').map(s => s.trim()).filter(Boolean)
-      : undefined
-    const categoryFilter = categoryIds && categoryIds.length > 0
-      ? { categoryId: { in: categoryIds } }
-      : category
-      ? { categoryId: String(category) }
-      : {}
-    const where: any = {
-      isActive: true,
-      ...categoryFilter,
-      ...(isVerified !== undefined ? { isVerified: isVerified === 'true' } : {}),
-      ...(city || state || country
-        ? {
-            location: {
-              ...(city ? { city: { contains: String(city), mode: 'insensitive' as const } } : {}),
-              ...(state ? { state: { contains: String(state), mode: 'insensitive' as const } } : {}),
-              ...(country ? { country: { contains: String(country), mode: 'insensitive' as const } } : {}),
-            },
-          }
-        : {}),
-      ...(available !== undefined ? { availability: { some: { dayOfWeek: Number(available) } } } : {}),
-      ...(listedSince
-        ? { createdAt: { gte: new Date(Date.now() - Number(listedSince) * 365 * 24 * 60 * 60 * 1000) } }
-        : {}),
-      ...(search ? { name: { contains: String(search), mode: 'insensitive' as const } } : {}),
-    }
-
-    if (minRating !== undefined || maxRating !== undefined) {
-      const havingClause: any = {}
-      if (minRating !== undefined) havingClause.gte = Number(minRating)
-      if (maxRating !== undefined) havingClause.lte = Number(maxRating)
-      const qualifiedIds = await db.review.groupBy({
-        by: ['workerId'],
-        _avg: { rating: true },
-        having: { rating: { _avg: havingClause } },
-      })
-      where.id = { in: qualifiedIds.map((r: { workerId: string }) => r.workerId) }
-    }
-
-    const rows = await db.worker.findMany({
-      where,
-      ...(cursor ? { cursor: { id: String(cursor) }, skip: 1 } : {}),
-      take: limitNum + 1,
-      include: { category: true, curator: true },
-      orderBy: { createdAt: 'desc' },
-    })
-    const data = rows.slice(0, limitNum)
-
-    return res.json({
-      data: WorkerCollection(data as any),
-      nextCursor: rows.length > limitNum ? data[data.length - 1]?.id ?? null : null,
-      limit: limitNum,
-      status: 'success',
-      code: 200,
-    })
-  }
-
-  // Geo search: if lat/lng/radius provided, filter by proximity using Haversine
-  if (lat && lng) {
-    const userLat = Number(lat)
-    const userLng = Number(lng)
-    const radiusKm = radius ? Number(radius) : 10
-
-    if (isNaN(userLat) || isNaN(userLng) || isNaN(radiusKm))
-      return res.status(400).json({ status: 'error', message: 'Invalid lat, lng, or radius', code: 400 })
-
-    // Bounding box pre-filter (1 degree ≈ 111 km)
-    const delta = radiusKm / 111
-    const workers = await db.worker.findMany({
-      where: {
-        isActive: true,
-        location: {
-          lat: { gte: userLat - delta, lte: userLat + delta },
-          lng: { gte: userLng - delta, lte: userLng + delta },
-        },
-        ...(category ? { categoryId: String(category) } : {}),
-      },
-      include: { category: true, location: true },
-    })
-
-    const withDistance = workers
-      .filter(w => w.location?.lat != null && w.location?.lng != null)
-      .map(w => ({ ...w, distanceKm: haversine(userLat, userLng, w.location!.lat!, w.location!.lng!) }))
-      .filter(w => w.distanceKm <= radiusKm)
-      .sort((a, b) => a.distanceKm - b.distanceKm)
-
-    const pageNum = Number(page)
-    const paginated = withDistance.slice((pageNum - 1) * limitNum, pageNum * limitNum)
-    return res.json({ data: paginated, status: 'success', code: 200 })
-  }
-
-  // Parse multi-category: ?categories=id1,id2,id3
-  const categoryIds = categories
+function parseCategoryIds(categories: unknown): string[] | undefined {
+  return categories
     ? String(categories).split(',').map(s => s.trim()).filter(Boolean)
     : undefined
+}
+
+// Cursor-paginated mode: no `page`/`lat`/`lng` query params.
+async function listWorkersCursorMode(query: Record<string, unknown>, fieldSet: Set<string> | null, limitNum: number, res: Response) {
+  const {
+    category, categories, isVerified, city, state, country,
+    available, listedSince, minRating, maxRating, search, cursor,
+  } = query
+
+  const result = await workerService.listWorkersCursor({
+    category: category ? String(category) : undefined,
+    categories: parseCategoryIds(categories),
+    isVerified: isVerified !== undefined ? isVerified === 'true' : undefined,
+    city: city ? String(city) : undefined,
+    state: state ? String(state) : undefined,
+    country: country ? String(country) : undefined,
+    available: available !== undefined ? Number(available) : undefined,
+    listedSince: listedSince !== undefined ? Number(listedSince) : undefined,
+    minRating: minRating !== undefined ? Number(minRating) : undefined,
+    maxRating: maxRating !== undefined ? Number(maxRating) : undefined,
+    search: search ? String(search) : undefined,
+    cursor: cursor ? String(cursor) : undefined,
+    limit: limitNum,
+  })
+
+  return res.json({
+    data: result.data.map(w => sparseFields(w as Record<string, unknown>, fieldSet)),
+    nextCursor: result.nextCursor,
+    limit: limitNum,
+    status: 'success',
+    code: 200,
+  })
+}
+
+// Geo-radius mode: `lat`/`lng` (optionally `radius`, `page`) query params.
+async function listWorkersGeoMode(query: Record<string, unknown>, fieldSet: Set<string> | null, limitNum: number, res: Response) {
+  const { category, page, lat, lng, radius } = query
+  const userLat = Number(lat)
+  const userLng = Number(lng)
+  const radiusKm = radius ? Number(radius) : 10
+
+  if (isNaN(userLat) || isNaN(userLng) || isNaN(radiusKm))
+    return res.status(400).json({ status: 'error', message: 'Invalid lat, lng, or radius', code: 400 })
+
+  const paginated = await workerService.listWorkersGeo({
+    lat: userLat, lng: userLng, radiusKm,
+    category: category ? String(category) : undefined,
+    page: Number(page),
+    limit: limitNum,
+  })
+  const geoData = fieldSet
+    ? paginated.map(w => sparseFields(w as Record<string, unknown>, fieldSet))
+    : paginated
+  return res.json({ data: geoData, status: 'success', code: 200 })
+}
+
+// Offset-paginated mode (default): `page` provided without `lat`/`lng`.
+async function listWorkersOffsetMode(query: Record<string, unknown>, fieldSet: Set<string> | null, limitNum: number, res: Response) {
+  const {
+    category, categories, page, search, lang, city, state, country,
+    minRating, maxRating, available, listedSince, sortBy, sortOrder, isVerified,
+  } = query
 
   const result = await workerService.listWorkers({
     category: category ? String(category) : undefined,
-    categories: categoryIds,
+    categories: parseCategoryIds(categories),
     page: Number(page ?? 1),
     limit: limitNum,
     search: search ? String(search) : undefined,
@@ -147,21 +111,36 @@ export async function listWorkers(req: Request, res: Response) {
     isVerified: isVerified !== undefined ? isVerified === 'true' : undefined,
   })
 
-  return res.json({ ...result, status: 'success', code: 200 })
+  const resultData = fieldSet && Array.isArray((result as any).data)
+    ? { ...result, data: (result as any).data.map((w: Record<string, unknown>) => sparseFields(w, fieldSet)) }
+    : result
+  return res.json({ ...resultData, status: 'success', code: 200 })
+}
+
+export async function listWorkers(req: Request, res: Response) {
+  const query = req.query as Record<string, unknown>
+  const { page, lat, lng, limit = '20', fields: fieldsParam } = query
+  const limitNum = Math.min(Math.max(Number(limit) || 20, 1), 100)
+  const fieldSet = parseFields(fieldsParam)
+
+  if (!page && !lat && !lng) return listWorkersCursorMode(query, fieldSet, limitNum, res)
+  if (lat && lng) return listWorkersGeoMode(query, fieldSet, limitNum, res)
+  return listWorkersOffsetMode(query, fieldSet, limitNum, res)
 }
 
 /**
  * GET /api/workers/:id
- * Get a single worker by id.
+ * Get a single worker by id, with its portfolio.
+ *
+ * Not currently wired to a route — `showWorkerWithRatings` in
+ * `routes/workers.ts` serves `GET /:id` instead — but kept and tested since
+ * other code may still import it directly.
  *
  * @param req - Route param `id`.
  * @param res - JSON `{ data: Worker, status, code }` or 404.
  */
 export async function showWorker(req: Request, res: Response) {
-  const worker = await db.worker.findUnique({
-    where: { id: req.params.id },
-    include: { category: true, portfolio: { orderBy: { order: 'asc' } } },
-  })
+  const worker = await workerService.getWorkerWithPortfolio(req.params.id)
   if (!worker) return res.status(404).json({ status: 'error', message: 'Not found', code: 404 })
   return res.json({ data: worker, status: 'success', code: 200 })
 }
@@ -175,12 +154,7 @@ export async function showWorker(req: Request, res: Response) {
  */
 export async function createWorker(req: Request<{}, {}, CreateWorkerBody>, res: Response) {
   try {
-    let imageFields: Record<string, string> = {}
-    if (req.file) {
-      const imgs = await processImage(req.file.path)
-      imageFields = { imageThumb: imgs.thumb, imageMedium: imgs.medium, imageFull: imgs.full, avatar: imgs.full }
-    }
-    const worker = await workerService.createWorker({ ...req.body, ...imageFields }, req.user!.id)
+    const worker = await workerService.createWorkerWithMedia(req.body, req.user!.id, req.file)
     await invalidateCachePattern(`cache:*workers?*`)
     return res.status(201).json({
       data: workerSerializer.serialize(worker as any),
@@ -216,16 +190,7 @@ export async function createWorker(req: Request<{}, {}, CreateWorkerBody>, res: 
  */
 export async function updateWorker(req: Request<{ id: string }, {}, UpdateWorkerBody>, res: Response) {
   try {
-    let imageFields: Record<string, string> = {}
-    if (req.file) {
-      // Delete old images before writing new ones
-      const existing = await db.worker.findUnique({ where: { id: req.params.id }, select: { imageFull: true } })
-      if (existing?.imageFull) deleteImages(existing.imageFull)
-
-      const imgs = await processImage(req.file.path)
-      imageFields = { imageThumb: imgs.thumb, imageMedium: imgs.medium, imageFull: imgs.full, avatar: imgs.full }
-    }
-    const worker = await workerService.updateWorker(req.params.id, { ...req.body, ...imageFields })
+    const worker = await workerService.updateWorkerWithMedia(req.params.id, req.body, req.file, req.user?.id)
     await invalidateCachePattern(`cache:*workers/${req.params.id}*`)
     await invalidateCachePattern(`cache:*workers?*`)
     return res.json({
@@ -247,9 +212,7 @@ export async function updateWorker(req: Request<{ id: string }, {}, UpdateWorker
  */
 export async function deleteWorker(req: Request, res: Response) {
   try {
-    const existing = await db.worker.findUnique({ where: { id: req.params.id as string }, select: { imageFull: true } })
-    if (existing?.imageFull) deleteImages(existing.imageFull)
-    await workerService.deleteWorker(req.params.id as string)
+    await workerService.deleteWorkerWithMedia(req.params.id as string)
     await invalidateCachePattern(`cache:*workers/${req.params.id}*`)
     await invalidateCachePattern(`cache:*workers?*`)
     return res.status(204).send()
@@ -289,139 +252,88 @@ export async function toggleActivation(req: Request, res: Response) {
  */
 export async function listMyWorkers(req: Request, res: Response) {
   const { page = '1', limit = '20' } = req.query
-  const curatorId = req.user!.id
-  const where = { curatorId }
-  const [workers, total] = await Promise.all([
-    db.worker.findMany({
-      where,
-      skip: (Number(page) - 1) * Number(limit),
-      take: Number(limit),
-      include: { category: true },
-      orderBy: { createdAt: 'desc' },
+  const result = await workerService.listMyWorkers(req.user!.id, Number(page), Number(limit))
+  return res.json({ ...result, status: 'success', code: 200 })
+}
+
+export type SearchService = Pick<typeof searchService, 'searchWorkers' | 'performAdvancedSearch'>
+
+/**
+ * Builds the /search route handlers on top of an injected search service.
+ * Defaults to the real `search.service.js` module so route wiring is
+ * unchanged; tests can pass a fake service to exercise handlers in isolation.
+ */
+export function createSearchHandlers(service: SearchService = searchService) {
+  return {
+    /**
+     * GET /api/workers/search
+     * Full-text worker search with ranked results, geo radius, rating, and availability filters.
+     * Issue #747
+     */
+    searchWorkersHandler: catchAsync(async (req: Request, res: Response) => {
+      const {
+        q, query, lang, lat, lng, radius,
+        categories, minRating, maxRating,
+        dayOfWeek, isVerified, sortBy,
+        page = '1', limit = '20',
+      } = req.query
+
+      const result = await service.searchWorkers({
+        query: (q || query) ? String(q ?? query) : undefined,
+        lang: lang ? String(lang) : undefined,
+        lat: lat ? Number(lat) : undefined,
+        lng: lng ? Number(lng) : undefined,
+        radius: radius ? Number(radius) : undefined,
+        categories: categories ? String(categories).split(',').map(c => c.trim()).filter(Boolean) : undefined,
+        minRating: minRating ? Number(minRating) : undefined,
+        maxRating: maxRating ? Number(maxRating) : undefined,
+        dayOfWeek: dayOfWeek !== undefined ? Number(dayOfWeek) : undefined,
+        isVerified: isVerified !== undefined ? isVerified === 'true' : undefined,
+        sortBy: sortBy as any,
+        page: Number(page),
+        limit: Math.min(Math.max(Number(limit) || 20, 1), 100),
+      }, req.ip)
+
+      return res.json({ ...result, status: 'success', code: 200 })
     }),
-    db.worker.count({ where }),
-  ])
-  return res.json({
-    data: workers,
-    meta: { total, page: Number(page), limit: Number(limit), pages: Math.ceil(total / Number(limit)) },
-    status: 'success',
-    code: 200,
-  })
-}
 
-/**
- * GET /api/workers/search
- * Full-text worker search with ranked results, geo radius, rating, and availability filters.
- * Issue #747
- */
-export async function searchWorkersHandler(req: Request, res: Response) {
-  try {
-    const {
-      q, query, lang, lat, lng, radius,
-      categories, minRating, maxRating,
-      dayOfWeek, isVerified, sortBy,
-      page = '1', limit = '20',
-    } = req.query
+    /**
+     * GET /api/workers/search/advanced
+     * Advanced search with filtering by location, rating, availability, and categories.
+     *
+     * @param req - Query params: query, lat, lng, radius, categories, minRating, maxRating, dayOfWeek, startTime, endTime, isVerified, sortBy, page, limit
+     * @param res - JSON with paginated results, total count, and hasMore flag
+     */
+    advancedSearch: catchAsync(async (req: Request, res: Response) => {
+      const {
+        query, lat, lng, radius, categories, minRating, maxRating,
+        dayOfWeek, startTime, endTime, isVerified, sortBy,
+        page = '1', limit = '20',
+      } = req.query
 
-    const result = await searchWorkers({
-      query: (q || query) ? String(q ?? query) : undefined,
-      lang: lang ? String(lang) : undefined,
-      lat: lat ? Number(lat) : undefined,
-      lng: lng ? Number(lng) : undefined,
-      radius: radius ? Number(radius) : undefined,
-      categories: categories ? String(categories).split(',').map(c => c.trim()).filter(Boolean) : undefined,
-      minRating: minRating ? Number(minRating) : undefined,
-      maxRating: maxRating ? Number(maxRating) : undefined,
-      dayOfWeek: dayOfWeek !== undefined ? Number(dayOfWeek) : undefined,
-      isVerified: isVerified !== undefined ? isVerified === 'true' : undefined,
-      sortBy: sortBy as any,
-      page: Number(page),
-      limit: Math.min(Math.max(Number(limit) || 20, 1), 100),
-    }, req.ip)
+      const result = await service.performAdvancedSearch({
+        query: query ? String(query) : undefined,
+        lat: lat ? Number(lat) : undefined,
+        lng: lng ? Number(lng) : undefined,
+        radius: radius ? Number(radius) : undefined,
+        categories: categories ? String(categories).split(',').map(c => c.trim()).filter(Boolean) : undefined,
+        minRating: minRating ? Number(minRating) : undefined,
+        maxRating: maxRating ? Number(maxRating) : undefined,
+        dayOfWeek: dayOfWeek ? Number(dayOfWeek) : undefined,
+        startTime: startTime ? String(startTime) : undefined,
+        endTime: endTime ? String(endTime) : undefined,
+        isVerified: isVerified !== undefined ? isVerified === 'true' : undefined,
+        sortBy: sortBy ? String(sortBy) : undefined,
+        page: Number(page),
+        limit: Number(limit),
+      }, req.ip || 'unknown')
 
-    return res.json({ ...result, status: 'success', code: 200 })
-  } catch (error) {
-    return handleError(res, error)
+      return res.json({ ...result, status: 'success', code: 200 })
+    }),
   }
 }
 
-/**
- * GET /api/workers/search/advanced
- * Advanced search with filtering by location, rating, availability, and categories.
- *
- * @param req - Query params: query, lat, lng, radius, categories, minRating, maxRating, dayOfWeek, startTime, endTime, isVerified, sortBy, page, limit
- * @param res - JSON with paginated results, total count, and hasMore flag
- */
-export async function advancedSearch(req: Request, res: Response) {
-  try {
-    const {
-      query,
-      lat,
-      lng,
-      radius,
-      categories,
-      minRating,
-      maxRating,
-      dayOfWeek,
-      startTime,
-      endTime,
-      isVerified,
-      sortBy,
-      page = '1',
-      limit = '20',
-    } = req.query
-
-    const limitNum = Math.min(Math.max(Number(limit) || 20, 1), 100)
-    const pageNum = Math.max(Number(page) || 1, 1)
-    const skip = (pageNum - 1) * limitNum
-
-    const result = await workerService.advancedSearch({
-      query: query ? String(query) : undefined,
-      lat: lat ? Number(lat) : undefined,
-      lng: lng ? Number(lng) : undefined,
-      radius: radius ? Number(radius) : undefined,
-      categories: categories ? String(categories).split(',').map(c => c.trim()).filter(Boolean) : undefined,
-      minRating: minRating ? Number(minRating) : undefined,
-      maxRating: maxRating ? Number(maxRating) : undefined,
-      dayOfWeek: dayOfWeek ? Number(dayOfWeek) : undefined,
-      startTime: startTime ? String(startTime) : undefined,
-      endTime: endTime ? String(endTime) : undefined,
-      isVerified: isVerified !== undefined ? isVerified === 'true' : undefined,
-      sortBy: sortBy ? String(sortBy) : undefined,
-      skip,
-      take: limitNum,
-    })
-
-    // Track search analytics
-    if (query) {
-      await db.searchAnalytics?.create?.({
-        data: {
-          query: String(query),
-          resultsCount: result.data.length,
-          hasFilters: !!(lat || categories || minRating),
-          ipAddress: req.ip || 'unknown',
-        },
-      }).catch(() => {
-        // Silently fail if analytics table doesn't exist
-      })
-    }
-
-    return res.json({
-      data: result.data.map(w => WorkerResource(w)),
-      meta: {
-        total: result.total,
-        page: pageNum,
-        limit: limitNum,
-        hasMore: result.hasMore,
-        pages: Math.ceil(result.total / limitNum),
-      },
-      status: 'success',
-      code: 200,
-    })
-  } catch (error) {
-    return handleError(res, error)
-  }
-}
+export const { searchWorkersHandler, advancedSearch } = createSearchHandlers()
 
 /**
  * GET /api/workers/:id/reputation

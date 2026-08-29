@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Loader2, Activity, Heart, MessageSquare, User } from "lucide-react";
@@ -11,9 +11,8 @@ import { SavedWorkers } from "@/components/Dashboard/SavedWorkers";
 import { MessagesPreview } from "@/components/Dashboard/MessagesPreview";
 import { QuickProfileEdit } from "@/components/Dashboard/QuickProfileEdit";
 import type { ActivityItem } from "@/components/Dashboard/ActivityTimeline";
-import type { Worker, Conversation, AppNotification } from "@/types";
-
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/api";
+import type { AppNotification } from "@/types";
+import { useNotifications, useBookmarks, useConversations, useToggleBookmark } from "@/hooks/queries";
 
 type Tab = "activity" | "saved" | "messages" | "profile";
 
@@ -39,52 +38,27 @@ export default function UserDashboardPage() {
   const { user, token, isLoading: authLoading } = useAuth();
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("activity");
-  const [activity, setActivity] = useState<ActivityItem[]>([]);
-  const [savedWorkers, setSavedWorkers] = useState<Worker[]>([]);
-  const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!authLoading && !user) router.replace("/auth/login");
   }, [user, authLoading, router]);
 
-  const load = useCallback(async () => {
-    if (!token) return;
-    setLoading(true);
-    try {
-      const [notifRes, bookmarkRes, convRes] = await Promise.allSettled([
-        fetch(`${API}/notifications?limit=20`, { headers: { Authorization: `Bearer ${token}` } }),
-        fetch(`${API}/users/me/bookmarks`, { headers: { Authorization: `Bearer ${token}` } }),
-        fetch(`${API}/conversations?limit=5`, { headers: { Authorization: `Bearer ${token}` } }),
-      ]);
+  const notificationsQuery = useNotifications({ limit: 20 });
+  const activity: ActivityItem[] = notificationsToActivity(
+    (notificationsQuery.data?.data ?? []) as AppNotification[]
+  );
 
-      if (notifRes.status === "fulfilled" && notifRes.value.ok) {
-        const j = await notifRes.value.json();
-        setActivity(notificationsToActivity(j.data ?? []));
-      }
-      if (bookmarkRes.status === "fulfilled" && bookmarkRes.value.ok) {
-        const j = await bookmarkRes.value.json();
-        setSavedWorkers(j.data ?? []);
-      }
-      if (convRes.status === "fulfilled" && convRes.value.ok) {
-        const j = await convRes.value.json();
-        setConversations(j.data ?? []);
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, [token]);
+  const bookmarksQuery = useBookmarks();
+  const savedWorkers = bookmarksQuery.data?.data ?? [];
 
-  useEffect(() => {
-    if (!authLoading && token) load();
-  }, [authLoading, token, load]);
+  const conversationsQuery = useConversations({ limit: 5 });
+  const conversations = conversationsQuery.data?.data ?? [];
 
-  const removeBookmark = async (workerId: string) => {
-    setSavedWorkers((prev) => prev.filter((w) => w.id !== workerId));
-    await fetch(`${API}/users/me/bookmarks/${workerId}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
-    }).catch(() => {});
+  const loading = notificationsQuery.isLoading || bookmarksQuery.isLoading || conversationsQuery.isLoading;
+
+  const toggleBookmark = useToggleBookmark();
+  const removeBookmark = (workerId: string) => {
+    toggleBookmark.mutate(workerId);
   };
 
   if (authLoading || (!user && !authLoading)) {

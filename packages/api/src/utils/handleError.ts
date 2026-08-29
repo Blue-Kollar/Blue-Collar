@@ -21,6 +21,9 @@ import { ErrorMessages, HttpStatus } from '../constants/index.js'
  *   return handleError(res, err)
  * }
  */
+// PII SAFETY: No request body, headers, or user data are included
+// in error responses. Operational errors show their message; unexpected
+// errors return a generic message. Full details are logged server-side only.
 export function handleError(res: Response, err: unknown) {
   if (err instanceof AppError) {
     return res.status(err.statusCode).json({ status: 'error', message: err.message, code: err.statusCode })

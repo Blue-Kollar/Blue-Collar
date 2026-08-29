@@ -11,16 +11,25 @@ interface ReviewCardProps {
 export default function ReviewCard({ review, showVerifiedBadge }: ReviewCardProps) {
   const initials = `${review.author.firstName[0]}${review.author.lastName[0]}`.toUpperCase();
 
+  const authorName = `${review.author.firstName} ${review.author.lastName}`;
+
   return (
-    <div className="flex gap-3 py-4 border-b last:border-0 dark:border-gray-800">
+    <article
+      className="flex gap-3 py-4 border-b last:border-0 dark:border-gray-800"
+      aria-label={`Review by ${authorName}`}
+    >
       {review.author.avatar ? (
         <img
           src={review.author.avatar}
-          alt={`${review.author.firstName} ${review.author.lastName}`}
+          alt={authorName}
           className="h-9 w-9 rounded-full object-cover shrink-0"
         />
       ) : (
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600 text-xs font-bold dark:bg-blue-900 dark:text-blue-400">
+        // Initials duplicate the author name rendered below — decorative.
+        <div
+          aria-hidden="true"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600 text-xs font-bold dark:bg-blue-900 dark:text-blue-400"
+        >
           {initials}
         </div>
       )}
@@ -28,17 +37,17 @@ export default function ReviewCard({ review, showVerifiedBadge }: ReviewCardProp
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
-              {review.author.firstName} {review.author.lastName}
+              {authorName}
             </span>
             {showVerifiedBadge && <VerifiedTransactionBadge />}
           </div>
-          <span className="text-xs text-gray-400 shrink-0">
+          <time dateTime={review.createdAt} className="text-xs text-gray-400 shrink-0">
             {new Date(review.createdAt).toLocaleDateString("en-US", {
               month: "short",
               day: "numeric",
               year: "numeric",
             })}
-          </span>
+          </time>
         </div>
         <StarRating rating={review.rating} className="mt-0.5" />
         {review.comment && (
@@ -48,6 +57,6 @@ export default function ReviewCard({ review, showVerifiedBadge }: ReviewCardProp
           <ReviewHelpfulButton reviewId={review.id} />
         </div>
       </div>
-    </div>
+    </article>
   );
 }

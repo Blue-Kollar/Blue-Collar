@@ -57,12 +57,16 @@ export function serializeError(err: unknown): SerializedError {
   }
 
   if (err instanceof AppError && err.isOperational) {
+    // PII SAFETY: operational errors only expose the error message and code — no user data
     return {
       statusCode: err.statusCode,
       body: { status: 'error', message: err.message, code: err.statusCode, errorCode: err.errorCode, traceId },
     }
   }
 
+  // PII SAFETY: unexpected errors return a generic message without any
+  // request context, user data, or internal details. Stack traces are
+  // only included in development and are logged server-side only.
   const error = err instanceof Error ? err : new Error(String(err))
   const body: ErrorResponse = {
     status: 'error',

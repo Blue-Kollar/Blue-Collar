@@ -1,76 +1,45 @@
-import { OpenApiGeneratorV31, OpenAPIRegistry, extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi'
+import { OpenApiGeneratorV31 } from '@asteasolutions/zod-to-openapi'
 import { z } from 'zod'
-
-extendZodWithOpenApi(z)
 import {
   registerRules, loginRules, forgotPasswordRules,
   resetPasswordRules, verifyAccountRules, resendVerificationRules,
 } from '../validations/auth.js'
 import { createWorkerRules, updateWorkerRules } from '../validations/worker.js'
+import {
+  registry, BearerAuth, ErrorSchema, SuccessSchema, CategorySchema,
+  WorkerSchema, UserSchema, TokenResponseSchema, PaginatedWorkersSchema,
+} from './registry.js'
 
-export const registry = new OpenAPIRegistry()
+export { registry }
 
-// ── Reusable schemas ──────────────────────────────────────────────────────────
-const BearerAuth = registry.registerComponent('securitySchemes', 'bearerAuth', {
-  type: 'http', scheme: 'bearer', bearerFormat: 'JWT',
-})
-
-const ErrorSchema = registry.register('Error', z.object({
-  status: z.literal('error'),
-  message: z.string(),
-  code: z.number(),
-}))
-
-const SuccessSchema = registry.register('Success', z.object({
-  status: z.literal('success'),
-  message: z.string(),
-  code: z.number(),
-}))
-
-const CategorySchema = registry.register('Category', z.object({
-  id: z.string(),
-  name: z.string(),
-  slug: z.string(),
-}))
-
-const WorkerSchema = registry.register('Worker', z.object({
-  id: z.string(),
-  name: z.string(),
-  phone: z.string().nullable(),
-  email: z.string().nullable(),
-  bio: z.string().nullable(),
-  isActive: z.boolean(),
-  walletAddress: z.string().nullable(),
-  avgRating: z.number(),
-  reviewCount: z.number(),
-  categoryId: z.string(),
-  createdAt: z.string(),
-  updatedAt: z.string(),
-}))
-
-const UserSchema = registry.register('User', z.object({
-  id: z.string(),
-  email: z.string(),
-  firstName: z.string(),
-  lastName: z.string(),
-  role: z.enum(['user', 'curator', 'admin']),
-  verified: z.boolean(),
-})
-)
-
-const TokenResponseSchema = registry.register('TokenResponse', z.object({
-  status: z.literal('success'),
-  message: z.string(),
-  code: z.number(),
-  token: z.string(),
-  data: UserSchema,
-}))
-
-const PaginatedWorkersSchema = registry.register('PaginatedWorkers', z.object({
-  status: z.literal('success'),
-  data: z.array(WorkerSchema),
-  meta: z.object({ total: z.number(), page: z.number(), limit: z.number() }),
-}))
+// Domain path modules register themselves against the shared `registry` singleton
+// as a side effect of being imported — see packages/api/src/openapi/paths/.
+// Most use the /api/v1/* prefix, matching this spec's version. A few route files
+// (analytics, wallet, escrow, indexer/events, messages, notification-preferences,
+// portfolio, subscriptions, worker-events, vitals) are only mounted at the
+// unversioned /api/* prefix in app.ts, so those paths.ts modules register the
+// unversioned path instead — see app.ts's route-mounting section for the source
+// of truth on which prefixes a given router actually answers on.
+import './paths/webhooks.js'
+import './paths/audit.js'
+import './paths/recommendations.js'
+import './paths/indexer.js'
+import './paths/referral.js'
+import './paths/response-time.js'
+import './paths/messages.js'
+import './paths/devices.js'
+import './paths/wallet.js'
+import './paths/insurance.js'
+import './paths/subscriptions.js'
+import './paths/portfolio.js'
+import './paths/escrow.js'
+import './paths/analytics.js'
+import './paths/bookings.js'
+import './paths/notification-preferences.js'
+import './paths/notifications.js'
+import './paths/verifications.js'
+import './paths/vitals.js'
+import './paths/worker-events.js'
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
 registry.registerPath({
@@ -141,6 +110,13 @@ registry.registerPath({
 })
 
 registry.registerPath({
+  method: 'get', path: '/api/v1/auth/unsubscribe-reminders', tags: ['Auth'],
+  summary: 'One-click unsubscribe from reminder emails (via emailed link token)',
+  request: { query: z.object({ token: z.string() }) },
+  responses: { 200: { description: 'Unsubscribed', content: { 'application/json': { schema: SuccessSchema } } } },
+})
+
+registry.registerPath({
   method: 'post', path: '/api/v1/auth/forgot-password', tags: ['Auth'],
   summary: 'Request password reset email',
   request: { body: { content: { 'application/json': { schema: forgotPasswordRules } } } },
@@ -186,6 +162,30 @@ registry.registerPath({
     200: { description: 'Category', content: { 'application/json': { schema: z.object({ status: z.literal('success'), data: CategorySchema }) } } },
     404: { description: 'Not found', content: { 'application/json': { schema: ErrorSchema } } },
   },
+})
+
+registry.registerPath({
+  method: 'post', path: '/api/v1/categories', tags: ['Categories'],
+  summary: 'Create a category (admin)',
+  security: [{ [BearerAuth.name]: [] }],
+  request: { body: { content: { 'application/json': { schema: z.object({ name: z.string(), slug: z.string() }) } } } },
+  responses: { 201: { description: 'Category created', content: { 'application/json': { schema: z.object({ status: z.literal('success'), data: CategorySchema }) } } } },
+})
+
+registry.registerPath({
+  method: 'put', path: '/api/v1/categories/{id}', tags: ['Categories'],
+  summary: 'Update a category (admin)',
+  security: [{ [BearerAuth.name]: [] }],
+  request: { params: z.object({ id: z.string() }), body: { content: { 'application/json': { schema: z.object({ name: z.string().optional(), slug: z.string().optional() }) } } } },
+  responses: { 200: { description: 'Category updated', content: { 'application/json': { schema: z.object({ status: z.literal('success'), data: CategorySchema }) } } } },
+})
+
+registry.registerPath({
+  method: 'delete', path: '/api/v1/categories/{id}', tags: ['Categories'],
+  summary: 'Delete a category (admin)',
+  security: [{ [BearerAuth.name]: [] }],
+  request: { params: z.object({ id: z.string() }) },
+  responses: { 200: { description: 'Deleted', content: { 'application/json': { schema: SuccessSchema } } } },
 })
 
 // ── Workers ───────────────────────────────────────────────────────────────────
@@ -414,6 +414,69 @@ registry.registerPath({
   security: [{ [BearerAuth.name]: [] }],
   request: { body: { content: { 'application/json': { schema: z.object({ ids: z.array(z.string()).min(1) }) } } } },
   responses: { 200: { description: 'Deleted', content: { 'application/json': { schema: SuccessSchema } } } },
+})
+
+registry.registerPath({
+  method: 'get', path: '/api/v1/admin/audit', tags: ['Admin'],
+  summary: 'List audit log entries (admin)',
+  security: [{ [BearerAuth.name]: [] }],
+  responses: { 200: { description: 'Audit log entries', content: { 'application/json': { schema: z.object({ status: z.literal('success'), data: z.array(z.record(z.unknown())) }) } } } },
+})
+
+registry.registerPath({
+  method: 'patch', path: '/api/v1/admin/users/{id}/suspend', tags: ['Admin'],
+  summary: 'Suspend a user (admin)',
+  security: [{ [BearerAuth.name]: [] }],
+  request: { params: z.object({ id: z.string() }) },
+  responses: { 200: { description: 'User suspended', content: { 'application/json': { schema: SuccessSchema } } } },
+})
+
+registry.registerPath({
+  method: 'patch', path: '/api/v1/admin/users/{id}/unsuspend', tags: ['Admin'],
+  summary: 'Unsuspend a user (admin)',
+  security: [{ [BearerAuth.name]: [] }],
+  request: { params: z.object({ id: z.string() }) },
+  responses: { 200: { description: 'User unsuspended', content: { 'application/json': { schema: SuccessSchema } } } },
+})
+
+registry.registerPath({
+  method: 'patch', path: '/api/v1/admin/users/{id}/ban', tags: ['Admin'],
+  summary: 'Ban a user (admin)',
+  security: [{ [BearerAuth.name]: [] }],
+  request: { params: z.object({ id: z.string() }) },
+  responses: { 200: { description: 'User banned', content: { 'application/json': { schema: SuccessSchema } } } },
+})
+
+registry.registerPath({
+  method: 'patch', path: '/api/v1/admin/users/{id}/role', tags: ['Admin'],
+  summary: "Change a user's role (admin)",
+  security: [{ [BearerAuth.name]: [] }],
+  request: { params: z.object({ id: z.string() }), body: { content: { 'application/json': { schema: z.object({ role: z.enum(['user', 'curator', 'admin']) }) } } } },
+  responses: { 200: { description: 'Role changed', content: { 'application/json': { schema: SuccessSchema } } } },
+})
+
+registry.registerPath({
+  method: 'patch', path: '/api/v1/admin/users/bulk-suspend', tags: ['Admin'],
+  summary: 'Bulk suspend users (admin)',
+  security: [{ [BearerAuth.name]: [] }],
+  request: { body: { content: { 'application/json': { schema: z.object({ ids: z.array(z.string()).min(1) }) } } } },
+  responses: { 200: { description: 'Suspended', content: { 'application/json': { schema: SuccessSchema } } } },
+})
+
+registry.registerPath({
+  method: 'patch', path: '/api/v1/admin/users/bulk-unsuspend', tags: ['Admin'],
+  summary: 'Bulk unsuspend users (admin)',
+  security: [{ [BearerAuth.name]: [] }],
+  request: { body: { content: { 'application/json': { schema: z.object({ ids: z.array(z.string()).min(1) }) } } } },
+  responses: { 200: { description: 'Unsuspended', content: { 'application/json': { schema: SuccessSchema } } } },
+})
+
+registry.registerPath({
+  method: 'patch', path: '/api/v1/admin/workers/{id}/moderate', tags: ['Admin'],
+  summary: 'Moderate a worker listing (admin)',
+  security: [{ [BearerAuth.name]: [] }],
+  request: { params: z.object({ id: z.string() }), body: { content: { 'application/json': { schema: z.object({ action: z.enum(['approve', 'reject']) }) } } } },
+  responses: { 200: { description: 'Worker moderated', content: { 'application/json': { schema: SuccessSchema } } } },
 })
 
 // ── Health ────────────────────────────────────────────────────────────────────
@@ -729,8 +792,36 @@ registry.registerPath({
   },
 })
 
+// Mounted at /api/reviews/helpful (unversioned only — see app.ts) despite the
+// module name; not to be confused with helpful.ts's /:reviewId/helpful below.
 registry.registerPath({
-  method: 'patch', path: '/api/v1/workers/reviews/{id}/flag', tags: ['Reviews'],
+  method: 'get', path: '/api/reviews/helpful', tags: ['Reviews'],
+  summary: 'List reviews',
+  responses: { 200: { description: 'Reviews', content: { 'application/json': { schema: z.object({ status: z.literal('success'), data: z.array(z.record(z.unknown())) }) } } } },
+})
+
+registry.registerPath({
+  method: 'post', path: '/api/reviews/helpful', tags: ['Reviews'],
+  summary: 'Create a review',
+  security: [{ [BearerAuth.name]: [] }],
+  request: { body: { content: { 'application/json': { schema: z.object({ workerId: z.string(), rating: z.number().min(1).max(5), comment: z.string().optional() }) } } } },
+  responses: { 201: { description: 'Review created (pending moderation)', content: { 'application/json': { schema: z.object({ status: z.literal('success'), data: z.record(z.unknown()) }) } } } },
+})
+
+registry.registerPath({
+  method: 'delete', path: '/api/reviews/helpful/{id}', tags: ['Reviews'],
+  summary: 'Delete a review (owner only)',
+  security: [{ [BearerAuth.name]: [] }],
+  request: { params: z.object({ id: z.string() }) },
+  responses: {
+    204: { description: 'Deleted' },
+    403: { description: 'Forbidden', content: { 'application/json': { schema: ErrorSchema } } },
+    404: { description: 'Not found', content: { 'application/json': { schema: ErrorSchema } } },
+  },
+})
+
+registry.registerPath({
+  method: 'patch', path: '/api/reviews/helpful/{id}/flag', tags: ['Reviews'],
   summary: 'Flag a review for moderation',
   security: [{ [BearerAuth.name]: [] }],
   request: { params: z.object({ id: z.string() }) },
@@ -738,18 +829,26 @@ registry.registerPath({
 })
 
 registry.registerPath({
-  method: 'get', path: '/api/v1/workers/reviews/moderation/queue', tags: ['Reviews'],
+  method: 'get', path: '/api/reviews/helpful/moderation/queue', tags: ['Reviews'],
   summary: 'Get moderation queue (admin)',
   security: [{ [BearerAuth.name]: [] }],
   responses: { 200: { description: 'Review queue', content: { 'application/json': { schema: z.object({ status: z.literal('success'), data: z.array(z.record(z.unknown())) }) } } } },
 })
 
 registry.registerPath({
-  method: 'patch', path: '/api/v1/workers/reviews/{id}/moderate', tags: ['Reviews'],
+  method: 'patch', path: '/api/reviews/helpful/{id}/moderate', tags: ['Reviews'],
   summary: 'Approve or reject a flagged review (admin)',
   security: [{ [BearerAuth.name]: [] }],
   request: { params: z.object({ id: z.string() }), body: { content: { 'application/json': { schema: z.object({ action: z.enum(['approve', 'reject']) }) } } } },
   responses: { 200: { description: 'Review moderated', content: { 'application/json': { schema: SuccessSchema } } } },
+})
+
+registry.registerPath({
+  method: 'post', path: '/api/v1/reviews/{reviewId}/helpful', tags: ['Reviews'],
+  summary: 'Toggle "helpful" vote on a review',
+  security: [{ [BearerAuth.name]: [] }],
+  request: { params: z.object({ reviewId: z.string() }) },
+  responses: { 200: { description: 'Vote toggled', content: { 'application/json': { schema: SuccessSchema } } } },
 })
 
 // ── Disputes ──────────────────────────────────────────────────────────────────
@@ -757,7 +856,7 @@ registry.registerPath({
   method: 'post', path: '/api/v1/disputes', tags: ['Disputes'],
   summary: 'Open a dispute',
   security: [{ [BearerAuth.name]: [] }],
-  request: { body: { content: { 'application/json': { schema: z.object({ jobId: z.string(), reason: z.string().min(10) }) } } } },
+  request: { body: { content: { 'application/json': { schema: z.object({ workerId: z.string(), reason: z.string().min(10), evidence: z.string().optional() }) } } } },
   responses: {
     201: { description: 'Dispute opened', content: { 'application/json': { schema: SuccessSchema } } },
   },
@@ -765,20 +864,40 @@ registry.registerPath({
 
 registry.registerPath({
   method: 'get', path: '/api/v1/disputes', tags: ['Disputes'],
-  summary: 'List disputes (admin)',
+  summary: 'List disputes for the authenticated user (or all, for admins)',
   security: [{ [BearerAuth.name]: [] }],
+  request: { query: z.object({ page: z.string().optional(), limit: z.string().optional() }) },
   responses: { 200: { description: 'Disputes', content: { 'application/json': { schema: z.object({ status: z.literal('success'), data: z.array(z.record(z.unknown())) }) } } } },
 })
 
 registry.registerPath({
-  method: 'patch', path: '/api/v1/disputes/{id}', tags: ['Disputes'],
+  method: 'get', path: '/api/v1/disputes/{id}', tags: ['Disputes'],
+  summary: 'Get a single dispute',
+  security: [{ [BearerAuth.name]: [] }],
+  request: { params: z.object({ id: z.string() }) },
+  responses: {
+    200: { description: 'Dispute', content: { 'application/json': { schema: z.object({ status: z.literal('success'), data: z.record(z.unknown()) }) } } },
+    403: { description: 'Forbidden', content: { 'application/json': { schema: ErrorSchema } } },
+    404: { description: 'Not found', content: { 'application/json': { schema: ErrorSchema } } },
+  },
+})
+
+registry.registerPath({
+  method: 'patch', path: '/api/v1/disputes/{id}/resolve', tags: ['Disputes'],
   summary: 'Resolve a dispute (admin)',
   security: [{ [BearerAuth.name]: [] }],
-  request: { params: z.object({ id: z.string() }), body: { content: { 'application/json': { schema: z.object({ resolution: z.string() }) } } } },
+  request: { params: z.object({ id: z.string() }), body: { content: { 'application/json': { schema: z.object({ status: z.string(), resolution: z.string() }) } } } },
   responses: { 200: { description: 'Resolved', content: { 'application/json': { schema: SuccessSchema } } } },
 })
 
 // ── Worker extended endpoints ─────────────────────────────────────────────────
+registry.registerPath({
+  method: 'get', path: '/api/v1/workers/search', tags: ['Workers'],
+  summary: 'Search workers',
+  request: { query: z.object({ q: z.string().optional(), category: z.string().optional(), page: z.string().optional(), limit: z.string().optional() }) },
+  responses: { 200: { description: 'Search results', content: { 'application/json': { schema: PaginatedWorkersSchema } } } },
+})
+
 registry.registerPath({
   method: 'get', path: '/api/v1/workers/search/advanced', tags: ['Workers'],
   summary: 'Advanced worker search',
@@ -795,10 +914,50 @@ registry.registerPath({
 
 registry.registerPath({
   method: 'put', path: '/api/v1/workers/{id}/availability', tags: ['Workers'],
-  summary: 'Set worker availability (curator)',
+  summary: 'Replace worker availability (curator)',
   security: [{ [BearerAuth.name]: [] }],
   request: { params: z.object({ id: z.string() }), body: { content: { 'application/json': { schema: z.object({ slots: z.array(z.record(z.unknown())) }) } } } },
   responses: { 200: { description: 'Availability updated', content: { 'application/json': { schema: SuccessSchema } } } },
+})
+
+registry.registerPath({
+  method: 'post', path: '/api/v1/workers/{id}/availability', tags: ['Workers'],
+  summary: 'Add a single availability slot (curator)',
+  security: [{ [BearerAuth.name]: [] }],
+  request: { params: z.object({ id: z.string() }), body: { content: { 'application/json': { schema: z.record(z.unknown()) } } } },
+  responses: { 201: { description: 'Slot added', content: { 'application/json': { schema: SuccessSchema } } } },
+})
+
+registry.registerPath({
+  method: 'delete', path: '/api/v1/workers/{id}/availability/{slotId}', tags: ['Workers'],
+  summary: 'Delete an availability slot (curator)',
+  security: [{ [BearerAuth.name]: [] }],
+  request: { params: z.object({ id: z.string(), slotId: z.string() }) },
+  responses: { 200: { description: 'Slot deleted', content: { 'application/json': { schema: SuccessSchema } } } },
+})
+
+registry.registerPath({
+  method: 'get', path: '/api/v1/workers/{id}/analytics/dashboard', tags: ['Workers'],
+  summary: "Get a worker's personal analytics dashboard (curator/admin)",
+  security: [{ [BearerAuth.name]: [] }],
+  request: { params: z.object({ id: z.string() }) },
+  responses: { 200: { description: 'Dashboard data', content: { 'application/json': { schema: z.object({ status: z.literal('success'), data: z.record(z.unknown()) }) } } } },
+})
+
+registry.registerPath({
+  method: 'get', path: '/api/v1/workers/{id}/analytics/export', tags: ['Workers'],
+  summary: "Export a worker's personal analytics as CSV (curator/admin)",
+  security: [{ [BearerAuth.name]: [] }],
+  request: { params: z.object({ id: z.string() }) },
+  responses: { 200: { description: 'CSV export (text/csv)' } },
+})
+
+registry.registerPath({
+  method: 'get', path: '/api/v1/workers/{id}/analytics/trends', tags: ['Workers'],
+  summary: "Get a worker's profile-view trends (curator/admin)",
+  security: [{ [BearerAuth.name]: [] }],
+  request: { params: z.object({ id: z.string() }), query: z.object({ days: z.string().optional() }) },
+  responses: { 200: { description: 'View trends', content: { 'application/json': { schema: z.object({ status: z.literal('success'), data: z.record(z.unknown()) }) } } } },
 })
 
 registry.registerPath({

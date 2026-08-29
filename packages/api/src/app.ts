@@ -1,12 +1,14 @@
 import express from 'express'
-import cors from 'cors'
 import methodOverride from 'method-override'
 import passport from './config/passport.js'
 import { redis, cacheMetrics } from './config/redis.js'
 import { db } from './db.js'
+import { disconnectDb } from './db.js'
 import { requestLogger } from './middleware/requestLogger.js'
 import { requestId } from './middleware/requestId.js'
+import { getErrorMessage } from './utils/getErrorMessage.js'
 import { registerEventHandlers } from './events/index.js'
+import { applySecurity, depthLimiter } from './middleware/security.js'
 import authRoutes from './routes/auth.js'
 import categoryRoutes from './routes/categories.js'
 import workerRoutes from './routes/workers.js'
@@ -24,17 +26,30 @@ import analyticsRoutes from './routes/analytics.js'
 import paymentRoutes from './routes/payments.js'
 import jobRoutes from './routes/jobs.js'
 import notificationRoutes from './routes/notifications.js'
-import conversationRoutes from './routes/conversations.js'
 import helpfulRoutes from './routes/helpful.js'
 import vitalsRoutes from './routes/vitals.js'
 import devicesRoutes from './routes/devices.js'
+import bookingsRoutes from './routes/bookings.js'
+import escrowRoutes from './routes/escrow.js'
+import indexerRoutes from './routes/indexer.js'
+import messagesRoutes from './routes/messages.js'
+import notificationPreferencesRoutes from './routes/notificationPreferences.js'
+import portfolioRoutes from './routes/portfolio.js'
+import reviewsRoutes from './routes/reviews.js'
+import subscriptionsRoutes from './routes/subscriptions.js'
+import walletRoutes from './routes/wallet.js'
+import workerEventsRoutes from './routes/workerEvents.js'
 import { auditMiddleware } from './middleware/audit.js'
-import { sanitize } from './middleware/sanitize.js'
-import { versionMiddleware, deprecationWarning, versionDeprecationMiddleware } from './middleware/version.js'
+import { sanitize, sanitizeParams } from './middleware/sanitize.js'
+import {
+  VERSION_CONFIG,
+  versionMiddleware,
+  deprecationWarning,
+  versionDeprecationMiddleware,
+} from './middleware/version.js'
 import { responseSchemaVersioning } from './utils/schemaVersioning.js'
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js'
-import docsRouter from './openapi/docs.js'
-import { metricsEndpoint, metricsMiddleware } from './middleware/metrics.js'
+import { metricsHandler as metricsEndpoint, metricsMiddleware } from './middleware/metrics.js'
 import { getRateLimitStatus } from './middleware/versionRateLimit.js'
 import { versionAwareAuth, addAuthGuidanceHeaders } from './middleware/versionAuth.js'
 import { getRolloutStatusEndpoint, updateRolloutEndpoint } from './utils/versionRollout.js'
@@ -55,11 +70,13 @@ registerEventHandlers()
 // Connect Redis (non-blocking — app starts even if Redis is down)
 redis.connect().catch(() => {})
 
-app.use(cors())
-app.use(express.json())
-app.use(express.urlencoded({ extended: true }))
+applySecurity(app)
+app.use(express.json({ limit: '100kb' }))
+app.use(express.urlencoded({ extended: true, limit: '100kb' }))
 app.use(sanitize)
 app.use(requestId)          // generate/propagate X-Request-ID before logging
+app.use(sanitizeParams)
+app.use(depthLimiter)
 app.use(metricsMiddleware)
 app.use(requestLogger)
 app.use(methodOverride('X-HTTP-Method'))
@@ -86,15 +103,22 @@ app.use('/api/workers', insuranceRoutes)
 app.use('/api/referrals', referralRoutes)
 app.use('/api/analytics', analyticsRoutes)
 app.use('/api/payments', paymentRoutes)
+app.use('/api/bookings', bookingsRoutes)
 app.use('/api/jobs', jobRoutes)
 app.use('/api/notifications', notificationRoutes)
-app.use('/api/conversations', conversationRoutes)
 app.use('/api/reviews', helpfulRoutes)
+app.use('/api/reviews/helpful', reviewsRoutes)
 app.use('/api/auth', devicesRoutes)
 app.use('/api', vitalsRoutes)
 app.use('/api/wallet', walletRoutes)
 app.use('/api/events', indexerRoutes)
 app.use('/api/escrow', escrowRoutes)
+app.use('/api/bookings', bookingsRoutes)
+app.use('/api/messages', messagesRoutes)
+app.use('/api/notifications/preferences', notificationPreferencesRoutes)
+app.use('/api/workers/:workerId/portfolio', portfolioRoutes)
+app.use('/api/subscriptions', subscriptionsRoutes)
+app.use('/api/workers/events', workerEventsRoutes)
 // ── Versioned routes (v1) ─────────────────────────────────────────────────────
 app.use('/api/v1/auth', authRoutes)
 app.use('/api/v1/categories', categoryRoutes)
@@ -110,9 +134,9 @@ app.use('/api/v1', responseTimeRoutes)
 app.use('/api/v1/workers', insuranceRoutes)
 app.use('/api/v1/referrals', referralRoutes)
 app.use('/api/v1/payments', paymentRoutes)
+app.use('/api/v1/bookings', bookingsRoutes)
 app.use('/api/v1/jobs', jobRoutes)
 app.use('/api/v1/notifications', notificationRoutes)
-app.use('/api/v1/conversations', conversationRoutes)
 app.use('/api/v1/reviews', helpfulRoutes)
 app.use('/api/v1/auth', devicesRoutes)
 
@@ -133,7 +157,6 @@ app.use('/api/v2/workers', insuranceRoutes)
 app.use('/api/v2/referrals', referralRoutes)
 app.use('/api/v2/payments', paymentRoutes)
 app.use('/api/v2/notifications', notificationRoutes)
-app.use('/api/v2/conversations', conversationRoutes)
 app.use('/api/v2/reviews', helpfulRoutes)
 app.use('/api/v2/wallet', walletRoutes)
 app.use('/api/v2/events', indexerRoutes)
@@ -222,10 +245,50 @@ app.use('/api', deprecationWarning, (req, res) => {
   res.redirect(301, target)
 })
 
+// ── Health check endpoints ────────────────────────────────────────────────────
+// /healthz: lightweight liveness probe (service is running)
+app.get('/healthz', (_req, res) => {
+  res.status(200).json({ status: 'ok' })
+})
+
+// /health: legacy liveness probe (kept for backward compatibility)
 app.get('/health', (_req, res) => {
   res.status(200).json({ status: 'ok' })
 })
 
+// /readyz: readiness probe (service is ready to handle traffic)
+// Checks DB and Redis connectivity before declaring ready
+app.get('/readyz', async (_req, res) => {
+  const checks: Record<string, { status: 'ok' | 'error'; latencyMs?: number; error?: string }> = {}
+
+  // Database check
+  const dbStart = Date.now()
+  try {
+    await db.$queryRaw`SELECT 1`
+    checks.database = { status: 'ok', latencyMs: Date.now() - dbStart }
+  } catch (err) {
+    checks.database = { status: 'error', latencyMs: Date.now() - dbStart, error: getErrorMessage(err) }
+  }
+
+  // Redis check
+  const redisStart = Date.now()
+  try {
+    await redis.ping()
+    checks.redis = { status: 'ok', latencyMs: Date.now() - redisStart }
+  } catch (err) {
+    checks.redis = { status: 'error', latencyMs: Date.now() - redisStart, error: getErrorMessage(err) }
+  }
+
+  const allOk = Object.values(checks).every((c) => c.status === 'ok')
+  res.status(allOk ? 200 : 503).json({
+    status: allOk ? 'ok' : 'degraded',
+    service: 'bluecollar-api',
+    checks,
+    timestamp: new Date().toISOString(),
+  })
+})
+
+// /ready: legacy readiness probe (kept for backward compatibility)
 app.get('/ready', async (_req, res) => {
   const checks: Record<string, { status: 'ok' | 'error'; latencyMs?: number; error?: string }> = {}
 
@@ -234,8 +297,8 @@ app.get('/ready', async (_req, res) => {
   try {
     await db.$queryRaw`SELECT 1`
     checks.database = { status: 'ok', latencyMs: Date.now() - dbStart }
-  } catch (err: any) {
-    checks.database = { status: 'error', latencyMs: Date.now() - dbStart, error: err?.message }
+  } catch (err) {
+    checks.database = { status: 'error', latencyMs: Date.now() - dbStart, error: getErrorMessage(err) }
   }
 
   // Redis check
@@ -243,8 +306,8 @@ app.get('/ready', async (_req, res) => {
   try {
     await redis.ping()
     checks.redis = { status: 'ok', latencyMs: Date.now() - redisStart }
-  } catch (err: any) {
-    checks.redis = { status: 'error', latencyMs: Date.now() - redisStart, error: err?.message }
+  } catch (err) {
+    checks.redis = { status: 'error', latencyMs: Date.now() - redisStart, error: getErrorMessage(err) }
   }
 
   const allOk = Object.values(checks).every((c) => c.status === 'ok')
@@ -267,8 +330,11 @@ app.get('/metrics/cache', (_req, res) => {
 
 app.get('/metrics', metricsEndpoint)
 
-// Swagger UI — development only
-if (process.env['NODE_ENV'] !== 'production') {
+// Swagger UI — development only. Imported lazily (and skipped in test) so that
+// OpenAPI spec generation, which runs eagerly on import, never runs as a side
+// effect of booting the app for tests.
+if (process.env['NODE_ENV'] !== 'production' && process.env['NODE_ENV'] !== 'test') {
+  const { default: docsRouter } = await import('./openapi/docs.js')
   app.use('/api', docsRouter)
 }
 
@@ -277,5 +343,22 @@ app.use(notFoundHandler)
 
 // Global error handler — must be last
 app.use(errorHandler)
+
+// ── Graceful shutdown (#836) ───────────────────────────────────────────────────
+// Drain in-flight requests and close both Prisma pool connections cleanly.
+// Kubernetes / PM2 send SIGTERM; Ctrl+C sends SIGINT.
+async function gracefulShutdown(signal: string): Promise<void> {
+  console.log(`[shutdown] ${signal} received — closing database connections…`)
+  try {
+    await disconnectDb()
+    console.log('[shutdown] Database connections closed.')
+  } catch (err) {
+    console.error('[shutdown] Error closing database connections:', err)
+  }
+  process.exit(0)
+}
+
+process.once('SIGTERM', () => gracefulShutdown('SIGTERM'))
+process.once('SIGINT',  () => gracefulShutdown('SIGINT'))
 
 export default app

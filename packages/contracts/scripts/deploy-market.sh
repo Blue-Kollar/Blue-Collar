@@ -13,7 +13,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONTRACTS_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 DEPLOYMENTS_FILE="${CONTRACTS_DIR}/deployments.json"
-WASM_PATH="${CONTRACTS_DIR}/target/wasm32-unknown-unknown/release/bluecollar_market.wasm"
+WASM_PATH="${CONTRACTS_DIR}/target/wasm32v1-none/release/bluecollar_market.wasm"
 
 NETWORK=""
 SOURCE=""
@@ -50,7 +50,7 @@ fi
 # Build
 # ---------------------------------------------------------------------------
 echo "==> Building market contract..."
-(cd "${CONTRACTS_DIR}" && cargo build --release --target wasm32-unknown-unknown \
+(cd "${CONTRACTS_DIR}" && cargo build --release --target wasm32v1-none \
   --package bluecollar-market 2>&1)
 
 # ---------------------------------------------------------------------------

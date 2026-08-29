@@ -1,46 +1,286 @@
-import { db } from '../db.js'
+import type { Prisma } from '@prisma/client'
+import { jobRepository as defaultJobRepository } from '../repositories/job.repository.js'
 import { AppError } from '../services/AppError.js'
 import { dispatchNotification } from '../services/notification.service.js'
+import type { JobServiceDeps } from '../container/types.js'
 
-const jobInclude = {
-  category: true,
-  location: true,
-  postedBy: { select: { id: true, firstName: true, lastName: true, avatar: true } },
-  _count: { select: { applications: true, messages: true } },
-} as const
+// ── Factory ───────────────────────────────────────────────────────────────────
 
-const applicationInclude = {
-  job: { select: { id: true, title: true, postedById: true } },
-  worker: { select: { id: true, name: true, avatar: true, email: true, category: true } },
-} as const
+export function createJobService(deps: JobServiceDeps) {
+  const { jobRepository: repo } = deps
 
-/** Auto-expire jobs whose expiresAt has passed, and notify the poster. */
-async function expireJobs() {
-  const expired = await db.job.findMany({
-    where: { status: 'open', expiresAt: { lt: new Date() } },
-    select: { id: true, title: true, postedById: true },
-  })
-  if (expired.length === 0) return
+  /** Auto-expire jobs whose expiresAt has passed, and notify the poster. */
+  async function expireJobs() {
+    const expired = await repo.findExpiredOpen()
+    if (expired.length === 0) return
 
-  await db.job.updateMany({
-    where: { id: { in: expired.map((j) => j.id) } },
-    data: { status: 'expired' },
-  })
+    await repo.updateMany(
+      { id: { in: expired.map((j) => j.id) } },
+      { status: 'expired' } as any,
+    )
 
-  // Notify each poster (fire-and-forget)
-  for (const job of expired) {
-    dispatchNotification({
-      userId: job.postedById,
-      type: 'system',
-      title: 'Job listing expired',
-      message: `Your job "${job.title}" has expired. Renew it to keep receiving applications.`,
-      href: `/jobs/${job.id}`,
-      channels: ['inapp', 'email'],
-    }).catch(() => {})
+    for (const job of expired) {
+      dispatchNotification({
+        userId: job.postedById,
+        type: 'system',
+        title: 'Job listing expired',
+        message: `Your job "${job.title}" has expired. Renew it to keep receiving applications.`,
+        href: `/jobs/${job.id}`,
+        channels: ['inapp', 'email'],
+      }).catch(() => {})
+    }
+  }
+
+  return {
+    // ── List / Search ────────────────────────────────────────────────────────
+
+    async listJobs(opts: {
+      categoryId?: string
+      status?: string
+      search?: string
+      skills?: string[]
+      urgency?: 'low' | 'normal' | 'urgent'
+      minBudget?: number
+      maxBudget?: number
+      page?: number
+      limit?: number
+    }) {
+      await expireJobs()
+      const { categoryId, status = 'open', search, skills, urgency, minBudget, maxBudget, page = 1, limit = 20 } = opts
+
+      const where: Prisma.JobWhereInput = {
+        ...(status !== 'all' ? { status: status as Prisma.JobWhereInput['status'] } : {}),
+        ...(categoryId ? { categoryId } : {}),
+        ...(urgency ? { urgency } : {}),
+        ...(minBudget !== undefined || maxBudget !== undefined
+          ? { budget: { ...(minBudget !== undefined ? { gte: minBudget } : {}), ...(maxBudget !== undefined ? { lte: maxBudget } : {}) } }
+          : {}),
+        ...(search
+          ? { OR: [{ title: { contains: search, mode: 'insensitive' as const } }, { description: { contains: search, mode: 'insensitive' as const } }] }
+          : {}),
+        ...(skills && skills.length > 0 ? { skills: { hasSome: skills } } : {}),
+      }
+
+      const [data, total] = await Promise.all([
+        repo.findJobs(where, { skip: (page - 1) * limit, take: limit }),
+        repo.count(where),
+      ])
+      return { data, meta: { total, page, limit, pages: Math.ceil(total / limit) } }
+    },
+
+    async getJob(id: string) {
+      await expireJobs()
+      const job = await repo.findWithRelations(id)
+      if (!job) throw new AppError('Job not found', 404)
+      return job
+    },
+
+    // ── Skill-based recommendations ──────────────────────────────────────────
+
+    async recommendedJobs(workerId: string, limit = 10) {
+      await expireJobs()
+      const worker = await repo.findWorkerById(workerId)
+      if (!worker) throw new AppError('Worker not found', 404)
+
+      return repo.findJobs(
+        { status: 'open', categoryId: worker.categoryId },
+        { skip: 0, take: limit, orderBy: [{ urgency: 'desc' }, { createdAt: 'desc' }] as any },
+      )
+    },
+
+    // ── CRUD ─────────────────────────────────────────────────────────────────
+
+    async createJob(
+      data: {
+        title: string
+        description: string
+        budget?: number
+        skills?: string[]
+        urgency?: 'low' | 'normal' | 'urgent'
+        categoryId: string
+        locationId?: string
+        expiresAt?: string
+        escrowAmount?: number
+      },
+      postedById: string,
+    ) {
+      return repo.create({
+        title: data.title,
+        description: data.description,
+        budget: data.budget,
+        skills: data.skills ?? [],
+        urgency: data.urgency ?? 'normal',
+        categoryId: data.categoryId,
+        locationId: data.locationId,
+        postedById,
+        escrowAmount: data.escrowAmount,
+        expiresAt: data.expiresAt ? new Date(data.expiresAt) : undefined,
+      } as any)
+    },
+
+    async updateJob(
+      id: string,
+      userId: string,
+      data: Partial<{
+        title: string
+        description: string
+        budget: number
+        skills: string[]
+        urgency: 'low' | 'normal' | 'urgent'
+        categoryId: string
+        locationId: string
+        status: string
+        expiresAt: string
+        escrowAmount: number
+      }>,
+    ) {
+      const job = await repo.findById(id)
+      if (!job) throw new AppError('Job not found', 404)
+      if ((job as any).postedById !== userId) throw new AppError('Forbidden', 403)
+
+      return repo.update(id, { ...data, expiresAt: data.expiresAt ? new Date(data.expiresAt) : undefined } as any)
+    },
+
+    async deleteJob(id: string, userId: string) {
+      const job = await repo.findById(id)
+      if (!job) throw new AppError('Job not found', 404)
+      if ((job as any).postedById !== userId) throw new AppError('Forbidden', 403)
+      await repo.delete(id)
+    },
+
+    // ── Renewal ──────────────────────────────────────────────────────────────
+
+    async renewJob(id: string, userId: string, daysFromNow = 30) {
+      const job = await repo.findById(id)
+      if (!job) throw new AppError('Job not found', 404)
+      if ((job as any).postedById !== userId) throw new AppError('Forbidden', 403)
+      if ((job as any).status !== 'open' && (job as any).status !== 'expired') {
+        throw new AppError('Only open or expired jobs can be renewed', 400)
+      }
+
+      const expiresAt = new Date()
+      expiresAt.setDate(expiresAt.getDate() + daysFromNow)
+
+      return repo.update(id, { status: 'open', expiresAt, renewedAt: new Date() } as any)
+    },
+
+    // ── My posted jobs ────────────────────────────────────────────────────────
+
+    async myPostedJobs(userId: string, page = 1, limit = 20) {
+      const where = { postedById: userId }
+      const [data, total] = await Promise.all([
+        repo.findJobs(where, { skip: (page - 1) * limit, take: limit }),
+        repo.count(where),
+      ])
+      return { data, meta: { total, page, limit, pages: Math.ceil(total / limit) } }
+    },
+
+    // ── Worker's own applications ─────────────────────────────────────────────
+
+    async myApplications(workerId: string, page = 1, limit = 20) {
+      const { data, total } = await repo.findApplicationsByWorker(workerId, { skip: (page - 1) * limit, take: limit })
+      return { data, meta: { total, page, limit, pages: Math.ceil(total / limit) } }
+    },
+
+    // ── Applications ──────────────────────────────────────────────────────────
+
+    async applyToJob(jobId: string, workerId: string, coverLetter?: string, proposedRate?: number) {
+      const job = await repo.findById(jobId)
+      if (!job) throw new AppError('Job not found', 404)
+      if ((job as any).status !== 'open') throw new AppError('Job is not accepting applications', 400)
+
+      const existing = await repo.findApplicationByJobAndWorker(jobId, workerId)
+      if (existing) throw new AppError('Already applied to this job', 409)
+
+      const application = await repo.createApplication({ jobId, workerId, coverLetter, proposedRate } as any)
+
+      dispatchNotification({
+        userId: (job as any).postedById,
+        type: 'system',
+        title: 'New application received',
+        message: `A worker applied to your job "${(job as any).title}".`,
+        href: `/jobs/${jobId}/applications`,
+        channels: ['inapp'],
+      }).catch(() => {})
+
+      return application
+    },
+
+    async listApplications(jobId: string, userId: string) {
+      const job = await repo.findById(jobId)
+      if (!job) throw new AppError('Job not found', 404)
+      if ((job as any).postedById !== userId) throw new AppError('Forbidden', 403)
+      return repo.findApplicationsByJob(jobId)
+    },
+
+    async updateApplicationStatus(jobId: string, applicationId: string, userId: string, status: 'accepted' | 'rejected') {
+      const job = await repo.findById(jobId)
+      if (!job) throw new AppError('Job not found', 404)
+      if ((job as any).postedById !== userId) throw new AppError('Forbidden', 403)
+
+      const app = await repo.findApplication(applicationId)
+      if (!app) throw new AppError('Application not found', 404)
+
+      const updated = await repo.updateApplication(applicationId, { status } as any)
+
+      if (status === 'accepted') {
+        await repo.update(jobId, { status: 'filled' } as any)
+      }
+
+      // Notify the worker's curator about status change
+      const workerRecord = await repo.findWorkerById((app as any).workerId)
+      if (workerRecord) {
+        dispatchNotification({
+          userId: (workerRecord as any).curatorId,
+          type: 'system',
+          title: `Application ${status}`,
+          message: `Your application for "${(updated as any).job.title}" has been ${status}.`,
+          href: `/jobs/${jobId}`,
+          channels: ['inapp', 'email'],
+        }).catch(() => {})
+      }
+
+      return updated
+    },
+
+    async withdrawApplication(jobId: string, workerId: string) {
+      const app = await repo.findApplicationByJobAndWorker(jobId, workerId)
+      if (!app) throw new AppError('Application not found', 404)
+      if ((app as any).status !== 'pending') throw new AppError('Cannot withdraw a non-pending application', 400)
+      return repo.updateApplication(app.id, { status: 'withdrawn' } as any)
+    },
+
+    // ── Messaging ─────────────────────────────────────────────────────────────
+
+    async sendMessage(jobId: string, senderId: string, recipientId: string, body: string) {
+      const job = await repo.findById(jobId)
+      if (!job) throw new AppError('Job not found', 404)
+
+      return repo.createMessage({ jobId, senderId, recipientId, body } as any)
+    },
+
+    async listMessages(jobId: string, userId: string) {
+      const job = await repo.findById(jobId)
+      if (!job) throw new AppError('Job not found', 404)
+
+      await repo.updateManyMessages(
+        { jobId, recipientId: userId, readAt: null },
+        { readAt: new Date() } as any,
+      )
+
+      return repo.findMessages({
+        jobId,
+        OR: [{ senderId: userId }, { recipientId: userId }],
+      })
+    },
   }
 }
 
-// ── List / Search ─────────────────────────────────────────────────────────────
+// ── Default service instance (backward-compatible module-level API) ───────────
+
+const _defaultService = createJobService({
+  jobRepository: defaultJobRepository,
+})
 
 export async function listJobs(opts: {
   categoryId?: string
@@ -53,61 +293,16 @@ export async function listJobs(opts: {
   page?: number
   limit?: number
 }) {
-  await expireJobs()
-  const { categoryId, status = 'open', search, skills, urgency, minBudget, maxBudget, page = 1, limit = 20 } = opts
-
-  const where: any = {
-    ...(status !== 'all' ? { status } : {}),
-    ...(categoryId ? { categoryId } : {}),
-    ...(urgency ? { urgency } : {}),
-    ...(minBudget !== undefined || maxBudget !== undefined
-      ? { budget: { ...(minBudget !== undefined ? { gte: minBudget } : {}), ...(maxBudget !== undefined ? { lte: maxBudget } : {}) } }
-      : {}),
-    ...(search
-      ? {
-          OR: [
-            { title: { contains: search, mode: 'insensitive' as const } },
-            { description: { contains: search, mode: 'insensitive' as const } },
-          ],
-        }
-      : {}),
-    ...(skills && skills.length > 0
-      ? { skills: { hasSome: skills } }
-      : {}),
-  }
-
-  const [data, total] = await Promise.all([
-    db.job.findMany({ where, skip: (page - 1) * limit, take: limit, include: jobInclude, orderBy: { createdAt: 'desc' } }),
-    db.job.count({ where }),
-  ])
-  return { data, meta: { total, page, limit, pages: Math.ceil(total / limit) } }
+  return _defaultService.listJobs(opts)
 }
 
 export async function getJob(id: string) {
-  await expireJobs()
-  const job = await db.job.findUnique({ where: { id }, include: { ...jobInclude, applications: { include: applicationInclude } } })
-  if (!job) throw new AppError('Job not found', 404)
-  return job
+  return _defaultService.getJob(id)
 }
-
-// ── Skill-based recommendations for a worker ─────────────────────────────────
 
 export async function recommendedJobs(workerId: string, limit = 10) {
-  await expireJobs()
-  const worker = await db.worker.findUnique({ where: { id: workerId }, select: { categoryId: true } })
-  if (!worker) throw new AppError('Worker not found', 404)
-
-  // Fetch open jobs in the same category, newest first
-  const jobs = await db.job.findMany({
-    where: { status: 'open', categoryId: worker.categoryId },
-    take: limit,
-    include: jobInclude,
-    orderBy: [{ urgency: 'desc' }, { createdAt: 'desc' }],
-  })
-  return jobs
+  return _defaultService.recommendedJobs(workerId, limit)
 }
-
-// ── CRUD ──────────────────────────────────────────────────────────────────────
 
 export async function createJob(
   data: {
@@ -123,21 +318,7 @@ export async function createJob(
   },
   postedById: string,
 ) {
-  return db.job.create({
-    data: {
-      title: data.title,
-      description: data.description,
-      budget: data.budget,
-      skills: data.skills ?? [],
-      urgency: data.urgency ?? 'normal',
-      categoryId: data.categoryId,
-      locationId: data.locationId,
-      postedById,
-      escrowAmount: data.escrowAmount,
-      expiresAt: data.expiresAt ? new Date(data.expiresAt) : undefined,
-    },
-    include: jobInclude,
-  })
+  return _defaultService.createJob(data, postedById)
 }
 
 export async function updateJob(
@@ -156,193 +337,45 @@ export async function updateJob(
     escrowAmount: number
   }>,
 ) {
-  const job = await db.job.findUnique({ where: { id } })
-  if (!job) throw new AppError('Job not found', 404)
-  if (job.postedById !== userId) throw new AppError('Forbidden', 403)
-
-  return db.job.update({
-    where: { id },
-    data: { ...data, expiresAt: data.expiresAt ? new Date(data.expiresAt) : undefined } as any,
-    include: jobInclude,
-  })
+  return _defaultService.updateJob(id, userId, data)
 }
 
 export async function deleteJob(id: string, userId: string) {
-  const job = await db.job.findUnique({ where: { id } })
-  if (!job) throw new AppError('Job not found', 404)
-  if (job.postedById !== userId) throw new AppError('Forbidden', 403)
-  await db.job.delete({ where: { id } })
+  return _defaultService.deleteJob(id, userId)
 }
-
-// ── Renewal ───────────────────────────────────────────────────────────────────
 
 export async function renewJob(id: string, userId: string, daysFromNow = 30) {
-  const job = await db.job.findUnique({ where: { id } })
-  if (!job) throw new AppError('Job not found', 404)
-  if (job.postedById !== userId) throw new AppError('Forbidden', 403)
-  if (job.status !== 'open' && job.status !== 'expired') throw new AppError('Only open or expired jobs can be renewed', 400)
-
-  const expiresAt = new Date()
-  expiresAt.setDate(expiresAt.getDate() + daysFromNow)
-
-  return db.job.update({
-    where: { id },
-    data: { status: 'open', expiresAt, renewedAt: new Date() },
-    include: jobInclude,
-  })
+  return _defaultService.renewJob(id, userId, daysFromNow)
 }
-
-// ── My posted jobs ────────────────────────────────────────────────────────────
 
 export async function myPostedJobs(userId: string, page = 1, limit = 20) {
-  const where = { postedById: userId }
-  const [data, total] = await Promise.all([
-    db.job.findMany({ where, skip: (page - 1) * limit, take: limit, include: jobInclude, orderBy: { createdAt: 'desc' } }),
-    db.job.count({ where }),
-  ])
-  return { data, meta: { total, page, limit, pages: Math.ceil(total / limit) } }
+  return _defaultService.myPostedJobs(userId, page, limit)
 }
-
-// ── Worker's own applications ─────────────────────────────────────────────────
 
 export async function myApplications(workerId: string, page = 1, limit = 20) {
-  const where = { workerId }
-  const [data, total] = await Promise.all([
-    db.jobApplication.findMany({ where, skip: (page - 1) * limit, take: limit, include: applicationInclude, orderBy: { createdAt: 'desc' } }),
-    db.jobApplication.count({ where }),
-  ])
-  return { data, meta: { total, page, limit, pages: Math.ceil(total / limit) } }
+  return _defaultService.myApplications(workerId, page, limit)
 }
 
-// ── Applications ──────────────────────────────────────────────────────────────
-
-export async function applyToJob(
-  jobId: string,
-  workerId: string,
-  coverLetter?: string,
-  proposedRate?: number,
-) {
-  const job = await db.job.findUnique({ where: { id: jobId } })
-  if (!job) throw new AppError('Job not found', 404)
-  if (job.status !== 'open') throw new AppError('Job is not accepting applications', 400)
-
-  const existing = await db.jobApplication.findUnique({ where: { jobId_workerId: { jobId, workerId } } })
-  if (existing) throw new AppError('Already applied to this job', 409)
-
-  const application = await db.jobApplication.create({
-    data: { jobId, workerId, coverLetter, proposedRate },
-    include: applicationInclude,
-  })
-
-  // Notify job poster about the new application
-  dispatchNotification({
-    userId: job.postedById,
-    type: 'system',
-    title: 'New application received',
-    message: `A worker applied to your job "${job.title}".`,
-    href: `/jobs/${jobId}/applications`,
-    channels: ['inapp'],
-  }).catch(() => {})
-
-  return application
+export async function applyToJob(jobId: string, workerId: string, coverLetter?: string, proposedRate?: number) {
+  return _defaultService.applyToJob(jobId, workerId, coverLetter, proposedRate)
 }
 
 export async function listApplications(jobId: string, userId: string) {
-  const job = await db.job.findUnique({ where: { id: jobId } })
-  if (!job) throw new AppError('Job not found', 404)
-  if (job.postedById !== userId) throw new AppError('Forbidden', 403)
-
-  return db.jobApplication.findMany({
-    where: { jobId },
-    include: applicationInclude,
-    orderBy: { createdAt: 'desc' },
-  })
+  return _defaultService.listApplications(jobId, userId)
 }
 
-export async function updateApplicationStatus(
-  jobId: string,
-  applicationId: string,
-  userId: string,
-  status: 'accepted' | 'rejected',
-) {
-  const job = await db.job.findUnique({ where: { id: jobId } })
-  if (!job) throw new AppError('Job not found', 404)
-  if (job.postedById !== userId) throw new AppError('Forbidden', 403)
-
-  const app = await db.jobApplication.findFirst({ where: { id: applicationId, jobId } })
-  if (!app) throw new AppError('Application not found', 404)
-
-  const updated = await db.jobApplication.update({
-    where: { id: applicationId },
-    data: { status },
-    include: applicationInclude,
-  })
-
-  if (status === 'accepted') {
-    await db.job.update({ where: { id: jobId }, data: { status: 'filled' } })
-  }
-
-  // Notify the worker (curator who owns the worker profile) about status change
-  const workerRecord = await db.worker.findUnique({
-    where: { id: app.workerId },
-    select: { curatorId: true },
-  })
-  if (workerRecord) {
-    dispatchNotification({
-      userId: workerRecord.curatorId,
-      type: 'system',
-      title: `Application ${status}`,
-      message: `Your application for "${updated.job.title}" has been ${status}.`,
-      href: `/jobs/${jobId}`,
-      channels: ['inapp', 'email'],
-    }).catch(() => {})
-  }
-
-  return updated
+export async function updateApplicationStatus(jobId: string, applicationId: string, userId: string, status: 'accepted' | 'rejected') {
+  return _defaultService.updateApplicationStatus(jobId, applicationId, userId, status)
 }
 
 export async function withdrawApplication(jobId: string, workerId: string) {
-  const app = await db.jobApplication.findUnique({ where: { jobId_workerId: { jobId, workerId } } })
-  if (!app) throw new AppError('Application not found', 404)
-  if (app.status !== 'pending') throw new AppError('Cannot withdraw a non-pending application', 400)
-  return db.jobApplication.update({
-    where: { id: app.id },
-    data: { status: 'withdrawn' },
-    include: applicationInclude,
-  })
+  return _defaultService.withdrawApplication(jobId, workerId)
 }
 
-// ── Messaging ─────────────────────────────────────────────────────────────────
-
 export async function sendMessage(jobId: string, senderId: string, recipientId: string, body: string) {
-  const job = await db.job.findUnique({ where: { id: jobId } })
-  if (!job) throw new AppError('Job not found', 404)
-
-  return db.jobMessage.create({
-    data: { jobId, senderId, recipientId, body },
-    include: {
-      sender: { select: { id: true, firstName: true, lastName: true, avatar: true } },
-      recipient: { select: { id: true, firstName: true, lastName: true, avatar: true } },
-    },
-  })
+  return _defaultService.sendMessage(jobId, senderId, recipientId, body)
 }
 
 export async function listMessages(jobId: string, userId: string) {
-  const job = await db.job.findUnique({ where: { id: jobId } })
-  if (!job) throw new AppError('Job not found', 404)
-
-  // Mark messages to this user as read
-  await db.jobMessage.updateMany({
-    where: { jobId, recipientId: userId, readAt: null },
-    data: { readAt: new Date() },
-  })
-
-  return db.jobMessage.findMany({
-    where: { jobId, OR: [{ senderId: userId }, { recipientId: userId }] },
-    include: {
-      sender: { select: { id: true, firstName: true, lastName: true, avatar: true } },
-      recipient: { select: { id: true, firstName: true, lastName: true, avatar: true } },
-    },
-    orderBy: { createdAt: 'asc' },
-  })
+  return _defaultService.listMessages(jobId, userId)
 }

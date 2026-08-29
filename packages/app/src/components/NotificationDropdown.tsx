@@ -84,6 +84,7 @@ export default function NotificationDropdown() {
                 <button
                   onClick={markAllRead}
                   title="Mark all as read"
+                  aria-label="Mark all as read"
                   className="flex h-7 w-7 items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                 >
                   <CheckCheck size={15} />
@@ -93,6 +94,7 @@ export default function NotificationDropdown() {
                 <button
                   onClick={clearAll}
                   title="Clear all"
+                  aria-label="Clear all notifications"
                   className="flex h-7 w-7 items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                 >
                   <Trash2 size={14} />

@@ -13,6 +13,15 @@ vi.mock('../db.js', () => ({
     user: {
       deleteMany: vi.fn(),
     },
+    refreshToken: {
+      deleteMany: vi.fn(),
+    },
+    idempotencyKey: {
+      deleteMany: vi.fn(),
+    },
+    notification: {
+      deleteMany: vi.fn(),
+    },
   },
 }))
 
@@ -25,7 +34,7 @@ vi.mock('../events/app-events.js', () => ({ appEvents: { emit: vi.fn() } }))
 
 import { db } from '../db.js'
 import { deleteWorker, getWorker, restoreWorker, listWorkers } from './worker.service.js'
-import { purgeExpiredSoftDeletes } from './purge.service.js'
+import { purgeExpiredSoftDeletes, purgeService } from './purge.service.js'
 
 const mockDb = db as any
 
@@ -125,5 +134,26 @@ describe('purgeExpiredSoftDeletes', () => {
     const cutoff: Date = mockDb.worker.deleteMany.mock.calls[0][0].where.deletedAt.lte
     const diffDays = (before - cutoff.getTime()) / (1000 * 60 * 60 * 24)
     expect(diffDays).toBeCloseTo(90, 0)
+  })
+})
+
+describe('purgeService.deleteExpiredSessions', () => {
+  it('deletes expired refresh tokens', async () => {
+    mockDb.refreshToken.deleteMany.mockResolvedValue({ count: 3 })
+    await purgeService.deleteExpiredSessions()
+    expect(mockDb.refreshToken.deleteMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ OR: expect.any(Array) }),
+      })
+    )
+  })
+})
+
+describe('purgeService.deleteOldNotifications', () => {
+  it('deletes notifications older than the specified days', async () => {
+    mockDb.notification.deleteMany.mockResolvedValue({ count: 10 })
+    await purgeService.deleteOldNotifications(7)
+    const call = mockDb.notification.deleteMany.mock.calls[0][0]
+    expect(call.where.createdAt.lte).toBeInstanceOf(Date)
   })
 })

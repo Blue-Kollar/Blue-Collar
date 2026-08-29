@@ -152,7 +152,7 @@ export ADMIN_SECRET_KEY=<from-vault>
 cd packages/contracts
 make build
 # Verify WASM hashes match the audited commit
-sha256sum target/wasm32-unknown-unknown/release/*.wasm
+sha256sum target/wasm32v1-none/release/*.wasm
 ```
 
 ### Step 2 — Deploy Contracts (in order)
@@ -162,35 +162,35 @@ Contracts must be deployed in dependency order. Each outputs a contract ID — s
 ```bash
 # 1. Registry (no dependencies)
 stellar contract deploy \
-  --wasm target/wasm32-unknown-unknown/release/bluecollar_registry.wasm \
+  --wasm target/wasm32v1-none/release/bluecollar_registry.wasm \
   --source "$ADMIN_SECRET_KEY" \
   --network mainnet
 # SAVE output as REGISTRY_CONTRACT_ID
 
 # 2. FeeDistribution (no dependencies)
 stellar contract deploy \
-  --wasm target/wasm32-unknown-unknown/release/bluecollar_fee_distribution.wasm \
+  --wasm target/wasm32v1-none/release/bluecollar_fee_distribution.wasm \
   --source "$ADMIN_SECRET_KEY" \
   --network mainnet
 # SAVE output as FEE_DISTRIBUTION_CONTRACT_ID
 
 # 3. Dispute (no dependencies)
 stellar contract deploy \
-  --wasm target/wasm32-unknown-unknown/release/bluecollar_dispute.wasm \
+  --wasm target/wasm32v1-none/release/bluecollar_dispute.wasm \
   --source "$ADMIN_SECRET_KEY" \
   --network mainnet
 # SAVE output as DISPUTE_CONTRACT_ID
 
 # 4. InsurancePool (no dependencies)
 stellar contract deploy \
-  --wasm target/wasm32-unknown-unknown/release/bluecollar_insurance_pool.wasm \
+  --wasm target/wasm32v1-none/release/bluecollar_insurance_pool.wasm \
   --source "$ADMIN_SECRET_KEY" \
   --network mainnet
 # SAVE output as INSURANCE_POOL_CONTRACT_ID
 
 # 5. Market (depends on previously deployed contracts if referenced)
 stellar contract deploy \
-  --wasm target/wasm32-unknown-unknown/release/bluecollar_market.wasm \
+  --wasm target/wasm32v1-none/release/bluecollar_market.wasm \
   --source "$ADMIN_SECRET_KEY" \
   --network mainnet
 # SAVE output as MARKET_CONTRACT_ID
@@ -418,7 +418,7 @@ make build
 
 # 2. Install new WASM to get its hash
 stellar contract install \
-  --wasm target/wasm32-unknown-unknown/release/bluecollar_registry.wasm \
+  --wasm target/wasm32v1-none/release/bluecollar_registry.wasm \
   --source "$ADMIN_SECRET_KEY" \
   --network mainnet
 

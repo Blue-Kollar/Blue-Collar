@@ -15,6 +15,9 @@ vi.mock('../db.js', () => ({
       delete: vi.fn(),
       findMany: vi.fn(),
       findUnique: vi.fn(),
+      update: vi.fn(),
+      count: vi.fn(),
+      groupBy: vi.fn(),
     },
   },
 }))
@@ -37,8 +40,8 @@ function app() {
   return instance
 }
 
-function token(userId = 'user-1') {
-  return jwt.sign({ id: userId, role: 'user' }, 'test-secret')
+function token(userId = 'user-1', role = 'user') {
+  return jwt.sign({ id: userId, role }, 'test-secret')
 }
 
 describe('review routes', () => {
@@ -73,6 +76,7 @@ describe('review routes', () => {
       id: 'review-1',
       workerId: 'worker-1',
       userId: 'user-1',
+      authorId: 'user-1',
       rating: 5,
       body: 'Great work',
     } as never)
@@ -88,6 +92,28 @@ describe('review routes', () => {
     }))
   })
 
+  it('rejects review with rating out of range', async () => {
+    vi.mocked(db.worker.findUnique).mockResolvedValue({ id: 'worker-1' } as never)
+
+    const res = await request(app())
+      .post('/api/workers/worker-1/reviews')
+      .set('Authorization', `Bearer ${token()}`)
+      .send({ rating: 6, body: 'Great work' })
+
+    expect(res.status).toBe(400)
+  })
+
+  it('rejects review with missing body', async () => {
+    vi.mocked(db.worker.findUnique).mockResolvedValue({ id: 'worker-1' } as never)
+
+    const res = await request(app())
+      .post('/api/workers/worker-1/reviews')
+      .set('Authorization', `Bearer ${token()}`)
+      .send({ rating: 5 })
+
+    expect(res.status).toBe(400)
+  })
+
   it('rejects duplicate reviews', async () => {
     vi.mocked(db.worker.findUnique).mockResolvedValue({ id: 'worker-1' } as never)
     vi.mocked(db.review.create).mockRejectedValue({ code: 'P2002' } as never)
@@ -100,8 +126,19 @@ describe('review routes', () => {
     expect(res.status).toBe(409)
   })
 
+  it('returns 404 for review on non-existent worker', async () => {
+    vi.mocked(db.worker.findUnique).mockResolvedValue(null as never)
+
+    const res = await request(app())
+      .post('/api/workers/worker-1/reviews')
+      .set('Authorization', `Bearer ${token()}`)
+      .send({ rating: 5, body: 'Great work' })
+
+    expect(res.status).toBe(404)
+  })
+
   it('allows only the owner to delete a review', async () => {
-    vi.mocked(db.review.findUnique).mockResolvedValue({ id: 'review-1', userId: 'user-1' } as never)
+    vi.mocked(db.review.findUnique).mockResolvedValue({ id: 'review-1', userId: 'user-1', authorId: 'user-1' } as never)
     vi.mocked(db.review.delete).mockResolvedValue({ id: 'review-1' } as never)
 
     const res = await request(app())
@@ -113,12 +150,25 @@ describe('review routes', () => {
   })
 
   it('forbids deleting another user review', async () => {
-    vi.mocked(db.review.findUnique).mockResolvedValue({ id: 'review-1', userId: 'user-2' } as never)
+    vi.mocked(db.review.findUnique).mockResolvedValue({ id: 'review-1', userId: 'user-2', authorId: 'user-2' } as never)
 
     const res = await request(app())
       .delete('/api/reviews/review-1')
       .set('Authorization', `Bearer ${token('user-1')}`)
 
     expect(res.status).toBe(403)
+  })
+
+  it('flags a review', async () => {
+    vi.mocked(db.review.findUnique).mockResolvedValue({ id: 'review-1', status: 'approved' } as never)
+    vi.mocked(db.review.update).mockResolvedValue({ id: 'review-1', flagged: true, status: 'pending' } as never)
+
+    const res = await request(app())
+      .patch('/api/reviews/review-1/flag')
+      .set('Authorization', `Bearer ${token()}`)
+      .send({ reason: 'spam' })
+
+    expect(res.status).toBe(200)
+    expect(res.body.data.flagged).toBe(true)
   })
 })

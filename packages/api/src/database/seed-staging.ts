@@ -1,147 +1,176 @@
-import { PrismaClient } from '@prisma/client';
-import { faker } from '@faker-js/faker';
-import argon2 from 'argon2';
+/**
+ * Staging seed script — #834
+ *
+ * Creates a realistic staging dataset using @faker-js/faker.
+ * Matches the actual Prisma schema (User, Worker, Category, Review, Location).
+ *
+ * Safety:
+ *   - Requires NODE_ENV=staging or ALLOW_STAGING_SEED=true
+ *   - Idempotent: upserts users/categories, skips existing workers/reviews
+ *
+ * Usage:
+ *   NODE_ENV=staging pnpm seed:staging
+ *   ALLOW_STAGING_SEED=true pnpm seed:staging
+ */
 
-const prisma = new PrismaClient();
+import { hash } from 'argon2'
+import { faker } from '@faker-js/faker'
+import { db } from '../db.js'
 
-async function hashPassword(password: string): Promise<string> {
-  return argon2.hash(password);
+// ── Guard ─────────────────────────────────────────────────────────────────────
+
+if (process.env.NODE_ENV === 'production' && !process.env.ALLOW_STAGING_SEED) {
+  throw new Error('Staging seed is not allowed in production. Set ALLOW_STAGING_SEED=true to override.')
 }
 
+// ── Passwords ─────────────────────────────────────────────────────────────────
+
+const STAGING_ADMIN_PW   = process.env.STAGING_ADMIN_PASSWORD   ?? 'Staging-Admin-2024!'
+const STAGING_CURATOR_PW = process.env.STAGING_CURATOR_PASSWORD ?? 'Staging-Curator-2024!'
+const STAGING_USER_PW    = process.env.STAGING_USER_PASSWORD    ?? 'Staging-User-2024!'
+
+// ── Categories ────────────────────────────────────────────────────────────────
+
+const CATEGORIES = [
+  { name: 'Plumber',            description: 'Pipe fitting, repairs, water systems',             icon: '🔧' },
+  { name: 'Electrician',        description: 'Wiring, electrical installations, repairs',         icon: '⚡' },
+  { name: 'Carpenter',          description: 'Woodwork, furniture, framing',                      icon: '🪚' },
+  { name: 'Welder',             description: 'Metal fabrication and structural work',              icon: '🔩' },
+  { name: 'Mason',              description: 'Brickwork, concrete, stonework',                    icon: '🧱' },
+  { name: 'Painter',            description: 'Interior and exterior painting',                    icon: '🎨' },
+  { name: 'Roofer',             description: 'Roof installation, repair, waterproofing',          icon: '🏠' },
+  { name: 'HVAC Technician',    description: 'Heating, ventilation, air conditioning',            icon: '❄️' },
+  { name: 'Landscaper',         description: 'Garden design, lawn care, maintenance',             icon: '🌿' },
+  { name: 'General Contractor', description: 'Full-service construction and project management',   icon: '🏗️' },
+]
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function randomRole(i: number): 'user' | 'curator' | 'admin' {
+  if (i === 0) return 'admin'
+  if (i <= 3)  return 'curator'
+  return 'user'
+}
+
+// ── Main seed ─────────────────────────────────────────────────────────────────
+
 async function seedStaging() {
-  console.log('🌱 Seeding staging database...');
+  console.log('🌱 Seeding staging database...')
 
-  // Create test admin user
-  console.log('Creating admin user...');
-  const admin = await prisma.user.upsert({
-    where: { email: 'admin@staging.bluecollar.example.com' },
-    update: {},
-    create: {
-      email: 'admin@staging.bluecollar.example.com',
-      password: await hashPassword('staging-admin-2024'),
-      role: 'ADMIN',
-      is_verified: true,
-      name: 'Staging Admin',
-    },
-  });
+  // 1. Categories
+  await db.category.createMany({ data: CATEGORIES, skipDuplicates: true })
+  const categories = await db.category.findMany({ select: { id: true, name: true } })
+  const categoryIds = categories.map(c => c.id)
+  console.log(`   ✅ ${categories.length} categories`)
 
-  // Create test regular users
-  console.log('Creating test users...');
-  const users = [];
-  for (let i = 0; i < 10; i++) {
-    const user = await prisma.user.create({
-      data: {
-        email: `user${i}@staging.bluecollar.example.com`,
-        password: await hashPassword('staging-user-2024'),
-        role: 'USER',
-        is_verified: true,
-        name: faker.person.fullName(),
-      },
-    });
-    users.push(user);
+  // 2. Locations
+  const locationData = Array.from({ length: 5 }, () => ({
+    city:    faker.location.city(),
+    state:   faker.location.state({ abbreviated: true }),
+    country: 'US',
+    lat:     parseFloat(faker.location.latitude().toString()),
+    lng:     parseFloat(faker.location.longitude().toString()),
+  }))
+  const locations = await Promise.all(
+    locationData.map(l => db.location.create({ data: l }))
+  )
+  console.log(`   ✅ ${locations.length} locations`)
+
+  // 3. Users: 1 admin + 3 curators + 10 regular users
+  const passwords: Record<string, string> = {
+    admin:   await hash(STAGING_ADMIN_PW),
+    curator: await hash(STAGING_CURATOR_PW),
+    user:    await hash(STAGING_USER_PW),
   }
 
-  // Create test workers
-  console.log('Creating test workers...');
-  const categories = ['plumber', 'electrician', 'carpenter', 'painter', 'mechanic'];
-  const workers = [];
-  
-  for (let i = 0; i < 50; i++) {
-    const worker = await prisma.worker.create({
-      data: {
-        name: faker.person.fullName(),
-        category: faker.helpers.arrayElement(categories),
-        wallet_address: `G${faker.string.alphanumeric(55).toUpperCase()}`,
-        owner_id: faker.helpers.arrayElement([admin.id, ...users.map(u => u.id)]),
-        is_active: faker.datatype.boolean(0.9), // 90% active
-        rating: faker.number.float({ min: 3.5, max: 5, precision: 0.1 }),
-        description: faker.lorem.paragraph(),
-        hourly_rate: faker.number.int({ min: 25, max: 150 }),
-      },
-    });
-    workers.push(worker);
-  }
-
-  // Create test jobs
-  console.log('Creating test jobs...');
-  const jobStatuses = ['OPEN', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'];
-  
-  for (let i = 0; i < 100; i++) {
-    const status = faker.helpers.arrayElement(jobStatuses);
-    const client = faker.helpers.arrayElement(users);
-    const worker = status !== 'OPEN' ? faker.helpers.arrayElement(workers) : null;
-
-    await prisma.job.create({
-      data: {
-        title: faker.lorem.sentence(),
-        description: faker.lorem.paragraphs(2),
-        category: faker.helpers.arrayElement(categories),
-        budget: faker.number.int({ min: 100, max: 5000 }),
-        status,
-        client_id: client.id,
-        worker_id: worker?.id,
-        created_at: faker.date.past({ years: 1 }),
-        updated_at: new Date(),
-      },
-    });
-  }
-
-  // Create test reviews
-  console.log('Creating test reviews...');
-  const completedJobs = await prisma.job.findMany({
-    where: { status: 'COMPLETED' },
-    take: 30,
-  });
-
-  for (const job of completedJobs) {
-    if (job.worker_id) {
-      await prisma.review.create({
-        data: {
-          job_id: job.id,
-          reviewer_id: job.client_id,
-          reviewee_id: job.worker_id,
-          rating: faker.number.int({ min: 3, max: 5 }),
-          comment: faker.lorem.paragraph(),
-          created_at: faker.date.recent({ days: 30 }),
+  const usersToCreate = 14
+  const users = await Promise.all(
+    Array.from({ length: usersToCreate }, async (_, i) => {
+      const role = randomRole(i)
+      const email = i === 0
+        ? 'admin@staging.bluecollar.example.com'
+        : `${role}${i}@staging.bluecollar.example.com`
+      return db.user.upsert({
+        where:  { email },
+        update: {},
+        create: {
+          email,
+          password:  passwords[role],
+          firstName: faker.person.firstName(),
+          lastName:  faker.person.lastName(),
+          role,
+          verified:  true,
+          locationId: faker.helpers.arrayElement(locations).id,
         },
-      });
+      })
+    })
+  )
+  const curators = users.filter(u => u.role === 'curator')
+  console.log(`   ✅ ${users.length} users (1 admin, ${curators.length} curators, ${users.length - 1 - curators.length} users)`)
+
+  // 4. Workers: ~5 per curator
+  let workerCount = 0
+  const workers = []
+  for (const curator of curators) {
+    for (let i = 0; i < 5; i++) {
+      const category = faker.helpers.arrayElement(categories)
+      const worker = await db.worker.create({
+        data: {
+          name:        `${faker.person.firstName()} ${faker.person.lastName()}`,
+          bio:         faker.lorem.sentences(2),
+          phone:       faker.phone.number({ style: 'international' }),
+          email:       faker.internet.email().toLowerCase(),
+          isActive:    faker.datatype.boolean({ probability: 0.9 }),
+          isVerified:  faker.datatype.boolean({ probability: 0.4 }),
+          categoryId:  category.id,
+          curatorId:   curator.id,
+          createdById: curator.id,
+          updatedById: curator.id,
+          locationId:  faker.helpers.arrayElement(locations).id,
+        },
+      })
+      workers.push(worker)
+      workerCount++
     }
   }
+  console.log(`   ✅ ${workerCount} workers`)
 
-  // Create test messages
-  console.log('Creating test messages...');
-  for (let i = 0; i < 50; i++) {
-    const sender = faker.helpers.arrayElement(users);
-    const receiver = faker.helpers.arrayElement(users.filter(u => u.id !== sender.id));
-
-    await prisma.message.create({
-      data: {
-        sender_id: sender.id,
-        receiver_id: receiver.id,
-        content: faker.lorem.sentences(2),
-        is_read: faker.datatype.boolean(),
-        created_at: faker.date.recent({ days: 7 }),
-      },
-    });
+  // 5. Reviews: 2–4 per worker, authored by regular users
+  const regularUsers = users.filter(u => u.role === 'user')
+  let reviewCount = 0
+  for (const worker of workers) {
+    const numReviews = faker.number.int({ min: 0, max: 4 })
+    const reviewers = faker.helpers.arrayElements(regularUsers, Math.min(numReviews, regularUsers.length))
+    for (const reviewer of reviewers) {
+      const existing = await db.review.findFirst({
+        where: { workerId: worker.id, authorId: reviewer.id },
+      })
+      if (existing) continue
+      await db.review.create({
+        data: {
+          workerId: worker.id,
+          userId:   reviewer.id,
+          authorId: reviewer.id,
+          rating:   faker.number.int({ min: 3, max: 5 }),
+          body:     faker.lorem.sentences(faker.number.int({ min: 1, max: 3 })),
+          status:   'approved',
+        },
+      })
+      reviewCount++
+    }
   }
+  console.log(`   ✅ ${reviewCount} reviews`)
 
-  console.log('✅ Staging database seeded successfully!');
-  console.log('\nTest Credentials:');
-  console.log('Admin: admin@staging.bluecollar.example.com / staging-admin-2024');
-  console.log('User: user0@staging.bluecollar.example.com / staging-user-2024');
-  console.log(`\nCreated:`);
-  console.log(`- ${users.length + 1} users`);
-  console.log(`- ${workers.length} workers`);
-  console.log(`- 100 jobs`);
-  console.log(`- ${completedJobs.length} reviews`);
-  console.log(`- 50 messages`);
+  console.log('\n🎉 Staging seed complete!')
+  console.log('\nTest credentials:')
+  console.log(`  Admin:   admin@staging.bluecollar.example.com / ${STAGING_ADMIN_PW}`)
+  console.log(`  Curator: curator1@staging.bluecollar.example.com / ${STAGING_CURATOR_PW}`)
+  console.log(`  User:    user4@staging.bluecollar.example.com / ${STAGING_USER_PW}`)
 }
 
 seedStaging()
   .catch((e) => {
-    console.error('❌ Error seeding staging database:', e);
-    process.exit(1);
+    console.error('❌ Staging seed failed:', e)
+    process.exit(1)
   })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+  .finally(() => db.$disconnect())

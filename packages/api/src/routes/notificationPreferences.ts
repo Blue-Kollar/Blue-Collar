@@ -1,5 +1,6 @@
 import { Router, Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
+import { logger } from '../config/logger.js';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -33,7 +34,7 @@ router.get("/", async (req: Request, res: Response) => {
     }
     res.json(prefs);
   } catch (err) {
-    console.error("GET notification prefs error:", err);
+    logger.error({ err }, 'GET notification prefs error');
     res.status(500).json({ error: "Internal server error." });
   }
 });
@@ -74,7 +75,7 @@ router.put("/", async (req: Request, res: Response) => {
 
     res.json(prefs);
   } catch (err) {
-    console.error("PUT notification prefs error:", err);
+    logger.error({ err }, 'PUT notification prefs error');
     res.status(500).json({ error: "Internal server error." });
   }
 });

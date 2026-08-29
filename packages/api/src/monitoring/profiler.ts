@@ -2,6 +2,7 @@ import profiler from 'v8-profiler-next';
 import fs from 'fs';
 import path from 'path';
 import v8 from 'v8';
+import type { Application, Request, Response } from 'express';
 
 const PROFILE_DIR = process.env.PROFILE_DIR || './profiles';
 
@@ -138,36 +139,36 @@ export class PerformanceProfiler {
 export const profiler = new PerformanceProfiler();
 
 // Expose profiler endpoints for on-demand profiling
-export function setupProfilerEndpoints(app: any) {
+export function setupProfilerEndpoints(app: Application) {
   // Start CPU profiling
-  app.post('/admin/profiler/cpu/start', (req: any, res: any) => {
+  app.post('/admin/profiler/cpu/start', (req: Request, res: Response) => {
     const name = req.body.name || 'manual-cpu-profile';
     profiler.startCPUProfile(name);
     res.json({ message: 'CPU profiling started', name });
   });
 
   // Stop CPU profiling
-  app.post('/admin/profiler/cpu/stop', (req: any, res: any) => {
+  app.post('/admin/profiler/cpu/stop', (req: Request, res: Response) => {
     const name = req.body.name || 'manual-cpu-profile';
     profiler.stopCPUProfile(name);
     res.json({ message: 'CPU profiling stopped', name });
   });
 
   // Take heap snapshot
-  app.post('/admin/profiler/heap/snapshot', (req: any, res: any) => {
+  app.post('/admin/profiler/heap/snapshot', (req: Request, res: Response) => {
     const name = req.body.name || 'manual-heap-snapshot';
     const filename = profiler.takeHeapSnapshot(name);
     res.json({ message: 'Heap snapshot taken', filename });
   });
 
   // Get memory stats
-  app.get('/admin/profiler/memory', (req: any, res: any) => {
+  app.get('/admin/profiler/memory', (req: Request, res: Response) => {
     const stats = profiler.getMemoryStats();
     res.json(stats);
   });
 
   // Get CPU stats
-  app.get('/admin/profiler/cpu', (req: any, res: any) => {
+  app.get('/admin/profiler/cpu', (req: Request, res: Response) => {
     const stats = profiler.getCPUStats();
     res.json(stats);
   });

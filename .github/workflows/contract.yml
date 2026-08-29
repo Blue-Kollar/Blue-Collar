@@ -28,7 +28,7 @@ jobs:
       - name: Install Rust stable with wasm32 target
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: wasm32-unknown-unknown
+          targets: wasm32v1-none
           components: rustfmt, clippy
 
       - name: Cache cargo registry & target
@@ -51,5 +51,6 @@ jobs:
         run: cargo test --workspace
 
       - name: WASM build (release)
-        run: cargo build --release --target wasm32-unknown-unknown --workspace \
-          --exclude bluecollar-fuzz
+        run: |
+          cargo build --release --target wasm32v1-none --workspace \
+            --exclude bluecollar-fuzz --exclude bluecollar-integration

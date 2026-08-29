@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Plus, Briefcase, RefreshCw, Loader2, Clock, CheckCircle, XCircle } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
-import { getMyPostedJobs, deleteJob, renewJob } from "@/lib/api";
+import { getMyPostedJobs, deleteJob, renewJob } from "@/lib/api/jobs";
 import { cn } from "@/lib/utils";
 import type { Job, Meta } from "@/types";
 

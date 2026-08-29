@@ -23,18 +23,45 @@ vi.mock('@/hooks/useAuth', () => ({
 }))
 
 vi.mock('@/hooks/useWallet', () => ({
-  useWallet: () => ({ address: null, connecting: false, connect: mockConnect }),
+  useWallet: () => ({
+    publicKey: null,
+    network: null,
+    isConnecting: false,
+    connect: mockConnect,
+    disconnect: vi.fn(),
+  }),
 }))
 
-// lucide-react stubs
-vi.mock('lucide-react', () => ({
-  Menu: () => <span />,
-  Wallet: () => <span />,
-  ChevronDown: () => <span />,
-  User: () => <span />,
-  Sun: () => <span data-testid="sun-icon" />,
-  Moon: () => <span data-testid="moon-icon" />,
+// Return the key, with any interpolated params appended, so assertions can
+// match on the dynamic part of a label (e.g. the user's name).
+vi.mock('next-intl', () => ({
+  useLocale: () => 'en',
+  useTranslations: () => (key: string, params?: Record<string, unknown>) =>
+    params ? `${key} ${Object.values(params).join(' ')}` : key,
+  useMessages: () => ({}),
 }))
+
+vi.mock('@/context/NotificationContext', () => ({
+  useNotifications: () => ({
+    notifications: [],
+    unreadCount: 0,
+    markRead: vi.fn(),
+    markAllRead: vi.fn(),
+    clearAll: vi.fn(),
+  }),
+}))
+
+// Stub every lucide icon as a decorative span via a Proxy, so the list of
+// icons Navbar imports can change without breaking this file.
+vi.mock('lucide-react', async (importOriginal) => {
+  const actual = await importOriginal<Record<string, unknown>>()
+  const Icon = () => <span aria-hidden="true" />
+  const mock: Record<string, unknown> = {}
+  for (const key of Object.keys(actual)) {
+    mock[key] = typeof (actual as any)[key] === 'function' ? Icon : (actual as any)[key]
+  }
+  return mock
+})
 
 vi.mock('next-themes', () => ({
   useTheme: () => ({ resolvedTheme: 'light', setTheme: vi.fn() }),
@@ -76,7 +103,7 @@ describe('Navbar', () => {
     setUser({ id: '1', firstName: 'Alice', lastName: 'Smith', email: 'a@b.com', role: 'user' })
     render(<Navbar />)
     await user.click(screen.getByRole('button', { name: /alice/i }))
-    expect(await screen.findByText('Logout')).toBeInTheDocument()
+    expect(await screen.findByText('logout')).toBeInTheDocument()
   })
 
   it('shows Dashboard for curator role', async () => {
@@ -84,7 +111,7 @@ describe('Navbar', () => {
     setUser({ id: '2', firstName: 'Bob', lastName: 'Jones', email: 'b@c.com', role: 'curator' })
     render(<Navbar />)
     await user.click(screen.getByRole('button', { name: /bob/i }))
-    expect(await screen.findByText('Dashboard')).toBeInTheDocument()
+    expect(await screen.findByText('dashboard')).toBeInTheDocument()
   })
 
   it('does not show Dashboard for plain user role', async () => {
@@ -92,7 +119,7 @@ describe('Navbar', () => {
     setUser({ id: '3', firstName: 'Carol', lastName: 'Lee', email: 'c@d.com', role: 'user' })
     render(<Navbar />)
     await user.click(screen.getByRole('button', { name: /carol/i }))
-    await screen.findByText('Logout') // wait for dropdown to open
-    expect(screen.queryByText('Dashboard')).not.toBeInTheDocument()
+    await screen.findByText('logout') // wait for dropdown to open
+    expect(screen.queryByText('dashboard')).not.toBeInTheDocument()
   })
 })

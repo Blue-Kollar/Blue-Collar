@@ -46,6 +46,7 @@ beforeAll(async () => {
 afterEach(async () => {
   // Delete in FK-safe order: dependents before parents
   await db.$transaction([
+    db.booking.deleteMany(),
     db.worker.deleteMany(),
     db.user.deleteMany(),
     db.category.deleteMany(),

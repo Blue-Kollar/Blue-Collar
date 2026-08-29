@@ -51,8 +51,8 @@ export default function ContactModal({ workerId, workerName }: Props) {
   return (
     <Dialog.Root open={open} onOpenChange={handleOpenChange}>
       <Dialog.Trigger asChild>
-        <button className="flex items-center gap-2 rounded-lg border border-blue-600 px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors">
-          <MessageSquare size={15} />
+        <button className="flex items-center gap-2 rounded-lg border border-blue-600 px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors" aria-label={t("title", { name: workerName })}>
+          <MessageSquare size={15} aria-hidden="true" />
           {t("title", { name: workerName }).split(" ")[0]}
         </button>
       </Dialog.Trigger>

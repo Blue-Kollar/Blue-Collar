@@ -1,4 +1,5 @@
 import type { Request, Response, NextFunction } from 'express'
+import type { Prisma } from '@prisma/client'
 import { db } from '../db.js'
 
 const TTL_MS = 24 * 60 * 60 * 1000 // 24 hours
@@ -17,7 +18,7 @@ export function idempotency(req: Request, res: Response, next: NextFunction) {
 
   // Intercept res.json to capture and store the response
   const originalJson = res.json.bind(res)
-  res.json = function (body: any) {
+  res.json = function (body: Prisma.InputJsonValue) {
     if (res.statusCode >= 200 && res.statusCode < 300) {
       const expiresAt = new Date(Date.now() + TTL_MS)
       db.idempotencyKey
