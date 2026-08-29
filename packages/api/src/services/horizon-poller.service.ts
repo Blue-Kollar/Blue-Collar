@@ -28,7 +28,8 @@ function resolveEventName(contractId: string, topic: string): string | null {
   return null
 }
 
-async function fetchContractEvents(contractId: string): Promise<void> {
+/** @internal — exported for use by the jobs/horizon-poller.job.ts module */
+export async function fetchContractEvents(contractId: string): Promise<void> {
   if (!contractId) return
 
   try {

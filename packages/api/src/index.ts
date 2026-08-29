@@ -19,8 +19,7 @@ import portfolioRoutes from './routes/portfolio.js'
 import reviewRoutes from './routes/reviews.js'
 import subscriptionRoutes from './routes/subscriptions.js'
 import messagesRoutes from './routes/messages.js'
-import { startReminderScheduler } from './services/reminder.service.js'
-import { startHorizonPoller } from './services/horizon-poller.service.js'
+import { startAllJobs } from './jobs/index.js'
 import { metricsRecorder } from './monitoring/business-metrics.js'
 import { errorHandler } from './middleware/errorHandler.js'
 import { logger } from './config/logger.js'
@@ -76,8 +75,7 @@ if (process.env.NODE_ENV !== 'test') {
   
   httpServer.listen(PORT, () => {
     logger.info(`BlueCollar API running on port ${PORT}`)
-    startReminderScheduler()
-    startHorizonPoller()
+    startAllJobs()
     metricsRecorder.startPeriodicSync()
   })
 }
