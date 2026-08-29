@@ -63,12 +63,13 @@ export interface AuthUser {
 
 // ─── Pagination ───────────────────────────────────────────────────────────────
 
-export interface Meta {
-  total: number;
-  page: number;
-  limit: number;
-  pages: number;
-}
+/**
+ * Issue #1237 — Meta, ApiResponse, PaginatedResult, and PaginatedResponse
+ * are now the canonical types in @bluecollar/sdk so both packages/api and
+ * packages/app share a single definition.  Re-exported here so all existing
+ * imports from "@/types" continue to work without modification.
+ */
+export type { Meta, ApiResponse, PaginatedResult, PaginatedResponse } from '@bluecollar/sdk'
 
 export interface RatingDistributionEntry {
   rating: number;
@@ -77,18 +78,8 @@ export interface RatingDistributionEntry {
 }
 
 // ─── API response wrappers ────────────────────────────────────────────────────
-
-/** Standard API envelope returned by all endpoints. */
-export interface ApiResponse<T> {
-  data: T;
-  meta?: Meta;
-  status: string;
-  code: number;
-  message?: string;
-}
-
-/** Paginated list response. */
-export type PaginatedResponse<T> = ApiResponse<T[]> & { meta: Meta };
+// Moved to @bluecollar/sdk — re-exported via the Pagination section above.
+// (ApiResponse, PaginatedResult, PaginatedResponse, Meta)
 
 // ─── Form types ───────────────────────────────────────────────────────────────
 
