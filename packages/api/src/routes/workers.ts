@@ -26,7 +26,7 @@ import { authenticate, authorize } from '../middleware/auth.js'
 import { validate } from '../middleware/validate.js'
 import { withAuth, withAuthAndValidation } from '../middleware/composition.js'
 import { upload, handleMulterError } from '../middleware/upload.js'
-import { createWorkerRules } from '../validations/index.js'
+import { createWorkerRules, listWorkersQuerySchema, searchWorkersQuerySchema, advancedSearchRules } from '../validations/index.js'
 import { cacheMiddleware, invalidateCachePattern, TTL } from '../middleware/cache.js'
 import { contactRateLimit, generalRateLimit } from '../middleware/userRateLimit.js'
 import { db } from '../db.js'
@@ -55,9 +55,9 @@ async function showWorkerWithRatings(req: Request, res: Response) {
   })
 }
 
-router.get('/', generalRateLimit, cacheMiddleware(TTL.SHORT), listWorkers)
-router.get('/search', generalRateLimit, cacheMiddleware(TTL.SHORT), searchWorkersHandler)
-router.get('/search/advanced', generalRateLimit, cacheMiddleware(TTL.SHORT), advancedSearch)
+router.get('/', generalRateLimit, validate(listWorkersQuerySchema, 'query'), cacheMiddleware(TTL.SHORT), listWorkers)
+router.get('/search', generalRateLimit, validate(searchWorkersQuerySchema, 'query'), cacheMiddleware(TTL.SHORT), searchWorkersHandler)
+router.get('/search/advanced', generalRateLimit, validate(advancedSearchRules, 'query'), cacheMiddleware(TTL.SHORT), advancedSearch)
 router.get('/mine', authenticate, authorize('curator', 'admin'), listMyWorkers)
 router.get('/mine', withAuth(['curator', 'admin']), listMyWorkers)
 router.get('/:id', generalRateLimit, cacheMiddleware(TTL.MEDIUM), showWorkerWithRatings)
