@@ -83,6 +83,32 @@ pub fn do_initialize(env: &Env, admin: &Address) -> Result<(), ContractError> {
 }
 
 // =============================================================================
+// Transition Guards
+// =============================================================================
+
+/// Assert an escrow is in `Active` state.
+///
+/// Returns `ContractError::EscrowNotActive` for any other state.
+pub fn require_active(record: &EscrowRecord) -> Result<(), ContractError> {
+    if record.state == EscrowState::Active {
+        Ok(())
+    } else {
+        Err(ContractError::EscrowNotActive)
+    }
+}
+
+/// Assert an escrow is in `Disputed` state.
+///
+/// Returns `ContractError::EscrowNotDisputed` for any other state.
+pub fn require_disputed(record: &EscrowRecord) -> Result<(), ContractError> {
+    if record.state == EscrowState::Disputed {
+        Ok(())
+    } else {
+        Err(ContractError::EscrowNotDisputed)
+    }
+}
+
+// =============================================================================
 // Escrow lifecycle
 // =============================================================================
 
@@ -149,9 +175,7 @@ pub fn do_release(env: &Env, caller: &Address, id: Symbol) -> Result<(), Contrac
     caller.require_auth();
 
     let mut record = load_escrow(env, &id).ok_or(ContractError::EscrowNotFound)?;
-    if record.state != EscrowState::Active {
-        return Err(ContractError::EscrowNotActive);
-    }
+    require_active(&record)?;
 
     let is_depositor = record.depositor == *caller;
     let is_admin = load_role_members(env, ROLE_ADMIN_ID)
@@ -190,9 +214,7 @@ pub fn do_cancel(env: &Env, caller: &Address, id: Symbol) -> Result<(), Contract
     caller.require_auth();
 
     let mut record = load_escrow(env, &id).ok_or(ContractError::EscrowNotFound)?;
-    if record.state != EscrowState::Active {
-        return Err(ContractError::EscrowNotActive);
-    }
+    require_active(&record)?;
 
     let is_admin = load_role_members(env, ROLE_ADMIN_ID)
         .iter()
@@ -234,9 +256,7 @@ pub fn do_dispute(env: &Env, caller: &Address, id: Symbol) -> Result<(), Contrac
     if !is_party {
         return Err(ContractError::NotAParty);
     }
-    if record.state != EscrowState::Active {
-        return Err(ContractError::EscrowNotActive);
-    }
+    require_active(&record)?;
 
     // --- Effects ---
     record.state = EscrowState::Disputed;
@@ -264,9 +284,7 @@ pub fn do_resolve(
     require_role(env, &Symbol::new(env, ROLE_ARBITRATOR), caller)?;
 
     let mut record = load_escrow(env, &id).ok_or(ContractError::EscrowNotFound)?;
-    if record.state != EscrowState::Disputed {
-        return Err(ContractError::EscrowNotDisputed);
-    }
+    require_disputed(&record)?;
 
     // --- Effects ---
     let recipient = if release_to_beneficiary {
