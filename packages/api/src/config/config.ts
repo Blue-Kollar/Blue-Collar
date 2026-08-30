@@ -57,8 +57,6 @@ export const config = {
   db: {
     /** Primary database connection string */
     url: required('DATABASE_URL'),
-    /** Test database connection string (optional) */
-    testUrl: optional('TEST_DATABASE_URL', ''),
   },
 
   auth: {
@@ -79,11 +77,6 @@ export const config = {
 
   redis: {
     url: optional('REDIS_URL', 'redis://localhost:6379'),
-  },
-
-  rateLimit: {
-    windowMs: optionalInt('RATE_LIMIT_WINDOW_MS', 900_000),
-    max:      optionalInt('RATE_LIMIT_MAX', 100),
   },
 
   upload: {

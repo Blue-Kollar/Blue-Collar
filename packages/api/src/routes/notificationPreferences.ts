@@ -1,9 +1,8 @@
 import { Router, Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
+import { db } from "../db.js";
 import { logger } from '../config/logger.js';
 
 const router = Router();
-const prisma = new PrismaClient();
 
 const ALLOWED_FIELDS = [
   "newWorkerNearby",
@@ -18,11 +17,11 @@ type AllowedField = (typeof ALLOWED_FIELDS)[number];
 router.get("/", async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user.id;
-    let prefs = await prisma.notificationPreferences.findUnique({
+    let prefs = await db.notificationPreferences.findUnique({
       where: { userId },
     });
     if (!prefs) {
-      prefs = await prisma.notificationPreferences.create({
+      prefs = await db.notificationPreferences.create({
         data: {
           userId,
           newWorkerNearby: true,
@@ -60,7 +59,7 @@ router.put("/", async (req: Request, res: Response) => {
       return res.status(400).json({ error: "No valid fields provided." });
     }
 
-    const prefs = await prisma.notificationPreferences.upsert({
+    const prefs = await db.notificationPreferences.upsert({
       where: { userId },
       update: updates,
       create: {

@@ -1,6 +1,8 @@
 import { categoryRepository as defaultCategoryRepository } from '../repositories/category.repository.js'
+import { db as defaultDb } from '../db.js'
 import { AppError } from './AppError.js'
 import type { CategoryServiceDeps } from '../container/types.js'
+import type { PrismaClient } from '@prisma/client'
 
 // ── Service instance type ─────────────────────────────────────────────────────
 
@@ -10,6 +12,7 @@ import type { CategoryServiceDeps } from '../container/types.js'
  */
 export interface CategoryServiceInstance {
   listCategories(): Promise<unknown[]>
+  listCategoriesWithPagination(skip: number, take: number): Promise<[unknown[], number]>
   getCategory(id: string): Promise<unknown>
   createCategory(data: { name: string; icon?: string; description?: string }): Promise<unknown>
   updateCategory(id: string, data: { name?: string; icon?: string; description?: string }): Promise<unknown>
@@ -31,8 +34,8 @@ export interface CategoryServiceInstance {
  * @param deps - Injectable dependencies.
  * @returns A bound service instance.
  */
-export function createCategoryService(deps: CategoryServiceDeps): CategoryServiceInstance {
-  const { categoryRepository: repo } = deps
+export function createCategoryService(deps: CategoryServiceDeps & { db?: PrismaClient }): CategoryServiceInstance {
+  const { categoryRepository: repo, db = defaultDb } = deps
 
   return {
     /**
@@ -40,6 +43,21 @@ export function createCategoryService(deps: CategoryServiceDeps): CategoryServic
      */
     async listCategories() {
       return repo.findAll()
+    },
+
+    /**
+     * Return paginated categories with total count.
+     */
+    async listCategoriesWithPagination(skip: number, take: number) {
+      const [categories, total] = await Promise.all([
+        db.category.findMany({
+          skip,
+          take,
+          orderBy: { name: 'asc' },
+        }),
+        db.category.count(),
+      ])
+      return [categories, total]
     },
 
     /**
@@ -101,6 +119,13 @@ const _defaultService = createCategoryService({
  */
 export async function listCategories() {
   return _defaultService.listCategories()
+}
+
+/**
+ * Return paginated categories with total count.
+ */
+export async function listCategoriesWithPagination(skip: number, take: number) {
+  return _defaultService.listCategoriesWithPagination(skip, take)
 }
 
 /**

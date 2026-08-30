@@ -4,6 +4,7 @@ import { sendModerationEmail } from '../mailer/index.js'
 import * as reviewService from '../services/review.service.js'
 import { AppError, ErrorCode } from '../utils/AppError.js'
 import { catchAsync } from '../utils/catchAsync.js'
+import { createPaginationHelper } from '../utils/pagination.js'
 
 export const listReviews = catchAsync(async (req: Request, res: Response) => {
   const { workerId } = req.params
@@ -32,15 +33,28 @@ export const flagReview = catchAsync(async (req: Request, res: Response) => {
 })
 
 export const getModerationQueue = catchAsync(async (req: Request, res: Response) => {
-  const reviews = await db.review.findMany({
-    where: { OR: [{ status: 'pending' }, { flagged: true }] },
-    include: {
-      worker: { select: { id: true, name: true } },
-      author: { select: { id: true, firstName: true, lastName: true } },
-    },
-    orderBy: { createdAt: 'asc' },
+  const { page, limit, skip, take, buildMeta } = createPaginationHelper(req.query, {
+    maxLimit: 100,
+    defaultLimit: 20,
   })
-  res.json({ data: reviews, status: 'success', code: 200 })
+
+  const [reviews, total] = await Promise.all([
+    db.review.findMany({
+      where: { OR: [{ status: 'pending' }, { flagged: true }] },
+      include: {
+        worker: { select: { id: true, name: true } },
+        author: { select: { id: true, firstName: true, lastName: true } },
+      },
+      orderBy: { createdAt: 'asc' },
+      skip,
+      take,
+    }),
+    db.review.count({
+      where: { OR: [{ status: 'pending' }, { flagged: true }] },
+    }),
+  ])
+
+  res.json({ data: reviews, meta: buildMeta(total), status: 'success', code: 200 })
 })
 
 export const moderateReview = catchAsync(async (req: Request, res: Response) => {

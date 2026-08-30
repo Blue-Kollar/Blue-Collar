@@ -3,13 +3,30 @@ import { catchAsync } from '../utils/catchAsync.js'
 import { AppError, ErrorCode } from '../utils/AppError.js'
 import { ErrorMessages } from '../constants/errors.js'
 import { db } from '../db.js'
+import { createPaginationHelper } from '../utils/pagination.js'
 
 export const listPortfolio = catchAsync(async (req: Request, res: Response) => {
-  const items = await db.portfolioItem.findMany({
-    where: { workerId: req.params.workerId },
-    orderBy: { order: 'asc' },
+  const { skip, take, buildMeta } = createPaginationHelper(req.query, {
+    maxLimit: 100,
+    defaultLimit: 20,
   })
-  return res.json({ data: items, status: 'success', code: 200 })
+
+  const [items, total] = await Promise.all([
+    db.portfolioItem.findMany({
+      where: { workerId: req.params.workerId },
+      orderBy: { order: 'asc' },
+      skip,
+      take,
+    }),
+    db.portfolioItem.count({ where: { workerId: req.params.workerId } }),
+  ])
+
+  return res.json({
+    data: items,
+    meta: buildMeta(total),
+    status: 'success',
+    code: 200,
+  })
 })
 
 export const addPortfolioItem = catchAsync(async (req: Request, res: Response) => {
