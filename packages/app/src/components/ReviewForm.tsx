@@ -4,6 +4,7 @@ import { useId, useRef, useState } from "react";
 import { Star, Loader2 } from "lucide-react";
 import { useCreateReview } from "@/hooks/queries";
 import type { Review } from "@/types";
+import FormError from "@/components/FormError";
 
 interface ReviewFormProps {
   workerId: string;
@@ -133,9 +134,7 @@ export default function ReviewForm({ workerId, onReviewCreated }: ReviewFormProp
       />
 
       {error && (
-        <p id={errorId} role="alert" className="text-xs text-red-500">
-          {error}
-        </p>
+        <FormError id={errorId} message={error} />
       )}
 
       <button

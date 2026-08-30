@@ -11,6 +11,7 @@ import { useWallet } from "@/hooks/useWallet";
 import { useLocale, useTranslations } from "next-intl";
 import { cn, formatStellarAddress } from "@/lib/utils";
 import NotificationDropdown from "@/components/NotificationDropdown";
+import { WalletBalanceWidget } from "@/components/wallet/WalletBalanceWidget";
 
 const LANGUAGES = [
   { code: "en", label: "English" },
@@ -249,6 +250,10 @@ export default function Navbar() {
                 <DropdownMenu.Portal>
                   <DropdownMenu.Content align="end" sideOffset={6} className="z-50 min-w-[180px] rounded-md border bg-white p-1 shadow-md text-sm dark:bg-gray-900 dark:border-gray-700">
                     <div className="px-3 py-2 text-xs text-gray-400 font-mono break-all">{publicKey}</div>
+                    {/* Balance rendered via selector — only this sub-tree re-renders on balance change */}
+                    <div className="px-3 pb-2">
+                      <WalletBalanceWidget />
+                    </div>
                     <DropdownMenu.Separator className="my-1 h-px bg-gray-100 dark:bg-gray-700" />
                     <DropdownMenu.Item onSelect={disconnect} className="cursor-pointer rounded px-3 py-2 text-red-600 hover:bg-red-50 outline-none dark:hover:bg-red-950">
                       {t("disconnectWallet")}
