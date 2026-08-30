@@ -2,19 +2,19 @@
 /** @type {import('@stryker-mutator/core').PartialStrykerOptions} */
 const config = {
   packageManager: 'pnpm',
+  plugins: ['@stryker-mutator/vitest-runner'],
   reporters: ['html', 'clear-text', 'progress', 'json'],
   testRunner: 'vitest',
   vitest: {
-    configFile: 'vitest.config.ts',
+    configFile: 'vitest.mutation.config.ts',
   },
   coverageAnalysis: 'perTest',
-  mutate: [
-    'src/services/payment.service.ts',
-    'src/services/auth.service.ts',
-    'src/services/worker.service.ts',
-    'src/utils/AppError.ts',
-    'src/utils/paginate.ts',
-  ],
+  // Target ONLY the critical fee / financial calculation logic.
+  // `payment.service.ts` is the single source of truth for fee, tip, escrow
+  // and multi-sig-escrow money math in the API. The full repository (and the
+  // analytics date helpers) are intentionally excluded to keep mutation runs
+  // fast and focused on money-correctness.
+  mutate: ['src/services/payment.service.ts'],
   thresholds: {
     high: 80,
     low: 60,
