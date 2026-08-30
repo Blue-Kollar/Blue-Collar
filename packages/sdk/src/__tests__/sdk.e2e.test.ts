@@ -16,6 +16,9 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { createSdk, HorizonClient, RegistryClient, SdkError } from '../index.js'
+// Shared contract account fixtures (#1276) — replace hand-rolled account
+// response objects with the deterministic, well-tested helpers.
+import { buildMockAccountResponse, fundedAccount, makeTestAccount } from '@bluecollar/test-utils'
 
 // ── Global fetch mock ─────────────────────────────────────────────────────────
 
@@ -103,10 +106,12 @@ describe('HorizonClient.getAccountInfo', () => {
   })
 
   it('returns parsed balance and sequence for a live account', async () => {
-    mockFetchOnce({
-      balances: [{ balance: '250.0000000', asset_type: 'native' }],
-      sequence: '987654321',
-    })
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        buildMockAccountResponse(fundedAccount({ balance: '250.0000000' }), '987654321'),
+      ),
+    )
 
     const info = await client.getAccountInfo(PUBLIC_KEY)
 
@@ -142,12 +147,9 @@ describe('HorizonClient.getAccountInfo', () => {
   })
 
   it('calls the correct Horizon accounts endpoint', async () => {
-    const spy = vi.spyOn(global, 'fetch').mockResolvedValueOnce(
-      new Response(
-        JSON.stringify({ balances: [{ balance: '1.0', asset_type: 'native' }], sequence: '1' }),
-        { status: 200 },
-      ),
-    )
+    const spy = vi
+      .spyOn(global, 'fetch')
+      .mockResolvedValueOnce(buildMockAccountResponse(makeTestAccount({ balance: '1.0' }), '1'))
     await client.getAccountInfo(PUBLIC_KEY)
     expect(spy).toHaveBeenCalledWith(`${TESTNET_URL}/accounts/${PUBLIC_KEY}`)
   })

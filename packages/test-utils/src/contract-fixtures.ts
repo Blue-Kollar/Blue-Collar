@@ -49,6 +49,11 @@ export interface TestAccount {
   label: string
   /** Simulated XLM balance (stroops string) */
   balance: string
+  /**
+   * Whether the account is authorized to call contract admin/role-gated
+   * functions. `undefined` means "unspecified" (state not relevant to the test).
+   */
+  authorized?: boolean
 }
 
 /** A full set of accounts commonly used in contract integration tests. */
@@ -121,6 +126,129 @@ export function makeTestAccount(options: MakeTestAccountOptions = {}): TestAccou
     secretKey: detSecret,
     label,
     balance,
+  }
+}
+
+// ─── Common account-state fixtures (issue #1276) ──────────────────────────────
+//
+// Contract tests repeatedly need the same handful of account states: a freshly
+// generated (unfunded) account, a funded account, a zero-balance account, an
+// authorized/unauthorized account, and a sender/recipient pair.  Previously
+// each test hand-rolled these objects, which made suites noisy and brittle.
+// The helpers below centralise that setup so tests read as declarations of
+// intent ("given a funded account…") instead of balance-string plumbing.
+
+export interface AccountStateOptions extends MakeTestAccountOptions {
+  /** When provided, sets the account's authorization flag explicitly. */
+  authorized?: boolean
+}
+
+function withAuthorization(account: TestAccount, authorized: boolean | undefined): TestAccount {
+  if (authorized === undefined) return account
+  return { ...account, authorized }
+}
+
+/**
+ * A brand-new, uninitialized account: no balance, no authorization.
+ * Models a freshly generated Stellar account that has not yet been funded or
+ * registered with any contract.
+ *
+ * @example
+ * const fresh = freshAccount()
+ * expect(fresh.balance).toBe('0.0000000')
+ */
+export function freshAccount(options: AccountStateOptions = {}): TestAccount {
+  const { authorized, ...rest } = options
+  return withAuthorization(
+    makeTestAccount({ label: rest.label ?? 'fresh', balance: '0.0000000', ...rest }),
+    authorized,
+  )
+}
+
+/**
+ * An account holding the default test balance and authorized for contract calls.
+ * This is the workhorse "happy path" account used by most contract tests.
+ */
+export function fundedAccount(options: AccountStateOptions = {}): TestAccount {
+  const { authorized, ...rest } = options
+  return withAuthorization(
+    makeTestAccount({ label: rest.label ?? 'funded', ...rest }),
+    authorized ?? true,
+  )
+}
+
+/**
+ * An account at exactly zero native balance. Useful for asserting
+ * "insufficient funds" / "account not funded" contract branches.
+ */
+export function zeroBalanceAccount(options: AccountStateOptions = {}): TestAccount {
+  const { authorized, ...rest } = options
+  return withAuthorization(
+    makeTestAccount({ label: rest.label ?? 'zero-balance', balance: '0.0000000', ...rest }),
+    authorized,
+  )
+}
+
+/**
+ * An authorized account (role-gated contract calls allowed).
+ */
+export function authorizedAccount(options: AccountStateOptions = {}): TestAccount {
+  const { ...rest } = options
+  return withAuthorization(makeTestAccount({ label: rest.label ?? 'authorized', ...rest }), true)
+}
+
+/**
+ * An explicitly unauthorized account (role-gated contract calls rejected).
+ */
+export function unauthorizedAccount(options: AccountStateOptions = {}): TestAccount {
+  const { ...rest } = options
+  return withAuthorization(makeTestAccount({ label: rest.label ?? 'unauthorized', ...rest }), false)
+}
+
+/**
+ * A sender/recipient pair, the most common two-party arrangement in payment,
+ * escrow, and tip tests. Both are funded by default; override via `balances`.
+ *
+ * @example
+ * const { sender, recipient } = makeSenderRecipient()
+ * registry.transfer(sender, recipient, amount)
+ */
+export function makeSenderRecipient(
+  balances?: { sender?: string; recipient?: string },
+): { sender: TestAccount; recipient: TestAccount } {
+  return {
+    sender: fundedAccount({ label: 'sender', balance: balances?.sender ?? DEFAULT_TEST_BALANCE }),
+    recipient: fundedAccount({
+      label: 'recipient',
+      balance: balances?.recipient ?? DEFAULT_TEST_BALANCE,
+    }),
+  }
+}
+
+/**
+ * The full catalogue of common account states in one call. Handy for
+ * table-driven tests that iterate over every state.
+ */
+export interface AccountStates {
+  fresh: TestAccount
+  funded: TestAccount
+  zeroBalance: TestAccount
+  authorized: TestAccount
+  unauthorized: TestAccount
+  sender: TestAccount
+  recipient: TestAccount
+}
+
+export function makeAccountStates(): AccountStates {
+  const { sender, recipient } = makeSenderRecipient()
+  return {
+    fresh: freshAccount(),
+    funded: fundedAccount(),
+    zeroBalance: zeroBalanceAccount(),
+    authorized: authorizedAccount(),
+    unauthorized: unauthorizedAccount(),
+    sender,
+    recipient,
   }
 }
 
