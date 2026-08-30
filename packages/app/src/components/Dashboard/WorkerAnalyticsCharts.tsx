@@ -14,13 +14,14 @@ import {
   YAxis,
 } from "recharts";
 import type { PersonalAnalytics } from "@/hooks/useWorkerAnalytics";
+import { formatDate } from "@/lib/utils";
 
 interface WorkerAnalyticsChartsProps {
   data: PersonalAnalytics;
 }
 
 function formatDateLabel(value: string) {
-  return new Date(value).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return formatDate(value, { month: "short", day: "numeric" });
 }
 
 function ChartCard({ title, children }: { title: string; children: React.ReactNode }) {
@@ -41,7 +42,7 @@ export function WorkerAnalyticsCharts({ data }: WorkerAnalyticsChartsProps) {
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="date" tickFormatter={formatDateLabel} fontSize={12} />
             <YAxis fontSize={12} />
-            <Tooltip labelFormatter={(value) => new Date(String(value)).toLocaleDateString()} />
+            <Tooltip labelFormatter={(value) => formatDate(String(value))} />
             <Area type="monotone" dataKey="views" name="Views" stroke="#2563eb" fill="#dbeafe" />
             <Area type="monotone" dataKey="uniqueViews" name="Unique views" stroke="#0891b2" fill="#cffafe" />
           </AreaChart>
@@ -54,7 +55,7 @@ export function WorkerAnalyticsCharts({ data }: WorkerAnalyticsChartsProps) {
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="date" tickFormatter={formatDateLabel} fontSize={12} />
             <YAxis fontSize={12} />
-            <Tooltip labelFormatter={(value) => new Date(String(value)).toLocaleDateString()} />
+            <Tooltip labelFormatter={(value) => formatDate(String(value))} />
             <Bar dataKey="earnings" name="Earnings (XLM)" fill="#16a34a" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
@@ -66,7 +67,7 @@ export function WorkerAnalyticsCharts({ data }: WorkerAnalyticsChartsProps) {
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="date" tickFormatter={formatDateLabel} fontSize={12} />
             <YAxis domain={[0, 5]} fontSize={12} />
-            <Tooltip labelFormatter={(value) => new Date(String(value)).toLocaleDateString()} />
+            <Tooltip labelFormatter={(value) => formatDate(String(value))} />
             <Line
               type="monotone"
               dataKey="avgRating"

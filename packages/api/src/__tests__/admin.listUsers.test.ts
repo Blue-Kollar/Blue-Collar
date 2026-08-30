@@ -24,41 +24,43 @@ function mockReq(query: object): any {
   return { query }
 }
 
+const noop = vi.fn()
+
 describe('listUsers filtering', () => {
   beforeEach(() => {
     paginateMock.mockClear()
   })
 
   it('defaults to active (non-deleted) users when no status filter is given', async () => {
-    await listUsers(mockReq({}), mockRes())
+    await listUsers(mockReq({}), mockRes(), noop)
     expect(paginateMock).toHaveBeenCalledWith(
       expect.objectContaining({ model: 'user', where: { deletedAt: null } })
     )
   })
 
   it('filters to suspended users', async () => {
-    await listUsers(mockReq({ status: 'suspended' }), mockRes())
+    await listUsers(mockReq({ status: 'suspended' }), mockRes(), noop)
     expect(paginateMock).toHaveBeenCalledWith(
       expect.objectContaining({ where: { deletedAt: { not: null } } })
     )
   })
 
   it('filters by a valid role', async () => {
-    await listUsers(mockReq({ role: 'curator' }), mockRes())
+    await listUsers(mockReq({ role: 'curator' }), mockRes(), noop)
     expect(paginateMock).toHaveBeenCalledWith(
       expect.objectContaining({ where: { deletedAt: null, role: 'curator' } })
     )
   })
 
   it('ignores unrecognized role values', async () => {
-    await listUsers(mockReq({ role: 'superuser' }), mockRes())
+    await listUsers(mockReq({ role: 'superuser' }), mockRes(), noop)
     expect(paginateMock).toHaveBeenCalledWith(
       expect.objectContaining({ where: { deletedAt: null } })
     )
   })
 
   it('builds a case-insensitive OR search across first name, last name, and email', async () => {
-    await listUsers(mockReq({ search: 'wanda' }), mockRes())
+    await listUsers(mockReq({ search: 'wanda' }), mockRes(), noop)
     expect(paginateMock).toHaveBeenCalledWith(
       expect.objectContaining({
         where: {
@@ -74,7 +76,7 @@ describe('listUsers filtering', () => {
   })
 
   it('combines search, role, and status filters', async () => {
-    await listUsers(mockReq({ search: 'wanda', role: 'user', status: 'suspended' }), mockRes())
+    await listUsers(mockReq({ search: 'wanda', role: 'user', status: 'suspended' }), mockRes(), noop)
     expect(paginateMock).toHaveBeenCalledWith(
       expect.objectContaining({
         where: expect.objectContaining({
@@ -87,7 +89,7 @@ describe('listUsers filtering', () => {
   })
 
   it('passes page and limit through to paginate', async () => {
-    await listUsers(mockReq({ page: '3', limit: '10' }), mockRes())
+    await listUsers(mockReq({ page: '3', limit: '10' }), mockRes(), noop)
     expect(paginateMock).toHaveBeenCalledWith(expect.objectContaining({ page: 3, limit: 10 }))
   })
 })

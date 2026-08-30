@@ -4,7 +4,7 @@ import { useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { X, Loader2, CheckCircle2, MessageSquare } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { sendContactRequest } from "@/lib/api";
+import { useSendContactRequest } from "@/hooks/queries";
 
 interface Props {
   workerId: string;
@@ -17,6 +17,7 @@ export default function ContactModal({ workerId, workerName }: Props) {
   const [message, setMessage] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
+  const sendContactRequest = useSendContactRequest(workerId);
 
   const reset = () => {
     setMessage("");
@@ -39,7 +40,7 @@ export default function ContactModal({ workerId, workerName }: Props) {
     setStatus("loading");
     setError(null);
     try {
-      await sendContactRequest(workerId, trimmed);
+      await sendContactRequest.mutateAsync(trimmed);
       setStatus("success");
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : t("errorGeneric");

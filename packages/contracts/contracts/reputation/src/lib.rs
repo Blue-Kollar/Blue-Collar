@@ -5,6 +5,9 @@
 //! the Checks-Effects-Interactions (CEI) pattern to prevent reentrancy.
 
 #![no_std]
+// Lint policy: clippy::pedantic enabled at workspace level (issue #1254).
+// Blanket Soroban exceptions (needless_pass_by_value, must_use_candidate, etc.)
+// are configured in the workspace Cargo.toml; per-function overrides go here.
 
 use bluecollar_types::{helpers, storage::extend_ttl, ContractError};
 use soroban_sdk::{

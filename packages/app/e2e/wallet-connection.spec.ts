@@ -203,8 +203,9 @@ test.describe('Wallet Connection Flow — Happy Path (#1038)', () => {
 
     if (await btn.count() > 0) {
       await btn.click()
-      await page.waitForTimeout(1000)
-      await expect(page.locator('body')).not.toContainText('Internal Server Error')
+      // Wait for any wallet modal/interaction to settle
+      await expect(page.locator('body')).not.toContainText('Internal Server Error', { timeout: 5000 })
+      await expect(page.locator('body')).not.toContainText('Application error', { timeout: 5000 })
     }
   })
 })
@@ -222,7 +223,8 @@ test.describe('Wallet Connection Flow — Failure Paths (#1038)', () => {
     // The app should gracefully handle missing wallet (no JS crash)
     const jsErrors: string[] = []
     page.on('pageerror', (err) => jsErrors.push(err.message))
-    await page.waitForTimeout(500)
+    // Wait for page to fully settle — any wallet-related errors surface within a few frames
+    await expect(page.locator('body')).toBeVisible({ timeout: 5000 })
     // Filter out known non-critical errors
     const criticalErrors = jsErrors.filter(
       (e) => !e.includes('freighter') && !e.includes('wallet')
@@ -258,11 +260,10 @@ test.describe('Wallet Connection Flow — Failure Paths (#1038)', () => {
     const btn = await findConnectButton(page)
     if (await btn.count() > 0) {
       await btn.click()
-      await page.waitForTimeout(1500)
-      // No hard crash
-      await expect(page.locator('body')).not.toContainText('Internal Server Error')
+      // Wait for rejection to propagate through UI — either error state or no crash
+      await expect(page.locator('body')).not.toContainText('Internal Server Error', { timeout: 5000 })
       // Should not show raw error stack traces to users
-      await expect(page.locator('body')).not.toContainText('at Object.<anonymous>')
+      await expect(page.locator('body')).not.toContainText('at Object.<anonymous>', { timeout: 5000 })
     }
   })
 
@@ -287,10 +288,10 @@ test.describe('Wallet Connection Flow — Failure Paths (#1038)', () => {
     const btn = await findConnectButton(page)
     if (await btn.count() > 0) {
       await btn.click()
-      // Wait a moment — the page should show loading or a timeout indicator,
-      // not a hard crash
-      await page.waitForTimeout(2000)
-      await expect(page.locator('body')).not.toContainText('Internal Server Error')
+      // The page should show loading or a timeout indicator, not a hard crash.
+      // Use assertion with timeout instead of fixed waitForTimeout.
+      await expect(page.locator('body')).not.toContainText('Internal Server Error', { timeout: 5000 })
+      await expect(page.locator('body')).not.toContainText('Application error', { timeout: 5000 })
     }
   })
 

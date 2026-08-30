@@ -11,6 +11,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import { formatDate } from "@/lib/utils";
 
 interface ViewTrend {
   date: string;
@@ -44,9 +45,9 @@ export function ViewTrendsChart({ trends, trendsLoading, workerName }: { trends:
     <ResponsiveContainer width="100%" height={250}>
       <LineChart data={trends}>
         <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="date" tickFormatter={(d) => new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric" })} fontSize={12} />
+        <XAxis dataKey="date" tickFormatter={(d) => formatDate(d, { month: "short", day: "numeric" })} fontSize={12} />
         <YAxis fontSize={12} />
-        <Tooltip labelFormatter={(d) => new Date(d).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })} />
+        <Tooltip labelFormatter={(d) => formatDate(String(d), { month: "long", day: "numeric", year: "numeric" })} />
         <Line type="monotone" dataKey="views" stroke="#2563eb" strokeWidth={2} dot={false} />
       </LineChart>
     </ResponsiveContainer>

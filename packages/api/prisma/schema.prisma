@@ -660,6 +660,8 @@ model EscrowRecord {
   @@index([payerId])
   @@index([payeeId])
   @@index([status])
+  @@index([payerId, status])
+  @@index([payeeId, status])
 }
 
 model EscrowDispute {

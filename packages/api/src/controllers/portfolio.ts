@@ -1,33 +1,59 @@
 import type { Request, Response } from 'express'
+import { catchAsync } from '../utils/catchAsync.js'
+import { AppError, ErrorCode } from '../utils/AppError.js'
+import { ErrorMessages } from '../constants/errors.js'
 import { db } from '../db.js'
+import { createPaginationHelper } from '../utils/pagination.js'
 
-export async function listPortfolio(req: Request, res: Response) {
-  const items = await db.portfolioItem.findMany({
-    where: { workerId: req.params.workerId },
-    orderBy: { order: 'asc' },
+export const listPortfolio = catchAsync(async (req: Request, res: Response) => {
+  const { skip, take, buildMeta } = createPaginationHelper(req.query, {
+    maxLimit: 100,
+    defaultLimit: 20,
   })
-  return res.json({ data: items, status: 'success', code: 200 })
-}
 
-export async function addPortfolioItem(req: Request, res: Response) {
+  const [items, total] = await Promise.all([
+    db.portfolioItem.findMany({
+      where: { workerId: req.params.workerId },
+      orderBy: { order: 'asc' },
+      skip,
+      take,
+    }),
+    db.portfolioItem.count({ where: { workerId: req.params.workerId } }),
+  ])
+
+  return res.json({
+    data: items,
+    meta: buildMeta(total),
+    status: 'success',
+    code: 200,
+  })
+})
+
+export const addPortfolioItem = catchAsync(async (req: Request, res: Response) => {
   const { workerId } = req.params
   const worker = await db.worker.findUnique({ where: { id: workerId } })
-  if (!worker) return res.status(404).json({ status: 'error', message: 'Worker not found', code: 404 })
+  if (!worker) {
+    throw new AppError(ErrorMessages.WORKER_NOT_FOUND, 404, true, ErrorCode.NOT_FOUND)
+  }
 
   const { description, order } = req.body
   const imageUrl = (req.file as Express.Multer.File & { path?: string })?.path ?? req.body.imageUrl
-  if (!imageUrl) return res.status(400).json({ status: 'error', message: 'imageUrl is required', code: 400 })
+  if (!imageUrl) {
+    throw new AppError('imageUrl is required', 400, true, ErrorCode.VALIDATION_ERROR)
+  }
 
   const item = await db.portfolioItem.create({
     data: { workerId, imageUrl, description, order: order ? Number(order) : 0 },
   })
   return res.status(201).json({ data: item, status: 'success', code: 201 })
-}
+})
 
-export async function updatePortfolioItem(req: Request, res: Response) {
+export const updatePortfolioItem = catchAsync(async (req: Request, res: Response) => {
   const { workerId, id } = req.params
   const existing = await db.portfolioItem.findFirst({ where: { id, workerId } })
-  if (!existing) return res.status(404).json({ status: 'error', message: 'Not found', code: 404 })
+  if (!existing) {
+    throw new AppError(ErrorMessages.NOT_FOUND, 404, true, ErrorCode.NOT_FOUND)
+  }
 
   const { description, order } = req.body
   const imageUrl = (req.file as Express.Multer.File & { path?: string })?.path ?? req.body.imageUrl
@@ -41,23 +67,26 @@ export async function updatePortfolioItem(req: Request, res: Response) {
     },
   })
   return res.json({ data: item, status: 'success', code: 200 })
-}
+})
 
-export async function deletePortfolioItem(req: Request, res: Response) {
+export const deletePortfolioItem = catchAsync(async (req: Request, res: Response) => {
   const { workerId, id } = req.params
   const existing = await db.portfolioItem.findFirst({ where: { id, workerId } })
-  if (!existing) return res.status(404).json({ status: 'error', message: 'Not found', code: 404 })
+  if (!existing) {
+    throw new AppError(ErrorMessages.NOT_FOUND, 404, true, ErrorCode.NOT_FOUND)
+  }
   await db.portfolioItem.delete({ where: { id } })
   return res.status(204).send()
-}
+})
 
-export async function reorderPortfolio(req: Request, res: Response) {
-  // body: { items: [{ id, order }] }
+export const reorderPortfolio = catchAsync(async (req: Request, res: Response) => {
   const { items } = req.body as { items: { id: string; order: number }[] }
-  if (!Array.isArray(items)) return res.status(400).json({ status: 'error', message: 'items array required', code: 400 })
+  if (!Array.isArray(items)) {
+    throw new AppError('items array required', 400, true, ErrorCode.VALIDATION_ERROR)
+  }
 
   await Promise.all(
     items.map(({ id, order }) => db.portfolioItem.update({ where: { id }, data: { order } })),
   )
   return res.json({ status: 'success', message: 'Order updated', code: 200 })
-}
+})

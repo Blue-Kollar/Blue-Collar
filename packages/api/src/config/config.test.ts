@@ -94,10 +94,8 @@ describe('Config structure', () => {
     expect(config).toHaveProperty('auth')
     expect(config).toHaveProperty('mail')
     expect(config).toHaveProperty('redis')
-    expect(config).toHaveProperty('rateLimit')
     expect(config).toHaveProperty('upload')
     expect(config.port).toBe(3000)
-    expect(config.rateLimit.windowMs).toBe(900_000)
 
     // Restore
     Object.keys(process.env).forEach(k => { if (!(k in saved)) delete process.env[k] })

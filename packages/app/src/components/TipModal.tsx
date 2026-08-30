@@ -6,27 +6,35 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { X, Loader2, CheckCircle2, AlertCircle, ExternalLink, Zap } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useWallet, FreighterNotInstalledError, WalletNotConnectedError } from "@/hooks/useWallet";
+import { usePaymentFlow } from "@/context/PaymentFlowContext";
 import { cn } from "@/lib/utils";
 
-const DEFAULT_NETWORK_PASSPHRASE = "Test SDF Network ; September 2015";
-const HORIZON_URL = "https://horizon-testnet.stellar.org";
-const SOROBAN_RPC = "https://soroban-testnet.stellar.org";
+import { HORIZON_URL, SOROBAN_RPC_URL, EXPLORER_TX_BASE, NETWORK_PASSPHRASE } from "@/config/stellar";
+
 const STROOPS_PER_XLM = 10_000_000n;
-const EXPLORER_BASE = "https://stellar.expert/explorer/testnet/tx";
 const NETWORK_FEE = 0.00001;
 
 type TxStatus = "idle" | "signing" | "pending" | "success" | "error";
 type ErrorType = "freighter_missing" | "insufficient_balance" | "network_error" | "unknown";
 
 interface Props {
-  workerName: string;
-  walletAddress: string;
+  workerName?: string;
+  walletAddress?: string;
   trigger?: ReactNode;
 }
 
-export default function TipModal({ workerName, walletAddress, trigger }: Props) {
+export default function TipModal({ workerName: workerNameProp, walletAddress: walletAddressProp, trigger }: Props) {
   const t = useTranslations("tip");
+  const paymentFlow = usePaymentFlow();
+  const workerName = workerNameProp ?? paymentFlow?.workerName;
+  const walletAddress = walletAddressProp ?? paymentFlow?.walletAddress;
   const { publicKey, networkPassphrase, connect, signTransaction } = useWallet();
+
+  if (!workerName || !walletAddress) {
+    throw new Error(
+      "TipModal requires workerName/walletAddress via props or a PaymentFlowProvider ancestor.",
+    );
+  }
   const [open, setOpen] = useState(false);
   const [amount, setAmount] = useState("");
   const [selectedToken, setSelectedToken] = useState("XLM");
@@ -76,11 +84,11 @@ export default function TipModal({ workerName, walletAddress, trigger }: Props) 
 
       setStatus("pending");
 
-      const passphrase = networkPassphrase ?? DEFAULT_NETWORK_PASSPHRASE;
+      const passphrase = networkPassphrase ?? NETWORK_PASSPHRASE;
       const amountInStroops = BigInt(Math.round(Number(amount) * Number(STROOPS_PER_XLM)));
       const txXdr = await buildTipTxXdr(senderAddress, walletAddress, amountInStroops, passphrase);
 
-      const buildRes = await fetch(`${SOROBAN_RPC}`, {
+      const buildRes = await fetch(`${SOROBAN_RPC_URL}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -264,7 +272,7 @@ export default function TipModal({ workerName, walletAddress, trigger }: Props) 
                   <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t("successDescription", { name: workerName })}</p>
                 </div>
                 <a
-                  href={`${EXPLORER_BASE}/${txHash}`}
+                  href={`${EXPLORER_TX_BASE}/${txHash}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 rounded-lg bg-green-50 dark:bg-green-950/30 px-4 py-2 text-sm font-medium text-green-700 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-950/50 transition-colors border border-green-200 dark:border-green-900"
