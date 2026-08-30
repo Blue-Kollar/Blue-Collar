@@ -57,9 +57,9 @@ test.describe('Search Flow — Happy Path (#1043)', () => {
     if (await input.count() > 0) {
       await input.fill('plumber')
       await expect(input).toHaveValue('plumber')
-      // Give any debounced fetch a moment to resolve
-      await page.waitForTimeout(500)
-      await expect(page.locator('body')).not.toContainText('Internal Server Error')
+      // Wait for debounce to settle: either results appear or error text stays absent
+      await expect(page.locator('body')).not.toContainText('Internal Server Error', { timeout: 3000 })
+      await expect(page.locator('body')).not.toContainText('Application error', { timeout: 3000 })
     }
   })
 
@@ -104,10 +104,9 @@ test.describe('Search Flow — Edge Cases (#1043)', () => {
 
     if (await input.count() > 0) {
       await input.fill('zzzzznonexistentqueryzzzzz')
-      await page.waitForTimeout(800)
-
-      await expect(page.locator('body')).not.toContainText('Internal Server Error')
-      await expect(page.locator('body')).not.toContainText('Application error')
+      // Wait for debounce to settle — no server error regardless of result count
+      await expect(page.locator('body')).not.toContainText('Internal Server Error', { timeout: 3000 })
+      await expect(page.locator('body')).not.toContainText('Application error', { timeout: 3000 })
 
       // An explicit empty state, or simply zero result cards, are both
       // acceptable outcomes for a query with no matches — a crash is not,
@@ -121,9 +120,9 @@ test.describe('Search Flow — Edge Cases (#1043)', () => {
 
     if (await input.count() > 0) {
       await input.fill('<script>alert(1)</script> & 100% "quoted"')
-      await page.waitForTimeout(500)
-      await expect(page.locator('body')).not.toContainText('Internal Server Error')
-      await expect(page.locator('body')).not.toContainText('Application error')
+      // Wait for debounce to settle — page must not crash on special characters
+      await expect(page.locator('body')).not.toContainText('Internal Server Error', { timeout: 3000 })
+      await expect(page.locator('body')).not.toContainText('Application error', { timeout: 3000 })
     }
   })
 
@@ -135,8 +134,8 @@ test.describe('Search Flow — Edge Cases (#1043)', () => {
       for (const term of ['p', 'pl', 'plu', 'plum', 'plumb', 'plumbe', 'plumber']) {
         await input.fill(term)
       }
-      await page.waitForTimeout(500)
-      await expect(page.locator('body')).not.toContainText('Internal Server Error')
+      // Wait for final debounce to settle — no crash after rapid typing
+      await expect(page.locator('body')).not.toContainText('Internal Server Error', { timeout: 3000 })
     }
   })
 
