@@ -23,6 +23,9 @@
 //! of how the implementation is organised.
 
 #![no_std]
+// Lint policy: clippy::pedantic enabled at workspace level (issue #1254).
+// Blanket Soroban exceptions (needless_pass_by_value, must_use_candidate, etc.)
+// are configured in the workspace Cargo.toml; per-function overrides go here.
 
 mod logic;
 mod storage;

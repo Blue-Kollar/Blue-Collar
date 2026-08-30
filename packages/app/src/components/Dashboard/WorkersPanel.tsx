@@ -11,7 +11,7 @@ import {
   TrendingUp,
   X,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, formatDate } from "@/lib/utils";
 import { Table, type ColumnDef, type RowAction } from "@/components/Table";
 import { DashboardTableSkeleton } from "@/components/Skeleton";
 import type { ViewTrend } from "@/types";
@@ -91,11 +91,7 @@ export function WorkersPanel({
       header: "Created",
       cell: (w) => (
         <span className="text-gray-400">
-          {new Date(w.createdAt).toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-          })}
+          {formatDate(w.createdAt)}
         </span>
       ),
       hideOnMobile: true,

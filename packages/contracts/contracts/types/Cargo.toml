@@ -11,3 +11,9 @@ soroban-sdk = { version = "26.1.0", features = ["alloc"] }
 
 [dev-dependencies]
 soroban-sdk = { version = "26.1.0", features = ["alloc", "testutils"] }
+
+[features]
+testutils = ["soroban-sdk/testutils"]
+
+[lints]
+workspace = true

@@ -3,6 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useProtocolMetrics } from '@/hooks/queries'
+import { formatDate } from '@/lib/utils'
 
 export default function StatsPage() {
   const { data: metrics, isLoading: loading } = useProtocolMetrics()
@@ -31,7 +32,7 @@ export default function StatsPage() {
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Protocol Health Dashboard</h1>
         <span className="text-sm text-muted-foreground">
-          Last updated: {new Date(metrics.dataFreshness).toLocaleString()}
+          Last updated: {formatDate(metrics.dataFreshness, { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" })}
         </span>
       </div>
 

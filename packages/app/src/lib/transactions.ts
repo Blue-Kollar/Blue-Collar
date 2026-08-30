@@ -11,23 +11,35 @@
  */
 
 import * as StellarSdk from "@stellar/stellar-sdk";
+import {
+  HORIZON_URL,
+  SOROBAN_RPC_URL,
+  EXPLORER_TX_BASE,
+  NETWORK_PASSPHRASE,
+} from "@/config/stellar";
 
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
 
+/**
+ * Network configuration table.  Runtime URLs are sourced from
+ * src/config/stellar.ts which reads NEXT_PUBLIC_STELLAR_* environment
+ * variables, so testnet/mainnet switching requires only an env-var change.
+ * Closes #1207
+ */
 export const NETWORKS = {
   TESTNET: {
     passphrase: "Test SDF Network ; September 2015",
-    horizonUrl: "https://horizon-testnet.stellar.org",
-    sorobanRpc: "https://soroban-testnet.stellar.org",
-    explorer: "https://stellar.expert/explorer/testnet/tx",
+    horizonUrl: HORIZON_URL,
+    sorobanRpc: SOROBAN_RPC_URL,
+    explorer: `${EXPLORER_TX_BASE}`,
   },
   MAINNET: {
     passphrase: "Public Global Stellar Network ; September 2015",
-    horizonUrl: "https://horizon.stellar.org",
-    sorobanRpc: "https://soroban-mainnet.stellar.org",
-    explorer: "https://stellar.expert/explorer/public/tx",
+    horizonUrl: HORIZON_URL,
+    sorobanRpc: SOROBAN_RPC_URL,
+    explorer: `${EXPLORER_TX_BASE}`,
   },
 } as const;
 
@@ -302,7 +314,7 @@ function stripSignatures(
     tx.toXDR(),
     tx instanceof StellarSdk.Transaction
       ? tx.networkPassphrase
-      : NETWORKS.TESTNET.passphrase
+      : NETWORK_PASSPHRASE
   ) as StellarSdk.Transaction;
   cloned.signatures = [];
   return cloned.toXDR();

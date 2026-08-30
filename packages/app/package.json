@@ -13,6 +13,7 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "lint": "next lint",
+    "lint:naming": "node scripts/check-file-naming.mjs",
     "type-check": "tsc --noEmit",
     "audit": "pnpm audit --audit-level=high",
     "audit:fix": "pnpm audit --fix",

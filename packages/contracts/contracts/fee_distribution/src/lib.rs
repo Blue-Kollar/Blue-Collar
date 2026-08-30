@@ -4,6 +4,9 @@
 //! with percentage-based splits.
 
 #![no_std]
+// Lint policy: clippy::pedantic enabled at workspace level (issue #1254).
+// Blanket Soroban exceptions (needless_pass_by_value, must_use_candidate, etc.)
+// are configured in the workspace Cargo.toml; per-function overrides go here.
 
 use bluecollar_types::{helpers, ContractError};
 use soroban_sdk::{
@@ -116,7 +119,19 @@ impl FeeDistributionContract {
         helpers::require_not_paused(paused)
     }
 
-    /// Grant a role to an address.
+    /// Grant a role to an address. Caller must hold [`ROLE_ADMIN`].
+    ///
+    /// Idempotent — calling this twice for the same `(role, account)` pair is
+    /// a no-op after the first successful grant.
+    ///
+    /// # Parameters
+    /// - `caller`  — must hold `ROLE_ADMIN` and have authorised this call.
+    /// - `role`    — symbolic role identifier (e.g. `Symbol::new(env, "fee_mgr")`).
+    /// - `account` — address to be added to the role's member list.
+    ///
+    /// # Errors
+    /// - [`ContractError::MissingRole`] if `caller` does not hold `ROLE_ADMIN`.
+    /// - [`ContractError::ContractIsPaused`] if the contract is paused.
     pub fn grant_role(
         env: Env,
         caller: Address,
@@ -139,7 +154,17 @@ impl FeeDistributionContract {
         Ok(())
     }
 
-    /// Revoke a role from an address.
+    /// Revoke a role from an address. Caller must hold [`ROLE_ADMIN`].
+    ///
+    /// # Parameters
+    /// - `caller`  — must hold `ROLE_ADMIN` and have authorised this call.
+    /// - `role`    — symbolic role identifier.
+    /// - `account` — address to be removed from the role's member list.
+    ///
+    /// # Errors
+    /// - [`ContractError::MissingRole`] if `caller` does not hold `ROLE_ADMIN`.
+    /// - [`ContractError::ContractIsPaused`] if the contract is paused.
+    /// - [`ContractError::AccountDoesNotHoldRole`] if `account` is not in the role.
     pub fn revoke_role(
         env: Env,
         caller: Address,
@@ -171,7 +196,13 @@ impl FeeDistributionContract {
         Ok(())
     }
 
-    /// Pause the contract.
+    /// Pause the contract, blocking all state-mutating operations.
+    ///
+    /// # Parameters
+    /// - `caller` — must hold [`ROLE_PAUSER`] and have authorised this call.
+    ///
+    /// # Errors
+    /// - [`ContractError::MissingRole`] if `caller` does not hold `ROLE_PAUSER`.
     pub fn pause(env: Env, caller: Address) -> Result<(), ContractError> {
         let pauser_role = Symbol::new(&env, ROLE_PAUSER);
         Self::require_role(&env, &pauser_role, &caller)?;
@@ -180,7 +211,13 @@ impl FeeDistributionContract {
         Ok(())
     }
 
-    /// Unpause the contract.
+    /// Unpause the contract, re-enabling all state-mutating operations.
+    ///
+    /// # Parameters
+    /// - `caller` — must hold [`ROLE_ADMIN`] and have authorised this call.
+    ///
+    /// # Errors
+    /// - [`ContractError::MissingRole`] if `caller` does not hold `ROLE_ADMIN`.
     pub fn unpause(env: Env, caller: Address) -> Result<(), ContractError> {
         let admin_role = Symbol::new(&env, ROLE_ADMIN);
         Self::require_role(&env, &admin_role, &caller)?;

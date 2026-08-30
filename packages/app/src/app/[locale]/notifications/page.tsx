@@ -5,7 +5,7 @@ import { Bell, Check, CheckCheck, Trash2, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useNotifications } from "@/context/NotificationContext";
 import { deleteNotification } from "@/lib/api";
-import { cn } from "@/lib/utils";
+import { cn, formatRelativeTime } from "@/lib/utils";
 import type { NotificationType as NType } from "@/types";
 type NotificationType = NType;
 
@@ -25,17 +25,6 @@ const TYPE_LABELS: Record<NotificationType, string> = {
   message: "Message",
 };
 
-function timeAgo(iso: string) {
-  const diff = Date.now() - new Date(iso).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "Just now";
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  const days = Math.floor(hrs / 24);
-  if (days < 7) return `${days}d ago`;
-  return new Date(iso).toLocaleDateString();
-}
 
 export default function NotificationCentrePage() {
   const { notifications, unreadCount, markRead, markAllRead, refresh, loading } =
@@ -161,7 +150,7 @@ export default function NotificationCentrePage() {
                     </button>
                   </div>
                 </div>
-                <p className="mt-1 text-xs text-gray-400">{timeAgo(n.createdAt)}</p>
+                <p className="mt-1 text-xs text-gray-400">{formatRelativeTime(n.createdAt)}</p>
               </div>
             </div>
           ))}

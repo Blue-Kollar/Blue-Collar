@@ -90,6 +90,35 @@ export function useProtocolMetrics() {
   });
 }
 
+// ── Reviews ───────────────────────────────────────────────────────────────────
+
+export function useToggleReviewHelpful(reviewId: string) {
+  return useMutation({
+    mutationFn: () => api.toggleReviewHelpful(reviewId),
+  });
+}
+
+// ── Contact ───────────────────────────────────────────────────────────────────
+
+export function useSendContactRequest(workerId: string) {
+  return useMutation({
+    mutationFn: (message: string) => api.sendContactRequest(workerId, message),
+  });
+}
+
+// ── Invoices ──────────────────────────────────────────────────────────────────
+
+export function useInvoice(invoiceId: string) {
+  return useQuery({
+    queryKey: ["invoices", "detail", invoiceId] as const,
+    queryFn: async () => {
+      const { getInvoice } = await import("@/lib/api/payments");
+      return getInvoice(invoiceId);
+    },
+    enabled: !!invoiceId,
+  });
+}
+
 // ── Email notification preferences (settings page) ───────────────────────────
 
 export function useEmailNotificationPrefs() {
