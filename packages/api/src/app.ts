@@ -230,7 +230,7 @@ app.put('/api/v2/admin/rollout', updateRolloutEndpoint)
 
 // ── Redirect unversioned /api/* → /api/v1/* with deprecation headers ──────────
 app.use('/api', deprecationWarning, (req, res) => {
-  const qs = Object.keys(req.query).length ? '?' + new URLSearchParams(req.query as any).toString() : ''
+  const qs = Object.keys(req.query).length ? '?' + new URLSearchParams(req.query as unknown as Record<string, string>).toString() : ''
   const target = `/api/v1${req.path}${qs}`
   res.redirect(301, target)
 })

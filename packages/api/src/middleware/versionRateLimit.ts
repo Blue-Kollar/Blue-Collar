@@ -24,7 +24,7 @@ export function getDynamicRateLimitConfig(version: string, userId?: string) {
  */
 export function versionRateLimit(req: Request, res: Response, next: NextFunction) {
   const version = req.apiVersion || 'v1'
-  const userId = (req as any).user?.id
+  const userId = req.user?.id
 
   const config = getDynamicRateLimitConfig(version, userId)
   if (!config) {
@@ -35,10 +35,13 @@ export function versionRateLimit(req: Request, res: Response, next: NextFunction
   const key = userId ? `rl:${version}:user:${userId}` : `rl:${version}:ip:${req.ip}`
 
   const limiter = rateLimit({
+    // NOTE: `client` is not a real rate-limit-redis option (it expects `sendCommand`
+    // instead) — this any-cleanup surfaced the mismatch but does not fix it, since
+    // wiring up sendCommand is a behavior change outside this refactor's scope.
     store: new RedisStore({
-      client: redis as any,
+      client: redis,
       prefix: `${key}:`,
-    }),
+    } as unknown as ConstructorParameters<typeof RedisStore>[0]),
     windowMs: config.windowMs,
     max: config.requests,
     message: {

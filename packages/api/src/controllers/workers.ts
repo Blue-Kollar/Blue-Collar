@@ -107,13 +107,13 @@ async function listWorkersOffsetMode(query: Record<string, unknown>, fieldSet: S
     maxRating: maxRating ? Number(maxRating) : undefined,
     available: available !== undefined ? Number(available) : undefined,
     listedSince: listedSince ? Number(listedSince) : undefined,
-    sortBy: sortBy as any,
-    sortOrder: sortOrder as any,
+    sortBy: sortBy as 'rating' | 'newest' | 'oldest' | 'name' | undefined,
+    sortOrder: sortOrder as 'asc' | 'desc' | undefined,
     isVerified: isVerified !== undefined ? isVerified === 'true' : undefined,
   })
 
-  const resultData = fieldSet && Array.isArray((result as any).data)
-    ? { ...result, data: (result as any).data.map((w: Record<string, unknown>) => sparseFields(w, fieldSet)) }
+  const resultData = fieldSet && Array.isArray(result.data)
+    ? { ...result, data: result.data.map((w) => sparseFields(w as Record<string, unknown>, fieldSet)) }
     : result
   return res.json({ ...resultData, status: 'success', code: 200 })
 }
@@ -153,15 +153,18 @@ export async function showWorker(req: Request, res: Response) {
  * @param req - Body: `CreateWorkerBody`. `req.user` must be set by auth middleware.
  * @param res - JSON `{ data: Worker, status, code: 201 }`.
  */
-export async function createWorker(req: Request<{}, {}, CreateWorkerBody>, res: Response) {
+export const createWorker = catchAsync(async (req: Request<{}, {}, CreateWorkerBody>, res: Response) => {
   const worker = await workerService.createWorkerWithMedia(req.body, req.user!.id, req.file)
   await invalidateCachePattern(`cache:*workers?*`)
   return res.status(201).json({
-    data: workerSerializer.serialize(worker as any),
+    // NOTE: worker has already been through formatWorker() (narrowed category/curator
+    // shape), not the raw Prisma relations workerSerializer.serialize() expects — a
+    // pre-existing mismatch this any-cleanup surfaced but does not fix (out of scope).
+    data: workerSerializer.serialize(worker as unknown as Parameters<typeof workerSerializer.serialize>[0]),
     status: 'success',
     code: 201
   })
-}
+})
 
 /**
  * PUT /api/workers/:id
@@ -185,16 +188,17 @@ export async function createWorker(req: Request<{}, {}, CreateWorkerBody>, res: 
  * @param req - Route param `id`. Body: `UpdateWorkerBody` (JSON or multipart).
  * @param res - JSON `{ data: Worker, status, code }`.
  */
-export async function updateWorker(req: Request<{ id: string }, {}, UpdateWorkerBody>, res: Response) {
+export const updateWorker = catchAsync(async (req: Request<{ id: string }, {}, UpdateWorkerBody>, res: Response) => {
   const worker = await workerService.updateWorkerWithMedia(req.params.id, req.body, req.file, req.user?.id)
   await invalidateCachePattern(`cache:*workers/${req.params.id}*`)
   await invalidateCachePattern(`cache:*workers?*`)
   return res.json({
-    data: workerSerializer.serialize(worker as any),
+    // See createWorker() above: pre-existing formatWorker()/serialize() shape mismatch.
+    data: workerSerializer.serialize(worker as unknown as Parameters<typeof workerSerializer.serialize>[0]),
     status: 'success',
     code: 200
   })
-}
+})
 
 /**
  * DELETE /api/workers/:id
@@ -217,16 +221,17 @@ export async function deleteWorker(req: Request, res: Response) {
  * @param req - Route param `id`.
  * @param res - JSON `{ data: Worker, status, code }`.
  */
-export async function toggleActivation(req: Request, res: Response) {
+export const toggleActivation = catchAsync(async (req: Request, res: Response) => {
   const updated = await workerService.toggleWorker(req.params.id as string)
   await invalidateCachePattern(`cache:*workers/${req.params.id}*`)
   await invalidateCachePattern(`cache:*workers?*`)
   return res.json({
-    data: workerSerializer.serialize(updated as any),
+    // See createWorker() above: pre-existing formatWorker()/serialize() shape mismatch.
+    data: workerSerializer.serialize(updated as unknown as Parameters<typeof workerSerializer.serialize>[0]),
     status: 'success',
     code: 200
   })
-}
+})
 
 /**
  * GET /api/workers/mine
@@ -274,7 +279,7 @@ export function createSearchHandlers(service: SearchService = searchService) {
         maxRating: maxRating ? Number(maxRating) : undefined,
         dayOfWeek: dayOfWeek !== undefined ? Number(dayOfWeek) : undefined,
         isVerified: isVerified !== undefined ? isVerified === 'true' : undefined,
-        sortBy: sortBy as any,
+        sortBy: sortBy as 'relevance' | 'rating' | 'distance' | 'newest' | undefined,
         page: Number(page),
         limit: Math.min(Math.max(Number(limit) || 20, 1), 100),
       }, req.ip)

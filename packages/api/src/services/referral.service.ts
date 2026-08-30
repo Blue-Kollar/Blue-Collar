@@ -46,15 +46,15 @@ export function createReferralService(deps: ReferralServiceDeps) {
         code,
         status: 'converted',
         convertedAt: new Date(),
-      } as any)
+      })
     },
 
     /** Mark a referral as rewarded */
     async rewardReferral(referralId: string) {
       const referral = await repo.findReferralById(referralId)
       if (!referral) throw new AppError('Referral not found', 404)
-      if ((referral as any).rewardGiven) throw new AppError('Reward already given', 400)
-      return repo.updateReferral(referralId, { status: 'rewarded', rewardGiven: true } as any)
+      if (referral.rewardGiven) throw new AppError('Reward already given', 400)
+      return repo.updateReferral(referralId, { status: 'rewarded', rewardGiven: true })
     },
 
     /** Analytics: referral stats for a user */
@@ -71,11 +71,11 @@ export function createReferralService(deps: ReferralServiceDeps) {
     async getReferralLeaderboard(limit = 10) {
       const results = await repo.groupReferralsByReferrer(limit)
 
-      const userIds = results.map((r: any) => r.referrerId)
+      const userIds = results.map((r) => r.referrerId)
       const users = await repo.findUsersByIds(userIds)
-      const userMap = Object.fromEntries(users.map((u: any) => [u.id, u]))
+      const userMap = Object.fromEntries(users.map((u) => [u.id, u]))
 
-      return results.map((r: any, i: number) => ({
+      return results.map((r, i: number) => ({
         rank: i + 1,
         userId: r.referrerId,
         name: `${userMap[r.referrerId]?.firstName ?? ''} ${userMap[r.referrerId]?.lastName ?? ''}`.trim(),

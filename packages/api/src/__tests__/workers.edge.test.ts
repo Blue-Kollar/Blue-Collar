@@ -15,7 +15,7 @@ vi.mock('../db.js', () => ({
 }))
 
 import { db } from '../db.js'
-import { AppError } from '../services/AppError.js'
+import { AppError } from '../utils/AppError.js'
 import {
   createWorker,
   toggleWorker,

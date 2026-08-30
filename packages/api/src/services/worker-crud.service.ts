@@ -1,5 +1,6 @@
+import type { Prisma } from '@prisma/client'
 import { db } from '../db.js'
-import { AppError } from './AppError.js'
+import { AppError } from '../utils/AppError.js'
 import { formatWorker } from '../models/worker.model.js'
 import type { CreateWorkerBody, UpdateWorkerBody } from '../interfaces/index.js'
 import { publishEvent } from './webhook.service.js'
@@ -18,7 +19,7 @@ export async function getWorker(id: string) {
 export async function createWorker(data: CreateWorkerBody, curatorId: string) {
   logger.debug('Creating worker', { curatorId, name: data.name })
   const worker = await db.worker.create({
-    data: { ...data, curatorId, createdById: curatorId, updatedById: curatorId } as any,
+    data: { ...data, curatorId, createdById: curatorId, updatedById: curatorId } satisfies Prisma.WorkerUncheckedCreateInput,
     include: workerInclude,
   })
   publishEvent('worker.created', { worker: formatWorker(worker) }).catch(() => {})
@@ -31,7 +32,7 @@ export async function updateWorker(id: string, data: UpdateWorkerBody, updatedBy
   logger.debug('Updating worker', { workerId: id })
   const worker = await db.worker.update({
     where: { id },
-    data: { ...data as any, ...(updatedById ? { updatedById } : {}) },
+    data: { ...data, ...(updatedById ? { updatedById } : {}) } satisfies Prisma.WorkerUncheckedUpdateInput,
     include: workerInclude,
   })
   publishEvent('worker.updated', { worker: formatWorker(worker) }).catch(() => {})

@@ -1,3 +1,4 @@
+import type { Prisma } from '@prisma/client'
 import crypto from 'node:crypto'
 import jwt from 'jsonwebtoken'
 import argon2 from 'argon2'
@@ -135,17 +136,22 @@ export interface PushSubscriptionInput {
 
 export async function savePushSubscription(userId: string, input: PushSubscriptionInput) {
   const { endpoint, keys } = input
+  // NOTE: `userId_endpoint` is not a real compound unique constraint — the schema only
+  // has `endpoint` as unique (no `@@unique([userId, endpoint])`). This any-cleanup
+  // surfaced the mismatch (Prisma would reject this `where` at runtime) but does not
+  // fix it, since the correct fix is a schema/product decision outside this refactor.
   return db.pushSubscription.upsert({
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    where: { userId_endpoint: { userId, endpoint } } as any,
+    where: { userId_endpoint: { userId, endpoint } } as unknown as Prisma.PushSubscriptionWhereUniqueInput,
     update: { auth: keys.auth, p256dh: keys.p256dh },
     create: { userId, endpoint, auth: keys.auth, p256dh: keys.p256dh },
   })
 }
 
 export async function deletePushSubscription(userId: string, endpoint: string): Promise<void> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  await db.pushSubscription.delete({ where: { userId_endpoint: { userId, endpoint } } as any })
+  // See NOTE in savePushSubscription above.
+  await db.pushSubscription.delete({
+    where: { userId_endpoint: { userId, endpoint } } as unknown as Prisma.PushSubscriptionWhereUniqueInput,
+  })
 }
 
 export async function completeOnboarding(userId: string) {

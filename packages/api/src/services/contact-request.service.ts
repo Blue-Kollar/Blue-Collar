@@ -21,7 +21,7 @@ export function createContactRequestService(deps: ContactRequestServiceDeps) {
       })
 
       // Send email to curator
-      await sendContactRequestEmail((worker as any).curator.email, worker.name, (contactRequest as any).fromUser.firstName)
+      await sendContactRequestEmail(worker.curator.email, worker.name, contactRequest.fromUser.firstName)
 
       return contactRequest
     },

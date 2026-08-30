@@ -9,7 +9,7 @@ export interface IContactRequestRepository extends IRepository<ContactRequest, P
   createContactRequest(data: Prisma.ContactRequestUncheckedCreateInput): Promise<ContactRequest & { fromUser: { firstName: string }; worker: Worker }>
   findContactRequests(workerId: string): Promise<ContactRequest[]>
   findContactRequestById(id: string): Promise<ContactRequest | null>
-  updateContactRequestStatus(id: string, status: string): Promise<ContactRequest & { fromUser: { firstName: string }; worker: Worker }>
+  updateContactRequestStatus(id: string, status: 'accepted' | 'declined'): Promise<ContactRequest & { fromUser: { firstName: string }; worker: Worker }>
 }
 
 // ── Prisma implementation ─────────────────────────────────────────────────────
@@ -65,10 +65,10 @@ export class ContactRequestRepository implements IContactRequestRepository {
     return db.contactRequest.findUnique({ where: { id } })
   }
 
-  async updateContactRequestStatus(id: string, status: string) {
+  async updateContactRequestStatus(id: string, status: 'accepted' | 'declined') {
     return db.contactRequest.update({
       where: { id },
-      data: { status: status as any },
+      data: { status },
       include: { fromUser: true, worker: true },
     })
   }

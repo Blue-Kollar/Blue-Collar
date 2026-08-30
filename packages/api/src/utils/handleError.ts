@@ -1,5 +1,5 @@
 import type { Response } from 'express'
-import { AppError } from '../services/AppError.js'
+import { AppError } from '../utils/AppError.js'
 import { logger } from '../config/logger.js'
 import { ErrorMessages, HttpStatus } from '../constants/index.js'
 

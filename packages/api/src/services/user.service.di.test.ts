@@ -6,7 +6,7 @@
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { createUserService } from './user.service.js'
-import { AppError } from './AppError.js'
+import { AppError } from '../utils/AppError.js'
 
 // Stub JWT sign so no real secret is needed
 vi.mock('jsonwebtoken', () => ({

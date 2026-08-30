@@ -257,7 +257,7 @@ describe('POST /api/auth/login', () => {
 
   it('returns 401 for wrong password', async () => {
     const authService = await import('../../services/auth.service.js')
-    const { AppError } = await import('../../services/AppError.js')
+    const { AppError } = await import('../../utils/AppError.js')
     const loginSpy = vi.spyOn(authService, 'loginUser').mockRejectedValue(
       new AppError('Invalid credentials', 401),
     )
@@ -276,7 +276,7 @@ describe('POST /api/auth/login', () => {
 
   it('returns 401 for non-existent user', async () => {
     const authService = await import('../../services/auth.service.js')
-    const { AppError } = await import('../../services/AppError.js')
+    const { AppError } = await import('../../utils/AppError.js')
     const loginSpy = vi.spyOn(authService, 'loginUser').mockRejectedValue(
       new AppError('Invalid credentials', 401),
     )
@@ -293,7 +293,7 @@ describe('POST /api/auth/login', () => {
 
   it('returns 403 for unverified account', async () => {
     const authService = await import('../../services/auth.service.js')
-    const { AppError } = await import('../../services/AppError.js')
+    const { AppError } = await import('../../utils/AppError.js')
     const loginSpy = vi.spyOn(authService, 'loginUser').mockRejectedValue(
       new AppError(
         'Your email address has not been verified. Please check your inbox and click the verification link.',

@@ -10,7 +10,7 @@ export interface IVerificationRepository extends IRepository<VerificationRequest
   createRequest(data: Prisma.VerificationRequestUncheckedCreateInput): Promise<VerificationRequest & { worker: Worker }>
   findManyRequests(where: Prisma.VerificationRequestWhereInput, opts: { skip: number; take: number }): Promise<{ data: VerificationRequest[]; total: number }>
   findRequestById(id: string): Promise<(VerificationRequest & { worker: Worker; requestedBy: { id: string; firstName: string; lastName: string; email: string } }) | null>
-  updateRequest(id: string, data: Prisma.VerificationRequestUpdateInput): Promise<VerificationRequest & { worker: Worker; requestedBy: { id: string; firstName: string; lastName: string; email: string } }>
+  updateRequest(id: string, data: Prisma.VerificationRequestUncheckedUpdateInput): Promise<VerificationRequest & { worker: Worker; requestedBy: { id: string; firstName: string; lastName: string; email: string } }>
   updateWorkerVerified(id: string, isVerified: boolean): Promise<Worker>
   findRequestsByWorker(workerId: string): Promise<VerificationRequest[]>
 }
@@ -85,7 +85,7 @@ export class VerificationRepository implements IVerificationRepository {
     })
   }
 
-  async updateRequest(id: string, data: Prisma.VerificationRequestUpdateInput) {
+  async updateRequest(id: string, data: Prisma.VerificationRequestUncheckedUpdateInput) {
     return db.verificationRequest.update({
       where: { id },
       data,

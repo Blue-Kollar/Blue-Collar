@@ -9,7 +9,7 @@ export interface IInsuranceRepository extends IRepository<InsuranceDocument, Pri
   createDocument(data: Prisma.InsuranceDocumentUncheckedCreateInput): Promise<InsuranceDocument>
   findByWorker(workerId: string): Promise<InsuranceDocument[]>
   findDocumentById(id: string): Promise<InsuranceDocument | null>
-  updateStatus(id: string, status: string): Promise<InsuranceDocument>
+  updateStatus(id: string, status: 'verified' | 'rejected'): Promise<InsuranceDocument>
   findExpiring(threshold: Date): Promise<(InsuranceDocument & { worker: Worker & { curator: { email: string } } })[]>
 }
 
@@ -56,8 +56,8 @@ export class InsuranceRepository implements IInsuranceRepository {
     return db.insuranceDocument.findUnique({ where: { id } })
   }
 
-  async updateStatus(id: string, status: string): Promise<InsuranceDocument> {
-    return db.insuranceDocument.update({ where: { id }, data: { status: status as any } })
+  async updateStatus(id: string, status: 'verified' | 'rejected'): Promise<InsuranceDocument> {
+    return db.insuranceDocument.update({ where: { id }, data: { status } })
   }
 
   async findExpiring(threshold: Date) {

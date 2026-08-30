@@ -19,7 +19,7 @@ export function createInsuranceService(deps: InsuranceServiceDeps) {
       const worker = await repo.findWorkerById(workerId)
       if (!worker) throw new AppError('Worker not found', 404)
 
-      return repo.createDocument({ workerId, documentUrl, expiresAt, provider, policyNumber } as any)
+      return repo.createDocument({ workerId, documentUrl, expiresAt, provider, policyNumber })
     },
 
     async getWorkerInsurance(workerId: string) {
@@ -42,7 +42,7 @@ export function createInsuranceService(deps: InsuranceServiceDeps) {
       const expiring = await repo.findExpiring(threshold)
 
       await Promise.allSettled(
-        expiring.map((doc: any) =>
+        expiring.map((doc) =>
           sendInsuranceRenewalReminder(
             doc.worker.curator.email,
             doc.worker.name,

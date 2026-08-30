@@ -23,17 +23,22 @@ const messageInclude = {
 
 // ── Interface ─────────────────────────────────────────────────────────────────
 
-export interface IJobRepository extends IRepository<Job, Prisma.JobCreateInput, Prisma.JobUpdateInput> {
+type ApplicationWithRelations = Prisma.JobApplicationGetPayload<{ include: typeof applicationInclude }>
+
+export interface IJobRepository extends IRepository<Job, Prisma.JobUncheckedCreateInput, Prisma.JobUncheckedUpdateInput> {
   findWithRelations(id: string): Promise<(Job & { applications: JobApplication[] }) | null>
-  findJobs(where: Prisma.JobWhereInput, opts: { skip: number; take: number; orderBy?: Prisma.JobOrderByWithRelationInput }): Promise<Job[]>
+  findJobs(
+    where: Prisma.JobWhereInput,
+    opts: { skip: number; take: number; orderBy?: Prisma.JobOrderByWithRelationInput | Prisma.JobOrderByWithRelationInput[] },
+  ): Promise<Job[]>
   count(where?: Prisma.JobWhereInput): Promise<number>
   updateMany(where: Prisma.JobWhereInput, data: Prisma.JobUpdateManyMutationInput): Promise<number>
   findExpiredOpen(): Promise<{ id: string; title: string; postedById: string }[]>
 
   findApplicationByJobAndWorker(jobId: string, workerId: string): Promise<JobApplication | null>
-  findApplication(id: string): Promise<JobApplication | null>
+  findApplication(id: string): Promise<ApplicationWithRelations | null>
   createApplication(data: Prisma.JobApplicationUncheckedCreateInput): Promise<JobApplication>
-  updateApplication(id: string, data: Prisma.JobApplicationUpdateInput): Promise<JobApplication>
+  updateApplication(id: string, data: Prisma.JobApplicationUncheckedUpdateInput): Promise<ApplicationWithRelations>
   findApplicationsByJob(jobId: string): Promise<JobApplication[]>
   findApplicationsByWorker(workerId: string, opts: { skip: number; take: number }): Promise<{ data: JobApplication[]; total: number }>
 
@@ -66,16 +71,16 @@ export class JobRepository implements IJobRepository {
 
   async findJobs(
     where: Prisma.JobWhereInput,
-    opts: { skip: number; take: number; orderBy?: Prisma.JobOrderByWithRelationInput },
+    opts: { skip: number; take: number; orderBy?: Prisma.JobOrderByWithRelationInput | Prisma.JobOrderByWithRelationInput[] },
   ): Promise<Job[]> {
     return db.job.findMany({ where, skip: opts.skip, take: opts.take, include: jobInclude, orderBy: opts.orderBy ?? { createdAt: 'desc' } })
   }
 
-  async create(data: Prisma.JobCreateInput): Promise<Job> {
+  async create(data: Prisma.JobUncheckedCreateInput): Promise<Job> {
     return db.job.create({ data, include: jobInclude })
   }
 
-  async update(id: string, data: Prisma.JobUpdateInput): Promise<Job> {
+  async update(id: string, data: Prisma.JobUncheckedUpdateInput): Promise<Job> {
     return db.job.update({ where: { id }, data, include: jobInclude })
   }
 
@@ -105,7 +110,7 @@ export class JobRepository implements IJobRepository {
     return db.jobApplication.findUnique({ where: { jobId_workerId: { jobId, workerId } } })
   }
 
-  async findApplication(id: string): Promise<JobApplication | null> {
+  async findApplication(id: string): Promise<ApplicationWithRelations | null> {
     return db.jobApplication.findFirst({ where: { id }, include: applicationInclude })
   }
 
@@ -113,7 +118,7 @@ export class JobRepository implements IJobRepository {
     return db.jobApplication.create({ data, include: applicationInclude })
   }
 
-  async updateApplication(id: string, data: Prisma.JobApplicationUpdateInput): Promise<JobApplication> {
+  async updateApplication(id: string, data: Prisma.JobApplicationUncheckedUpdateInput): Promise<ApplicationWithRelations> {
     return db.jobApplication.update({ where: { id }, data, include: applicationInclude })
   }
 

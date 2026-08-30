@@ -5,7 +5,7 @@ import { AppError, ErrorCode } from '../utils/AppError.js'
 interface AnalyticsEvent {
   event: string
   category: string
-  properties?: Record<string, any>
+  properties?: Record<string, unknown>
   timestamp: string
 }
 

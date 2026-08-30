@@ -14,7 +14,7 @@ export function createMessagingService(deps: MessagingServiceDeps) {
         participants: {
           create: participantIds.map(id => ({ userId: id })),
         },
-      } as any)
+      })
     },
 
     async getConversation(conversationId: string, userId: string) {
@@ -42,9 +42,9 @@ export function createMessagingService(deps: MessagingServiceDeps) {
     async deleteMessage(messageId: string, userId: string) {
       const message = await repo.findMessage(messageId)
       if (!message) throw new AppError('Message not found', 404, true, ErrorCode.NOT_FOUND)
-      if ((message as any).senderId !== userId) throw new AppError('Unauthorized', 403, true, ErrorCode.FORBIDDEN)
+      if (message.senderId !== userId) throw new AppError('Unauthorized', 403, true, ErrorCode.FORBIDDEN)
 
-      return repo.updateMessage(messageId, { body: '[deleted]' } as any)
+      return repo.updateMessage(messageId, { body: '[deleted]' })
     },
 
     async markConversationAsRead(conversationId: string, userId: string) {
@@ -54,10 +54,10 @@ export function createMessagingService(deps: MessagingServiceDeps) {
     async getUnreadCount(userId: string) {
       const conversations = await repo.findConversationsForUnreadCount(userId)
 
-      return conversations.reduce((count: number, conv: any) => {
-        const participant = conv.participants[0]
-        if (!participant?.lastReadAt) return count + conv.messages.length
-        return count + conv.messages.filter((m: any) => m.createdAt > participant.lastReadAt).length
+      return conversations.reduce((count: number, conv) => {
+        const lastReadAt = conv.participants[0]?.lastReadAt
+        if (!lastReadAt) return count + conv.messages.length
+        return count + conv.messages.filter((m) => m.createdAt > lastReadAt).length
       }, 0)
     },
   }

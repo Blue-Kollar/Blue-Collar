@@ -15,7 +15,7 @@ export function createDisputeService(deps: DisputeServiceDeps) {
       const worker = await repo.findWorkerById(workerId)
       if (!worker) throw new AppError('Worker not found', 404, true, ErrorCode.NOT_FOUND)
 
-      return repo.createDispute({ workerId, filedById, reason, evidence } as any)
+      return repo.createDispute({ workerId, filedById, reason, evidence })
     },
 
     /**
@@ -36,7 +36,7 @@ export function createDisputeService(deps: DisputeServiceDeps) {
     async getDispute(id: string, userId: string, role: string) {
       const dispute = await repo.findWithRelations(id)
       if (!dispute) throw new AppError('Dispute not found', 404, true, ErrorCode.NOT_FOUND)
-      if (role !== 'admin' && (dispute as any).filedById !== userId) {
+      if (role !== 'admin' && dispute.filedById !== userId) {
         throw new AppError('Forbidden', 403, true, ErrorCode.FORBIDDEN)
       }
       return dispute
@@ -48,11 +48,11 @@ export function createDisputeService(deps: DisputeServiceDeps) {
     async resolveDispute(id: string, adminId: string, status: 'resolved' | 'dismissed' | 'under_review', resolution?: string) {
       const dispute = await repo.findById(id)
       if (!dispute) throw new AppError('Dispute not found', 404, true, ErrorCode.NOT_FOUND)
-      if ((dispute as any).status === 'resolved' || (dispute as any).status === 'dismissed') {
+      if (dispute.status === 'resolved' || dispute.status === 'dismissed') {
         throw new AppError('Dispute has already been resolved', 409, true, ErrorCode.CONFLICT)
       }
 
-      return repo.updateDispute(id, { status, resolution, resolvedById: adminId } as any)
+      return repo.updateDispute(id, { status, resolution, resolvedById: adminId })
     },
   }
 }

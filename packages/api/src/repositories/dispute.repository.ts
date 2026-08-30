@@ -13,10 +13,10 @@ const disputeInclude = {
 
 export interface IDisputeRepository extends IRepository<Dispute, Prisma.DisputeCreateInput, Prisma.DisputeUpdateInput> {
   findWorkerById(id: string): Promise<{ id: string } | null>
-  findWithRelations(id: string): Promise<Dispute | null>
+  findWithRelations(id: string): Promise<(Dispute & { worker: { id: string; name: string }; filedBy: { id: string; firstName: string; lastName: string } }) | null>
   findManyWithRelations(where: Prisma.DisputeWhereInput, opts: { skip: number; take: number }): Promise<{ data: Dispute[]; total: number }>
-  createDispute(data: Prisma.DisputeCreateInput): Promise<Dispute>
-  updateDispute(id: string, data: Prisma.DisputeUpdateInput): Promise<Dispute>
+  createDispute(data: Prisma.DisputeUncheckedCreateInput): Promise<Dispute>
+  updateDispute(id: string, data: Prisma.DisputeUncheckedUpdateInput): Promise<Dispute>
 }
 
 // ── Prisma implementation ─────────────────────────────────────────────────────
@@ -30,7 +30,7 @@ export class DisputeRepository implements IDisputeRepository {
     return db.worker.findUnique({ where: { id }, select: { id: true } })
   }
 
-  async findWithRelations(id: string): Promise<Dispute | null> {
+  async findWithRelations(id: string) {
     return db.dispute.findUnique({ where: { id }, include: disputeInclude })
   }
 
@@ -53,7 +53,7 @@ export class DisputeRepository implements IDisputeRepository {
     return db.dispute.create({ data })
   }
 
-  async createDispute(data: Prisma.DisputeCreateInput): Promise<Dispute> {
+  async createDispute(data: Prisma.DisputeUncheckedCreateInput): Promise<Dispute> {
     return db.dispute.create({ data, include: disputeInclude })
   }
 
@@ -61,7 +61,7 @@ export class DisputeRepository implements IDisputeRepository {
     return db.dispute.update({ where: { id }, data })
   }
 
-  async updateDispute(id: string, data: Prisma.DisputeUpdateInput): Promise<Dispute> {
+  async updateDispute(id: string, data: Prisma.DisputeUncheckedUpdateInput): Promise<Dispute> {
     return db.dispute.update({ where: { id }, data, include: { worker: { select: { id: true, name: true } } } })
   }
 

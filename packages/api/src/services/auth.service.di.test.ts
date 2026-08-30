@@ -6,7 +6,7 @@
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { createAuthService } from './auth.service.js'
-import { AppError } from './AppError.js'
+import { AppError } from '../utils/AppError.js'
 
 // ── Stub heavy dependencies ───────────────────────────────────────────────────
 

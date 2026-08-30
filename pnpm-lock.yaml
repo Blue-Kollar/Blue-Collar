@@ -169,6 +169,9 @@ importers:
       '@bluecollar/test-utils':
         specifier: workspace:*
         version: link:../test-utils
+      '@eslint/js':
+        specifier: ^9.0.0
+        version: 9.39.5
       '@faker-js/faker':
         specifier: ^10.2.0
         version: 10.6.0
@@ -220,6 +223,9 @@ importers:
       eslint:
         specifier: ^9.0.0
         version: 9.39.5(jiti@2.7.0)
+      globals:
+        specifier: ^14.0.0
+        version: 14.0.0
       prettier:
         specifier: ^3.5.3
         version: 3.9.6

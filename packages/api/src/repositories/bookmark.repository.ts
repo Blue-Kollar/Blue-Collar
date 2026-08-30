@@ -1,4 +1,4 @@
-import type { Bookmark, Prisma, Worker } from '@prisma/client'
+import type { Bookmark, Category, Prisma, Worker } from '@prisma/client'
 import type { IRepository } from './base.repository.js'
 import { db } from '../db.js'
 
@@ -9,7 +9,7 @@ export interface IBookmarkRepository extends IRepository<Bookmark, Prisma.Bookma
   createBookmark(userId: string, workerId: string): Promise<Bookmark>
   deleteBookmark(id: string): Promise<Bookmark>
   findWorkerById(id: string): Promise<Worker | null>
-  findUserBookmarks(userId: string, opts: { skip: number; take: number }): Promise<{ data: Bookmark[]; total: number }>
+  findUserBookmarks(userId: string, opts: { skip: number; take: number }): Promise<{ data: (Bookmark & { worker: Worker & { category: Category } })[]; total: number }>
 }
 
 // ── Prisma implementation ─────────────────────────────────────────────────────
@@ -55,7 +55,7 @@ export class BookmarkRepository implements IBookmarkRepository {
     return db.worker.findUnique({ where: { id } })
   }
 
-  async findUserBookmarks(userId: string, opts: { skip: number; take: number }): Promise<{ data: Bookmark[]; total: number }> {
+  async findUserBookmarks(userId: string, opts: { skip: number; take: number }) {
     const where = { userId }
     const [data, total] = await Promise.all([
       db.bookmark.findMany({
