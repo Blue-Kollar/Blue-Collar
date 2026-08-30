@@ -60,9 +60,11 @@ const WalletContext = createContext<WalletContextValue>({
   },
 });
 
+import { HORIZON_URL } from "@/config/stellar";
+
 async function fetchBalance(address: string): Promise<string | null> {
   try {
-    const json = await fetch(`https://horizon-testnet.stellar.org/accounts/${address}`).then((r) => r.json());
+    const json = await fetch(`${HORIZON_URL}/accounts/${address}`).then((r) => r.json());
     return json.balances?.find((b: { asset_type: string; balance: string }) => b.asset_type === "native")?.balance ?? null;
   } catch {
     return null;

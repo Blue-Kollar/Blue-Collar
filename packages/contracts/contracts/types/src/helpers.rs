@@ -1,10 +1,10 @@
-//! Shared access-control helpers for BlueCollar contracts.
+//! Shared access-control and math helpers for BlueCollar contracts.
 //!
-//! These helpers centralise the validation logic that would otherwise be
-//! duplicated across every contract.  Each helper receives the *already-loaded*
-//! state it needs (the caller address, the pre-fetched member list, the paused
-//! flag, …) so that the storage-key layout (which differs per contract) can
-//! stay local to each contract's own storage module.
+//! These helpers centralise the validation and calculation logic that would
+//! otherwise be duplicated across every contract.  Each helper receives the
+//! *already-loaded* state it needs (the caller address, the pre-fetched member
+//! list, the paused flag, …) so that the storage-key layout (which differs per
+//! contract) can stay local to each contract's own storage module.
 //!
 //! ## Design rationale
 //!
@@ -20,6 +20,13 @@
 //!
 //! This keeps each contract's storage layout private while sharing the
 //! access-control logic that is prone to subtle bugs.
+//!
+//! ## Fee math
+//!
+//! [`split_fee`] is the single canonical implementation of the basis-points fee
+//! split used by both the Market and Payment contracts.  Any future contract
+//! that needs a protocol-fee deduction should import this function rather than
+//! writing its own.
 
 use soroban_sdk::{Address, Vec};
 
@@ -73,6 +80,40 @@ pub fn require_admin(caller: &Address, admin: &Address) -> Result<(), ContractEr
     } else {
         Err(ContractError::NotAuthorized)
     }
+}
+
+// =============================================================================
+// Fee calculation
+// =============================================================================
+
+/// Compute the protocol fee and net amount from a gross `amount`.
+///
+/// This is the **single canonical fee-split implementation** for all BlueCollar
+/// contracts.  Both the Market and Payment contracts import this function rather
+/// than maintaining their own duplicates.
+///
+/// # Parameters
+/// - `amount`:  Gross amount before fee deduction (must be positive).
+/// - `fee_bps`: Protocol fee in basis points (0–500; 500 bps = 5 %).
+///
+/// # Returns
+/// `(fee, net)` where `fee + net == amount`.
+///
+/// # Panics
+/// - Panics with `"Fee overflow"` if the intermediate `amount * fee_bps`
+///   product overflows `i128`.
+/// - Panics with `"Fee underflow"` if `amount - fee < 0` (should never happen
+///   for a non-negative `amount` and `fee_bps ≤ 10_000`).
+pub fn split_fee(amount: i128, fee_bps: u32) -> (i128, i128) {
+    if fee_bps == 0 {
+        return (0, amount);
+    }
+    let fee = amount
+        .checked_mul(fee_bps as i128)
+        .and_then(|v| v.checked_div(10_000))
+        .expect("Fee overflow");
+    let net = amount.checked_sub(fee).expect("Fee underflow");
+    (fee, net)
 }
 
 // =============================================================================
@@ -188,5 +229,47 @@ mod tests {
             require_admin(&other, &admin).unwrap_err(),
             ContractError::NotAuthorized
         );
+    }
+
+    // -------------------------------------------------------------------------
+    // split_fee
+    // -------------------------------------------------------------------------
+
+    #[test]
+    fn split_fee_zero_bps_returns_full_amount() {
+        let (fee, net) = split_fee(100_000, 0);
+        assert_eq!(fee, 0);
+        assert_eq!(net, 100_000);
+    }
+
+    #[test]
+    fn split_fee_100_bps_is_one_percent() {
+        let (fee, net) = split_fee(100_000, 100);
+        assert_eq!(fee, 1_000);
+        assert_eq!(net, 99_000);
+    }
+
+    #[test]
+    fn split_fee_500_bps_is_five_percent() {
+        let (fee, net) = split_fee(100_000, 500);
+        assert_eq!(fee, 5_000);
+        assert_eq!(net, 95_000);
+    }
+
+    #[test]
+    fn split_fee_rounds_down_for_tiny_amount() {
+        // 1 token at 100 bps → fee rounds toward zero to 0
+        let (fee, net) = split_fee(1, 100);
+        assert_eq!(fee, 0);
+        assert_eq!(net, 1);
+    }
+
+    #[test]
+    fn split_fee_parts_always_sum_to_original() {
+        for &bps in &[0u32, 50, 100, 250, 500] {
+            let amount: i128 = 999_999;
+            let (fee, net) = split_fee(amount, bps);
+            assert_eq!(fee + net, amount, "fee + net != amount at {} bps", bps);
+        }
     }
 }

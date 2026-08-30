@@ -10,15 +10,12 @@
 extern crate std;
 
 use super::*;
-use soroban_sdk::{testutils::Address as _, Address, BytesN, Env, Symbol};
+use bluecollar_types::test_utils::zero_hash;
+use soroban_sdk::{testutils::Address as _, Address, Env, Symbol};
 
 // ---------------------------------------------------------------------------
 // Test helpers
 // ---------------------------------------------------------------------------
-
-fn zero_hash(env: &Env) -> BytesN<32> {
-    BytesN::from_array(env, &[0u8; 32])
-}
 
 fn setup() -> (Env, Address, Address, Address) {
     let env = Env::default();

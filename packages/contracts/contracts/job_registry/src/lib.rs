@@ -1,4 +1,7 @@
 #![no_std]
+// Lint policy: clippy::pedantic enabled at workspace level (issue #1254).
+// Blanket Soroban exceptions (needless_pass_by_value, must_use_candidate, etc.)
+// are configured in the workspace Cargo.toml; per-function overrides go here.
 // soroban-sdk 26 deprecates `Events::publish` in favour of the `#[contractevent]`
 // macro, and `Env::register_contract` in favour of `Env::register`. Migrating the
 // event API changes the on-chain event ABI, so both are deliberately deferred to a

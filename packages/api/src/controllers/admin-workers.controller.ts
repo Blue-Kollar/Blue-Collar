@@ -1,8 +1,11 @@
 import type { Request, Response } from 'express'
+import { catchAsync } from '../utils/catchAsync.js'
+import { AppError, ErrorCode } from '../utils/AppError.js'
+import { ErrorMessages } from '../constants/errors.js'
 import { db } from '../db.js'
 import { paginate } from '../utils/paginate.js'
 
-export async function listWorkers(req: Request, res: Response) {
+export const listWorkers = catchAsync(async (req: Request, res: Response) => {
   const { page = '1', limit = '20', search, status } = req.query as Record<string, string | undefined>
 
   const where: Record<string, unknown> = {}
@@ -26,16 +29,16 @@ export async function listWorkers(req: Request, res: Response) {
   })
 
   return res.json({ data, meta, status: 'success', code: 200 })
-}
+})
 
-export async function bulkToggleWorkers(req: Request, res: Response) {
+export const bulkToggleWorkers = catchAsync(async (req: Request, res: Response) => {
   const { ids, active } = req.body as { ids?: unknown; active?: unknown }
 
   if (!Array.isArray(ids) || ids.length === 0) {
-    return res.status(400).json({ status: 'error', message: 'ids must be a non-empty array', code: 400 })
+    throw new AppError(ErrorMessages.IDS_MUST_BE_NON_EMPTY_ARRAY, 400, true, ErrorCode.VALIDATION_ERROR)
   }
   if (typeof active !== 'boolean') {
-    return res.status(400).json({ status: 'error', message: 'active must be a boolean', code: 400 })
+    throw new AppError(ErrorMessages.ACTIVE_MUST_BE_BOOLEAN, 400, true, ErrorCode.VALIDATION_ERROR)
   }
 
   const result = await db.$transaction(async (tx) => {
@@ -44,13 +47,13 @@ export async function bulkToggleWorkers(req: Request, res: Response) {
   })
 
   return res.json({ data: { updated: result, active }, status: 'success', code: 200 })
-}
+})
 
-export async function bulkDeleteWorkers(req: Request, res: Response) {
+export const bulkDeleteWorkers = catchAsync(async (req: Request, res: Response) => {
   const { ids } = req.body as { ids?: unknown }
 
   if (!Array.isArray(ids) || ids.length === 0) {
-    return res.status(400).json({ status: 'error', message: 'ids must be a non-empty array', code: 400 })
+    throw new AppError(ErrorMessages.IDS_MUST_BE_NON_EMPTY_ARRAY, 400, true, ErrorCode.VALIDATION_ERROR)
   }
 
   const result = await db.$transaction(async (tx) => {
@@ -59,16 +62,18 @@ export async function bulkDeleteWorkers(req: Request, res: Response) {
   })
 
   return res.json({ data: { deleted: result }, status: 'success', code: 200 })
-}
+})
 
-export async function moderateWorker(req: Request, res: Response) {
+export const moderateWorker = catchAsync(async (req: Request, res: Response) => {
   const { action, reason } = req.body as { action?: string; reason?: string }
   if (!action || !['approve', 'reject'].includes(action)) {
-    return res.status(400).json({ status: 'error', message: 'action must be approve or reject', code: 400 })
+    throw new AppError(ErrorMessages.REVIEW_ACTION_INVALID, 400, true, ErrorCode.VALIDATION_ERROR)
   }
 
   const worker = await db.worker.findUnique({ where: { id: req.params.id } })
-  if (!worker) return res.status(404).json({ status: 'error', message: 'Worker not found', code: 404 })
+  if (!worker) {
+    throw new AppError(ErrorMessages.WORKER_NOT_FOUND, 404, true, ErrorCode.NOT_FOUND)
+  }
 
   const isActive = action === 'approve'
   const updated = await db.worker.update({
@@ -86,4 +91,4 @@ export async function moderateWorker(req: Request, res: Response) {
     },
   })
   return res.json({ data: updated, status: 'success', code: 200 })
-}
+})

@@ -67,3 +67,6 @@ package-lock.json
 
 
 
+
+# Mobile E2E junit output
+packages/mobile/e2e/e2e-results/

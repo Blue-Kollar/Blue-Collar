@@ -26,3 +26,22 @@ debug = 0
 strip = "symbols"
 panic = "abort"
 codegen-units = 1
+
+# Lint policy for all contract crates (issue #1254).
+# Each crate opts in via `[lints] workspace = true` in its own Cargo.toml.
+[workspace.lints.clippy]
+# Enable the pedantic group as a warning (not deny) so issues surface without
+# blocking compilation. Crate authors should fix or explicitly allow each one.
+pedantic = "warn"
+# ----- Blanket exceptions for Soroban contract patterns -----
+# Soroban entry-point functions receive `Env` by value (SDK requirement).
+needless_pass_by_value = "allow"
+# Contract query functions are called by the host; `#[must_use]` is irrelevant.
+must_use_candidate = "allow"
+# SDK-generated discriminant casts are safe and intentional.
+cast_possible_truncation = "allow"
+cast_sign_loss = "allow"
+# Documenting every `Err` variant is aspirational but not enforced in MVP.
+missing_errors_doc = "allow"
+# Module-level doc missing on private helper modules is acceptable.
+module_name_repetitions = "allow"

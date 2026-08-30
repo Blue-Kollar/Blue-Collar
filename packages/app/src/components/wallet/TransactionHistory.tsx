@@ -7,15 +7,10 @@ import LoadingState from "@/components/LoadingState";
 import ErrorState from "@/components/ErrorState";
 import { formatStellarAddress } from "@/lib/utils";
 
+import { HORIZON_URL, MARKET_CONTRACT_ID, EXPLORER_NETWORK_SLUG, EXPLORER_TX_BASE } from "@/config/stellar";
+
 const DEFAULT_LIMIT = 10;
-const MARKET_CONTRACT_ID = process.env.NEXT_PUBLIC_MARKET_CONTRACT_ID ?? "";
-const HORIZON_URL =
-  process.env.NEXT_PUBLIC_STELLAR_HORIZON_URL ??
-  (process.env.NEXT_PUBLIC_STELLAR_NETWORK === "PUBLIC"
-    ? "https://horizon.stellar.org"
-    : "https://horizon-testnet.stellar.org");
-const EXPLORER_NETWORK =
-  process.env.NEXT_PUBLIC_STELLAR_NETWORK === "PUBLIC" ? "public" : "testnet";
+const EXPLORER_NETWORK = EXPLORER_NETWORK_SLUG;
 
 type HorizonPayment = {
   id: string;
@@ -63,7 +58,7 @@ const TransactionRow = memo(function TransactionRow({ item }: { item: HistoryIte
       </td>
       <td className="px-6 py-4">
         <a
-          href={`https://stellar.expert/explorer/${EXPLORER_NETWORK}/tx/${item.hash}`}
+          href={`${EXPLORER_TX_BASE}/${item.hash}`}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700"
@@ -219,7 +214,7 @@ export default function TransactionHistory({ publicKey }: { publicKey: string })
                   </td>
                   <td className="px-6 py-4">
                     <a
-                      href={`https://stellar.expert/explorer/${EXPLORER_NETWORK}/tx/${item.hash}`}
+                      href={`${EXPLORER_TX_BASE}/${item.hash}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700"
