@@ -3,10 +3,14 @@
  * GET /api/admin/export/workers?format=csv|json
  * GET /api/admin/export/users?format=csv|json
  * Streams large exports, enforces admin role, logs audit events.
+ *
+ * Issue #1215: standardize error handling — wraps handlers in `catchAsync` so
+ * any rejection propagates to the global `errorHandler` middleware.
  */
 import type { Request, Response } from 'express'
 import { db } from '../db.js'
 import { log } from '../services/audit.service.js'
+import { catchAsync } from '../utils/catchAsync.js'
 
 function toCSV(rows: Record<string, unknown>[]): string {
   if (rows.length === 0) return ''
@@ -21,7 +25,7 @@ function toCSV(rows: Record<string, unknown>[]): string {
   return lines.join('\n')
 }
 
-export async function exportWorkers(req: Request, res: Response) {
+export const exportWorkers = catchAsync(async (req: Request, res: Response) => {
   const format = (req.query.format as string) === 'csv' ? 'csv' : 'json'
 
   log({
@@ -66,9 +70,9 @@ export async function exportWorkers(req: Request, res: Response) {
   res.setHeader('Content-Type', 'application/json')
   res.setHeader('Content-Disposition', 'attachment; filename="workers.json"')
   return res.json({ status: 'success', code: 200, data: rows, meta: { count: rows.length } })
-}
+})
 
-export async function exportUsers(req: Request, res: Response) {
+export const exportUsers = catchAsync(async (req: Request, res: Response) => {
   const format = (req.query.format as string) === 'csv' ? 'csv' : 'json'
 
   log({
@@ -111,4 +115,4 @@ export async function exportUsers(req: Request, res: Response) {
   res.setHeader('Content-Type', 'application/json')
   res.setHeader('Content-Disposition', 'attachment; filename="users.json"')
   return res.json({ status: 'success', code: 200, data: rows, meta: { count: rows.length } })
-}
+})

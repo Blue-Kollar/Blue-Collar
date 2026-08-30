@@ -458,6 +458,86 @@ const userData = userFactory({ role: 'curator' })
 await db.user.create({ data: userData })
 ```
 
+## Monitoring Alert Rule Coverage
+
+The `packages/monitoring` package ships a pure alert-rule evaluation engine (`src/alerts.ts`) that parses the Prometheus-style `expr` strings from the alert YAML files (`packages/monitoring/alerts/*.yml`) and evaluates them against live metrics, honoring `for:` (debounce), `labels.severity`, `disabled`, and `no-data` semantics.
+
+### Running the tests
+
+```bash
+cd packages/monitoring
+
+# Run the suite
+pnpm test
+
+# Run with coverage (enforces >=85% lines/functions/branches/statements)
+pnpm test:coverage
+```
+
+Coverage is configured in `packages/monitoring/vitest.config.ts` to include only `src/alerts.ts` and fail the build below the thresholds. The suite (`packages/monitoring/tests/alerts.test.ts`) covers:
+
+- Comparison operators (`>`, `>=`, `<`, `<=`, `==`, `!=`) with numeric, duration, and percentage expressions.
+- `rate(...)` / `increase(...)` style wrapped expressions and `by`/`without` labels.
+- `for:` debounce (`pending` until the duration elapses, then `firing`).
+- `disabled` rules (skipped) and missing/zero series (`no-data` → `inactive`).
+- `severity` propagation and metric-label matching via `AlertEvaluator.evaluateRules`.
+
+## Shared Test Utilities & Contract Fixtures
+
+`@bluecollar/test-utils` centralizes reusable test helpers so packages don't duplicate setup boilerplate (#1278). Subpath exports:
+
+- `@bluecollar/test-utils/express` — `makeRequest`, `makeResponse`, `makeNext`, `makeToken`, `makeExpiredToken` (JWT helpers). The API controllers delegate their mock `req`/`res`/`next` and token helpers here.
+- `@bluecollar/test-utils/contract-fixtures` — Stellar/Soroban contract fixtures: `makeTestAccount`, `makeTestAsset`, `makeTestPayment`, `buildMockAccountResponse`, `makeMockTransaction`, `makeMockEffects`, `makeMockOperations`, plus common **account states** (#1276):
+  - `freshAccount`, `fundedAccount`, `zeroBalanceAccount`, `authorizedAccount`, `unauthorizedAccount`
+  - `makeSenderRecipient`, `makeAccountStates`
+- `@bluecollar/test-utils/stellar-mocks` — `makeStellarMockServer`, `makeMockServer`, `mockHorizonError`, `mockRpcError`.
+
+### Running the tests
+
+```bash
+cd packages/test-utils
+pnpm test            # unit tests for the fixtures
+pnpm test:coverage   # coverage for the fixtures package
+```
+
+The SDK consumes these fixtures directly (see `packages/sdk/src/__tests__/contract-account-states.test.ts` and the migrated `sdk.e2e.test.ts`), exercising `authorized`/`unauthorized` and `funded`/`zero-balance` account states against its Stellar client.
+
+## Mobile E2E Coverage (Onboarding / Send / Receive)
+
+The `packages/mobile` app now has real critical-flow screens under `packages/mobile/src/screens/`
+(`OnboardingScreen`, `SendScreen`, `ReceiveScreen`) with injected dependencies (`walletProvider`,
+`onSend`, `publicKey`, `onCopy`) so they can be rendered and asserted deterministically.
+
+The E2E specs live in `packages/mobile/e2e/flows/`:
+
+- `onboarding.e2e.tsx` — happy path (create wallet → back up → confirm → dashboard) and the "re-enter phrase" mismatch guard.
+- `send.e2e.tsx` — amount validation (empty / invalid / non-positive) and a successful send that invokes `onSend`.
+- `receive.e2e.tsx` — renders the public key / shareable address and fires `onCopy`.
+
+### Running the tests
+
+```bash
+cd packages/mobile
+pnpm test:e2e          # jest --config e2e/jest.e2e.config.js --forceExit
+```
+
+The specs use **seeded, fake Stellar public keys** (never real secrets), for example:
+
+```text
+GDQP2KPQGKIHYJGXNUIYOMHARUARCA7DJT5FO2FFOOKY3B2WSQHG4W37   # sender ("Alice")
+GBCB6T6GIR7LRI2WW7GTER7KA6EQBUEKQYED7YENPRZXZDQISJA4FXV2G   # recipient ("Bob")
+```
+
+`expo-secure-store` and the wallet provider are mocked in `packages/mobile/jest.setup.ts`.
+
+> **Environment note:** In this sandbox the mobile E2E suite could not be executed because of a
+> `jest-expo` + React Native `0.74` + newer `@babel/parser` (Flow) incompatibility when transforming
+> `@react-native/js-polyfills` (`react-native/jest/setup.js`). This also affects the pre-existing
+> `packages/mobile/e2e/mobile-flows.e2e.ts`, so it is a tooling-version limitation rather than a
+> regression. The specs are written against the existing `jest-expo` E2E config and are expected to
+> run in CI where the matching Babel/React Native versions are resolved. The screens themselves
+> type-check cleanly via `tsc --noEmit` (the `mobile` `tsconfig` excludes `e2e` from type-checking).
+
 ## CI/CD Testing Pipeline
 
 Tests run automatically on every push and pull request via GitHub Actions (`.github/workflows/`).

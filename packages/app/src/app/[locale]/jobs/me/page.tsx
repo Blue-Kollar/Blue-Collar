@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Plus, Briefcase, RefreshCw, Loader2, Clock, CheckCircle, XCircle } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { getMyPostedJobs, deleteJob, renewJob } from "@/lib/api/jobs";
-import { cn } from "@/lib/utils";
+import { cn, formatDate } from "@/lib/utils";
 import type { Job, Meta } from "@/types";
 
 const STATUS_STYLE: Record<string, string> = {
@@ -121,7 +121,7 @@ export default function MyJobsPage() {
                       <Clock size={12} /> {daysLeft === 0 ? "Expires today" : `${daysLeft}d left`}
                     </span>
                   )}
-                  <span>{new Date(job.createdAt).toLocaleDateString()}</span>
+                  <span>{formatDate(job.createdAt)}</span>
                 </div>
 
                 <div className="mt-4 flex flex-wrap gap-2">

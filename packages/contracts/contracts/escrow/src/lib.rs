@@ -15,6 +15,9 @@
 //! `pause`, `unpause`, `is_paused`, `get_admin`, `upgrade`.
 
 #![no_std]
+// Lint policy: clippy::pedantic enabled at workspace level (issue #1254).
+// Blanket Soroban exceptions (needless_pass_by_value, must_use_candidate, etc.)
+// are configured in the workspace Cargo.toml; per-function overrides go here.
 
 use bluecollar_types::ContractError;
 use soroban_sdk::{contract, contractimpl, symbol_short, Address, BytesN, Env, Symbol, Vec};
@@ -218,5 +221,54 @@ impl EscrowContract {
         require_role(&env, &Symbol::new(&env, ROLE_UPGRADER), &caller)?;
         env.deployer().update_current_contract_wasm(new_wasm_hash);
         Ok(())
+    }
+
+    // -------------------------------------------------------------------------
+    // Migration
+    // -------------------------------------------------------------------------
+
+    /// Run version-specific storage migration logic.
+    ///
+    /// `expected_version` must match the current schema version stored on-chain;
+    /// this guards against running a migration against the wrong contract version.
+    /// Caller must hold `ROLE_ADMIN`.
+    pub fn migrate(env: Env, admin: Address, expected_version: u32) -> Result<(), ContractError> {
+        require_role(&env, &Symbol::new(&env, ROLE_ADMIN), &admin)?;
+
+        let current: u32 = env
+            .storage()
+            .persistent()
+            .get(&storage::DataKey::SchemaVersion)
+            .unwrap_or(1u32);
+
+        if current != expected_version {
+            return Err(ContractError::WrongSchemaVersion);
+        }
+
+        // version-specific migration logic
+        // Version 1 → 2: no structural change needed for v1→v2 in this release.
+        // Future migrations add field-backfill logic here.
+
+        let new_version = expected_version
+            .checked_add(1)
+            .expect("version overflow");
+        env.storage()
+            .persistent()
+            .set(&storage::DataKey::SchemaVersion, &new_version);
+
+        env.events().publish(
+            (soroban_sdk::symbol_short!("Migrated"),),
+            (expected_version, new_version),
+        );
+        Ok(())
+    }
+
+    /// Return the current schema version (defaults to 1 on fresh deployments).
+    pub fn get_schema_version(env: Env) -> Result<u32, ContractError> {
+        Ok(env
+            .storage()
+            .persistent()
+            .get(&storage::DataKey::SchemaVersion)
+            .unwrap_or(1u32))
     }
 }

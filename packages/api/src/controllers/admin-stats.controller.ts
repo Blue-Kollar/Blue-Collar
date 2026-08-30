@@ -1,7 +1,14 @@
+/**
+ * Admin stats controller — thin HTTP layer.
+ *
+ * Issue #1215: standardize error handling — wraps handler in `catchAsync` so
+ * any rejection propagates to the global `errorHandler` middleware.
+ */
 import type { Request, Response } from 'express'
 import { db } from '../db.js'
+import { catchAsync } from '../utils/catchAsync.js'
 
-export async function getStats(_req: Request, res: Response) {
+export const getStats = catchAsync(async (_req: Request, res: Response) => {
   const [totalUsers, totalWorkers, activeWorkers, totalJobs, verifiedWorkers] = await Promise.all([
     db.user.count(),
     db.worker.count({ where: { deletedAt: null } }),
@@ -26,4 +33,4 @@ export async function getStats(_req: Request, res: Response) {
       },
     },
   })
-}
+})

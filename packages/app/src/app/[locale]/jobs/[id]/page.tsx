@@ -8,7 +8,7 @@ import {
   Send, CheckCircle, XCircle, AlertTriangle, MessageSquare, RefreshCw,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
-import { cn } from "@/lib/utils";
+import { cn, formatDate } from "@/lib/utils";
 import LoadingState from "@/components/LoadingState";
 import {
   getJob, applyToJob, withdrawJobApplication, getJobApplications,
@@ -357,7 +357,7 @@ export default function JobDetailPage() {
                         {!mine && <p className="mb-1 text-xs font-medium text-gray-500">{m.sender.firstName}</p>}
                         <p>{m.body}</p>
                         <p className={cn("mt-1 text-[10px]", mine ? "text-blue-200" : "text-gray-400")}>
-                          {new Date(m.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                          {formatDate(m.createdAt, { hour: "2-digit", minute: "2-digit" })}
                         </p>
                       </div>
                     </div>
