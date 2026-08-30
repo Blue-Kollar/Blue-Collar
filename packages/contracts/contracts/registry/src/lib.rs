@@ -22,6 +22,9 @@
 //! Raw PII is never stored on-chain. Only SHA-256 digests are stored.
 
 #![no_std]
+// Lint policy: clippy::pedantic enabled at workspace level (issue #1254).
+// Blanket Soroban exceptions (needless_pass_by_value, must_use_candidate, etc.)
+// are configured in the workspace Cargo.toml; per-function overrides go here.
 
 mod logic;
 mod storage;

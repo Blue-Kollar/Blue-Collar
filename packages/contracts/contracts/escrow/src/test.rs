@@ -5,10 +5,11 @@
 extern crate std;
 
 use super::*;
+use bluecollar_types::test_utils::set_time;
 use soroban_sdk::{
-    testutils::{Address as _, Ledger},
+    testutils::Address as _,
     token::{Client as TokenClient, StellarAssetClient},
-    Address, Env, Symbol,
+    Address, BytesN, Env, Symbol,
 };
 
 // ---------------------------------------------------------------------------
@@ -41,12 +42,6 @@ fn deploy_and_init<'a>(
     client.grant_role(admin, &Symbol::new(env, logic::ROLE_PAUSER), admin);
     client.grant_role(admin, &Symbol::new(env, logic::ROLE_ARBITRATOR), admin);
     client
-}
-
-fn set_time(env: &Env, ts: u64) {
-    let mut info = env.ledger().get();
-    info.timestamp = ts;
-    env.ledger().set(info);
 }
 
 // ---------------------------------------------------------------------------
@@ -479,4 +474,302 @@ fn test_extend_escrow_ttl_noop_when_missing() {
     let client = deploy_and_init(&env, &admin, &contract_id);
     // Should not panic — just a no-op
     client.extend_escrow_ttl(&Symbol::new(&env, "ghost"));
+}
+
+// ---------------------------------------------------------------------------
+// State machine invalid transition tests (#1251)
+// ---------------------------------------------------------------------------
+
+// Helper: create a standard escrow and return its id.
+fn make_escrow(
+    env: &Env,
+    client: &EscrowContractClient,
+    depositor: &Address,
+    beneficiary: &Address,
+    token: &Address,
+    name: &str,
+) -> Symbol {
+    let id = Symbol::new(env, name);
+    client.create_escrow(depositor, beneficiary, token, &id, &5_000, &9_000);
+    id
+}
+
+// --- release on non-Active states ---
+
+#[test]
+fn test_release_released_escrow_panics() {
+    let (env, admin, depositor, beneficiary, token, contract_id) = setup_env();
+    let client = deploy_and_init(&env, &admin, &contract_id);
+    set_time(&env, 1_000);
+
+    let id = make_escrow(&env, &client, &depositor, &beneficiary, &token, "e1");
+    // Put escrow into Released state
+    client.release_escrow(&depositor, &id);
+
+    // Attempting to release an already-Released escrow must fail
+    assert_eq!(
+        client.try_release_escrow(&depositor, &id),
+        Err(Ok(ContractError::EscrowNotActive))
+    );
+}
+
+#[test]
+fn test_release_cancelled_escrow_panics() {
+    let (env, admin, depositor, beneficiary, token, contract_id) = setup_env();
+    let client = deploy_and_init(&env, &admin, &contract_id);
+    set_time(&env, 1_000);
+
+    let id = make_escrow(&env, &client, &depositor, &beneficiary, &token, "e1");
+    // Put escrow into Cancelled state (admin cancels)
+    client.cancel_escrow(&admin, &id);
+
+    // Attempting to release a Cancelled escrow must fail
+    assert_eq!(
+        client.try_release_escrow(&depositor, &id),
+        Err(Ok(ContractError::EscrowNotActive))
+    );
+}
+
+#[test]
+fn test_release_disputed_escrow_panics() {
+    let (env, admin, depositor, beneficiary, token, contract_id) = setup_env();
+    let client = deploy_and_init(&env, &admin, &contract_id);
+    set_time(&env, 1_000);
+
+    let id = make_escrow(&env, &client, &depositor, &beneficiary, &token, "e1");
+    // Put escrow into Disputed state
+    client.dispute_escrow(&depositor, &id);
+
+    // Attempting to release a Disputed escrow must fail
+    assert_eq!(
+        client.try_release_escrow(&depositor, &id),
+        Err(Ok(ContractError::EscrowNotActive))
+    );
+}
+
+// --- cancel on non-Active states ---
+
+#[test]
+fn test_cancel_released_escrow_panics() {
+    let (env, admin, depositor, beneficiary, token, contract_id) = setup_env();
+    let client = deploy_and_init(&env, &admin, &contract_id);
+    set_time(&env, 1_000);
+
+    let id = make_escrow(&env, &client, &depositor, &beneficiary, &token, "e1");
+    client.release_escrow(&depositor, &id);
+
+    // Attempting to cancel a Released escrow must fail
+    assert_eq!(
+        client.try_cancel_escrow(&admin, &id),
+        Err(Ok(ContractError::EscrowNotActive))
+    );
+}
+
+#[test]
+fn test_cancel_cancelled_escrow_panics() {
+    let (env, admin, depositor, beneficiary, token, contract_id) = setup_env();
+    let client = deploy_and_init(&env, &admin, &contract_id);
+    set_time(&env, 1_000);
+
+    let id = make_escrow(&env, &client, &depositor, &beneficiary, &token, "e1");
+    client.cancel_escrow(&admin, &id);
+
+    // Attempting to cancel an already-Cancelled escrow must fail
+    assert_eq!(
+        client.try_cancel_escrow(&admin, &id),
+        Err(Ok(ContractError::EscrowNotActive))
+    );
+}
+
+#[test]
+fn test_cancel_disputed_escrow_panics() {
+    let (env, admin, depositor, beneficiary, token, contract_id) = setup_env();
+    let client = deploy_and_init(&env, &admin, &contract_id);
+    set_time(&env, 1_000);
+
+    let id = make_escrow(&env, &client, &depositor, &beneficiary, &token, "e1");
+    client.dispute_escrow(&depositor, &id);
+
+    // Attempting to cancel a Disputed escrow must fail (must go through resolve)
+    assert_eq!(
+        client.try_cancel_escrow(&admin, &id),
+        Err(Ok(ContractError::EscrowNotActive))
+    );
+}
+
+// --- dispute on non-Active states ---
+
+#[test]
+fn test_dispute_released_escrow_panics() {
+    let (env, admin, depositor, beneficiary, token, contract_id) = setup_env();
+    let client = deploy_and_init(&env, &admin, &contract_id);
+    set_time(&env, 1_000);
+
+    let id = make_escrow(&env, &client, &depositor, &beneficiary, &token, "e1");
+    client.release_escrow(&depositor, &id);
+
+    // Attempting to dispute a Released escrow must fail
+    assert_eq!(
+        client.try_dispute_escrow(&depositor, &id),
+        Err(Ok(ContractError::EscrowNotActive))
+    );
+}
+
+#[test]
+fn test_dispute_cancelled_escrow_panics() {
+    let (env, admin, depositor, beneficiary, token, contract_id) = setup_env();
+    let client = deploy_and_init(&env, &admin, &contract_id);
+    set_time(&env, 1_000);
+
+    let id = make_escrow(&env, &client, &depositor, &beneficiary, &token, "e1");
+    client.cancel_escrow(&admin, &id);
+
+    // Attempting to dispute a Cancelled escrow must fail
+    assert_eq!(
+        client.try_dispute_escrow(&depositor, &id),
+        Err(Ok(ContractError::EscrowNotActive))
+    );
+}
+
+#[test]
+fn test_dispute_already_disputed_escrow_panics() {
+    let (env, admin, depositor, beneficiary, token, contract_id) = setup_env();
+    let client = deploy_and_init(&env, &admin, &contract_id);
+    set_time(&env, 1_000);
+
+    let id = make_escrow(&env, &client, &depositor, &beneficiary, &token, "e1");
+    client.dispute_escrow(&depositor, &id);
+
+    // Attempting to dispute an already-Disputed escrow must fail
+    assert_eq!(
+        client.try_dispute_escrow(&beneficiary, &id),
+        Err(Ok(ContractError::EscrowNotActive))
+    );
+}
+
+// --- resolve on non-Disputed states ---
+
+#[test]
+fn test_resolve_active_escrow_panics() {
+    let (env, admin, depositor, beneficiary, token, contract_id) = setup_env();
+    let client = deploy_and_init(&env, &admin, &contract_id);
+    set_time(&env, 1_000);
+
+    let id = make_escrow(&env, &client, &depositor, &beneficiary, &token, "e1");
+    // Escrow is Active, not Disputed — resolve must fail
+    assert_eq!(
+        client.try_resolve_dispute(&admin, &id, &true),
+        Err(Ok(ContractError::EscrowNotDisputed))
+    );
+}
+
+#[test]
+fn test_resolve_released_escrow_panics() {
+    let (env, admin, depositor, beneficiary, token, contract_id) = setup_env();
+    let client = deploy_and_init(&env, &admin, &contract_id);
+    set_time(&env, 1_000);
+
+    let id = make_escrow(&env, &client, &depositor, &beneficiary, &token, "e1");
+    client.release_escrow(&depositor, &id);
+
+    // Attempting to resolve a Released escrow must fail
+    assert_eq!(
+        client.try_resolve_dispute(&admin, &id, &true),
+        Err(Ok(ContractError::EscrowNotDisputed))
+    );
+}
+
+#[test]
+fn test_resolve_cancelled_escrow_panics() {
+    let (env, admin, depositor, beneficiary, token, contract_id) = setup_env();
+    let client = deploy_and_init(&env, &admin, &contract_id);
+    set_time(&env, 1_000);
+
+    let id = make_escrow(&env, &client, &depositor, &beneficiary, &token, "e1");
+    client.cancel_escrow(&admin, &id);
+
+    // Attempting to resolve a Cancelled escrow must fail
+    assert_eq!(
+        client.try_resolve_dispute(&admin, &id, &false),
+        Err(Ok(ContractError::EscrowNotDisputed))
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Upgrade and migration tests (#1253)
+// ---------------------------------------------------------------------------
+
+#[test]
+fn test_fresh_deploy_schema_version_is_one() {
+    let (env, admin, _, _, _, contract_id) = setup_env();
+    let client = deploy_and_init(&env, &admin, &contract_id);
+    assert_eq!(client.get_schema_version(), 1);
+}
+
+#[test]
+fn test_migrate_advances_schema_version() {
+    let (env, admin, _, _, _, contract_id) = setup_env();
+    let client = deploy_and_init(&env, &admin, &contract_id);
+    assert_eq!(client.get_schema_version(), 1);
+    client.migrate(&admin, &1u32);
+    assert_eq!(client.get_schema_version(), 2);
+}
+
+#[test]
+fn test_migrate_wrong_version_panics() {
+    let (env, admin, _, _, _, contract_id) = setup_env();
+    let client = deploy_and_init(&env, &admin, &contract_id);
+    // Schema is at v1; passing v2 must fail
+    assert_eq!(
+        client.try_migrate(&admin, &2u32),
+        Err(Ok(ContractError::WrongSchemaVersion))
+    );
+}
+
+#[test]
+fn test_migrate_requires_admin() {
+    let (env, admin, _, _, _, contract_id) = setup_env();
+    let client = deploy_and_init(&env, &admin, &contract_id);
+    let stranger = Address::generate(&env);
+    assert_eq!(
+        client.try_migrate(&stranger, &1u32),
+        Err(Ok(ContractError::MissingRole))
+    );
+}
+
+#[test]
+fn test_migrate_preserves_escrow_state() {
+    let (env, admin, depositor, beneficiary, token, contract_id) = setup_env();
+    let client = deploy_and_init(&env, &admin, &contract_id);
+    set_time(&env, 1_000);
+
+    // Create an escrow before migrating
+    let id = Symbol::new(&env, "esc_mig");
+    client.create_escrow(&depositor, &beneficiary, &token, &id, &7_500, &9_000);
+    let before = client.get_escrow(&id);
+
+    // Run migration
+    client.migrate(&admin, &1u32);
+
+    // State must be unchanged
+    let after = client.get_escrow(&id);
+    assert_eq!(after.amount, before.amount);
+    assert_eq!(after.depositor, before.depositor);
+    assert_eq!(after.beneficiary, before.beneficiary);
+    assert_eq!(after.state, before.state);
+    assert_eq!(after.expiry, before.expiry);
+    // Schema version advanced
+    assert_eq!(client.get_schema_version(), 2);
+}
+
+#[test]
+fn test_upgrade_requires_upgrader_role() {
+    let (env, admin, _, _, _, contract_id) = setup_env();
+    let client = deploy_and_init(&env, &admin, &contract_id);
+    let stranger = Address::generate(&env);
+    let dummy_hash = BytesN::from_array(&env, &[1u8; 32]);
+    assert_eq!(
+        client.try_upgrade(&stranger, &dummy_hash),
+        Err(Ok(ContractError::MissingRole))
+    );
 }

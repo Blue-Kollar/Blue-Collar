@@ -14,3 +14,6 @@ bluecollar-types = { path = "../types" }
 [dev-dependencies]
 soroban-sdk = { version = "26.1.0", features = ["testutils"] }
 
+
+[lints]
+workspace = true
