@@ -6,6 +6,60 @@ import { AppError, ErrorCode } from '../utils/AppError.js'
 import { catchAsync } from '../utils/catchAsync.js'
 import { createPaginationHelper } from '../utils/pagination.js'
 
+// ── Worker-scoped review handlers (used by routes/workers.ts) ─────────────────
+// These live here so that routes/workers.ts does NOT need to import from
+// routes/reviews.ts, which would create a route→route circular dependency.
+
+export const listWorkerReviews = async (req: Request, res: Response) => {
+  const workerId = req.params.workerId ?? req.params.id
+  const [reviews, aggregate] = await Promise.all([
+    db.review.findMany({
+      where: { workerId },
+      include: { author: { select: { id: true, firstName: true, lastName: true, avatar: true } } },
+      orderBy: { createdAt: 'desc' },
+    }),
+    db.review.aggregate({
+      where: { workerId },
+      _avg: { rating: true },
+      _count: { rating: true },
+    }),
+  ])
+
+  return res.json({
+    data: reviews,
+    avgRating: aggregate._avg.rating ?? 0,
+    reviewCount: aggregate._count.rating,
+    status: 'success',
+    code: 200,
+  })
+}
+
+export const createWorkerReview = catchAsync(async (req: Request, res: Response) => {
+  const workerId = req.params.id ?? req.params.workerId
+  const { rating, comment, transactionHash } = req.body
+  const review = await reviewService.createReview(workerId, req.user!.id, rating, comment, transactionHash)
+  return res.status(201).json({
+    data: review,
+    status: 'success',
+    message: 'Review created (pending moderation)',
+    code: 201,
+  })
+})
+
+export const deleteReview = async (req: Request, res: Response) => {
+  const id = req.params.id
+  if (!id) return res.status(400).json({ status: 'error', message: 'Missing review id', code: 400 })
+
+  const review = await db.review.findUnique({ where: { id } })
+  if (!review) return res.status(404).json({ status: 'error', message: 'Not found', code: 404 })
+  if (review.authorId !== req.user!.id) {
+    return res.status(403).json({ status: 'error', message: 'Forbidden', code: 403 })
+  }
+
+  await db.review.delete({ where: { id } })
+  return res.status(204).send()
+}
+
 export const listReviews = catchAsync(async (req: Request, res: Response) => {
   const { workerId } = req.params
   const page = Math.max(1, parseInt(req.query.page as string) || 1)

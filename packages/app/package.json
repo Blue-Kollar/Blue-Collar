@@ -12,6 +12,7 @@
     "test:a11y": "vitest run src/__tests__/accessibility",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
+    "check:cycles": "madge --circular --extensions ts,tsx src/",
     "lint": "next lint",
     "lint:naming": "node scripts/check-file-naming.mjs",
     "type-check": "tsc --noEmit",
