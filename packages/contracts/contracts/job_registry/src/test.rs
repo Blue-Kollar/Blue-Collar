@@ -5,13 +5,9 @@
 extern crate std;
 
 use super::*;
-use bluecollar_types::ContractError;
-use soroban_sdk::{testutils::Address as _, Address, BytesN, Env, Symbol};
+use bluecollar_types::{test_utils::zero_hash, ContractError};
+use soroban_sdk::{testutils::Address as _, Address, Env, Symbol};
 use std::format;
-
-fn zero_hash(env: &Env) -> BytesN<32> {
-    BytesN::from_array(env, &[0u8; 32])
-}
 
 fn setup(env: &Env) -> (Address, Address, JobRegistryContractClient) {
     env.mock_all_auths();

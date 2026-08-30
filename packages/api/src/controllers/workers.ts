@@ -1,12 +1,13 @@
 import type { Request, Response } from 'express'
 import * as workerService from '../services/worker.service.js'
 import * as searchService from '../services/search.service.js'
-import { handleError } from '../utils/handleError.js'
 import { catchAsync } from '../utils/catchAsync.js'
+import { AppError, ErrorCode } from '../utils/AppError.js'
 import { workerSerializer } from '../serializers/index.js'
 import type { CreateWorkerBody, UpdateWorkerBody } from '../interfaces/index.js'
 import { invalidateCachePattern } from '../middleware/cache.js'
 import { getWorkerReputation, syncReputationToDb } from '../services/stellar.service.js'
+import { ErrorMessages } from '../constants/errors.js'
 
 // Parse a comma-separated ?fields= query param into a set for O(1) lookup.
 // An empty/absent param means "return all fields".
@@ -71,7 +72,7 @@ async function listWorkersGeoMode(query: Record<string, unknown>, fieldSet: Set<
   const radiusKm = radius ? Number(radius) : 10
 
   if (isNaN(userLat) || isNaN(userLng) || isNaN(radiusKm))
-    return res.status(400).json({ status: 'error', message: 'Invalid lat, lng, or radius', code: 400 })
+    throw new AppError(ErrorMessages.INVALID_GEO_PARAMS, 400, true, ErrorCode.VALIDATION_ERROR)
 
   const paginated = await workerService.listWorkersGeo({
     lat: userLat, lng: userLng, radiusKm,
@@ -141,7 +142,7 @@ export async function listWorkers(req: Request, res: Response) {
  */
 export async function showWorker(req: Request, res: Response) {
   const worker = await workerService.getWorkerWithPortfolio(req.params.id)
-  if (!worker) return res.status(404).json({ status: 'error', message: 'Not found', code: 404 })
+  if (!worker) throw new AppError('Not found', 404, true, ErrorCode.NOT_FOUND)
   return res.json({ data: worker, status: 'success', code: 200 })
 }
 
@@ -152,22 +153,18 @@ export async function showWorker(req: Request, res: Response) {
  * @param req - Body: `CreateWorkerBody`. `req.user` must be set by auth middleware.
  * @param res - JSON `{ data: Worker, status, code: 201 }`.
  */
-export async function createWorker(req: Request<{}, {}, CreateWorkerBody>, res: Response) {
-  try {
-    const worker = await workerService.createWorkerWithMedia(req.body, req.user!.id, req.file)
-    await invalidateCachePattern(`cache:*workers?*`)
-    return res.status(201).json({
-      // NOTE: worker has already been through formatWorker() (narrowed category/curator
-      // shape), not the raw Prisma relations workerSerializer.serialize() expects — a
-      // pre-existing mismatch this any-cleanup surfaced but does not fix (out of scope).
-      data: workerSerializer.serialize(worker as unknown as Parameters<typeof workerSerializer.serialize>[0]),
-      status: 'success',
-      code: 201
-    })
-  } catch (err) {
-    return handleError(res, err)
-  }
-}
+export const createWorker = catchAsync(async (req: Request<{}, {}, CreateWorkerBody>, res: Response) => {
+  const worker = await workerService.createWorkerWithMedia(req.body, req.user!.id, req.file)
+  await invalidateCachePattern(`cache:*workers?*`)
+  return res.status(201).json({
+    // NOTE: worker has already been through formatWorker() (narrowed category/curator
+    // shape), not the raw Prisma relations workerSerializer.serialize() expects — a
+    // pre-existing mismatch this any-cleanup surfaced but does not fix (out of scope).
+    data: workerSerializer.serialize(worker as unknown as Parameters<typeof workerSerializer.serialize>[0]),
+    status: 'success',
+    code: 201
+  })
+})
 
 /**
  * PUT /api/workers/:id
@@ -191,21 +188,17 @@ export async function createWorker(req: Request<{}, {}, CreateWorkerBody>, res: 
  * @param req - Route param `id`. Body: `UpdateWorkerBody` (JSON or multipart).
  * @param res - JSON `{ data: Worker, status, code }`.
  */
-export async function updateWorker(req: Request<{ id: string }, {}, UpdateWorkerBody>, res: Response) {
-  try {
-    const worker = await workerService.updateWorkerWithMedia(req.params.id, req.body, req.file, req.user?.id)
-    await invalidateCachePattern(`cache:*workers/${req.params.id}*`)
-    await invalidateCachePattern(`cache:*workers?*`)
-    return res.json({
-      // See createWorker() above: pre-existing formatWorker()/serialize() shape mismatch.
-      data: workerSerializer.serialize(worker as unknown as Parameters<typeof workerSerializer.serialize>[0]),
-      status: 'success',
-      code: 200
-    })
-  } catch (err) {
-    return handleError(res, err)
-  }
-}
+export const updateWorker = catchAsync(async (req: Request<{ id: string }, {}, UpdateWorkerBody>, res: Response) => {
+  const worker = await workerService.updateWorkerWithMedia(req.params.id, req.body, req.file, req.user?.id)
+  await invalidateCachePattern(`cache:*workers/${req.params.id}*`)
+  await invalidateCachePattern(`cache:*workers?*`)
+  return res.json({
+    // See createWorker() above: pre-existing formatWorker()/serialize() shape mismatch.
+    data: workerSerializer.serialize(worker as unknown as Parameters<typeof workerSerializer.serialize>[0]),
+    status: 'success',
+    code: 200
+  })
+})
 
 /**
  * DELETE /api/workers/:id
@@ -215,14 +208,10 @@ export async function updateWorker(req: Request<{ id: string }, {}, UpdateWorker
  * @param res - 204 No Content on success.
  */
 export async function deleteWorker(req: Request, res: Response) {
-  try {
-    await workerService.deleteWorkerWithMedia(req.params.id as string)
-    await invalidateCachePattern(`cache:*workers/${req.params.id}*`)
-    await invalidateCachePattern(`cache:*workers?*`)
-    return res.status(204).send()
-  } catch (err) {
-    return handleError(res, err)
-  }
+  await workerService.deleteWorkerWithMedia(req.params.id as string)
+  await invalidateCachePattern(`cache:*workers/${req.params.id}*`)
+  await invalidateCachePattern(`cache:*workers?*`)
+  return res.status(204).send()
 }
 
 /**
@@ -232,21 +221,17 @@ export async function deleteWorker(req: Request, res: Response) {
  * @param req - Route param `id`.
  * @param res - JSON `{ data: Worker, status, code }`.
  */
-export async function toggleActivation(req: Request, res: Response) {
-  try {
-    const updated = await workerService.toggleWorker(req.params.id as string)
-    await invalidateCachePattern(`cache:*workers/${req.params.id}*`)
-    await invalidateCachePattern(`cache:*workers?*`)
-    return res.json({
-      // See createWorker() above: pre-existing formatWorker()/serialize() shape mismatch.
-      data: workerSerializer.serialize(updated as unknown as Parameters<typeof workerSerializer.serialize>[0]),
-      status: 'success',
-      code: 200
-    })
-  } catch (err) {
-    return handleError(res, err)
-  }
-}
+export const toggleActivation = catchAsync(async (req: Request, res: Response) => {
+  const updated = await workerService.toggleWorker(req.params.id as string)
+  await invalidateCachePattern(`cache:*workers/${req.params.id}*`)
+  await invalidateCachePattern(`cache:*workers?*`)
+  return res.json({
+    // See createWorker() above: pre-existing formatWorker()/serialize() shape mismatch.
+    data: workerSerializer.serialize(updated as unknown as Parameters<typeof workerSerializer.serialize>[0]),
+    status: 'success',
+    code: 200
+  })
+})
 
 /**
  * GET /api/workers/mine
@@ -352,12 +337,8 @@ export const { searchWorkersHandler, advancedSearch } = createSearchHandlers()
  * @param res - JSON `{ data: ReputationSummary, status, code }`.
  */
 export async function getReputation(req: Request, res: Response) {
-  try {
-    const data = await getWorkerReputation(req.params.id)
-    return res.json({ data, status: 'success', code: 200 })
-  } catch (err) {
-    return handleError(res, err)
-  }
+  const data = await getWorkerReputation(req.params.id)
+  return res.json({ data, status: 'success', code: 200 })
 }
 
 /**
@@ -373,15 +354,11 @@ export async function getReputation(req: Request, res: Response) {
  * @param res - JSON `{ data: Worker, status, code }`.
  */
 export async function syncReputation(req: Request, res: Response) {
-  try {
-    const { avgRating, reviewCount, reputation } = req.body as {
-      avgRating: number
-      reviewCount: number
-      reputation: number
-    }
-    const data = await syncReputationToDb(req.params.id, avgRating, reviewCount, reputation)
-    return res.json({ data, status: 'success', code: 200 })
-  } catch (err) {
-    return handleError(res, err)
+  const { avgRating, reviewCount, reputation } = req.body as {
+    avgRating: number
+    reviewCount: number
+    reputation: number
   }
+  const data = await syncReputationToDb(req.params.id, avgRating, reviewCount, reputation)
+  return res.json({ data, status: 'success', code: 200 })
 }

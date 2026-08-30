@@ -11,6 +11,7 @@
     "postinstall": "prisma generate",
     "test": "vitest",
     "test:coverage": "vitest run --coverage",
+    "test:contract": "vitest run src/__tests__/contract/apiContract.test.ts",
     "test:perf": "vitest run src/__tests__/performance",
     "migrate": "prisma migrate dev",
     "prisma:generate": "prisma generate",

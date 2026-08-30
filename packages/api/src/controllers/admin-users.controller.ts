@@ -1,10 +1,22 @@
+/**
+ * Admin users controller — thin HTTP layer.
+ *
+ * All handlers are wrapped with `catchAsync` so any thrown `AppError` (or
+ * unexpected rejection) propagates to the global `errorHandler` middleware,
+ * ensuring every error response has the standard
+ * `{ status, message, code, errorCode, traceId }` shape.
+ *
+ * Issue #1215: standardize error handling — wraps all previously bare async
+ * handlers in `catchAsync`.
+ */
 import type { Request, Response } from 'express'
 import type { Role } from '@prisma/client'
 import { db } from '../db.js'
 import { paginate } from '../utils/paginate.js'
 import { AppError, ErrorCode } from '../utils/AppError.js'
+import { catchAsync } from '../utils/catchAsync.js'
 
-export async function listUsers(req: Request, res: Response) {
+export const listUsers = catchAsync(async (req: Request, res: Response) => {
   const { page = '1', limit = '20', search, role, status } = req.query as Record<string, string | undefined>
 
   const where: Record<string, unknown> = {}
@@ -32,9 +44,9 @@ export async function listUsers(req: Request, res: Response) {
   })
 
   return res.json({ data, meta, status: 'success', code: 200 })
-}
+})
 
-export async function suspendUser(req: Request, res: Response) {
+export const suspendUser = catchAsync(async (req: Request, res: Response) => {
   const user = await db.user.findUnique({ where: { id: req.params.id } })
   if (!user) throw new AppError('User not found', 404, true, ErrorCode.NOT_FOUND)
   if (user.role === 'admin') throw new AppError('Cannot suspend another admin', 403, true, ErrorCode.FORBIDDEN)
@@ -44,7 +56,7 @@ export async function suspendUser(req: Request, res: Response) {
     data: { userId: req.user!.id, action: 'user.suspend', resource: 'user', resourceId: req.params.id },
   })
   return res.json({ data: { id: req.params.id, suspended: true }, status: 'success', code: 200 })
-}
+})
 
 async function bulkSetUserSuspension(req: Request, res: Response, suspend: boolean) {
   const { ids } = req.body as { ids?: unknown }
@@ -81,15 +93,15 @@ async function bulkSetUserSuspension(req: Request, res: Response, suspend: boole
   return res.json({ data: { updated: targetIds.length, suspended: suspend }, status: 'success', code: 200 })
 }
 
-export async function bulkSuspendUsers(req: Request, res: Response) {
+export const bulkSuspendUsers = catchAsync(async (req: Request, res: Response) => {
   return bulkSetUserSuspension(req, res, true)
-}
+})
 
-export async function bulkUnsuspendUsers(req: Request, res: Response) {
+export const bulkUnsuspendUsers = catchAsync(async (req: Request, res: Response) => {
   return bulkSetUserSuspension(req, res, false)
-}
+})
 
-export async function unsuspendUser(req: Request, res: Response) {
+export const unsuspendUser = catchAsync(async (req: Request, res: Response) => {
   const user = await db.user.findUnique({ where: { id: req.params.id } })
   if (!user) throw new AppError('User not found', 404, true, ErrorCode.NOT_FOUND)
 
@@ -98,9 +110,9 @@ export async function unsuspendUser(req: Request, res: Response) {
     data: { userId: req.user!.id, action: 'user.unsuspend', resource: 'user', resourceId: req.params.id },
   })
   return res.json({ data: { id: req.params.id, suspended: false }, status: 'success', code: 200 })
-}
+})
 
-export async function banUser(req: Request, res: Response) {
+export const banUser = catchAsync(async (req: Request, res: Response) => {
   const user = await db.user.findUnique({ where: { id: req.params.id } })
   if (!user) throw new AppError('User not found', 404, true, ErrorCode.NOT_FOUND)
   if (user.role === 'admin') throw new AppError('Cannot ban another admin', 403, true, ErrorCode.FORBIDDEN)
@@ -113,9 +125,9 @@ export async function banUser(req: Request, res: Response) {
     data: { userId: req.user!.id, action: 'user.ban', resource: 'user', resourceId: req.params.id },
   })
   return res.json({ data: { id: req.params.id, banned: true }, status: 'success', code: 200 })
-}
+})
 
-export async function changeRole(req: Request, res: Response) {
+export const changeRole = catchAsync(async (req: Request, res: Response) => {
   const { role } = req.body as { role?: string }
   if (!role || !['user', 'curator', 'admin'].includes(role)) {
     throw new AppError('role must be one of: user, curator, admin', 400, true, ErrorCode.VALIDATION_ERROR)
@@ -142,4 +154,4 @@ export async function changeRole(req: Request, res: Response) {
     },
   })
   return res.json({ data: updated, status: 'success', code: 200 })
-}
+})

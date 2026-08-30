@@ -1,5 +1,6 @@
 import { Router, type Request, type Response } from 'express'
 import { authenticate, authorize } from '../middleware/auth.js'
+import { publicReadRateLimiter } from '../config/rateLimiter.js'
 import {
   listReviews,
   createReview,
@@ -63,7 +64,7 @@ export async function deleteReview(req: Request, res: Response) {
   return res.status(204).send()
 }
 
-router.get('/', listReviews)
+router.get('/', publicReadRateLimiter, listReviews)
 router.post('/', authenticate, createReview)
 router.delete('/:id', authenticate, deleteReview)
 

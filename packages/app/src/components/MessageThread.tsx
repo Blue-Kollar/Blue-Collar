@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useCallback } from "react";
 import { User } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, formatDate as sharedFormatDate, formatTime as sharedFormatTime } from "@/lib/utils";
 import MessageInput from "./MessageInput";
 import type { Message } from "@/types";
 
@@ -14,10 +14,7 @@ interface Props {
 }
 
 function formatTime(iso: string) {
-  return new Date(iso).toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-  });
+  return sharedFormatTime(iso);
 }
 
 function formatDate(iso: string) {
@@ -28,7 +25,7 @@ function formatDate(iso: string) {
 
   if (date.toDateString() === today.toDateString()) return "Today";
   if (date.toDateString() === yesterday.toDateString()) return "Yesterday";
-  return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  return sharedFormatDate(iso);
 }
 
 function shouldShowDate(messages: Message[], index: number): boolean {

@@ -1,11 +1,12 @@
 import { Router } from 'express'
 import { respondToContact, getWorkerResponseStats, getResponseTimeAnalytics } from '../controllers/response-time.js'
 import { authenticate, authorize } from '../middleware/auth.js'
+import { publicReadRateLimiter } from '../config/rateLimiter.js'
 
 const router = Router()
 
 // Worker response stats (public)
-router.get('/workers/:id/response-stats', getWorkerResponseStats)
+router.get('/workers/:id/response-stats', publicReadRateLimiter, getWorkerResponseStats)
 
 // Respond to a contact request (curator/admin)
 router.patch('/workers/:id/contacts/:requestId/respond', authenticate, authorize('curator', 'admin'), respondToContact)

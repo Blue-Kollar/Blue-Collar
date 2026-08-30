@@ -5,7 +5,7 @@ import { Bell, Check, CheckCheck, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useNotifications } from "@/context/NotificationContext";
 import type { NotificationType } from "@/types";
-import { cn } from "@/lib/utils";
+import { cn, formatRelativeTime } from "@/lib/utils";
 
 const TYPE_STYLES: Record<NotificationType, string> = {
   tip: "bg-yellow-100 text-yellow-700",
@@ -21,15 +21,6 @@ const TYPE_LABELS: Record<NotificationType, string> = {
   system: "System",
 };
 
-function timeAgo(iso: string) {
-  const diff = Date.now() - new Date(iso).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  return `${Math.floor(hrs / 24)}d ago`;
-}
 
 export default function NotificationDropdown() {
   const { notifications, unreadCount, markRead, markAllRead, clearAll } =
@@ -144,7 +135,7 @@ export default function NotificationDropdown() {
                     <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 mt-0.5">
                       {n.message}
                     </p>
-                    <p className="text-[10px] text-gray-400 mt-1">{timeAgo(n.createdAt)}</p>
+                    <p className="text-[10px] text-gray-400 mt-1">{formatRelativeTime(n.createdAt)}</p>
                   </div>
                   {!n.read && (
                     <button

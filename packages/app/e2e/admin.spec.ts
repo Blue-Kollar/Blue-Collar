@@ -8,8 +8,11 @@
  */
 import { test, expect } from '@playwright/test'
 import { injectFreighterMock } from './freighter-mock'
-
-const BASE = process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3001'
+import {
+  BASE,
+  expectNoServerError,
+  expectAuthRedirect,
+} from './helpers'
 
 const ADMIN_ROUTES = [
   '/en/dashboard/admin',
@@ -28,11 +31,8 @@ test.describe('Admin dashboard routes (locale-prefixed)', () => {
   for (const route of ADMIN_ROUTES) {
     test(`${route} is reachable (redirects to login when unauthenticated)`, async ({ page }) => {
       await page.goto(`${BASE}${route}`)
-      await page.waitForURL(/login|auth|dashboard/, { timeout: 10_000 })
-      const url = page.url()
-      expect(url.includes('login') || url.includes('auth') || url.includes('dashboard')).toBeTruthy()
-      await expect(page.locator('body')).not.toContainText('Internal Server Error')
-      await expect(page.locator('body')).not.toContainText('Application error')
+      await expectAuthRedirect(page)
+      await expectNoServerError(page)
     })
   }
 
@@ -46,8 +46,7 @@ test.describe('Admin dashboard routes (locale-prefixed)', () => {
 test.describe('Relocated auth-callback and wallet/history routes', () => {
   test('auth-callback page loads under a locale prefix without crashing', async ({ page }) => {
     await page.goto(`${BASE}/en/auth-callback`)
-    await expect(page.locator('body')).not.toContainText('Internal Server Error')
-    await expect(page.locator('body')).not.toContainText('Application error')
+    await expectNoServerError(page)
     // No token/error query param present -> the page renders its "No authentication token received" error state
     await expect(page.locator('body')).toContainText(/sign-in|token/i)
   })
@@ -55,8 +54,7 @@ test.describe('Relocated auth-callback and wallet/history routes', () => {
   test('wallet/history page loads under a locale prefix without crashing', async ({ page }) => {
     await injectFreighterMock(page)
     await page.goto(`${BASE}/en/wallet/history`)
-    await expect(page.locator('body')).not.toContainText('Internal Server Error')
-    await expect(page.locator('body')).not.toContainText('Application error')
+    await expectNoServerError(page)
     await expect(page.locator('body')).toContainText(/transaction history/i)
   })
 })

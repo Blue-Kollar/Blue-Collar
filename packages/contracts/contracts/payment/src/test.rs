@@ -15,8 +15,9 @@
 extern crate std;
 
 use super::*;
+use bluecollar_types::test_utils::set_time;
 use soroban_sdk::{
-    testutils::{Address as _, Ledger, LedgerInfo},
+    testutils::Address as _,
     token::{Client as TokenClient, StellarAssetClient},
     Address, Env, Symbol,
 };
@@ -58,12 +59,6 @@ fn init(
     // Grant fee_mgr and pauser roles to admin for convenience
     client.grant_role(admin, &Symbol::new(env, ROLE_FEE_MGR), admin);
     client.grant_role(admin, &Symbol::new(env, ROLE_PAUSER), admin);
-}
-
-fn set_time(env: &Env, ts: u64) {
-    let mut info = env.ledger().get();
-    info.timestamp = ts;
-    env.ledger().set(info);
 }
 
 // ---------------------------------------------------------------------------

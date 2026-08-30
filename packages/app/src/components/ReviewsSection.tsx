@@ -1,15 +1,13 @@
 "use client";
 
 import { useEffect, useId, useMemo, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import ReviewCard from "./ReviewCard";
 import ReviewForm from "./ReviewForm";
 import RatingBreakdown from "./RatingBreakdown";
 import ReviewSortFilter, { type SortOption } from "./ReviewSortFilter";
 import EmptyState from "./EmptyState";
 import type { Review, RatingDistributionEntry } from "@/types";
-import { getWorkerReviews } from "@/lib/api";
-import { queryKeys } from "@/lib/queryClient";
+import { useWorkerReviews } from "@/hooks/queries";
 import { useAuth } from "@/context/AuthContext";
 
 const PAGE_SIZE = 5;
@@ -81,11 +79,7 @@ export default function ReviewsSection({
   }, [visibleCount]);
 
   const filterParams = ratingFilter !== null ? { rating: String(ratingFilter), limit: "50" } : undefined;
-  const filteredQuery = useQuery({
-    queryKey: queryKeys.workers.reviews(workerId, filterParams),
-    queryFn: () => getWorkerReviews(workerId, filterParams),
-    enabled: ratingFilter !== null,
-  });
+  const filteredQuery = useWorkerReviews(workerId, ratingFilter !== null ? filterParams : undefined);
   const filterLoading = ratingFilter !== null && filteredQuery.isLoading;
   const filteredReviews =
     ratingFilter !== null && filteredQuery.isSuccess ? (filteredQuery.data.data ?? []) : null;

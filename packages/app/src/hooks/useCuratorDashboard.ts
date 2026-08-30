@@ -6,10 +6,11 @@ import { useWallet } from "@/hooks/useWallet";
 import type { CuratorAnalytics, ViewTrend } from "@/types";
 import type { DashboardWorker } from "@/components/Dashboard";
 
+import { HORIZON_URL, IS_TESTNET } from "@/config/stellar";
+
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/api";
-const HORIZON_TESTNET = "https://horizon-testnet.stellar.org";
-const IS_STELLAR_TESTNET =
-  process.env.NEXT_PUBLIC_STELLAR_NETWORK?.toLowerCase() === "testnet";
+const HORIZON_TESTNET = HORIZON_URL;
+const IS_STELLAR_TESTNET = IS_TESTNET;
 
 export function useCuratorDashboard() {
   const { user, token, isLoading: authLoading } = useAuth();
