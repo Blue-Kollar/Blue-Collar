@@ -10,11 +10,11 @@ license = "MIT"
 crate-type = ["lib", "cdylib"]
 
 [dependencies]
-soroban-sdk = { version = "26.1.0", features = ["alloc"] }
+soroban-sdk = { workspace = true }
 bluecollar-types = { path = "../types" }
 
 [dev-dependencies]
-soroban-sdk = { version = "26.1.0", features = ["testutils"] }
+soroban-sdk = { workspace = true, features = ["testutils"] }
 
 [lints]
 workspace = true

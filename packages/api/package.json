@@ -25,6 +25,7 @@
     "openapi:generate": "tsx src/scripts/generate-openapi.ts",
     "lint": "eslint \"src/**/*.ts\"",
     "format": "prettier --write \"src/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\"",
     "audit": "pnpm audit --audit-level=high",
     "audit:fix": "pnpm audit --fix",
     "test:mutation": "stryker run",

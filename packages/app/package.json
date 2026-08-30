@@ -47,7 +47,6 @@
     "zod": "^3.23.0"
   },
   "devDependencies": {
-    "@bluecollar/test-utils": "workspace:*",
     "@axe-core/playwright": "^4.9.0",
     "@percy/playwright": "^1.1.0",
     "@playwright/test": "^1.44.0",

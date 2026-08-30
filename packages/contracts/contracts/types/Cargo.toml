@@ -7,10 +7,10 @@ license = "MIT"
 [lib]
 
 [dependencies]
-soroban-sdk = { version = "26.1.0", features = ["alloc"] }
+soroban-sdk = { workspace = true }
 
 [dev-dependencies]
-soroban-sdk = { version = "26.1.0", features = ["alloc", "testutils"] }
+soroban-sdk = { workspace = true, features = ["alloc", "testutils"] }
 
 [features]
 testutils = ["soroban-sdk/testutils"]
