@@ -8,6 +8,7 @@
     ".": "./src/index.ts"
   },
   "scripts": {
+    "lint": "eslint \"src/**/*.ts\"",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage"
   },
@@ -17,7 +18,12 @@
   },
   "devDependencies": {
     "@bluecollar/test-utils": "workspace:*",
+    "@eslint/js": "^9.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
     "@vitest/coverage-v8": "^1.6.1",
+    "eslint": "^9.0.0",
+    "globals": "^14.0.0",
     "typescript": "^5.4.0",
     "vitest": "^1.4.0"
   }

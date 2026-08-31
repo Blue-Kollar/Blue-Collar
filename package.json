@@ -14,7 +14,7 @@
     "build": "pnpm --filter @bluecollar/api build && pnpm --filter @bluecollar/app build",
     "test": "pnpm --filter @bluecollar/api test && pnpm --filter @bluecollar/app test",
     "type-check": "pnpm --filter @bluecollar/types type-check && pnpm --filter @bluecollar/api tsc --noEmit && pnpm --filter @bluecollar/app type-check",
-    "lint": "pnpm --filter @bluecollar/api lint && pnpm --filter @bluecollar/app lint",
+    "lint": "pnpm --filter @bluecollar/types lint && pnpm --filter @bluecollar/sdk lint && pnpm --filter @bluecollar/api lint && pnpm --filter @bluecollar/app lint",
     "format": "prettier --write \"packages/**/*.{ts,tsx,js,json,md}\"",
     "audit": "pnpm audit --audit-level=high",
     "audit:fix": "pnpm audit --fix",

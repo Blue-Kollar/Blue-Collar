@@ -149,7 +149,7 @@ describe('[regression] Worker.category – must be required field', () => {
     const source = readFileSync(typesPath, 'utf8')
 
     // Find the Worker interface/type definition
-    const workerMatch = source.match(/(?:interface|type)\s+Worker\s*[\{<]/)
+    const workerMatch = source.match(/(?:interface|type)\s+Worker\s*[{<]/)
     if (!workerMatch) return // Worker not defined in this file
 
     // Extract the Worker type definition (until the next top-level declaration)

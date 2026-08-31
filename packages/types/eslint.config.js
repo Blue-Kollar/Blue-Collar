@@ -1,12 +1,8 @@
-// Flat config (ESLint 9+). Migrated from .eslintrc.json — see git history for the
-// legacy config this replaces. Keep behavior equivalent when touching this file.
-//
-// Shared rules are sourced from /eslint-base-rules.js (#1289) so that all
-// packages enforce the same baseline. Add only api-specific overrides here.
+// Flat config (ESLint 9+) for @bluecollar/types.
+// Shared baseline rules come from /eslint-base-rules.js (#1289).
 import js from '@eslint/js'
 import tsPlugin from '@typescript-eslint/eslint-plugin'
 import tsParser from '@typescript-eslint/parser'
-import globals from 'globals'
 import { createRequire } from 'module'
 
 const require = createRequire(import.meta.url)
@@ -21,11 +17,8 @@ export default [
     files: ['src/**/*.ts'],
     languageOptions: {
       parser: tsParser,
-      ecmaVersion: 'latest',
+      ecmaVersion: 2022,
       sourceType: 'module',
-      globals: {
-        ...globals.node,
-      },
       parserOptions: {
         project: './tsconfig.json',
       },
@@ -41,16 +34,19 @@ export default [
     },
   },
   {
-    // Relax no-console for scripts, seed files, and tests — api-specific override.
-    files: [
-      'src/database/seed*.ts',
-      'src/commands/*.ts',
-      'src/scripts/*.ts',
-      'src/monitoring/*.ts',
-      'src/__tests__/**/*.ts',
-    ],
+    // Tests may use console freely and reference Node globals.
+    files: ['src/**/*.test.ts', 'src/__tests__/**/*.ts'],
+    languageOptions: {
+      globals: {
+        process: 'readonly',
+        Buffer: 'readonly',
+        __dirname: 'readonly',
+        __filename: 'readonly',
+      },
+    },
     rules: {
       'no-console': 'off',
+      '@typescript-eslint/no-explicit-any': 'warn',
     },
   },
 ]

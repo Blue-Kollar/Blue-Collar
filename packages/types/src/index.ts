@@ -67,7 +67,7 @@ export interface User {
 }
 
 /** Alias for backward compatibility */
-export interface AuthUser extends User {}
+export type AuthUser = User
 
 // ─── Category ─────────────────────────────────────────────────────────────────
 
@@ -120,7 +120,7 @@ export interface CreateWorkerDTO {
   locationId?: string;
 }
 
-export interface UpdateWorkerDTO extends Partial<CreateWorkerDTO> {}
+export type UpdateWorkerDTO = Partial<CreateWorkerDTO>
 
 // ─── Review ───────────────────────────────────────────────────────────────────
 
