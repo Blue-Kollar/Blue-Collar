@@ -8,10 +8,15 @@
   "exports": {
     ".": "./src/index.ts",
     "./factories": "./src/factories/index.ts",
-    "./react": "./src/react/index.ts"
+    "./react": "./src/react/index.ts",
+    "./express": "./src/express/index.ts",
+    "./contract-fixtures": "./src/contract-fixtures.ts",
+    "./stellar-mocks": "./src/stellar-mocks.ts"
   },
   "scripts": {
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage"
   },
   "peerDependencies": {
     "react": ">=18",
@@ -24,6 +29,8 @@
   "devDependencies": {
     "@faker-js/faker": "^9.0.0",
     "@testing-library/react": "^14.0.0",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
     "@bluecollar/types": "workspace:*",
     "typescript": "^5.4.0",
     "vitest": "^1.4.0"

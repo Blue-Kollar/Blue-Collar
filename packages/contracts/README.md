@@ -19,11 +19,27 @@ releases (distinct from the WASM upgrade mechanics below).
 
 ---
 
+## Minimum Supported Versions
+
+| Tool | Minimum version | Notes |
+|---|---|---|
+| Rust (stable) | **1.74.0** | Soroban SDK 26.x requires this edition and feature set |
+| soroban-sdk | **26.1.0** | All contracts pin to this version for ABI consistency |
+| Stellar CLI | **21.x** | Used for `stellar contract deploy / invoke / install` |
+| wasm32v1-none | (bundled with Rust) | Added via `rustup target add wasm32v1-none` |
+
+> All member crates in the workspace declare `soroban-sdk = "26.1.0"` (except the
+> `fuzz` crate which also accepts `"26.1.0"`). Do **not** mix SDK versions across
+> contracts — the Soroban host environment enforces ABI compatibility and mismatched
+> versions cause silent runtime panics.
+
+---
+
 ## Prerequisites
 
 ```bash
 # Rust + wasm target
-rustup target add wasm32-unknown-unknown
+rustup target add wasm32v1-none
 
 # Stellar CLI
 cargo install --locked stellar-cli
@@ -48,7 +64,7 @@ make build-registry
 make build-market
 ```
 
-WASM outputs land in `target/wasm32-unknown-unknown/release/`.
+WASM outputs land in `target/wasm32v1-none/release/`.
 
 ## Coverage
 
@@ -76,6 +92,29 @@ Run the standard test suite:
 cd packages/contracts
 cargo test --workspace
 ```
+
+### Cross-Contract Integration Tests
+
+Per-contract tests live in each crate's `src/test.rs` and cover that contract alone. Tests that
+chain two or more contracts together live in `contracts/integration/tests/`, run against the
+in-process Soroban testnet, and deploy fresh instances per test. Shared deployment helpers are in
+`tests/common/mod.rs`; add new ones there rather than duplicating setup per file.
+
+| File | Flow covered |
+| --- | --- |
+| `e2e.rs` | Registry worker registration and status toggling; market tips with fee split; market escrow create and release; register a worker then tip them |
+| `dispute_flow.rs` | Dispute filed on locked funds, evidence from both parties, arbitrator decides a split, settlement pays each side its share; market escrow arbitration driven by the dispute contract's ruling; escrow contract dispute resolved against the worker refunds the depositor |
+| `insurance_flow.rs` | Escrowed job lost at arbitration, the covered party files an insurance claim, the claims manager approves and pays it, pool balance and claim totals reconcile |
+| `reputation_flow.rs` | Completed escrow jobs feed reviews that raise a worker's score and earn a badge; a dispute resolved against the worker slashes the score and revokes the badge |
+
+Run one flow at a time with:
+
+```bash
+cargo test -p bluecollar-integration --test dispute_flow
+```
+
+When adding a cross-contract scenario, extend the matching file if the flow fits an existing area,
+or add a new `*_flow.rs` file plus a row in this table.
 
 ### Fuzz Testing
 
@@ -181,7 +220,7 @@ Upgrades preserve the contract ID and all storage.
 ```bash
 # 1. Install new WASM, get its hash
 stellar contract install \
-  --wasm target/wasm32-unknown-unknown/release/bluecollar_registry.wasm \
+  --wasm target/wasm32v1-none/release/bluecollar_registry.wasm \
   --source <admin-key> \
   --network testnet
 # → <new_wasm_hash>
@@ -237,3 +276,58 @@ analysis, and migration pattern.
 | [INTEGRATION_GUIDE.md](./INTEGRATION_GUIDE.md) | Integrating against the deployed contracts |
 | [SECURITY.md](./SECURITY.md) | Threat model, auth table, overflow analysis |
 | [CERTIFICATION_TRACKING.md](./CERTIFICATION_TRACKING.md) | Registry's certification sub-API in depth |
+| [ADR 0001: Monorepo Package Boundaries](../../docs/adr/0001-monorepo-package-boundaries.md) | Architectural decision on monorepo package boundaries |
+| [ADR 0002: Soroban Smart Contract Upgrade Strategy](../../docs/adr/0002-soroban-contract-upgrade-strategy.md) | Architectural decision on Soroban in-place WASM upgrades and governance |
+
+---
+
+## API Documentation (#1256)
+
+All public entrypoints across every contract are documented with `///` doc
+comments that describe the purpose, parameters, and panic/error conditions.
+
+Generate and open the docs locally:
+
+```bash
+cd packages/contracts
+cargo doc --workspace --no-deps --open
+```
+
+The docs include:
+
+- Every public `fn` on every `#[contractimpl]` block.
+- The shared [`bluecollar_types::helpers`] module, including the canonical
+  [`split_fee`](bluecollar_types::helpers::split_fee) fee-calculation helper.
+- All exported error codes in [`bluecollar_types::errors::ContractError`].
+
+---
+
+## Address Policy (#1255)
+
+No Stellar public key (`G…`) or other hardcoded network address appears in
+contract source files.  All admin, treasury, and configurable addresses are
+passed as parameters at `initialize`-time and stored in contract instance or
+persistent storage.
+
+The CI pipeline enforces this with the following check (exit 1 = match found
+= build fails):
+
+```bash
+! grep -rn --include="*.rs" 'G[A-Z2-7]\{55\}' contracts/*/src/
+```
+
+---
+
+## Shared Math Helpers (#1257)
+
+The fee-split calculation (`amount * fee_bps / 10_000`) was previously
+duplicated between the Market and Payment contracts.  It now lives in a single
+canonical location:
+
+```
+packages/contracts/contracts/types/src/helpers.rs — split_fee()
+```
+
+Both contracts import it via `bluecollar_types::helpers::split_fee`.  Any
+future contract that needs a protocol-fee deduction should use the same
+import.

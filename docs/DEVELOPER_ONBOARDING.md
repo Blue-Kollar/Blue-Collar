@@ -31,7 +31,7 @@ Install the following tools before you begin. Exact minimum versions are listed 
 | Docker + Compose | 24 / 2.24 | [docs.docker.com](https://docs.docker.com/get-docker/) |
 | Rust + Cargo | 1.79 | `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \| sh` |
 | Stellar CLI | 21 | `cargo install --locked stellar-cli` (takes 15–30 min) |
-| WASM target | — | `rustup target add wasm32-unknown-unknown` |
+| WASM target | — | `rustup target add wasm32v1-none` |
 
 Verify your setup:
 
@@ -190,16 +190,16 @@ You only need this section if you are working on the smart contracts.
 
 ```bash
 cd packages/contracts
-cargo build --release --target wasm32-unknown-unknown
+cargo build --release --target wasm32v1-none
 ```
 
 This produces WASM binaries for all workspace members:
 
 | Contract | WASM output |
 |---|---|
-| Registry | `target/wasm32-unknown-unknown/release/bluecollar_registry.wasm` |
-| Market | `target/wasm32-unknown-unknown/release/bluecollar_market.wasm` |
-| Dispute | `target/wasm32-unknown-unknown/release/bluecollar_dispute.wasm` |
+| Registry | `target/wasm32v1-none/release/bluecollar_registry.wasm` |
+| Market | `target/wasm32v1-none/release/bluecollar_market.wasm` |
+| Dispute | `target/wasm32v1-none/release/bluecollar_dispute.wasm` |
 | Fuzz (lib-only) | — |
 
 > `fee_distribution` and `insurance_pool` contracts exist but are not yet in the workspace. Build them individually from their directories.
@@ -224,7 +224,7 @@ cargo clippy --workspace -- -D warnings
 
 ```bash
 stellar contract deploy \
-  --wasm target/wasm32-unknown-unknown/release/bluecollar_registry.wasm \
+  --wasm target/wasm32v1-none/release/bluecollar_registry.wasm \
   --source <your-secret-key> \
   --network testnet
 ```
@@ -380,21 +380,21 @@ pnpm install
 ```
 error[E0463]: can't find crate for `core`
   |
-  = note: the `wasm32-unknown-unknown` target may not be installed
+  = note: the `wasm32v1-none` target may not be installed
 ```
 
 Install the WASM target:
 
 ```bash
-rustup target add wasm32-unknown-unknown
+rustup target add wasm32v1-none
 ```
 
-### `cargo build --target wasm32-unknown-unknown` fails on Windows
+### `cargo build --target wasm32v1-none` fails on Windows
 
-On Windows, the WASM target requires the `wasm32-unknown-unknown` toolchain. Ensure you installed it:
+On Windows, the WASM target requires the `wasm32v1-none` toolchain. Ensure you installed it:
 
 ```bash
-rustup target add wasm32-unknown-unknown
+rustup target add wasm32v1-none
 ```
 
 If you see linker errors (`LNK`), install [LLVM](https://releases.llvm.org/) or use [WSL](https://learn.microsoft.com/en-us/windows/wsl/) to build contracts.

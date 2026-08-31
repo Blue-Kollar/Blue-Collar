@@ -41,11 +41,25 @@ interface S3Bundle {
 
 let cachedS3: S3Bundle | null = null
 
+// Resolved through variables so TypeScript does not try to load the optional
+// packages at build time; the shapes we rely on are modelled above.
+const S3_CLIENT_MODULE = '@aws-sdk/client-s3'
+const S3_PRESIGNER_MODULE = '@aws-sdk/s3-request-presigner'
+
+interface S3ClientModule {
+  S3Client: new (config: unknown) => S3ClientLike
+  PutObjectCommand: S3CommandCtor
+  GetObjectCommand: S3CommandCtor
+  DeleteObjectCommand: S3CommandCtor
+}
+
 async function getS3(): Promise<S3Bundle | null> {
   if (cachedS3) return cachedS3
   try {
-    const s3Module = await import('@aws-sdk/client-s3')
-    const signModule = await import('@aws-sdk/s3-request-presigner')
+    const s3Module = (await import(S3_CLIENT_MODULE)) as unknown as S3ClientModule
+    const signModule = (await import(S3_PRESIGNER_MODULE)) as unknown as {
+      getSignedUrl: SignUrlFn
+    }
     cachedS3 = {
       s3Client: new s3Module.S3Client({
         region: process.env['S3_REGION'] ?? 'us-east-1',

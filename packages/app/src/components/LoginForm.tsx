@@ -10,6 +10,7 @@ import { loginSchema, type LoginInput, authApi } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
 import type { AuthUser } from "@/context/AuthContext";
 import FormField from "@/components/FormField";
+import FormError from "@/components/FormError";
 import { cn } from "@/lib/utils";
 
 export default function LoginForm() {
@@ -52,9 +53,7 @@ export default function LoginForm() {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4" noValidate>
       {apiError && (
-        <div className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600" role="alert">
-          {apiError}
-        </div>
+        <FormError message={apiError} />
       )}
 
       <FormField

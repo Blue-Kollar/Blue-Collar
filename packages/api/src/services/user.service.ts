@@ -1,3 +1,4 @@
+import type { Prisma } from '@prisma/client'
 import crypto from 'node:crypto'
 import jwt from 'jsonwebtoken'
 import argon2 from 'argon2'
@@ -7,7 +8,8 @@ import { sendVerificationEmail } from '../mailer/index.js'
 import { sanitizeUser } from '../models/user.model.js'
 import { AppError, ErrorCode } from '../utils/AppError.js'
 import { createServiceLogger } from '../utils/logger.js'
-import { userRepository } from '../repositories/user.repository.js'
+import { userRepository as defaultUserRepository } from '../repositories/user.repository.js'
+import type { UserServiceDeps } from '../container/types.js'
 
 const logger = createServiceLogger('UserService')
 
@@ -28,37 +30,91 @@ function generateVerificationToken(userId: string) {
 
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>
 
+// ── Service factory ──────────────────────────────────────────────────────────
+
+/**
+ * Create a user service with injected dependencies.
+ *
+ * This enables clean unit testing without module-level mocking:
+ *
+ * ```ts
+ * const mockRepo = { findById: vi.fn(), update: vi.fn(), delete: vi.fn(), ... }
+ * const mockMailer = { sendVerificationEmail: vi.fn() }
+ * const svc = createUserService({ userRepository: mockRepo, mailer: mockMailer })
+ * await svc.updateProfile('user-1', { firstName: 'Alice' })
+ * expect(mockRepo.findById).toHaveBeenCalledWith('user-1')
+ * ```
+ */
+export function createUserService(deps: UserServiceDeps) {
+  const { userRepository: repo, mailer } = deps
+
+  return {
+    async updateProfile(userId: string, input: UpdateProfileInput) {
+      logger.debug('Updating user profile', { userId })
+      const parsed = updateProfileSchema.parse(input)
+      const current = await repo.findById(userId)
+      if (!current) {
+        logger.warn('Profile update failed: user not found', { userId })
+        throw new AppError('User not found', 404, true, ErrorCode.NOT_FOUND)
+      }
+
+      const emailChanged = parsed.email !== undefined && parsed.email !== current.email
+      const verification = emailChanged ? generateVerificationToken(userId) : null
+
+      const updated = await repo.update(userId, {
+        ...parsed,
+        ...(emailChanged
+          ? {
+              verified: false,
+              verificationToken: verification!.hash,
+              verificationTokenExpiry: verification!.expiry,
+            }
+          : {}),
+      })
+
+      if (emailChanged) {
+        logger.info('Email changed, verification email sent', { userId, newEmail: updated.email })
+        await mailer.sendVerificationEmail(updated.email, updated.firstName, verification!.raw)
+      } else {
+        logger.info('User profile updated successfully', { userId })
+      }
+
+      return sanitizeUser(updated)
+    },
+
+    async changePassword(userId: string, currentPassword: string, newPassword: string): Promise<void> {
+      if (newPassword.length < 8) throw new AppError('Password must be at least 8 characters', 400, true, ErrorCode.VALIDATION_ERROR)
+
+      const user = await repo.findById(userId)
+      if (!user || !user.password) throw new AppError('No password set on this account', 400, true, ErrorCode.VALIDATION_ERROR)
+
+      const valid = await argon2.verify(user.password, currentPassword)
+      if (!valid) throw new AppError('Current password is incorrect', 400, true, ErrorCode.VALIDATION_ERROR)
+
+      const hashed = await argon2.hash(newPassword)
+      await repo.update(userId, { password: hashed })
+      logger.info('Password changed', { userId })
+    },
+
+    async deleteAccount(userId: string): Promise<void> {
+      await repo.delete(userId)
+      logger.info('Account deleted', { userId })
+    },
+  }
+}
+
+// ── Default service instance (backward-compatible module-level API) ───────────
+//
+// Controllers import these functions directly — these re-exports delegate to a
+// default instance wired with production dependencies.
+
+const _defaultService = createUserService({
+  userRepository: defaultUserRepository,
+  mailer: { sendVerificationEmail, sendPasswordResetEmail: async () => undefined },
+})
+
 export async function updateProfile(userId: string, input: UpdateProfileInput) {
-  logger.debug('Updating user profile', { userId })
-  const parsed = updateProfileSchema.parse(input)
-  const current = await userRepository.findById(userId)
-  if (!current) {
-    logger.warn('Profile update failed: user not found', { userId })
-    throw new AppError('User not found', 404, true, ErrorCode.NOT_FOUND)
-  }
-
-  const emailChanged = parsed.email !== undefined && parsed.email !== current.email
-  const verification = emailChanged ? generateVerificationToken(userId) : null
-
-  const updated = await userRepository.update(userId, {
-    ...parsed,
-    ...(emailChanged
-      ? {
-          verified: false,
-          verificationToken: verification!.hash,
-          verificationTokenExpiry: verification!.expiry,
-        }
-      : {}),
-  })
-
-  if (emailChanged) {
-    logger.info('Email changed, verification email sent', { userId, newEmail: updated.email })
-    await sendVerificationEmail(updated.email, updated.firstName, verification!.raw)
-  } else {
-    logger.info('User profile updated successfully', { userId })
-  }
-
-  return sanitizeUser(updated)
+  return _defaultService.updateProfile(userId, input)
 }
 
 export async function changePassword(
@@ -66,22 +122,11 @@ export async function changePassword(
   currentPassword: string,
   newPassword: string,
 ): Promise<void> {
-  if (newPassword.length < 8) throw new AppError('Password must be at least 8 characters', 400, true, ErrorCode.VALIDATION_ERROR)
-
-  const user = await userRepository.findById(userId)
-  if (!user || !user.password) throw new AppError('No password set on this account', 400, true, ErrorCode.VALIDATION_ERROR)
-
-  const valid = await argon2.verify(user.password, currentPassword)
-  if (!valid) throw new AppError('Current password is incorrect', 400, true, ErrorCode.VALIDATION_ERROR)
-
-  const hashed = await argon2.hash(newPassword)
-  await userRepository.update(userId, { password: hashed })
-  logger.info('Password changed', { userId })
+  return _defaultService.changePassword(userId, currentPassword, newPassword)
 }
 
 export async function deleteAccount(userId: string): Promise<void> {
-  await userRepository.delete(userId)
-  logger.info('Account deleted', { userId })
+  return _defaultService.deleteAccount(userId)
 }
 
 export interface PushSubscriptionInput {
@@ -91,18 +136,25 @@ export interface PushSubscriptionInput {
 
 export async function savePushSubscription(userId: string, input: PushSubscriptionInput) {
   const { endpoint, keys } = input
+  // NOTE: `userId_endpoint` is not a real compound unique constraint — the schema only
+  // has `endpoint` as unique (no `@@unique([userId, endpoint])`). This any-cleanup
+  // surfaced the mismatch (Prisma would reject this `where` at runtime) but does not
+  // fix it, since the correct fix is a schema/product decision outside this refactor.
   return db.pushSubscription.upsert({
-    where: { userId_endpoint: { userId, endpoint } },
+    where: { userId_endpoint: { userId, endpoint } } as unknown as Prisma.PushSubscriptionWhereUniqueInput,
     update: { auth: keys.auth, p256dh: keys.p256dh },
     create: { userId, endpoint, auth: keys.auth, p256dh: keys.p256dh },
   })
 }
 
 export async function deletePushSubscription(userId: string, endpoint: string): Promise<void> {
-  await db.pushSubscription.delete({ where: { userId_endpoint: { userId, endpoint } } })
+  // See NOTE in savePushSubscription above.
+  await db.pushSubscription.delete({
+    where: { userId_endpoint: { userId, endpoint } } as unknown as Prisma.PushSubscriptionWhereUniqueInput,
+  })
 }
 
 export async function completeOnboarding(userId: string) {
-  const user = await userRepository.update(userId, { onboardingCompleted: true })
+  const user = await defaultUserRepository.update(userId, { onboardingCompleted: true })
   return sanitizeUser(user)
 }

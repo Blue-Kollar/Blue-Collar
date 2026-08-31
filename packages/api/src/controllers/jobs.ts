@@ -1,5 +1,7 @@
 import type { Request, Response } from 'express'
 import { catchAsync } from '../utils/catchAsync.js'
+import { AppError, ErrorCode } from '../utils/AppError.js'
+import { ErrorMessages } from '../constants/errors.js'
 import * as jobService from '../services/job.service.js'
 import { validate } from '../middleware/validate.js'
 import {
@@ -9,6 +11,7 @@ import {
   updateApplicationStatusSchema,
   sendMessageSchema,
   listJobsQuerySchema,
+  type ListJobsQuery,
 } from '../validations/job.js'
 
 // ── Exported validators for use in router ─────────────────────────────────────
@@ -30,7 +33,7 @@ export function createJobsController(service: JobsService = jobService) {
   return {
     // ── Jobs CRUD ───────────────────────────────────────────────────────────────
     listJobs: catchAsync(async (req: Request, res: Response) => {
-      const { categoryId, status, search, skills, urgency, minBudget, maxBudget, page, limit } = req.query as any
+      const { categoryId, status, search, skills, urgency, minBudget, maxBudget, page, limit } = req.query as unknown as ListJobsQuery
       const result = await service.listJobs({
         categoryId, status, search, urgency, minBudget, maxBudget,
         skills: skills ? String(skills).split(',').map((s: string) => s.trim()).filter(Boolean) : undefined,
@@ -74,16 +77,17 @@ export function createJobsController(service: JobsService = jobService) {
 
     // ── My jobs / applications ──────────────────────────────────────────────────
     myPostedJobs: catchAsync(async (req: Request, res: Response) => {
-      const { page, limit } = req.query as any
+      const { page, limit } = req.query as Record<string, string | undefined>
       const result = await service.myPostedJobs(req.user!.id, Number(page ?? 1), Number(limit ?? 20))
       return res.json({ ...result, status: 'success', code: 200 })
     }),
 
     myApplications: catchAsync(async (req: Request, res: Response) => {
-      const { page, limit } = req.query as any
+      const { page, limit, workerId } = req.query as Record<string, string | undefined>
       // workerId comes from query — worker must pass their worker profile id
-      const { workerId } = req.query as any
-      if (!workerId) return res.status(400).json({ status: 'error', message: 'workerId is required', code: 400 })
+      if (!workerId) {
+        throw new AppError(ErrorMessages.WORKER_ID_REQUIRED, 400, true, ErrorCode.VALIDATION_ERROR)
+      }
       const result = await service.myApplications(String(workerId), Number(page ?? 1), Number(limit ?? 20))
       return res.json({ ...result, status: 'success', code: 200 })
     }),
@@ -112,7 +116,9 @@ export function createJobsController(service: JobsService = jobService) {
 
     withdrawApplication: catchAsync(async (req: Request, res: Response) => {
       const { workerId } = req.body
-      if (!workerId) return res.status(400).json({ status: 'error', message: 'workerId is required', code: 400 })
+      if (!workerId) {
+        throw new AppError(ErrorMessages.WORKER_ID_REQUIRED, 400, true, ErrorCode.VALIDATION_ERROR)
+      }
       const application = await service.withdrawApplication(req.params.id, String(workerId))
       return res.json({ data: application, status: 'success', code: 200 })
     }),

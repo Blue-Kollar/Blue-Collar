@@ -1,52 +1,28 @@
-// Re-export shared types from the canonical source package.
-// App-specific types that have no API counterpart are defined below.
+// Re-export shared types from @bluecollar/types
 export type {
-  ApiResponse,
-  Meta,
-  PaginatedResult,
-  AuthUser,
   Category,
   PortfolioImage,
   Worker,
-  CreateWorkerDTO,
-  UpdateWorkerDTO,
   Review,
-  CreateReviewDTO,
-  AppNotification,
-  NotificationType,
+  User,
+  AuthUser,
+  Meta,
+  RatingDistributionEntry,
+  ApiResponse,
+  PaginatedResponse,
+  LoginForm,
+  RegisterForm,
+  WorkerForm,
+  AuditLogEntry,
   Job,
   JobApplication,
-  JobStatus,
-  JobUrgency,
-  ApplicationStatus,
-  TipDTO,
-  Message,
   Conversation,
-  ConversationParticipant,
-  WorkerAnalytics,
-  RatingDistributionEntry,
-  AuditLogEntry,
-} from "@bluecollar/types";
-
-// ─── App-only types ───────────────────────────────────────────────────────────
-
-/** Paginated API envelope (alias kept for backwards-compat). */
-import type { ApiResponse, Meta } from "@bluecollar/types";
-export type PaginatedResponse<T> = ApiResponse<T[]> & { meta: Meta };
-
-// ─── Form types (app-side only) ───────────────────────────────────────────────
-
-export interface LoginForm {
-  email: string;
-  password: string;
-}
-
-export interface RegisterForm {
-  firstName: string;
-  lastName: string;
-  email: string;
-  password: string;
-}
+  Message,
+  AppNotification,
+  NotificationType,
+  TipDTO,
+  WorkerAnalytics
+} from '@bluecollar/types'
 
 // ─── Analytics types (app-only views) ────────────────────────────────────────
 
@@ -211,19 +187,16 @@ export interface InvoiceParty {
 
 export interface Invoice {
   id: string;
-  /** Human-facing reference, e.g. "INV-2026-0042". */
   number: string;
   status: InvoiceStatus;
   issuedAt: string;
   dueAt?: string | null;
-  /** Asset code, e.g. "XLM". */
   currency: string;
   worker: InvoiceParty;
   client: InvoiceParty;
   lineItems: InvoiceLineItem[];
-  /** Platform fee applied on top of the line-item subtotal. */
+  /** Platform fee in the invoice's currency. */
   platformFee: number;
   notes?: string | null;
-  /** Stellar transaction hash, present once the invoice is paid. */
   transactionHash?: string | null;
 }

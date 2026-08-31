@@ -47,7 +47,7 @@ vi.mock('@stellar/stellar-sdk', () => {
     Operation: { payment: vi.fn(() => ({})) },
     Asset: { native: vi.fn(() => ({})) },
     BASE_FEE: '100',
-    Horizon: { Server: vi.fn(() => ({ loadAccount: mockLoadAccount })) },
+    Server: vi.fn(() => ({ loadAccount: mockLoadAccount })),
   }
 })
 

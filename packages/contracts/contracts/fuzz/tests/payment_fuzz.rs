@@ -5,7 +5,7 @@
 
 use proptest::prelude::*;
 use soroban_sdk::{
-    testutils::{Address as _, Ledger, LedgerInfo},
+    testutils::{Address as _, Ledger},
     token::{Client as TokenClient, StellarAssetClient},
     Address, Env, Symbol,
 };
@@ -122,20 +122,14 @@ proptest! {
         client.initialize(&admin, &0, &admin);
 
         let id = Symbol::new(&env, &payment_id);
-        let expiry = 100; // in the past relative to default env
-
-        // Fast forward to after expiry
-        env.ledger().set(LedgerInfo {
-            timestamp: 200,
-            protocol_version: 21,
-            sequence_number: 1,
-            network_id: Default::default(),
-            base_fee_rate: 0,
-            min_temp_entry_expiration: 0,
-            min_persistent_entry_expiration: 0,
-        });
+        let expiry = env.ledger().timestamp() + 100;
 
         client.lock_payment(&client_addr, &worker, &token_addr, &id, &amount, &expiry);
+
+        // Fast forward to after expiry.
+        let mut ledger_info = env.ledger().get();
+        ledger_info.timestamp = expiry + 1;
+        env.ledger().set(ledger_info);
 
         let client_before = TokenClient::new(&env, &token_addr).balance(&client_addr);
         client.refund_payment(&client_addr, &id);

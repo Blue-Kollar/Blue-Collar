@@ -10,9 +10,14 @@ name = "bluecollar_integration"
 # No cdylib – this crate is test-only.
 
 [dependencies]
-soroban-sdk = { version = "21.0.0", features = ["testutils"] }
+soroban-sdk = { version = "26.1.0", features = ["testutils"] }
+bluecollar-types    = { path = "../types" }
 bluecollar-registry = { path = "../registry" }
 bluecollar-market   = { path = "../market" }
+bluecollar-dispute  = { path = "../dispute" }
+bluecollar-escrow   = { path = "../escrow" }
+bluecollar-reputation = { path = "../reputation" }
+bluecollar_insurance_pool = { path = "../insurance_pool" }
 
 [dev-dependencies]
-soroban-sdk = { version = "21.0.0", features = ["testutils"] }
+soroban-sdk = { version = "26.1.0", features = ["testutils"] }

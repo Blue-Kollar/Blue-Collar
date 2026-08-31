@@ -6,8 +6,8 @@ import { useLocale } from "next-intl";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import type { AuthUser } from "@/context/AuthContext";
+import { useOAuthCallback } from "@/hooks/queries";
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/api";
 const TOKEN_KEY = "bc_token";
 
 export default function AuthCallbackPage() {
@@ -16,6 +16,7 @@ export default function AuthCallbackPage() {
   const locale = useLocale();
   const { login } = useAuth();
   const [error, setError] = useState<string | null>(null);
+  const oauthCallback = useOAuthCallback();
 
   useEffect(() => {
     const oauthError = searchParams.get("error");
@@ -30,26 +31,21 @@ export default function AuthCallbackPage() {
       return;
     }
 
-    // Fetch user profile with the token
-    fetch(`${API}/auth/me`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch user profile");
-        return res.json();
-      })
-      .then((json) => {
+    oauthCallback.mutate(token, {
+      onSuccess: (json) => {
         const user = json.data as AuthUser;
         login(user, token);
         // Redirect to intended page or default
         const redirect = sessionStorage.getItem("oauth_redirect") ?? `/${locale}/workers`;
         sessionStorage.removeItem("oauth_redirect");
         router.replace(redirect);
-      })
-      .catch(() => {
+      },
+      onError: () => {
         setError("Sign-in failed. Please try again.");
         localStorage.removeItem(TOKEN_KEY);
-      });
+      },
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, login, router, locale]);
 
   if (error) {

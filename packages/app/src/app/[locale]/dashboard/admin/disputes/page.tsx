@@ -1,30 +1,14 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Scale, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
+import { useDisputes, useResolveDispute } from "@/hooks/queries";
 import { formatDate } from "@/lib/utils";
 import LoadingState from "@/components/LoadingState";
-
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/api";
-const TOKEN_KEY = "bc_token";
-
-interface Dispute {
-  id: string;
-  workerId: string;
-  filedById: string;
-  reason: string;
-  evidence?: string | null;
-  status: string;
-  resolution?: string | null;
-  resolvedById?: string | null;
-  createdAt: string;
-  worker: { id: string; name: string };
-  filedBy: { id: string; firstName: string; lastName: string };
-}
 
 const STATUS_COLORS: Record<string, string> = {
   open: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
@@ -33,62 +17,42 @@ const STATUS_COLORS: Record<string, string> = {
   dismissed: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400",
 };
 
-function authHeaders(): Record<string, string> {
-  const token = typeof window !== "undefined" ? localStorage.getItem(TOKEN_KEY) : null;
-  return token ? { Authorization: `Bearer ${token}` } : {};
-}
-
 export default function AdminDisputesPage() {
   const { user } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
-  const [disputes, setDisputes] = useState<Dispute[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [page, setPage] = useState(1);
-  const [meta, setMeta] = useState<{ page: number; pages: number } | null>(null);
 
-  const fetchDisputes = useCallback(async (p: number) => {
-    setLoading(true);
-    try {
-      const res = await fetch(`${API}/v1/disputes?page=${p}&limit=20`, {
-        headers: authHeaders(),
-      });
-      if (!res.ok) throw new Error();
-      const json = await res.json();
-      setDisputes(json.data);
-      setMeta(json.meta ?? null);
-    } catch {
-      toast("Failed to load disputes", "error");
-    } finally {
-      setLoading(false);
-    }
-  }, [toast]);
+  const disputesQuery = useDisputes({ page: String(page), limit: "20" });
+  const disputes = disputesQuery.data?.data ?? [];
+  const loading = disputesQuery.isLoading;
+  const meta = disputesQuery.data?.meta ?? null;
+
+  const resolveDispute = useResolveDispute();
+  const actionLoading = resolveDispute.isPending ? resolveDispute.variables?.id ?? null : null;
 
   useEffect(() => {
     if (user && user.role !== "admin") {
       router.push("/");
-      return;
     }
-    fetchDisputes(page);
-  }, [user, router, page, fetchDisputes]);
+  }, [user, router]);
 
-  const handleResolve = async (id: string, status: string) => {
-    setActionLoading(id);
-    try {
-      const res = await fetch(`${API}/v1/disputes/${id}/resolve`, {
-        method: "PATCH",
-        headers: { ...authHeaders(), "Content-Type": "application/json" },
-        body: JSON.stringify({ status, resolution: `Resolved by admin as ${status}` }),
-      });
-      if (!res.ok) throw new Error();
-      toast(`Dispute ${status === "resolved" ? "resolved" : status === "dismissed" ? "dismissed" : "moved to review"}`, "success");
-      fetchDisputes(page);
-    } catch {
-      toast("Failed to update dispute", "error");
-    } finally {
-      setActionLoading(null);
-    }
+  useEffect(() => {
+    if (disputesQuery.isError) toast("Failed to load disputes", "error");
+  }, [disputesQuery.isError, toast]);
+
+  const handleResolve = (id: string, status: string) => {
+    resolveDispute.mutate(
+      { id, status, resolution: `Resolved by admin as ${status}` },
+      {
+        onSuccess: () =>
+          toast(
+            `Dispute ${status === "resolved" ? "resolved" : status === "dismissed" ? "dismissed" : "moved to review"}`,
+            "success"
+          ),
+        onError: () => toast("Failed to update dispute", "error"),
+      }
+    );
   };
 
   if (!user || user.role !== "admin") return null;

@@ -12,7 +12,7 @@ module.exports = {
   preset: 'jest-expo',
   testMatch: ['**/*.e2e.{ts,tsx}'],
   testTimeout: 30_000,
-  setupFilesAfterFramework: ['<rootDir>/../jest.setup.ts'],
+  setupFilesAfterEnv: ['<rootDir>/../jest.setup.ts'],
   fakeTimers: { enableGlobally: false },
   transformIgnorePatterns: [
     'node_modules/(?!(\\.pnpm|(jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg)',

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import * as Dialog from "@radix-ui/react-dialog";
@@ -9,19 +9,13 @@ import { useAuth } from "@/context/AuthContext";
 import { ListingsTable } from "@/components/Curator/ListingsTable";
 import type { CuratorWorker } from "@/components/Curator/ListingsTable";
 import ErrorState from "@/components/ErrorState";
-
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/api";
+import { useMyWorkers, useToggleWorker, useDeleteWorker } from "@/hooks/queries";
 
 export default function CuratorConsolePage() {
-  const { user, token, isLoading: authLoading } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const router = useRouter();
 
-  const [workers, setWorkers] = useState<CuratorWorker[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [toggling, setToggling] = useState<Set<string>>(new Set());
   const [deleteTarget, setDeleteTarget] = useState<CuratorWorker | null>(null);
-  const [deleting, setDeleting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading && (!user || (user.role !== "curator" && user.role !== "admin"))) {
@@ -29,61 +23,24 @@ export default function CuratorConsolePage() {
     }
   }, [user, authLoading, router]);
 
-  const fetchWorkers = useCallback(async () => {
-    if (!token) return;
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch(`${API}/workers/mine`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error("Failed to load listings");
-      const j = await res.json();
-      setWorkers(j.data ?? []);
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
-    } finally {
-      setLoading(false);
-    }
-  }, [token]);
+  const workersQuery = useMyWorkers();
+  const workers = (workersQuery.data?.data ?? []) as CuratorWorker[];
+  const loading = workersQuery.isLoading;
+  const error = workersQuery.isError ? "Something went wrong" : null;
 
-  useEffect(() => {
-    if (!authLoading && token) fetchWorkers();
-  }, [authLoading, token, fetchWorkers]);
+  const toggleWorker = useToggleWorker();
+  const toggling = toggleWorker.isPending ? new Set([toggleWorker.variables as string]) : new Set<string>();
 
-  const handleToggle = async (worker: CuratorWorker) => {
-    setToggling((s) => new Set(s).add(worker.id));
-    setWorkers((prev) => prev.map((w) => w.id === worker.id ? { ...w, isActive: !w.isActive } : w));
-    try {
-      const res = await fetch(`${API}/workers/${worker.id}/toggle`, {
-        method: "PATCH",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error("Toggle failed");
-    } catch {
-      setWorkers((prev) => prev.map((w) => w.id === worker.id ? { ...w, isActive: worker.isActive } : w));
-    } finally {
-      setToggling((s) => { const n = new Set(s); n.delete(worker.id); return n; });
-    }
+  const deleteWorker = useDeleteWorker();
+
+  const handleToggle = (worker: CuratorWorker) => {
+    toggleWorker.mutate(worker.id);
   };
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (!deleteTarget) return;
-    const target = deleteTarget;
-    setDeleting(true);
-    setWorkers((prev) => prev.filter((w) => w.id !== target.id));
+    deleteWorker.mutate(deleteTarget.id);
     setDeleteTarget(null);
-    try {
-      const res = await fetch(`${API}/workers/${target.id}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error("Delete failed");
-    } catch {
-      setWorkers((prev) => [target, ...prev]);
-    } finally {
-      setDeleting(false);
-    }
   };
 
   if (authLoading) {
@@ -154,10 +111,10 @@ export default function CuratorConsolePage() {
               </Dialog.Close>
               <button
                 onClick={handleDelete}
-                disabled={deleting}
+                disabled={deleteWorker.isPending}
                 className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-red-600 py-2.5 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-60 transition-colors"
               >
-                {deleting && <Loader2 size={14} className="animate-spin" />}
+                {deleteWorker.isPending && <Loader2 size={14} className="animate-spin" />}
                 Delete
               </button>
             </div>

@@ -2,6 +2,9 @@
 //!
 //! Ensures contract version metadata is properly exposed and maintained
 //! across upgrades and deployments.
+// `Env::register_contract` is deprecated in favour of `Env::register`; the test
+// helpers here are migrated alongside the contracts, not ahead of them.
+#![allow(deprecated)]
 
 use soroban_sdk::{testutils::Address as _, Address, Env};
 
@@ -22,21 +25,30 @@ fn test_contract_version_functions_exposed() {
     let registry_client = RegistryContractClient::new(&env, &registry_id);
     registry_client.initialize(&admin);
     let registry_version = registry_client.version();
-    assert_eq!(registry_version, 1u32, "Registry event schema version should be 1");
+    assert_eq!(
+        registry_version, 1u32,
+        "Registry event schema version should be 1"
+    );
 
     // Test Market version()
     let market_id = env.register_contract(None, bluecollar_market::MarketContract);
     let market_client = MarketContractClient::new(&env, &market_id);
     market_client.initialize(&admin, &0, &admin);
     let market_version = market_client.version();
-    assert_eq!(market_version, 1u32, "Market event schema version should be 1");
+    assert_eq!(
+        market_version, 1u32,
+        "Market event schema version should be 1"
+    );
 
     // Test Dispute version()
     let dispute_id = env.register_contract(None, bluecollar_dispute::DisputeContract);
     let dispute_client = DisputeContractClient::new(&env, &dispute_id);
     dispute_client.initialize(&admin);
     let dispute_version = dispute_client.version();
-    assert_eq!(dispute_version, 1u32, "Dispute event schema version should be 1");
+    assert_eq!(
+        dispute_version, 1u32,
+        "Dispute event schema version should be 1"
+    );
 }
 
 /// Test that version numbers are consistent baseline (v1)

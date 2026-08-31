@@ -222,7 +222,7 @@ Stellar Soroban smart contracts written in Rust.
 #### Step 1 — Install Rust toolchain
 
 ```bash
-rustup target add wasm32-unknown-unknown
+rustup target add wasm32v1-none
 cargo install --locked stellar-cli --features opt
 ```
 
@@ -238,12 +238,12 @@ stellar --version
 ```bash
 cd packages/contracts
 make build
-# or: cargo build --release --target wasm32-unknown-unknown
+# or: cargo build --release --target wasm32v1-none
 ```
 
 Output WASMs:
-- `target/wasm32-unknown-unknown/release/bluecollar_registry.wasm`
-- `target/wasm32-unknown-unknown/release/bluecollar_market.wasm`
+- `target/wasm32v1-none/release/bluecollar_registry.wasm`
+- `target/wasm32v1-none/release/bluecollar_market.wasm`
 
 #### Step 3 — Run contract tests
 
@@ -417,10 +417,10 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 source "$HOME/.cargo/env"
 ```
 
-### `wasm32-unknown-unknown` target missing
+### `wasm32v1-none` target missing
 
 ```bash
-rustup target add wasm32-unknown-unknown
+rustup target add wasm32v1-none
 ```
 
 ### `stellar: command not found`

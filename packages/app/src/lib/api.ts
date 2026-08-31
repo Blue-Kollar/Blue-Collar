@@ -229,3 +229,90 @@ export const getAuditLogs = (params?: Record<string, string>) => {
   const qs = params ? `?${new URLSearchParams(params).toString()}` : "";
   return request<{ data: AuditLogEntry[]; meta: Meta; status: string; code: number }>(`/v1/audit${qs}`);
 };
+
+export interface AdminUser {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: "user" | "curator" | "admin";
+  deletedAt?: string | null;
+  verified?: boolean;
+  createdAt: string;
+}
+
+export const getAdminUsers = (params?: Record<string, string>) => {
+  const qs = params ? `?${new URLSearchParams(params).toString()}` : "";
+  return request<{ data: AdminUser[]; meta: Meta; status: string; code: number }>(`/v1/admin/users${qs}`);
+};
+
+// ── Disputes ────────────────────────────────────────────────────────────────
+
+export interface Dispute {
+  id: string;
+  workerId: string;
+  filedById: string;
+  reason: string;
+  evidence?: string | null;
+  status: string;
+  resolution?: string | null;
+  resolvedById?: string | null;
+  createdAt: string;
+  worker: { id: string; name: string };
+  filedBy: { id: string; firstName: string; lastName: string };
+}
+
+export const getDisputes = (params?: Record<string, string>) => {
+  const qs = params ? `?${new URLSearchParams(params).toString()}` : "";
+  return request<{ data: Dispute[]; meta: Meta; status: string; code: number }>(`/v1/disputes${qs}`);
+};
+
+export const resolveDispute = (id: string, status: string, resolution?: string) =>
+  request<ApiResponse<Dispute>>(`/v1/disputes/${id}/resolve`, {
+    method: "PATCH",
+    body: { status, resolution },
+  });
+
+// ── Review moderation ─────────────────────────────────────────────────────────
+
+export interface ModerationReview {
+  id: string;
+  rating: number;
+  comment?: string | null;
+  body?: string | null;
+  flagged: boolean;
+  flagReason?: string | null;
+  status: string;
+  createdAt: string;
+  worker: { id: string; name: string };
+  author: { id: string; firstName: string; lastName: string };
+}
+
+export const getModerationQueue = () =>
+  request<{ data: ModerationReview[]; status: string; code: number }>("/v1/reviews/moderation/queue");
+
+export const moderateReview = (reviewId: string, action: "approve" | "reject") =>
+  request<ApiResponse<ModerationReview>>(`/v1/reviews/${reviewId}/moderate`, {
+    method: "PATCH",
+    body: { action },
+  });
+
+// ── Account (profile settings page) ───────────────────────────────────────────
+
+export const updateAccount = (data: { firstName: string; lastName: string; email: string }) =>
+  request<ApiResponse<unknown>>("/users/me", { method: "PUT", body: data });
+
+// ── Email notification preferences (settings page) ───────────────────────────
+
+export interface EmailNotificationPrefs {
+  newWorkerInArea: boolean;
+  workerStatusChange: boolean;
+  reviewReplies: boolean;
+  platformAnnouncements: boolean;
+}
+
+export const getEmailNotificationPrefs = () =>
+  request<{ data?: EmailNotificationPrefs; status?: string } | EmailNotificationPrefs>("/users/me/notifications");
+
+export const updateEmailNotificationPrefs = (prefs: EmailNotificationPrefs) =>
+  request<{ status: string }>("/users/me/notifications", { method: "PUT", body: prefs });

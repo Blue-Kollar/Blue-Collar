@@ -4,14 +4,35 @@ import Link from "next/link";
 import Image from "next/image";
 import { MessageSquare } from "lucide-react";
 import { cn, formatDate } from "@/lib/utils";
+import Skeleton from "@/components/Skeleton";
 import type { Conversation } from "@/types";
 
 interface Props {
   conversations: Conversation[];
   currentUserId: string;
+  /** When true renders skeleton rows instead of empty state or list (#1203). */
+  loading?: boolean;
 }
 
-export function MessagesPreview({ conversations, currentUserId }: Props) {
+export function MessagesPreview({ conversations, currentUserId, loading }: Props) {
+  // ── Loading state (#1203) ──────────────────────────────────────────────────
+  if (loading) {
+    return (
+      <div className="flex flex-col gap-3 py-4" aria-busy="true" aria-label="Loading messages">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="flex items-center gap-3 px-1">
+            <Skeleton className="h-10 w-10 rounded-full shrink-0" />
+            <div className="flex flex-col gap-1.5 flex-1">
+              <Skeleton className="h-3.5 w-28" />
+              <Skeleton className="h-3 w-40" />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  // ── Empty state (#1203) ────────────────────────────────────────────────────
   if (conversations.length === 0) {
     return (
       <div className="py-10 text-center">

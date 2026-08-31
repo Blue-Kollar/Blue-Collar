@@ -49,8 +49,12 @@ export async function sendModerationEmail(
     subject: `Your review has been ${action}`,
     html: `<p>Hi <strong>${firstName}</strong>, your review has been <strong>${action}</strong> by our moderation team.</p>`,
   })
-  if ((transporter as any).options?.jsonTransport) {
-    logger.debug({ message: JSON.parse((info as any).message) }, '[mailer] Moderation email (dev stub)')
+  // `options`/`message` are transport-implementation details (JSON dev-stub transport)
+  // not part of nodemailer's public Transporter/SentMessageInfo types.
+  const transporterOptions = (transporter as unknown as { options?: { jsonTransport?: boolean } }).options
+  if (transporterOptions?.jsonTransport) {
+    const devInfo = info as unknown as { message: string }
+    logger.debug({ message: JSON.parse(devInfo.message) }, '[mailer] Moderation email (dev stub)')
   }
 }
 

@@ -53,6 +53,8 @@ test database via `pnpm test:e2e`.
 | `e2e/escrow.e2e.test.ts` | Timing: escrow expiry relies on wall-clock `setTimeout` |
 | `e2e/two-factor.e2e.test.ts` | TOTP window — passes if run within 30 s, fails otherwise |
 | `e2e/reviews.e2e.test.ts` | Depends on worker created in same run's prior describe |
+| `e2e/job-lifecycle.e2e.test.ts` | Chains job → application → escrow → review across sequential `it` blocks sharing outer `let` state — order-dependent by design (issue: full-journey coverage) |
+| `e2e/payment.e2e.test.ts` | Chains escrow capture → release/refund across sequential `it` blocks sharing outer `let` state; also mutates the shared `paymentService` fee singleton — order-dependent by design (issue: full-journey coverage) |
 
 These files are **not deleted** — they represent valid acceptance tests. They are quarantined
 from the unit/integration test run to prevent CI failures unrelated to code changes.

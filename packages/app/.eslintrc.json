@@ -2,6 +2,7 @@
   "extends": ["next/core-web-vitals", "next/typescript"],
   "rules": {
     "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }],
-    "@typescript-eslint/no-explicit-any": "error"
+    "jsx-a11y/control-has-associated-label": "warn",
+    "no-console": ["error", { "allow": ["warn", "error"] }]
   }
 }

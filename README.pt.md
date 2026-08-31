@@ -254,11 +254,11 @@ Os endpoints de admin espelham os endpoints de Curador, mas são escopo da funç
 
 ### Pré-requisitos
 
-- [Rust](https://rustup.rs/) com target `wasm32-unknown-unknown`
+- [Rust](https://rustup.rs/) com target `wasm32v1-none`
 - [Stellar CLI](https://developers.stellar.org/docs/tools/developer-tools/cli/stellar-cli)
 
 ```bash
-rustup target add wasm32-unknown-unknown
+rustup target add wasm32v1-none
 cargo install --locked stellar-cli
 ```
 
@@ -266,14 +266,14 @@ cargo install --locked stellar-cli
 
 ```bash
 cd packages/contracts
-cargo build --release --target wasm32-unknown-unknown
+cargo build --release --target wasm32v1-none
 ```
 
 ### Implantar em Testnet
 
 ```bash
 stellar contract deploy \
-  --wasm target/wasm32-unknown-unknown/release/bluecollar_registry.wasm \
+  --wasm target/wasm32v1-none/release/bluecollar_registry.wasm \
   --source <sua-chave-secreta> \
   --network testnet
 ```
@@ -286,7 +286,7 @@ Para atualizar um contrato implantado sem reimplantar (preservando seu ID de con
 
 ```bash
 stellar contract install \
-  --wasm target/wasm32-unknown-unknown/release/bluecollar_registry.wasm \
+  --wasm target/wasm32v1-none/release/bluecollar_registry.wasm \
   --source <sua-chave-secreta> \
   --network testnet
 # outputs: <novo_hash_wasm>

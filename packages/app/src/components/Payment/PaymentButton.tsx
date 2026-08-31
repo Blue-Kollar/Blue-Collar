@@ -2,18 +2,23 @@
 
 import { Wallet } from "lucide-react";
 import TipModal from "@/components/TipModal";
+import { usePaymentFlow } from "@/context/PaymentFlowContext";
 
 interface PaymentButtonProps {
-  workerName: string;
-  walletAddress: string | null | undefined;
+  workerName?: string;
+  walletAddress?: string | null | undefined;
   label?: string;
 }
 
 export default function PaymentButton({
-  workerName,
-  walletAddress,
+  workerName: workerNameProp,
+  walletAddress: walletAddressProp,
   label = "Pay / Tip",
 }: PaymentButtonProps) {
+  const paymentFlow = usePaymentFlow();
+  const workerName = workerNameProp ?? paymentFlow?.workerName;
+  const walletAddress = walletAddressProp ?? paymentFlow?.walletAddress;
+
   if (!walletAddress) {
     return (
       <div title="Worker has no wallet" className="inline-block">

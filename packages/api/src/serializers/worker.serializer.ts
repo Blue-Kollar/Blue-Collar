@@ -16,8 +16,10 @@ export type SerializedWorker = Omit<Worker, 'searchVector' | 'phone' | 'email'> 
 
 export class WorkerSerializer extends BaseSerializer<WorkerWithRelations, SerializedWorker> {
   serialize(worker: WorkerWithRelations): SerializedWorker {
-    // PII SAFETY: phone and email are excluded from public API responses
-    const { searchVector, phone, email, category, curator, ...rest } = worker as any
+    // PII SAFETY: phone and email are excluded from public API responses.
+    // searchVector is a Prisma `Unsupported("tsvector")` column — not part of the
+    // generated Worker type, but stripped defensively in case a raw query ever attaches it.
+    const { searchVector: _searchVector, phone, email, category, curator, ...rest } = worker as WorkerWithRelations & { searchVector?: unknown }
     return {
       ...rest,
       images: {

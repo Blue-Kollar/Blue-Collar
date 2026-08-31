@@ -8,13 +8,14 @@ import {
   validateAppStatus, validateSendMessage, validateListQuery,
 } from '../controllers/jobs.js'
 import { authenticate } from '../middleware/auth.js'
+import { publicReadRateLimiter } from '../config/rateLimiter.js'
 
 const router = Router()
 
 // ── Public ────────────────────────────────────────────────────────────────────
-router.get('/', validateListQuery, listJobs)
-router.get('/recommendations/:workerId', recommendedJobs)
-router.get('/:id', showJob)
+router.get('/', publicReadRateLimiter, validateListQuery, listJobs)
+router.get('/recommendations/:workerId', publicReadRateLimiter, recommendedJobs)
+router.get('/:id', publicReadRateLimiter, showJob)
 
 // ── Authenticated ─────────────────────────────────────────────────────────────
 router.post('/', authenticate, validateCreateJob, createJob)

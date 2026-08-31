@@ -7,6 +7,7 @@ REST API for the BlueCollar platform — connecting skilled workers with users v
 - [Authentication](./AUTHENTICATION.md) — login, refresh tokens, 2FA, OAuth, device sessions
 - [cURL Examples](./CURL_EXAMPLES.md)
 - [Security Policy](./SECURITY.md)
+- [ADR 0001: Monorepo Package Boundaries](../../docs/adr/0001-monorepo-package-boundaries.md)
 
 ---
 

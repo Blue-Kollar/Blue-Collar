@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef } from "react";
 import { Clock, CheckCircle2, AlertCircle, XCircle, Loader2 } from "lucide-react";
+import { EXPLORER_TX_BASE } from "@/config/stellar";
 
 export interface Escrow {
   id: string;
@@ -149,7 +150,7 @@ export default function EscrowStatus({ escrow, onRelease, onDispute, isLoading }
       {/* Explorer link */}
       {escrow.txHash && (
         <a
-          href={`https://stellar.expert/explorer/testnet/tx/${escrow.txHash}`}
+          href={`${EXPLORER_TX_BASE}/${escrow.txHash}`}
           target="_blank"
           rel="noopener noreferrer"
           className={`text-xs text-blue-600 hover:underline rounded ${FOCUS_RING}`}

@@ -4,12 +4,12 @@ This guide covers upgrading the deployed BlueCollar Soroban contracts (Registry 
 
 ## Prerequisites
 
-- [Rust](https://rustup.rs/) with `wasm32-unknown-unknown` target
+- [Rust](https://rustup.rs/) with `wasm32v1-none` target
 - [Stellar CLI](https://developers.stellar.org/docs/tools/developer-tools/cli/stellar-cli) installed
 - A funded account with the `ROLE_UPGRADER` role on the contract you are upgrading
 
 ```bash
-rustup target add wasm32-unknown-unknown
+rustup target add wasm32v1-none
 cargo install --locked stellar-cli
 ```
 
@@ -30,8 +30,8 @@ make build-market
 ```
 
 Output files:
-- `target/wasm32-unknown-unknown/release/bluecollar_registry.wasm`
-- `target/wasm32-unknown-unknown/release/bluecollar_market.wasm`
+- `target/wasm32v1-none/release/bluecollar_registry.wasm`
+- `target/wasm32v1-none/release/bluecollar_market.wasm`
 
 ### Step 2 — Install the WASM on-chain
 
@@ -40,14 +40,14 @@ Output files:
 ```bash
 # Registry
 stellar contract install \
-  --wasm target/wasm32-unknown-unknown/release/bluecollar_registry.wasm \
+  --wasm target/wasm32v1-none/release/bluecollar_registry.wasm \
   --source <YOUR_SECRET_KEY> \
   --network testnet
 # → outputs: <NEW_WASM_HASH>
 
 # Market
 stellar contract install \
-  --wasm target/wasm32-unknown-unknown/release/bluecollar_market.wasm \
+  --wasm target/wasm32v1-none/release/bluecollar_market.wasm \
   --source <YOUR_SECRET_KEY> \
   --network testnet
 # → outputs: <NEW_WASM_HASH>

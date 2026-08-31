@@ -25,3 +25,7 @@ export const resetPassword = (token: string, password: string) =>
 
 export const getMe = () =>
   request<ApiResponse<unknown>>("/auth/me");
+
+/** Used right after an OAuth redirect, before the token is persisted to localStorage. */
+export const getMeWithToken = (token: string) =>
+  request<ApiResponse<unknown>>("/auth/me", { headers: { Authorization: `Bearer ${token}` } });

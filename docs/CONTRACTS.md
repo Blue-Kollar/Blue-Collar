@@ -467,7 +467,7 @@ executes the transfer per the recorded decision).
 | `Admin` | `Address` | Instance | Admin address |
 | `Paused` | `bool` | Instance | Pause flag |
 | `RoleMembers(Symbol)` | `Vec<Address>` | Persistent | Role member lists |
-| `PoolMembers` | `Vec<PoolMember>` | Persistent | Pool member list |
+| `PoolMembers` | `Map<Address, PoolMember>` | Persistent | Pool members, keyed by member address |
 | `PoolStats(Address)` | `PoolStats` | Persistent | Pool statistics per token |
 | `Claims` | `Vec<Symbol>` | Persistent | List of claim IDs |
 | `Claim(Symbol)` | `Claim` | Persistent | Individual claim record |
@@ -518,7 +518,8 @@ executes the transfer per the recorded decision).
 | `reject_claim(caller, claim_id)` | `ROLE_CLAIMS_MGR` | `caller: Address, claim_id: Symbol` | — | Reject a pending claim. |
 | `pay_claim(caller, claim_id, token)` | `ROLE_CLAIMS_MGR` | `caller: Address, claim_id: Symbol, token: Address` | — | Pay out an approved claim. |
 | `get_pool_stats(token)` | — | `token: Address` | `PoolStats` | Get pool statistics. |
-| `get_pool_members()` | — | — | `Vec<PoolMember>` | List pool members. |
+| `get_pool_members()` | — | — | `Vec<PoolMember>` | List every pool member. |
+| `get_pool_member(address)` | — | `address: Address` | `Option<PoolMember>` | Look up a single pool member. |
 | `get_claim(claim_id)` | — | `claim_id: Symbol` | `Claim` | Get claim details. |
 | `rebalance_pool(caller, token, new_premium_bps)` | `ROLE_ADMIN` | `caller: Address, token: Address, new_premium_bps: u32` | — | Adjust premium rate. |
 | `upgrade(caller, new_wasm_hash)` | `ROLE_UPGRADER` | `caller: Address, new_wasm_hash: BytesN<32>` | — | Upgrade contract WASM. |

@@ -8,11 +8,15 @@ publish = false
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-soroban-sdk = { version = "22.0.0", features = ["alloc"] }
+soroban-sdk = { version = "26.1.0", features = ["alloc"] }
 bluecollar-types = { path = "../types" }
 
 [dev-dependencies]
-soroban-sdk = { version = "22.0.0", features = ["alloc", "testutils"] }
+soroban-sdk = { version = "26.1.0", features = ["testutils"] }
+bluecollar-types = { path = "../types", features = ["testutils"] }
 
 [features]
 testutils = ["soroban-sdk/testutils"]
+
+[lints]
+workspace = true

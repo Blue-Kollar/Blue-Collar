@@ -1,3 +1,12 @@
+// Re-export shared types from @bluecollar/types
+export type {
+  Category,
+  Worker,
+  User,
+  ApiResponse
+} from '@bluecollar/types'
+
+// Mobile-specific cache types
 export interface CacheEntry<T> {
   data: T;
   timestamp: number;

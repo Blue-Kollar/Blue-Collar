@@ -19,5 +19,5 @@
     "types": ["jest", "react-native", "react"]
   },
   "include": ["**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules", "dist", "build"]
+  "exclude": ["node_modules", "dist", "build", "e2e"]
 }

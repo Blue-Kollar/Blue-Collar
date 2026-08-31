@@ -5,12 +5,12 @@
 
 use proptest::prelude::*;
 use soroban_sdk::{
-    testutils::{Address as _, Ledger, LedgerInfo},
+    testutils::{Address as _, Ledger},
     token::{Client as TokenClient, StellarAssetClient},
     Address, Env, Symbol,
 };
 
-use bluecollar_escrow::{EscrowContract, EscrowContractClient};
+use bluecollar_escrow::{EscrowContract, EscrowContractClient, EscrowState};
 
 /// Generate a random positive escrow amount (1 to 50_000_000).
 fn arb_amount() -> impl Strategy<Value = i128> {
@@ -57,8 +57,7 @@ proptest! {
 
         let escrow = client.get_escrow(&id);
         assert_eq!(escrow.amount, amount);
-        assert!(!escrow.released);
-        assert!(!escrow.cancelled);
+        assert_eq!(escrow.state, EscrowState::Active);
 
         let depositor_balance = TokenClient::new(&env, &token_addr).balance(&depositor);
         assert_eq!(depositor_balance, 100_000_000 - amount);
@@ -97,7 +96,7 @@ proptest! {
         assert_eq!(beneficiary_after - beneficiary_before, amount);
 
         let escrow = client.get_escrow(&id);
-        assert!(escrow.released);
+        assert_eq!(escrow.state, EscrowState::Released);
     }
 
     /// Fuzz test: cancel escrow should refund depositor.
@@ -133,7 +132,7 @@ proptest! {
         assert_eq!(depositor_balance_after - depositor_balance_before, amount);
 
         let escrow = client.get_escrow(&id);
-        assert!(escrow.cancelled);
+        assert_eq!(escrow.state, EscrowState::Cancelled);
     }
 
     /// Fuzz test: expired escrow can be cancelled by depositor.
@@ -163,20 +162,14 @@ proptest! {
         client.create_escrow(&depositor, &beneficiary, &token_addr, &id, &amount, &expiry);
 
         // Fast forward past expiry
-        env.ledger().set(LedgerInfo {
-            timestamp: 200,
-            protocol_version: 21,
-            sequence_number: 1,
-            network_id: Default::default(),
-            base_fee_rate: 0,
-            min_temp_entry_expiration: 0,
-            min_persistent_entry_expiration: 0,
-        });
+        let mut ledger_info = env.ledger().get();
+        ledger_info.timestamp = 200;
+        env.ledger().set(ledger_info);
 
         client.cancel_escrow(&depositor, &id);
 
         let escrow = client.get_escrow(&id);
-        assert!(escrow.cancelled);
+        assert_eq!(escrow.state, EscrowState::Cancelled);
     }
 
     /// Fuzz test: zero amount should be rejected.

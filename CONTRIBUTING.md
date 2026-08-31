@@ -27,9 +27,14 @@ Thanks for your interest in contributing! This guide covers everything you need 
    pnpm install
    ```
 
-2. Create a feature branch (see [Branch Naming](#branch-naming)).
+2. Install git hooks (runs automatically on `pnpm install`, but run manually if needed):
+   ```bash
+   pnpm prepare
+   ```
 
-3. Make your changes, commit using the [convention below](#commit-message-convention), and open a PR.
+3. Create a feature branch (see [Branch Naming](#branch-naming)).
+
+4. Make your changes, commit using the [convention below](#commit-message-convention), and open a PR.
 
 ---
 
@@ -63,7 +68,22 @@ This project uses **Conventional Commits** to power automated changelog generati
 
 ### Scopes (optional but encouraged)
 
-`api`, `app`, `contracts`, `deps`, `ci`, `docs`
+`api`, `app`, `contracts`, `deps`, `ci`, `docs`, `sdk`, `types`, `monitoring`, `mobile`
+
+### Enforcing with commitlint and husky
+
+This project uses [commitlint](https://commitlint.js.org/) to enforce the conventional commit format on every commit. The git hook is managed by [husky](https://typicode.github.io/husky/).
+
+- **Local hook**: A `commit-msg` hook is installed via `pnpm prepare` (runs automatically after `pnpm install`). It validates every commit message against the rules in `commitlint.config.js` before allowing the commit.
+- **Manual check**: Run `pnpm commitlint` to validate the last commit message, or `npx commitlint --edit <file>` to validate a specific message file.
+- **CI**: The `Commit Lint` workflow re-checks every commit in a pull request, so messages that bypass the local hook (`--no-verify`, commits made in the GitHub web UI, or a clone where `pnpm install` was never run) still fail the PR. It is a required check, not advisory.
+- **PR title**: Pull requests are squash merged, so the PR title becomes the commit subject on `main`. It is linted by the same rules and must follow the convention too.
+
+If a commit is rejected with a commitlint error, fix the message and re-commit:
+
+```bash
+git commit --amend -m "feat(sdk): description that follows the convention"
+```
 
 ### Examples
 

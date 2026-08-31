@@ -20,9 +20,14 @@
 //! No external calls occur before storage is updated.
 
 #![no_std]
+// Lint policy: clippy::pedantic enabled at workspace level (issue #1254).
+// Blanket Soroban exceptions (needless_pass_by_value, must_use_candidate, etc.)
+// are configured in the workspace Cargo.toml; per-function overrides go here.
 
-use soroban_sdk::{contract, contractimpl, contracttype, symbol_short, token, Address, BytesN, Env, Symbol, Vec};
-use bluecollar_types::ContractError;
+use bluecollar_types::{helpers, split_fee, storage::extend_ttl, ContractError};
+use soroban_sdk::{
+    contract, contractimpl, contracttype, symbol_short, token, Address, BytesN, Env, Symbol, Vec,
+};
 
 /// Maximum protocol fee: 500 bps = 5 %.
 pub const MAX_FEE_BPS: u32 = 500;
@@ -68,7 +73,7 @@ fn role_to_id(env: &Env, role: &Symbol) -> u64 {
 
 /// Protocol configuration stored in instance storage.
 #[contracttype]
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Config {
     /// Protocol fee in basis points (0–500).
     pub fee_bps: u32,
@@ -90,7 +95,7 @@ pub enum PaymentStatus {
 
 /// A locked payment record stored in persistent storage.
 #[contracttype]
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct LockedPayment {
     /// Unique identifier (caller-supplied).
     pub id: Symbol,
@@ -139,23 +144,30 @@ impl PaymentContract {
     // -------------------------------------------------------------------------
 
     /// Initialise the contract.
-    ///
-    /// # Panics
-    /// - `"Already initialized"` if called more than once.
-    /// - `"fee_bps exceeds maximum (500)"` if `fee_bps > MAX_FEE_BPS`.
-    pub fn initialize(env: Env, admin: Address, fee_bps: u32, fee_recipient: Address) {
+    pub fn initialize(
+        env: Env,
+        admin: Address,
+        fee_bps: u32,
+        fee_recipient: Address,
+    ) -> Result<(), ContractError> {
         // --- Checks ---
-        assert!(
-            !env.storage().instance().has(&DataKey::Config),
-            ContractError::ALREADY_INITIALIZED
-        );
-        assert!(fee_bps <= MAX_FEE_BPS, ContractError::FEE_BPS_EXCEEDS_MAXIMUM);
+        if env.storage().instance().has(&DataKey::Config) {
+            return Err(ContractError::AlreadyInitialized);
+        }
+        if fee_bps > MAX_FEE_BPS {
+            return Err(ContractError::FeeBpsExceedsMaximum);
+        }
 
         // --- Effects ---
-        let config = Config { fee_bps, fee_recipient };
+        let config = Config {
+            fee_bps,
+            fee_recipient,
+        };
         env.storage().instance().set(&DataKey::Config, &config);
         env.storage().persistent().set(&DataKey::Admin, &admin);
-        env.storage().persistent().set(&DataKey::SchemaVersion, &1u32);
+        env.storage()
+            .persistent()
+            .set(&DataKey::SchemaVersion, &1u32);
 
         let role = Symbol::new(&env, ROLE_ADMIN);
         let mut members: Vec<Address> = Vec::new(&env);
@@ -167,6 +179,8 @@ impl PaymentContract {
         // --- Interactions ---
         env.events()
             .publish((symbol_short!("Init"), admin), VERSION);
+
+        Ok(())
     }
 
     // -------------------------------------------------------------------------
@@ -180,49 +194,29 @@ impl PaymentContract {
             .unwrap_or(Vec::new(env))
     }
 
-    fn require_role(env: &Env, role: &Symbol, caller: &Address) {
-        caller.require_auth();
+    fn require_role(env: &Env, role: &Symbol, caller: &Address) -> Result<(), ContractError> {
         let members = Self::get_role_members(env, role);
-        assert!(members.iter().any(|m| m == *caller), ContractError::MISSING_ROLE);
+        helpers::require_role(caller, &members)
     }
 
-    fn require_not_paused(env: &Env) {
-        assert!(
-            !env.storage()
-                .instance()
-                .get::<_, bool>(&DataKey::Paused)
-                .unwrap_or(false),
-            ContractError::CONTRACT_IS_PAUSED
-        );
+    fn require_not_paused(env: &Env) -> Result<(), ContractError> {
+        let paused: bool = env
+            .storage()
+            .instance()
+            .get::<_, bool>(&DataKey::Paused)
+            .unwrap_or(false);
+        helpers::require_not_paused(paused)
     }
 
-    fn get_config(env: &Env) -> Config {
+    fn get_config(env: &Env) -> Result<Config, ContractError> {
         env.storage()
             .instance()
             .get(&DataKey::Config)
-            .expect("Not initialized")
-    }
-
-    fn compute_fee(amount: i128, fee_bps: u32) -> (i128, i128) {
-        if fee_bps == 0 {
-            return (0, amount);
-        }
-        let fee = amount
-            .checked_mul(fee_bps as i128)
-            .expect("overflow")
-            .checked_div(10_000)
-            .expect("div zero");
-        let net = amount.checked_sub(fee).expect("underflow");
-        (fee, net)
+            .ok_or(ContractError::NotInitialized)
     }
 
     fn extend_payment_ttl(env: &Env, id: &Symbol) {
-        let key = DataKey::Payment(id.clone());
-        if env.storage().persistent().has(&key) {
-            env.storage()
-                .persistent()
-                .extend_ttl(&key, TTL_THRESHOLD, TTL_EXTEND_TO);
-        }
+        extend_ttl(env, &DataKey::Payment(id.clone()));
     }
 
     // -------------------------------------------------------------------------
@@ -230,8 +224,13 @@ impl PaymentContract {
     // -------------------------------------------------------------------------
 
     /// Grant a role to an address. Caller must hold `ROLE_ADMIN`.
-    pub fn grant_role(env: Env, caller: Address, role: Symbol, account: Address) {
-        Self::require_role(&env, &Symbol::new(&env, ROLE_ADMIN), &caller);
+    pub fn grant_role(
+        env: Env,
+        caller: Address,
+        role: Symbol,
+        account: Address,
+    ) -> Result<(), ContractError> {
+        Self::require_role(&env, &Symbol::new(&env, ROLE_ADMIN), &caller)?;
         let mut members = Self::get_role_members(&env, &role);
         if !members.iter().any(|m| m == account) {
             members.push_back(account.clone());
@@ -241,11 +240,17 @@ impl PaymentContract {
             .set(&DataKey::RoleMembers(role_to_id(&env, &role)), &members);
         env.events()
             .publish((symbol_short!("RlGrnt"), role), account);
+        Ok(())
     }
 
     /// Revoke a role from an address. Caller must hold `ROLE_ADMIN`.
-    pub fn revoke_role(env: Env, caller: Address, role: Symbol, account: Address) {
-        Self::require_role(&env, &Symbol::new(&env, ROLE_ADMIN), &caller);
+    pub fn revoke_role(
+        env: Env,
+        caller: Address,
+        role: Symbol,
+        account: Address,
+    ) -> Result<(), ContractError> {
+        Self::require_role(&env, &Symbol::new(&env, ROLE_ADMIN), &caller)?;
         let members = Self::get_role_members(&env, &role);
         let mut updated: Vec<Address> = Vec::new(&env);
         for m in members.iter() {
@@ -258,70 +263,87 @@ impl PaymentContract {
             .set(&DataKey::RoleMembers(role_to_id(&env, &role)), &updated);
         env.events()
             .publish((symbol_short!("RlRevk"), role), account);
+        Ok(())
     }
 
     /// Return `true` if `account` holds `role`.
-    pub fn has_role(env: Env, role: Symbol, account: Address) -> bool {
-        Self::get_role_members(&env, &role)
+    pub fn has_role(env: Env, role: Symbol, account: Address) -> Result<bool, ContractError> {
+        Ok(Self::get_role_members(&env, &role)
             .iter()
-            .any(|m| m == account)
+            .any(|m| m == account))
     }
 
     /// Update the protocol fee. Caller must hold `ROLE_FEE_MGR`.
-    ///
-    /// # Panics
-    /// - `"fee_bps exceeds maximum (500)"` if `new_fee_bps > MAX_FEE_BPS`.
-    /// - `"Missing role"` if caller does not hold `ROLE_FEE_MGR`.
-    pub fn update_fee(env: Env, caller: Address, new_fee_bps: u32) {
-        Self::require_role(&env, &Symbol::new(&env, ROLE_FEE_MGR), &caller);
-        assert!(new_fee_bps <= MAX_FEE_BPS, ContractError::FEE_BPS_EXCEEDS_MAXIMUM);
-        let mut config = Self::get_config(&env);
+    pub fn update_fee(env: Env, caller: Address, new_fee_bps: u32) -> Result<(), ContractError> {
+        Self::require_role(&env, &Symbol::new(&env, ROLE_FEE_MGR), &caller)?;
+        if new_fee_bps > MAX_FEE_BPS {
+            return Err(ContractError::FeeBpsExceedsMaximum);
+        }
+        let mut config = Self::get_config(&env)?;
         config.fee_bps = new_fee_bps;
         env.storage().instance().set(&DataKey::Config, &config);
         env.events()
             .publish((symbol_short!("FeeUpd"), caller), new_fee_bps);
+        Ok(())
     }
 
     /// Update the treasury (fee recipient). Caller must hold `ROLE_ADMIN`.
-    pub fn set_treasury(env: Env, caller: Address, new_treasury: Address) {
-        Self::require_role(&env, &Symbol::new(&env, ROLE_ADMIN), &caller);
-        let mut config = Self::get_config(&env);
+    pub fn set_treasury(
+        env: Env,
+        caller: Address,
+        new_treasury: Address,
+    ) -> Result<(), ContractError> {
+        Self::require_role(&env, &Symbol::new(&env, ROLE_ADMIN), &caller)?;
+        let mut config = Self::get_config(&env)?;
         config.fee_recipient = new_treasury.clone();
         env.storage().instance().set(&DataKey::Config, &config);
         env.events()
             .publish((symbol_short!("TrsSet"), caller), new_treasury);
+        Ok(())
     }
 
     /// Pause the contract. Caller must hold `ROLE_PAUSER`.
-    pub fn pause(env: Env, caller: Address) {
-        Self::require_role(&env, &Symbol::new(&env, ROLE_PAUSER), &caller);
+    pub fn pause(env: Env, caller: Address) -> Result<(), ContractError> {
+        Self::require_role(&env, &Symbol::new(&env, ROLE_PAUSER), &caller)?;
         env.storage().instance().set(&DataKey::Paused, &true);
         env.events().publish((symbol_short!("Paused"), caller), ());
+        Ok(())
     }
 
     /// Unpause the contract. Caller must hold `ROLE_PAUSER`.
-    pub fn unpause(env: Env, caller: Address) {
-        Self::require_role(&env, &Symbol::new(&env, ROLE_PAUSER), &caller);
+    pub fn unpause(env: Env, caller: Address) -> Result<(), ContractError> {
+        Self::require_role(&env, &Symbol::new(&env, ROLE_PAUSER), &caller)?;
         env.storage().instance().set(&DataKey::Paused, &false);
         env.events()
             .publish((symbol_short!("Unpaused"), caller), ());
+        Ok(())
     }
 
-    pub fn is_paused(env: Env) -> bool {
-        env.storage()
+    /// Returns `true` if the contract is currently paused.
+    pub fn is_paused(env: Env) -> Result<bool, ContractError> {
+        Ok(env
+            .storage()
             .instance()
             .get(&DataKey::Paused)
-            .unwrap_or(false)
+            .unwrap_or(false))
     }
 
-    pub fn get_admin(env: Env) -> Address {
+    /// Return the admin address.
+    ///
+    /// # Errors
+    /// - [`ContractError::NotInitialized`] if the contract has not been initialised.
+    pub fn get_admin(env: Env) -> Result<Address, ContractError> {
         env.storage()
             .persistent()
             .get(&DataKey::Admin)
-            .expect(ContractError::NOT_INITIALIZED)
+            .ok_or(ContractError::NotInitialized)
     }
 
-    pub fn get_config_view(env: Env) -> Config {
+    /// Return the current protocol configuration (fee_bps and fee_recipient).
+    ///
+    /// # Errors
+    /// - [`ContractError::NotInitialized`] if the contract has not been initialised.
+    pub fn get_config_view(env: Env) -> Result<Config, ContractError> {
         Self::get_config(&env)
     }
 
@@ -330,8 +352,8 @@ impl PaymentContract {
     // -------------------------------------------------------------------------
 
     /// Return the event schema version.
-    pub fn version(_env: Env) -> u32 {
-        VERSION
+    pub fn version(_env: Env) -> Result<u32, ContractError> {
+        Ok(VERSION)
     }
 
     // -------------------------------------------------------------------------
@@ -339,26 +361,23 @@ impl PaymentContract {
     // -------------------------------------------------------------------------
 
     /// Send a direct payment to a worker, deducting the protocol fee.
-    ///
-    /// # Parameters
-    /// - `from`: Payer; `require_auth()` enforced.
-    /// - `to`: Worker receiving funds.
-    /// - `token_addr`: Stellar token contract address.
-    /// - `amount`: Total amount (fee deducted from this).
-    ///
-    /// # Panics
-    /// - `"Amount must be positive"` if `amount <= 0`.
-    /// - `"Not initialized"` if contract not yet initialised.
-    /// - `"Contract is paused"` if paused.
-    pub fn pay(env: Env, from: Address, to: Address, token_addr: Address, amount: i128) {
+    pub fn pay(
+        env: Env,
+        from: Address,
+        to: Address,
+        token_addr: Address,
+        amount: i128,
+    ) -> Result<(), ContractError> {
         // --- Checks ---
-        Self::require_not_paused(&env);
+        Self::require_not_paused(&env)?;
         from.require_auth();
-        assert!(amount > 0, ContractError::AMOUNT_MUST_BE_POSITIVE);
-        let config = Self::get_config(&env);
+        if amount <= 0 {
+            return Err(ContractError::AmountMustBePositive);
+        }
+        let config = Self::get_config(&env)?;
 
         // --- Effects (compute fee split) ---
-        let (fee, net) = Self::compute_fee(amount, config.fee_bps);
+        let (fee, net) = split_fee(amount, config.fee_bps);
 
         // --- Interactions ---
         let token = token::Client::new(&env, &token_addr);
@@ -368,6 +387,7 @@ impl PaymentContract {
         }
         env.events()
             .publish((symbol_short!("Pay"), from), (to, token_addr, amount, fee));
+        Ok(())
     }
 
     // -------------------------------------------------------------------------
@@ -375,15 +395,6 @@ impl PaymentContract {
     // -------------------------------------------------------------------------
 
     /// Lock funds for a job milestone.
-    ///
-    /// The `from` address transfers `amount` tokens into the contract's custody.
-    /// Funds are released by calling `release_payment` or refunded via `refund_payment`.
-    ///
-    /// # Panics
-    /// - `"Already exists"` if `id` already has a locked payment.
-    /// - `"Amount must be positive"` if `amount <= 0`.
-    /// - `"expiry must be in future"` if `expiry <= current timestamp`.
-    /// - `"Contract is paused"` if paused.
     pub fn lock_payment(
         env: Env,
         from: Address,
@@ -392,21 +403,23 @@ impl PaymentContract {
         id: Symbol,
         amount: i128,
         expiry: u64,
-    ) {
+    ) -> Result<(), ContractError> {
         // --- Checks ---
-        Self::require_not_paused(&env);
+        Self::require_not_paused(&env)?;
         from.require_auth();
-        assert!(amount > 0, ContractError::AMOUNT_MUST_BE_POSITIVE);
-        assert!(
-            expiry > env.ledger().timestamp(),
-            ContractError::EXPIRY_MUST_BE_IN_FUTURE
-        );
-        assert!(
-            !env.storage()
-                .persistent()
-                .has(&DataKey::Payment(id.clone())),
-            ContractError::ALREADY_EXISTS
-        );
+        if amount <= 0 {
+            return Err(ContractError::AmountMustBePositive);
+        }
+        if expiry <= env.ledger().timestamp() {
+            return Err(ContractError::ExpiryMustBeInFuture);
+        }
+        if env
+            .storage()
+            .persistent()
+            .has(&DataKey::Payment(id.clone()))
+        {
+            return Err(ContractError::AlreadyExists);
+        }
 
         // --- Effects ---
         let record = LockedPayment {
@@ -428,34 +441,31 @@ impl PaymentContract {
         token.transfer(&from, &env.current_contract_address(), &amount);
         env.events()
             .publish((symbol_short!("Locked"), id), (from, to, amount));
+        Ok(())
     }
 
     /// Release a locked payment to the worker.
-    ///
-    /// Only the client or the admin may call this.
-    ///
-    /// # Panics
-    /// - `"Payment not found"` if id does not exist.
-    /// - `"Not authorized"` if caller is neither the client nor an admin.
-    /// - `"Payment not locked"` if already released or refunded.
-    /// - `"Contract is paused"` if paused.
-    pub fn release_payment(env: Env, caller: Address, id: Symbol) {
+    pub fn release_payment(env: Env, caller: Address, id: Symbol) -> Result<(), ContractError> {
         // --- Checks ---
-        Self::require_not_paused(&env);
+        Self::require_not_paused(&env)?;
         caller.require_auth();
 
         let mut record: LockedPayment = env
             .storage()
             .persistent()
             .get(&DataKey::Payment(id.clone()))
-            .expect(ContractError::PAYMENT_NOT_FOUND);
+            .ok_or(ContractError::PaymentNotFound)?;
 
         let is_client = record.client == caller;
         let is_admin = Self::get_role_members(&env, &Symbol::new(&env, ROLE_ADMIN))
             .iter()
             .any(|m| m == caller);
-        assert!(is_client || is_admin, ContractError::NOT_AUTHORIZED);
-        assert!(record.status == PaymentStatus::Locked, ContractError::PAYMENT_NOT_LOCKED);
+        if !is_client && !is_admin {
+            return Err(ContractError::NotAuthorized);
+        }
+        if record.status != PaymentStatus::Locked {
+            return Err(ContractError::PaymentNotLocked);
+        }
 
         // --- Effects ---
         record.status = PaymentStatus::Released;
@@ -466,41 +476,42 @@ impl PaymentContract {
 
         // --- Interactions ---
         let token = token::Client::new(&env, &record.token);
-        token.transfer(&env.current_contract_address(), &record.worker, &record.amount);
+        token.transfer(
+            &env.current_contract_address(),
+            &record.worker,
+            &record.amount,
+        );
         env.events().publish(
             (symbol_short!("Released"), id),
             (caller, record.worker, record.amount),
         );
+        Ok(())
     }
 
     /// Refund a locked payment to the client.
-    ///
-    /// Admin may refund at any time. The client may self-refund after expiry.
-    ///
-    /// # Panics
-    /// - `"Payment not found"` if id does not exist.
-    /// - `"Not authorized"` if caller is neither admin nor (client after expiry).
-    /// - `"Payment not locked"` if already settled.
-    /// - `"Contract is paused"` if paused.
-    pub fn refund_payment(env: Env, caller: Address, id: Symbol) {
+    pub fn refund_payment(env: Env, caller: Address, id: Symbol) -> Result<(), ContractError> {
         // --- Checks ---
-        Self::require_not_paused(&env);
+        Self::require_not_paused(&env)?;
         caller.require_auth();
 
         let mut record: LockedPayment = env
             .storage()
             .persistent()
             .get(&DataKey::Payment(id.clone()))
-            .expect(ContractError::PAYMENT_NOT_FOUND);
+            .ok_or(ContractError::PaymentNotFound)?;
 
-        assert!(record.status == PaymentStatus::Locked, "Payment not locked");
+        if record.status != PaymentStatus::Locked {
+            return Err(ContractError::PaymentNotLocked);
+        }
 
         let is_admin = Self::get_role_members(&env, &Symbol::new(&env, ROLE_ADMIN))
             .iter()
             .any(|m| m == caller);
         let is_expired_client =
             record.client == caller && env.ledger().timestamp() >= record.expiry;
-        assert!(is_admin || is_expired_client, "Not authorized");
+        if !is_admin && !is_expired_client {
+            return Err(ContractError::NotAuthorized);
+        }
 
         // --- Effects ---
         record.status = PaymentStatus::Refunded;
@@ -511,27 +522,30 @@ impl PaymentContract {
 
         // --- Interactions ---
         let token = token::Client::new(&env, &record.token);
-        token.transfer(&env.current_contract_address(), &record.client, &record.amount);
+        token.transfer(
+            &env.current_contract_address(),
+            &record.client,
+            &record.amount,
+        );
         env.events().publish(
             (symbol_short!("Refunded"), id),
             (caller, record.client, record.amount),
         );
+        Ok(())
     }
 
     /// Get a locked payment record by id.
-    ///
-    /// # Panics
-    /// - `"Payment not found"` if id does not exist.
-    pub fn get_payment(env: Env, id: Symbol) -> LockedPayment {
+    pub fn get_payment(env: Env, id: Symbol) -> Result<LockedPayment, ContractError> {
         env.storage()
             .persistent()
             .get(&DataKey::Payment(id))
-            .expect(ContractError::PAYMENT_NOT_FOUND)
+            .ok_or(ContractError::PaymentNotFound)
     }
 
     /// Extend the TTL of a payment entry (permissionless).
-    pub fn extend_payment_ttl_pub(env: Env, id: Symbol) {
+    pub fn extend_payment_ttl_pub(env: Env, id: Symbol) -> Result<(), ContractError> {
         Self::extend_payment_ttl(&env, &id);
+        Ok(())
     }
 
     // -------------------------------------------------------------------------
@@ -539,9 +553,14 @@ impl PaymentContract {
     // -------------------------------------------------------------------------
 
     /// Upgrade the contract WASM. Caller must hold `ROLE_UPGRADER`.
-    pub fn upgrade(env: Env, caller: Address, new_wasm_hash: BytesN<32>) {
-        Self::require_role(&env, &Symbol::new(&env, ROLE_UPGRADER), &caller);
+    pub fn upgrade(
+        env: Env,
+        caller: Address,
+        new_wasm_hash: BytesN<32>,
+    ) -> Result<(), ContractError> {
+        Self::require_role(&env, &Symbol::new(&env, ROLE_UPGRADER), &caller)?;
         env.deployer().update_current_contract_wasm(new_wasm_hash);
+        Ok(())
     }
 }
 

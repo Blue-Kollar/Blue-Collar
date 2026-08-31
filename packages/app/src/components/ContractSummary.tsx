@@ -2,6 +2,7 @@
 
 import type { TipDTO } from "@/types";
 import { TrendingUp, Calendar, DollarSign } from "lucide-react";
+import { formatDate } from "@/lib/utils";
 
 interface ContractSummaryProps {
   tip: TipDTO;
@@ -21,11 +22,7 @@ export default function ContractSummary({ tip, isLoading = false }: ContractSumm
     );
   }
 
-  const date = new Date(tip.createdAt).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+  const date = formatDate(tip.createdAt);
 
   return (
     <div className="rounded-lg border bg-white shadow-sm overflow-hidden">

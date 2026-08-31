@@ -1,54 +1,35 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { Loader2 } from "lucide-react";
 import { Input } from "@/components/Form/Input";
 import { Select } from "@/components/Form/Select";
 import { FileUpload } from "@/components/Form/FileUpload";
-import { getCategories } from "@/lib/api";
+import { useCategories, useCreateWorker, useUpdateWorker } from "@/hooks/queries";
 import { cn } from "@/lib/utils";
 import type { Category } from "@/types";
-
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/api";
-
-const schema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  bio: z.string().max(500, "Bio too long").optional(),
-  categoryId: z.string().min(1, "Please select a category"),
-  phone: z
-    .string()
-    .regex(/^\+?[\d\s\-().]{7,20}$/, "Invalid phone number")
-    .optional()
-    .or(z.literal("")),
-  email: z.string().email("Invalid email").optional().or(z.literal("")),
-  walletAddress: z
-    .string()
-    .regex(/^G[A-Z2-7]{55}$/, "Must be a valid Stellar public key")
-    .optional()
-    .or(z.literal("")),
-});
-
-type Fields = z.infer<typeof schema>;
+// ─── Schema (single source of truth in @bluecollar/types) ────────────────────
+import { createWorkerSchema as schema } from "@bluecollar/types";
+import type { CreateWorkerInput as Fields } from "@bluecollar/types";
 
 export interface ListingFormProps {
   /** If provided, the form is in edit mode and uses the X-HTTP-Method: PUT pattern */
   workerId?: string;
   defaultValues?: Partial<Fields>;
-  token: string;
   onSuccess?: (workerId: string) => void;
 }
 
-export function ListingForm({ workerId, defaultValues, token, onSuccess }: ListingFormProps) {
-  const [categories, setCategories] = useState<Category[]>([]);
+export function ListingForm({ workerId, defaultValues, onSuccess }: ListingFormProps) {
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  useEffect(() => {
-    getCategories().then((r) => setCategories(r.data)).catch(() => {});
-  }, []);
+  const { data: categoriesData } = useCategories();
+  const categories: Category[] = categoriesData?.data ?? [];
+
+  const createWorker = useCreateWorker();
+  const updateWorker = useUpdateWorker(workerId ?? "");
 
   const {
     register,
@@ -68,32 +49,16 @@ export function ListingForm({ workerId, defaultValues, token, onSuccess }: Listi
       });
       if (avatarFile) form.append("avatar", avatarFile);
 
-      let res: Response;
+      let resultId: string;
       if (workerId) {
-        // Update — use X-HTTP-Method: PUT pattern (method-override middleware)
-        res = await fetch(`${API}/workers/${workerId}`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "X-HTTP-Method": "PUT",
-          },
-          body: form,
-        });
+        const res = await updateWorker.mutateAsync(form);
+        resultId = res.data.id;
       } else {
-        res = await fetch(`${API}/workers`, {
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
-          body: form,
-        });
+        const res = await createWorker.mutateAsync(form);
+        resultId = res.data.id;
       }
 
-      if (!res.ok) {
-        const j = await res.json().catch(() => ({}));
-        throw new Error((j as { message?: string }).message ?? "Request failed");
-      }
-
-      const j = await res.json();
-      onSuccess?.(workerId ?? j.data.id);
+      onSuccess?.(resultId);
     } catch (err: unknown) {
       setSubmitError(err instanceof Error ? err.message : "Something went wrong");
     }
@@ -179,10 +144,10 @@ export function ListingForm({ workerId, defaultValues, token, onSuccess }: Listi
 
       <button
         type="submit"
-        disabled={isSubmitting}
+        disabled={isSubmitting || createWorker.isPending || updateWorker.isPending}
         className="flex w-full items-center justify-center gap-2 rounded-lg bg-brand-600 py-2.5 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-60 transition-colors"
       >
-        {isSubmitting && <Loader2 size={15} className="animate-spin" />}
+        {(isSubmitting || createWorker.isPending || updateWorker.isPending) && <Loader2 size={15} className="animate-spin" />}
         {workerId ? "Save changes" : "Create listing"}
       </button>
     </form>

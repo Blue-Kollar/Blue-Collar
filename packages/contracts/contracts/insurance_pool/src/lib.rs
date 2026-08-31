@@ -4,7 +4,11 @@
 //! Manages contributions, claims, and pool rebalancing.
 
 #![no_std]
+// Lint policy: clippy::pedantic enabled at workspace level (issue #1254).
+// Blanket Soroban exceptions (needless_pass_by_value, must_use_candidate, etc.)
+// are configured in the workspace Cargo.toml; per-function overrides go here.
 
+use bluecollar_types::{helpers, ContractError};
 use soroban_sdk::{
     contract, contractimpl, contracttype, symbol_short, token, Address, BytesN, Env, String,
     Symbol, Vec,
@@ -31,7 +35,7 @@ pub const ROLE_UPGRADER: &str = "upgrader";
 
 /// Insurance pool member.
 #[contracttype]
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct PoolMember {
     /// Member address.
     pub address: Address,
@@ -43,7 +47,7 @@ pub struct PoolMember {
 
 /// Insurance claim.
 #[contracttype]
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Claim {
     /// Claim ID.
     pub id: Symbol,
@@ -61,7 +65,7 @@ pub struct Claim {
 
 /// Pool statistics.
 #[contracttype]
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct PoolStats {
     /// Token contract address.
     pub token: Address,
@@ -104,12 +108,18 @@ pub struct InsurancePoolContract;
 #[contractimpl]
 impl InsurancePoolContract {
     /// Initialize the contract with an admin and token.
-    pub fn initialize(env: Env, admin: Address, token: Address, premium_bps: u32) {
-        assert!(
-            !env.storage().instance().has(&DataKey::Admin),
-            "Already initialized"
-        );
-        assert!(premium_bps <= MAX_PREMIUM_BPS, "Premium exceeds maximum");
+    pub fn initialize(
+        env: Env,
+        admin: Address,
+        token: Address,
+        premium_bps: u32,
+    ) -> Result<(), ContractError> {
+        if env.storage().instance().has(&DataKey::Admin) {
+            return Err(ContractError::AlreadyInitialized);
+        }
+        if premium_bps > MAX_PREMIUM_BPS {
+            return Err(ContractError::PremiumExceedsMaximum);
+        }
 
         env.storage().instance().set(&DataKey::Admin, &admin);
         let role = Symbol::new(&env, ROLE_ADMIN);
@@ -132,6 +142,7 @@ impl InsurancePoolContract {
 
         env.events()
             .publish((symbol_short!("Init"), admin, premium_bps), ());
+        Ok(())
     }
 
     /// Get role members.
@@ -143,27 +154,42 @@ impl InsurancePoolContract {
     }
 
     /// Require role authorization.
-    fn require_role(env: &Env, role: &Symbol, caller: &Address) {
-        caller.require_auth();
+    fn require_role(env: &Env, role: &Symbol, caller: &Address) -> Result<(), ContractError> {
         let members = Self::get_role_members(env, role);
-        assert!(members.iter().any(|m| m == *caller), "Missing role");
+        helpers::require_role(caller, &members)
     }
 
     /// Require contract not paused.
-    fn require_not_paused(env: &Env) {
+    fn require_not_paused(env: &Env) -> Result<(), ContractError> {
         let paused: bool = env
             .storage()
             .instance()
             .get(&DataKey::Paused)
             .unwrap_or(false);
-        assert!(!paused, "Contract is paused");
+        helpers::require_not_paused(paused)
     }
 
-    /// Grant a role to an address.
-    pub fn grant_role(env: Env, caller: Address, role: Symbol, account: Address) {
+    /// Grant a role to an address. Caller must hold [`ROLE_ADMIN`].
+    ///
+    /// Idempotent — granting a role that `account` already holds is a no-op.
+    ///
+    /// # Parameters
+    /// - `caller`  — must hold `ROLE_ADMIN` and have authorised this call.
+    /// - `role`    — symbolic role identifier.
+    /// - `account` — address to grant the role to.
+    ///
+    /// # Errors
+    /// - [`ContractError::MissingRole`] if `caller` does not hold `ROLE_ADMIN`.
+    /// - [`ContractError::ContractIsPaused`] if the contract is paused.
+    pub fn grant_role(
+        env: Env,
+        caller: Address,
+        role: Symbol,
+        account: Address,
+    ) -> Result<(), ContractError> {
         let admin_role = Symbol::new(&env, ROLE_ADMIN);
-        Self::require_role(&env, &admin_role, &caller);
-        Self::require_not_paused(&env);
+        Self::require_role(&env, &admin_role, &caller)?;
+        Self::require_not_paused(&env)?;
 
         let mut members = Self::get_role_members(&env, &role);
         if members.iter().all(|m| m != account) {
@@ -174,13 +200,29 @@ impl InsurancePoolContract {
         }
         env.events()
             .publish((symbol_short!("RlGrnt"), role, account), ());
+        Ok(())
     }
 
-    /// Revoke a role from an address.
-    pub fn revoke_role(env: Env, caller: Address, role: Symbol, account: Address) {
+    /// Revoke a role from an address. Caller must hold [`ROLE_ADMIN`].
+    ///
+    /// # Parameters
+    /// - `caller`  — must hold `ROLE_ADMIN` and have authorised this call.
+    /// - `role`    — symbolic role identifier.
+    /// - `account` — address to remove from the role.
+    ///
+    /// # Errors
+    /// - [`ContractError::MissingRole`] if `caller` does not hold `ROLE_ADMIN`.
+    /// - [`ContractError::ContractIsPaused`] if the contract is paused.
+    /// - [`ContractError::AccountDoesNotHoldRole`] if `account` is not in the role.
+    pub fn revoke_role(
+        env: Env,
+        caller: Address,
+        role: Symbol,
+        account: Address,
+    ) -> Result<(), ContractError> {
         let admin_role = Symbol::new(&env, ROLE_ADMIN);
-        Self::require_role(&env, &admin_role, &caller);
-        Self::require_not_paused(&env);
+        Self::require_role(&env, &admin_role, &caller)?;
+        Self::require_not_paused(&env)?;
 
         let members = Self::get_role_members(&env, &role);
         let mut updated: Vec<Address> = Vec::new(&env);
@@ -192,39 +234,69 @@ impl InsurancePoolContract {
                 updated.push_back(m);
             }
         }
-        assert!(found, "Account does not hold role");
+        if !found {
+            return Err(ContractError::AccountDoesNotHoldRole);
+        }
         env.storage()
             .persistent()
             .set(&DataKey::RoleMembers(role.clone()), &updated);
         env.events()
             .publish((symbol_short!("RlRvkd"), role, account), ());
+        Ok(())
     }
 
-    /// Pause the contract.
-    pub fn pause(env: Env, caller: Address) {
+    /// Pause the contract, blocking all state-mutating operations.
+    ///
+    /// # Parameters
+    /// - `caller` — must hold [`ROLE_PAUSER`] and have authorised this call.
+    ///
+    /// # Errors
+    /// - [`ContractError::MissingRole`] if `caller` does not hold `ROLE_PAUSER`.
+    pub fn pause(env: Env, caller: Address) -> Result<(), ContractError> {
         let pauser_role = Symbol::new(&env, ROLE_PAUSER);
-        Self::require_role(&env, &pauser_role, &caller);
+        Self::require_role(&env, &pauser_role, &caller)?;
         env.storage().instance().set(&DataKey::Paused, &true);
         env.events().publish((symbol_short!("Paused"), caller), ());
+        Ok(())
     }
 
-    /// Unpause the contract.
-    pub fn unpause(env: Env, caller: Address) {
+    /// Unpause the contract, re-enabling all state-mutating operations.
+    ///
+    /// # Parameters
+    /// - `caller` — must hold [`ROLE_ADMIN`] and have authorised this call.
+    ///
+    /// # Errors
+    /// - [`ContractError::MissingRole`] if `caller` does not hold `ROLE_ADMIN`.
+    pub fn unpause(env: Env, caller: Address) -> Result<(), ContractError> {
         let admin_role = Symbol::new(&env, ROLE_ADMIN);
-        Self::require_role(&env, &admin_role, &caller);
+        Self::require_role(&env, &admin_role, &caller)?;
         env.storage().instance().set(&DataKey::Paused, &false);
-        env.events().publish((symbol_short!("Unpaused"), caller), ());
+        env.events()
+            .publish((symbol_short!("Unpaused"), caller), ());
+        Ok(())
     }
 
     /// Contribute to the insurance pool.
-    pub fn contribute(env: Env, contributor: Address, token: Address, amount: i128) {
-        Self::require_not_paused(&env);
-        assert!(amount > 0, "Amount must be positive");
+    pub fn contribute(
+        env: Env,
+        contributor: Address,
+        token: Address,
+        amount: i128,
+    ) -> Result<(), ContractError> {
+        Self::require_not_paused(&env)?;
+        if amount <= 0 {
+            return Err(ContractError::AmountMustBePositive);
+        }
 
         contributor.require_auth();
 
         let token_client = token::Client::new(&env, &token);
-        token_client.transfer_from(&env.current_contract_address(), &contributor, &env.current_contract_address(), &amount);
+        token_client.transfer_from(
+            &env.current_contract_address(),
+            &contributor,
+            &env.current_contract_address(),
+            &amount,
+        );
 
         let mut members: Vec<PoolMember> = env
             .storage()
@@ -276,12 +348,20 @@ impl InsurancePoolContract {
 
         env.events()
             .publish((symbol_short!("Contrib"), contributor, amount), ());
+        Ok(())
     }
 
     /// File an insurance claim.
-    pub fn file_claim(env: Env, claimant: Address, claim_id: Symbol, amount: i128) {
-        Self::require_not_paused(&env);
-        assert!(amount > 0, "Amount must be positive");
+    pub fn file_claim(
+        env: Env,
+        claimant: Address,
+        claim_id: Symbol,
+        amount: i128,
+    ) -> Result<(), ContractError> {
+        Self::require_not_paused(&env)?;
+        if amount <= 0 {
+            return Err(ContractError::AmountMustBePositive);
+        }
 
         claimant.require_auth();
 
@@ -308,24 +388,24 @@ impl InsurancePoolContract {
 
         env.events()
             .publish((symbol_short!("ClmFile"), claimant, amount), ());
+        Ok(())
     }
 
     /// Approve an insurance claim.
-    pub fn approve_claim(env: Env, caller: Address, claim_id: Symbol) {
+    pub fn approve_claim(env: Env, caller: Address, claim_id: Symbol) -> Result<(), ContractError> {
         let claims_mgr_role = Symbol::new(&env, ROLE_CLAIMS_MGR);
-        Self::require_role(&env, &claims_mgr_role, &caller);
-        Self::require_not_paused(&env);
+        Self::require_role(&env, &claims_mgr_role, &caller)?;
+        Self::require_not_paused(&env)?;
 
         let mut claim: Claim = env
             .storage()
             .persistent()
             .get(&DataKey::Claim(claim_id.clone()))
-            .expect("Claim not found");
+            .ok_or(ContractError::ClaimNotFound)?;
 
-        assert!(
-            claim.status == String::from_slice(&env, "pending"),
-            "Claim not pending"
-        );
+        if claim.status != String::from_slice(&env, "pending") {
+            return Err(ContractError::ClaimNotPending);
+        }
 
         claim.status = String::from_slice(&env, "approved");
         claim.resolved_at = env.ledger().timestamp();
@@ -335,24 +415,24 @@ impl InsurancePoolContract {
 
         env.events()
             .publish((symbol_short!("ClmAppr"), claim_id, claim.amount), ());
+        Ok(())
     }
 
     /// Reject an insurance claim.
-    pub fn reject_claim(env: Env, caller: Address, claim_id: Symbol) {
+    pub fn reject_claim(env: Env, caller: Address, claim_id: Symbol) -> Result<(), ContractError> {
         let claims_mgr_role = Symbol::new(&env, ROLE_CLAIMS_MGR);
-        Self::require_role(&env, &claims_mgr_role, &caller);
-        Self::require_not_paused(&env);
+        Self::require_role(&env, &claims_mgr_role, &caller)?;
+        Self::require_not_paused(&env)?;
 
         let mut claim: Claim = env
             .storage()
             .persistent()
             .get(&DataKey::Claim(claim_id.clone()))
-            .expect("Claim not found");
+            .ok_or(ContractError::ClaimNotFound)?;
 
-        assert!(
-            claim.status == String::from_slice(&env, "pending"),
-            "Claim not pending"
-        );
+        if claim.status != String::from_slice(&env, "pending") {
+            return Err(ContractError::ClaimNotPending);
+        }
 
         claim.status = String::from_slice(&env, "rejected");
         claim.resolved_at = env.ledger().timestamp();
@@ -362,27 +442,36 @@ impl InsurancePoolContract {
 
         env.events()
             .publish((symbol_short!("ClmRej"), claim_id, claim.amount), ());
+        Ok(())
     }
 
     /// Pay out an approved claim.
-    pub fn pay_claim(env: Env, caller: Address, claim_id: Symbol, token: Address) {
+    pub fn pay_claim(
+        env: Env,
+        caller: Address,
+        claim_id: Symbol,
+        token: Address,
+    ) -> Result<(), ContractError> {
         let claims_mgr_role = Symbol::new(&env, ROLE_CLAIMS_MGR);
-        Self::require_role(&env, &claims_mgr_role, &caller);
-        Self::require_not_paused(&env);
+        Self::require_role(&env, &claims_mgr_role, &caller)?;
+        Self::require_not_paused(&env)?;
 
         let mut claim: Claim = env
             .storage()
             .persistent()
             .get(&DataKey::Claim(claim_id.clone()))
-            .expect("Claim not found");
+            .ok_or(ContractError::ClaimNotFound)?;
 
-        assert!(
-            claim.status == String::from_slice(&env, "approved"),
-            "Claim not approved"
-        );
+        if claim.status != String::from_slice(&env, "approved") {
+            return Err(ContractError::ClaimNotApproved);
+        }
 
         let token_client = token::Client::new(&env, &token);
-        token_client.transfer(&env.current_contract_address(), &claim.claimant, &claim.amount);
+        token_client.transfer(
+            &env.current_contract_address(),
+            &claim.claimant,
+            &claim.amount,
+        );
 
         claim.status = String::from_slice(&env, "paid");
         env.storage()
@@ -393,7 +482,7 @@ impl InsurancePoolContract {
             .storage()
             .persistent()
             .get(&DataKey::PoolStats(token.clone()))
-            .expect("Pool stats not found");
+            .ok_or(ContractError::PoolStatsNotFound)?;
 
         stats.total_balance = stats.total_balance.saturating_sub(claim.amount);
         stats.total_claims_paid = stats.total_claims_paid.saturating_add(claim.amount);
@@ -403,11 +492,13 @@ impl InsurancePoolContract {
 
         env.events()
             .publish((symbol_short!("ClmPay"), claim_id, claim.amount), ());
+        Ok(())
     }
 
     /// Get pool statistics.
-    pub fn get_pool_stats(env: Env, token: Address) -> PoolStats {
-        env.storage()
+    pub fn get_pool_stats(env: Env, token: Address) -> Result<PoolStats, ContractError> {
+        Ok(env
+            .storage()
             .persistent()
             .get(&DataKey::PoolStats(token.clone()))
             .unwrap_or(PoolStats {
@@ -416,36 +507,44 @@ impl InsurancePoolContract {
                 total_contributions: 0,
                 total_claims_paid: 0,
                 premium_bps: 0,
-            })
+            }))
     }
 
     /// Get pool members.
-    pub fn get_pool_members(env: Env) -> Vec<PoolMember> {
-        env.storage()
+    pub fn get_pool_members(env: Env) -> Result<Vec<PoolMember>, ContractError> {
+        Ok(env
+            .storage()
             .persistent()
             .get(&DataKey::PoolMembers)
-            .unwrap_or(Vec::new(&env))
+            .unwrap_or(Vec::new(&env)))
     }
 
     /// Get a specific claim.
-    pub fn get_claim(env: Env, claim_id: Symbol) -> Claim {
+    pub fn get_claim(env: Env, claim_id: Symbol) -> Result<Claim, ContractError> {
         env.storage()
             .persistent()
             .get(&DataKey::Claim(claim_id))
-            .expect("Claim not found")
+            .ok_or(ContractError::ClaimNotFound)
     }
 
     /// Rebalance pool by adjusting premium.
-    pub fn rebalance_pool(env: Env, caller: Address, token: Address, new_premium_bps: u32) {
+    pub fn rebalance_pool(
+        env: Env,
+        caller: Address,
+        token: Address,
+        new_premium_bps: u32,
+    ) -> Result<(), ContractError> {
         let admin_role = Symbol::new(&env, ROLE_ADMIN);
-        Self::require_role(&env, &admin_role, &caller);
-        assert!(new_premium_bps <= MAX_PREMIUM_BPS, "Premium exceeds maximum");
+        Self::require_role(&env, &admin_role, &caller)?;
+        if new_premium_bps > MAX_PREMIUM_BPS {
+            return Err(ContractError::PremiumExceedsMaximum);
+        }
 
         let mut stats: PoolStats = env
             .storage()
             .persistent()
             .get(&DataKey::PoolStats(token.clone()))
-            .expect("Pool stats not found");
+            .ok_or(ContractError::PoolStatsNotFound)?;
 
         stats.premium_bps = new_premium_bps;
         env.storage()
@@ -454,21 +553,25 @@ impl InsurancePoolContract {
 
         env.events()
             .publish((symbol_short!("Rebal"), token, new_premium_bps as i128), ());
+        Ok(())
     }
 
     /// Return the event schema version.
-    pub fn version(_env: Env) -> u32 {
-        VERSION
+    pub fn version(_env: Env) -> Result<u32, ContractError> {
+        Ok(VERSION)
     }
 
     /// Upgrade contract WASM.
-    pub fn upgrade(env: Env, caller: Address, new_wasm_hash: BytesN<32>) {
+    pub fn upgrade(
+        env: Env,
+        caller: Address,
+        new_wasm_hash: BytesN<32>,
+    ) -> Result<(), ContractError> {
         let upgrader_role = Symbol::new(&env, ROLE_UPGRADER);
-        Self::require_role(&env, &upgrader_role, &caller);
-        env.deployer()
-            .update_current_contract_wasm(new_wasm_hash);
-        env.events()
-            .publish((symbol_short!("Upgrade"), caller), ());
+        Self::require_role(&env, &upgrader_role, &caller)?;
+        env.deployer().update_current_contract_wasm(new_wasm_hash);
+        env.events().publish((symbol_short!("Upgrade"), caller), ());
+        Ok(())
     }
 }
 
@@ -490,7 +593,8 @@ mod tests {
         let contract = env.register_contract(None, InsurancePoolContract);
         let client = InsurancePoolContractClient::new(&env, &contract);
         client.initialize(&admin, &token, &100);
-        assert!(env
-            .as_contract(&contract, || { env.storage().instance().has(&DataKey::Admin) }));
+        assert!(env.as_contract(&contract, || {
+            env.storage().instance().has(&DataKey::Admin)
+        }));
     }
 }

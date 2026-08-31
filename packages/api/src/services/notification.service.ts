@@ -1,8 +1,10 @@
-import { db } from '../db.js'
-import { AppError } from './AppError.js'
+import type { NotificationType } from '@prisma/client'
+import { notificationRepository as defaultNotificationRepository } from '../repositories/notification.repository.js'
+import { AppError } from '../utils/AppError.js'
 import { logger } from '../config/logger.js'
 import { mailer } from '../mailer/index.js'
 import * as pushService from './push.service.js'
+import type { NotificationServiceDeps } from '../container/types.js'
 
 interface NotificationPayload {
   userId: string
@@ -33,110 +35,9 @@ const DEFAULT_PREFERENCES = {
   announcements: true,
 }
 
-export async function dispatchNotification(payload: NotificationPayload): Promise<void> {
-  // Users without a persisted preferences row (e.g. anyone who hasn't visited
-  // the preferences page yet) should still receive notifications by default —
-  // falling back here instead of no-op'ing keeps first-time delivery working.
-  const prefs = (await db.notificationPreferences.findUnique({
-    where: { userId: payload.userId },
-  })) ?? DEFAULT_PREFERENCES
-
-  const channels = payload.channels || ['email', 'push', 'inapp']
-  const dedupKey = `${payload.userId}:${payload.type}:${payload.message}`
-  
-  // Check deduplication
-  if (isDuplicate(dedupKey)) {
-    logger.info({ dedupKey }, 'Notification deduplicated')
-    return
-  }
-
-  // Always create in-app notification
-  const notification = await db.notification.create({
-    data: {
-      userId: payload.userId,
-      type: payload.type,
-      title: payload.title,
-      message: payload.message,
-      href: payload.href,
-    },
-  })
-
-  const logs: DeliveryLog[] = []
-
-  if (channels.includes('email') && shouldSendEmail(prefs, payload.type)) {
-    try {
-      await sendEmailNotification(payload)
-      logs.push({
-        notificationId: notification.id,
-        userId: payload.userId,
-        channel: 'email',
-        status: 'sent',
-        sentAt: new Date(),
-      })
-    } catch (error) {
-      logger.error({ error, userId: payload.userId }, 'Email notification failed')
-      logs.push({
-        notificationId: notification.id,
-        userId: payload.userId,
-        channel: 'email',
-        status: 'failed',
-        error: error instanceof Error ? error.message : 'Unknown error',
-        sentAt: new Date(),
-      })
-    }
-  }
-
-  if (channels.includes('push') && shouldSendPush(prefs, payload.type)) {
-    try {
-      await pushService.sendPushNotification(payload.userId, {
-        title: payload.title,
-        body: payload.message,
-        tag: payload.type,
-      })
-      logs.push({
-        notificationId: notification.id,
-        userId: payload.userId,
-        channel: 'push',
-        status: 'sent',
-        sentAt: new Date(),
-      })
-    } catch (error) {
-      logger.error({ error, userId: payload.userId }, 'Push notification failed')
-      logs.push({
-        notificationId: notification.id,
-        userId: payload.userId,
-        channel: 'push',
-        status: 'failed',
-        error: error instanceof Error ? error.message : 'Unknown error',
-        sentAt: new Date(),
-      })
-    }
-  }
-
-  // Store delivery logs
-  storeDeliveryLog(notification.id, logs)
-}
-
-async function sendEmailNotification(payload: NotificationPayload): Promise<void> {
-  const user = await db.user.findUnique({
-    where: { id: payload.userId },
-    select: { email: true, firstName: true },
-  })
-
-  if (!user) throw new AppError('User not found', 404)
-
-  await mailer.send({
-    to: user.email,
-    subject: payload.title,
-    text: payload.message,
-    html: `<p>${payload.message}</p>${payload.href ? `<a href="${payload.href}">View</a>` : ''}`,
-  })
-}
-
 /**
  * Minimal view of a user's notification preferences that the dispatch gates
- * depend on. Both a persisted `NotificationPreferences` row and the in-memory
- * `DEFAULT_PREFERENCES` fallback satisfy this shape.
+ * depend on.
  */
 interface NotificationPrefsView {
   reviewReply: boolean
@@ -144,11 +45,6 @@ interface NotificationPrefsView {
 }
 
 function shouldSendEmail(prefs: NotificationPrefsView, type: string): boolean {
-  // Keyed on the real NotificationType enum values (tip/review/contact/system/message) —
-  // 'worker_nearby'/'status_change'/'review_reply'/'announcement' never match any
-  // actual dispatch call site (every caller uses 'system'), so preferences never
-  // took effect. 'newWorkerNearby'/'statusChange' have no corresponding enum
-  // value yet, so they stay unmapped (default-on) until that type exists.
   const typeMap: Record<string, keyof NotificationPrefsView> = {
     'review': 'reviewReply',
     'system': 'announcements',
@@ -158,7 +54,6 @@ function shouldSendEmail(prefs: NotificationPrefsView, type: string): boolean {
 }
 
 function shouldSendPush(prefs: NotificationPrefsView, type: string): boolean {
-  // Always send push for important notifications
   return !['review'].includes(type) || prefs.reviewReply
 }
 
@@ -171,22 +66,135 @@ function isDuplicate(dedupKey: string): boolean {
 }
 
 function storeDeliveryLog(notificationId: string, logs: DeliveryLog[]): void {
-  const key = notificationId
-  deliveryCache.set(key, logs)
-  
-  // Cleanup old entries after dedup window
+  deliveryCache.set(notificationId, logs)
   setTimeout(() => {
-    deliveryCache.delete(key)
+    deliveryCache.delete(notificationId)
   }, DEDUP_WINDOW)
 }
 
+// ── Factory ───────────────────────────────────────────────────────────────────
+
+export function createNotificationService(deps: NotificationServiceDeps) {
+  const { notificationRepository: repo } = deps
+
+  return {
+    async dispatchNotification(payload: NotificationPayload): Promise<void> {
+      const prefs = (await repo.findPreferences(payload.userId)) ?? DEFAULT_PREFERENCES
+
+      const channels = payload.channels || ['email', 'push', 'inapp']
+      const dedupKey = `${payload.userId}:${payload.type}:${payload.message}`
+
+      if (isDuplicate(dedupKey)) {
+        logger.info({ dedupKey }, 'Notification deduplicated')
+        return
+      }
+
+      // NOTE: payload.type is used across the codebase with many values that are not in
+      // the NotificationType enum (tip/review/contact/system/message) — e.g. 'booking_request',
+      // 'booking_confirmed'. Those calls will fail Prisma's enum validation at runtime, but every
+      // dispatchNotification() call site swallows the error via .catch(() => {}), so it fails
+      // silently. This any-cleanup surfaced the mismatch but does not fix it (out of scope).
+      const notification = await repo.createNotification({
+        userId: payload.userId,
+        type: payload.type as unknown as NotificationType,
+        title: payload.title,
+        message: payload.message,
+        href: payload.href,
+      })
+
+      const logs: DeliveryLog[] = []
+
+      if (channels.includes('email') && shouldSendEmail(prefs, payload.type)) {
+        try {
+          const user = await repo.findUserEmailAndName(payload.userId)
+          if (!user) throw new AppError('User not found', 404)
+
+          await mailer.send({
+            to: user.email,
+            subject: payload.title,
+            text: payload.message,
+            html: `<p>${payload.message}</p>${payload.href ? `<a href="${payload.href}">View</a>` : ''}`,
+          })
+          logs.push({ notificationId: notification.id, userId: payload.userId, channel: 'email', status: 'sent', sentAt: new Date() })
+        } catch (error) {
+          logger.error({ error, userId: payload.userId }, 'Email notification failed')
+          logs.push({
+            notificationId: notification.id,
+            userId: payload.userId,
+            channel: 'email',
+            status: 'failed',
+            error: error instanceof Error ? error.message : 'Unknown error',
+            sentAt: new Date(),
+          })
+        }
+      }
+
+      if (channels.includes('push') && shouldSendPush(prefs, payload.type)) {
+        try {
+          await pushService.sendPushNotification(payload.userId, {
+            title: payload.title,
+            body: payload.message,
+            tag: payload.type,
+          })
+          logs.push({ notificationId: notification.id, userId: payload.userId, channel: 'push', status: 'sent', sentAt: new Date() })
+        } catch (error) {
+          logger.error({ error, userId: payload.userId }, 'Push notification failed')
+          logs.push({
+            notificationId: notification.id,
+            userId: payload.userId,
+            channel: 'push',
+            status: 'failed',
+            error: error instanceof Error ? error.message : 'Unknown error',
+            sentAt: new Date(),
+          })
+        }
+      }
+
+      storeDeliveryLog(notification.id, logs)
+    },
+
+    async getDeliveryLog(notificationId: string): Promise<DeliveryLog[] | null> {
+      const record = await repo.findNotificationById(notificationId)
+      if (!record) return null
+      return deliveryCache.get(notificationId) || []
+    },
+
+    async updateNotificationPreferences(
+      userId: string,
+      preferences: Partial<{
+        newWorkerNearby: boolean
+        statusChange: boolean
+        reviewReply: boolean
+        announcements: boolean
+        quietHoursStart?: string
+        quietHoursEnd?: string
+      }>
+    ): Promise<void> {
+      await repo.upsertPreferences(userId, preferences)
+    },
+
+    async isInQuietHours(userId: string): Promise<boolean> {
+      const prefs = await repo.findPreferences(userId)
+      if (!prefs) return false
+
+      const hour = new Date().getHours()
+      return hour >= 22 || hour < 8
+    },
+  }
+}
+
+// ── Default service instance (backward-compatible module-level API) ───────────
+
+const _defaultService = createNotificationService({
+  notificationRepository: defaultNotificationRepository,
+})
+
+export async function dispatchNotification(payload: NotificationPayload): Promise<void> {
+  return _defaultService.dispatchNotification(payload)
+}
+
 export async function getDeliveryLog(notificationId: string): Promise<DeliveryLog[] | null> {
-  const user = await db.notification.findUnique({
-    where: { id: notificationId },
-    select: { id: true },
-  })
-  if (!user) return null
-  return deliveryCache.get(notificationId) || []
+  return _defaultService.getDeliveryLog(notificationId)
 }
 
 export async function updateNotificationPreferences(
@@ -200,19 +208,9 @@ export async function updateNotificationPreferences(
     quietHoursEnd?: string
   }>
 ): Promise<void> {
-  await db.notificationPreferences.upsert({
-    where: { userId },
-    create: { userId, ...preferences },
-    update: preferences,
-  })
+  return _defaultService.updateNotificationPreferences(userId, preferences)
 }
 
 export async function isInQuietHours(userId: string): Promise<boolean> {
-  const prefs = await db.notificationPreferences.findUnique({ where: { userId } })
-  if (!prefs) return false
-
-  // Simple implementation - can be extended with specific quiet hours
-  const hour = new Date().getHours()
-  return hour >= 22 || hour < 8 // Default quiet hours: 10 PM - 8 AM
+  return _defaultService.isInQuietHours(userId)
 }
-

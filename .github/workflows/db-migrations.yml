@@ -21,7 +21,7 @@ jobs:
           POSTGRES_PASSWORD: bluecollar
           POSTGRES_DB: bluecollar
         options: >-
-          --health-cmd pg_isready -U bluecollar -d bluecollar
+          --health-cmd "pg_isready -U bluecollar -d bluecollar"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -37,23 +37,19 @@ jobs:
         env:
           BASE_BRANCH: origin/main
 
+      # pnpm comes from the repo's `packageManager` field; the lockfile is v9 and
+      # cannot be read by older pnpm majors.
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-
-      - name: Install pnpm
-        run: npm install -g pnpm@8
-
-      - name: Cache node modules
-        uses: actions/cache@v4
-        with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          node-version: 22
+          cache: pnpm
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-        working-directory: packages/api
 
       - name: Generate Prisma client
         run: npx prisma generate
@@ -68,20 +64,28 @@ jobs:
           DATABASE_URL: postgresql://bluecollar:bluecollar@localhost:5432/bluecollar
 
       - name: Validate schema matches database
-        run: npx prisma db validate
+        run: npx prisma validate
         working-directory: packages/api
         env:
           DATABASE_URL: postgresql://bluecollar:bluecollar@localhost:5432/bluecollar
+
+      # `migrate diff --from-migrations` replays the migration history into a
+      # throwaway database, so it needs one that already exists.
+      - name: Create shadow database
+        run: |
+          PGPASSWORD=bluecollar psql -h localhost -U bluecollar -d postgres \
+            -c 'CREATE DATABASE "bluecollar_shadow";'
 
       - name: Detect drift (diff migrations vs schema)
         run: |
           npx prisma migrate diff \
             --from-migrations ./prisma/migrations \
-            --to-schema-datamodel ./prisma/schema.prisma \
+            --to-schema ./prisma/schema.prisma \
             --exit-code
         working-directory: packages/api
         env:
           DATABASE_URL: postgresql://bluecollar:bluecollar@localhost:5432/bluecollar
+          SHADOW_DATABASE_URL: postgresql://bluecollar:bluecollar@localhost:5432/bluecollar_shadow
 
       - name: Run seed script
         run: npx tsx src/database/seed.ts

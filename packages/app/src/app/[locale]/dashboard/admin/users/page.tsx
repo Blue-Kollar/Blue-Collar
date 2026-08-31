@@ -1,46 +1,31 @@
 "use client";
 
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Shield, ShieldOff, Ban, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
 import { useDebounce } from "@/hooks/useDebounce";
-import { suspendUser, unsuspendUser, banUser, changeUserRole, bulkSuspendUsers, bulkUnsuspendUsers } from "@/lib/api";
+import {
+  useAdminUsers,
+  useSuspendUser,
+  useUnsuspendUser,
+  useBanUser,
+  useChangeUserRole,
+  useBulkSuspendUsers,
+  useBulkUnsuspendUsers,
+} from "@/hooks/queries";
 import { formatDate } from "@/lib/utils";
-
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/api";
-const TOKEN_KEY = "bc_token";
+import type { AdminUser } from "@/lib/api";
 
 type Role = "user" | "curator" | "admin";
-
-interface AdminUser {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  role: Role;
-  deletedAt?: string | null;
-  verified?: boolean;
-  createdAt: string;
-}
-
-function authHeaders() {
-  const token = typeof window !== "undefined" ? localStorage.getItem(TOKEN_KEY) : null;
-  return token ? { Authorization: `Bearer ${token}` } : {};
-}
 
 export default function AdminUsersPage() {
   const { user } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
-  const [users, setUsers] = useState<AdminUser[]>([]);
-  const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
-  const [meta, setMeta] = useState<{ page: number; pages: number } | null>(null);
-  const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [bulkLoading, setBulkLoading] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
   const [search, setSearch] = useState("");
@@ -48,92 +33,81 @@ export default function AdminUsersPage() {
   const [roleFilter, setRoleFilter] = useState<"" | Role>("");
   const [statusFilter, setStatusFilter] = useState<"" | "active" | "suspended">("");
 
-  const fetchUsers = useCallback(async (p: number) => {
-    setLoading(true);
-    try {
-      const params = new URLSearchParams({ page: String(p), limit: "20" });
-      if (debouncedSearch) params.set("search", debouncedSearch);
-      if (roleFilter) params.set("role", roleFilter);
-      if (statusFilter) params.set("status", statusFilter);
-      const res = await fetch(`${API}/v1/admin/users?${params.toString()}`, {
-        headers: authHeaders(),
-      });
-      if (!res.ok) throw new Error();
-      const json = await res.json();
-      setUsers(json.data);
-      setMeta(json.meta ?? null);
-      setSelected(new Set());
-    } catch {
-      toast("Failed to load users", "error");
-    } finally {
-      setLoading(false);
-    }
-  }, [toast, debouncedSearch, roleFilter, statusFilter]);
+  const params: Record<string, string> = { page: String(page), limit: "20" };
+  if (debouncedSearch) params.search = debouncedSearch;
+  if (roleFilter) params.role = roleFilter;
+  if (statusFilter) params.status = statusFilter;
+
+  const usersQuery = useAdminUsers(params);
+  const users = usersQuery.data?.data ?? [];
+  const loading = usersQuery.isLoading;
+  const meta = usersQuery.data?.meta ?? null;
+
+  const suspendUser = useSuspendUser();
+  const unsuspendUser = useUnsuspendUser();
+  const banUser = useBanUser();
+  const changeUserRole = useChangeUserRole();
+  const bulkSuspendUsers = useBulkSuspendUsers();
+  const bulkUnsuspendUsers = useBulkUnsuspendUsers();
+
+  const actionLoading =
+    (suspendUser.isPending && (suspendUser.variables as string)) ||
+    (unsuspendUser.isPending && (unsuspendUser.variables as string)) ||
+    (banUser.isPending && (banUser.variables as string)) ||
+    (changeUserRole.isPending && (changeUserRole.variables as { userId: string })?.userId) ||
+    null;
+  const bulkLoading = bulkSuspendUsers.isPending || bulkUnsuspendUsers.isPending;
 
   useEffect(() => {
     if (user && user.role !== "admin") {
       router.push("/");
-      return;
     }
-    fetchUsers(page);
-  }, [user, router, page, fetchUsers]);
+  }, [user, router]);
 
   // Reset to page 1 whenever a filter changes.
   useEffect(() => {
     setPage(1);
   }, [debouncedSearch, roleFilter, statusFilter]);
 
-  const handleSuspend = async (userId: string) => {
-    setActionLoading(userId);
-    try {
-      await suspendUser(userId);
-      toast("User suspended", "success");
-      fetchUsers(page);
-    } catch {
-      toast("Failed to suspend user", "error");
-    } finally {
-      setActionLoading(null);
-    }
+  // Clear selection whenever the underlying page of results changes.
+  useEffect(() => {
+    setSelected(new Set());
+  }, [usersQuery.data]);
+
+  useEffect(() => {
+    if (usersQuery.isError) toast("Failed to load users", "error");
+  }, [usersQuery.isError, toast]);
+
+  const handleSuspend = (userId: string) => {
+    suspendUser.mutate(userId, {
+      onSuccess: () => toast("User suspended", "success"),
+      onError: () => toast("Failed to suspend user", "error"),
+    });
   };
 
-  const handleUnsuspend = async (userId: string) => {
-    setActionLoading(userId);
-    try {
-      await unsuspendUser(userId);
-      toast("User unsuspended", "success");
-      fetchUsers(page);
-    } catch {
-      toast("Failed to unsuspend user", "error");
-    } finally {
-      setActionLoading(null);
-    }
+  const handleUnsuspend = (userId: string) => {
+    unsuspendUser.mutate(userId, {
+      onSuccess: () => toast("User unsuspended", "success"),
+      onError: () => toast("Failed to unsuspend user", "error"),
+    });
   };
 
-  const handleBan = async (userId: string) => {
+  const handleBan = (userId: string) => {
     if (!confirm("Are you sure you want to permanently ban this user? This will delete their account.")) return;
-    setActionLoading(userId);
-    try {
-      await banUser(userId);
-      toast("User banned", "success");
-      fetchUsers(page);
-    } catch {
-      toast("Failed to ban user", "error");
-    } finally {
-      setActionLoading(null);
-    }
+    banUser.mutate(userId, {
+      onSuccess: () => toast("User banned", "success"),
+      onError: () => toast("Failed to ban user", "error"),
+    });
   };
 
-  const handleRoleChange = async (userId: string, role: Role) => {
-    setActionLoading(userId);
-    try {
-      await changeUserRole(userId, role);
-      toast("Role updated", "success");
-      fetchUsers(page);
-    } catch {
-      toast("Failed to update role", "error");
-    } finally {
-      setActionLoading(null);
-    }
+  const handleRoleChange = (userId: string, role: Role) => {
+    changeUserRole.mutate(
+      { userId, role },
+      {
+        onSuccess: () => toast("Role updated", "success"),
+        onError: () => toast("Failed to update role", "error"),
+      }
+    );
   };
 
   const toggleSelected = (userId: string) => {
@@ -155,32 +129,22 @@ export default function AdminUsersPage() {
     });
   };
 
-  const handleBulkSuspend = async () => {
+  const handleBulkSuspend = () => {
     if (selected.size === 0) return;
-    setBulkLoading(true);
-    try {
-      await bulkSuspendUsers(Array.from(selected));
-      toast(`Suspended ${selected.size} user(s)`, "success");
-      fetchUsers(page);
-    } catch {
-      toast("Failed to bulk suspend users", "error");
-    } finally {
-      setBulkLoading(false);
-    }
+    const count = selected.size;
+    bulkSuspendUsers.mutate(Array.from(selected), {
+      onSuccess: () => toast(`Suspended ${count} user(s)`, "success"),
+      onError: () => toast("Failed to bulk suspend users", "error"),
+    });
   };
 
-  const handleBulkUnsuspend = async () => {
+  const handleBulkUnsuspend = () => {
     if (selected.size === 0) return;
-    setBulkLoading(true);
-    try {
-      await bulkUnsuspendUsers(Array.from(selected));
-      toast(`Unsuspended ${selected.size} user(s)`, "success");
-      fetchUsers(page);
-    } catch {
-      toast("Failed to bulk unsuspend users", "error");
-    } finally {
-      setBulkLoading(false);
-    }
+    const count = selected.size;
+    bulkUnsuspendUsers.mutate(Array.from(selected), {
+      onSuccess: () => toast(`Unsuspended ${count} user(s)`, "success"),
+      onError: () => toast("Failed to bulk unsuspend users", "error"),
+    });
   };
 
   const isSuspended = (u: AdminUser) => u.deletedAt != null;

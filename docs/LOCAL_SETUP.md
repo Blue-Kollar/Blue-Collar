@@ -29,14 +29,14 @@ it, focused on how the API fits together with everything else.
 | [pnpm](https://pnpm.io) | >= 9 | all TypeScript packages (workspace-managed) |
 | [PostgreSQL](https://www.postgresql.org/download/) | 16.x | api |
 | [Redis](https://redis.io/docs/getting-started/) | 7.x | api (optional — API degrades gracefully without it) |
-| [Rust](https://www.rust-lang.org/tools/install) + `wasm32-unknown-unknown` target | stable | contracts |
+| [Rust](https://www.rust-lang.org/tools/install) + `wasm32v1-none` target | stable | contracts |
 | [Stellar CLI](https://developers.stellar.org/docs/tools/cli/install-cli) | latest | contracts, and deploying/funding accounts for api/app/mobile/monitoring to talk to |
 | [Docker](https://docs.docker.com/get-docker/) | any recent | optional — Docker Compose path, and/or a local Soroban network |
 
 Install the Rust/Stellar toolchain:
 
 ```bash
-rustup target add wasm32-unknown-unknown
+rustup target add wasm32v1-none
 cargo install --locked stellar-cli
 ```
 
@@ -133,7 +133,7 @@ doesn't persist across restarts unless you configure a volume.
 
 ```bash
 cd packages/contracts
-make build   # compiles registry + market to WASM (target/wasm32-unknown-unknown/release/)
+make build   # compiles registry + market to WASM (target/wasm32v1-none/release/)
 ```
 
 **Testnet:**
@@ -157,7 +157,7 @@ manually against your `local` network alias — see
 
 Either way, `dispute`, `fee_distribution`, and `insurance_pool` aren't wired into the
 `make deploy-*` targets yet — deploy them individually with
-`stellar contract deploy --wasm target/wasm32-unknown-unknown/release/<crate>.wasm
+`stellar contract deploy --wasm target/wasm32v1-none/release/<crate>.wasm
 --source deployer --network <testnet|local>` followed by `-- initialize --admin
 <address>` (adjust per contract's `initialize` signature — see
 [docs/CONTRACTS.md](./CONTRACTS.md)).

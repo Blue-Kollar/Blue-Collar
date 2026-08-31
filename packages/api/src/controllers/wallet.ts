@@ -2,28 +2,6 @@ import type { Request, Response } from 'express'
 import * as walletService from '../services/wallet.service.js'
 import { catchAsync } from '../utils/catchAsync.js'
 import { AppError, ErrorCode } from '../utils/AppError.js'
-import { z } from 'zod'
-
-// ── Validation schemas ────────────────────────────────────────────────────────
-
-const linkWalletSchema = z.object({
-  publicKey: z.string().min(56).max(56),
-})
-
-const buildTxSchema = z.object({
-  sourcePublicKey: z.string().min(1),
-  destinationPublicKey: z.string().min(1),
-  amount: z.string().min(1),
-  memo: z.string().optional(),
-})
-
-const broadcastSchema = z.object({
-  signedXdr: z.string().min(1),
-})
-
-const fundTestnetSchema = z.object({
-  publicKey: z.string().min(1),
-})
 
 // ── Service type ──────────────────────────────────────────────────────────────
 
@@ -63,17 +41,15 @@ export function createWalletController(service: WalletService = walletService) {
     /**
      * POST /api/wallet/link
      * Link a Stellar wallet to the authenticated user.
+     * Validation is handled by the validate middleware upstream.
      */
     linkWallet: catchAsync(async (req: Request, res: Response) => {
       const userId = req.user?.id
       if (!userId) {
         throw new AppError('Unauthorized', 401, true, ErrorCode.UNAUTHORIZED)
       }
-      const parsed = linkWalletSchema.safeParse(req.body)
-      if (!parsed.success) {
-        throw new AppError('Invalid public key', 400, true, ErrorCode.VALIDATION_ERROR)
-      }
-      const account = await service.linkStellarAccount(userId, parsed.data.publicKey)
+      const { publicKey } = req.body
+      const account = await service.linkStellarAccount(userId, publicKey)
       res.status(201).json({
         status: 'success',
         code: 201,
@@ -85,13 +61,10 @@ export function createWalletController(service: WalletService = walletService) {
     /**
      * POST /api/wallet/build-tx
      * Build an unsigned transaction XDR for tip/escrow.
+     * Validation is handled by the validate middleware upstream.
      */
     buildTransaction: catchAsync(async (req: Request, res: Response) => {
-      const parsed = buildTxSchema.safeParse(req.body)
-      if (!parsed.success) {
-        throw new AppError('Missing required fields', 400, true, ErrorCode.VALIDATION_ERROR)
-      }
-      const { sourcePublicKey, destinationPublicKey, amount, memo } = parsed.data
+      const { sourcePublicKey, destinationPublicKey, amount, memo } = req.body
       const tx = await service.buildUnsignedTx(sourcePublicKey, destinationPublicKey, amount, memo)
       res.json({ status: 'success', code: 200, data: tx })
     }),
@@ -99,13 +72,11 @@ export function createWalletController(service: WalletService = walletService) {
     /**
      * POST /api/wallet/broadcast
      * Broadcast a signed transaction to the Stellar network.
+     * Validation is handled by the validate middleware upstream.
      */
     broadcastTx: catchAsync(async (req: Request, res: Response) => {
-      const parsed = broadcastSchema.safeParse(req.body)
-      if (!parsed.success) {
-        throw new AppError('signedXdr is required', 400, true, ErrorCode.VALIDATION_ERROR)
-      }
-      const result = await service.broadcastTransaction(parsed.data.signedXdr)
+      const { signedXdr } = req.body
+      const result = await service.broadcastTransaction(signedXdr)
       res.json({ status: 'success', code: 200, data: result })
     }),
 
@@ -122,13 +93,11 @@ export function createWalletController(service: WalletService = walletService) {
     /**
      * POST /api/wallet/testnet-fund
      * Fund a testnet account via friendbot.
+     * Validation is handled by the validate middleware upstream.
      */
     fundTestnet: catchAsync(async (req: Request, res: Response) => {
-      const parsed = fundTestnetSchema.safeParse(req.body)
-      if (!parsed.success) {
-        throw new AppError('publicKey is required', 400, true, ErrorCode.VALIDATION_ERROR)
-      }
-      const result = await service.fundTestnetAccount(parsed.data.publicKey)
+      const { publicKey } = req.body
+      const result = await service.fundTestnetAccount(publicKey)
       res.json({ status: 'success', code: 200, data: result })
     }),
 

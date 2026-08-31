@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { AppError } from './AppError.js'
+import { AppError } from '../utils/AppError.js'
 import * as workerService from './worker.service.js'
 
 // Mock the database

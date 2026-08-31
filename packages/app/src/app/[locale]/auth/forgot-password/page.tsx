@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, ArrowLeft, CheckCircle2 } from "lucide-react";
 import { forgotPasswordSchema, type ForgotPasswordInput, authApi } from "@/lib/auth";
 import FormField from "@/components/FormField";
+import FormError from "@/components/FormError";
 import { cn } from "@/lib/utils";
 
 export default function ForgotPasswordPage() {
@@ -62,9 +63,7 @@ export default function ForgotPasswordPage() {
 
             <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4" noValidate>
               {apiError && (
-                <div className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">
-                  {apiError}
-                </div>
+                <FormError message={apiError} />
               )}
 
               <FormField label="Email" id="email" error={errors.email?.message}>

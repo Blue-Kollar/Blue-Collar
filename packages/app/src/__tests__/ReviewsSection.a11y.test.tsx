@@ -13,6 +13,7 @@ import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import axe from 'axe-core'
 import React from 'react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
 
@@ -74,15 +75,26 @@ const DISTRIBUTION = [
   { rating: 1, count: 0, percentage: 0 },
 ]
 
+/** Fresh per-test client — a shared one would leak cached filter results across tests. */
+function newTestQueryClient() {
+  return new QueryClient({ defaultOptions: { queries: { retry: false } } })
+}
+
+function withQueryClient(children: React.ReactNode) {
+  return <QueryClientProvider client={newTestQueryClient()}>{children}</QueryClientProvider>
+}
+
 function renderPanel(reviews: Review[] = [makeReview(1), makeReview(2, 3)]) {
   return render(
-    <ReviewsSection
-      workerId="w1"
-      initialReviews={reviews}
-      reviewCount={reviews.length}
-      averageRating={4.2}
-      distribution={DISTRIBUTION as any}
-    />,
+    withQueryClient(
+      <ReviewsSection
+        workerId="w1"
+        initialReviews={reviews}
+        reviewCount={reviews.length}
+        averageRating={4.2}
+        distribution={DISTRIBUTION as any}
+      />,
+    ),
   )
 }
 
@@ -145,13 +157,15 @@ describe('ReviewsSection — axe (WCAG 2.1 AA)', () => {
 
   it('has no violations in the empty state', async () => {
     const { container } = render(
-      <ReviewsSection
-        workerId="w1"
-        initialReviews={[]}
-        reviewCount={0}
-        averageRating={null}
-        distribution={[] as any}
-      />,
+      withQueryClient(
+        <ReviewsSection
+          workerId="w1"
+          initialReviews={[]}
+          reviewCount={0}
+          averageRating={null}
+          distribution={[] as any}
+        />,
+      ),
     )
     const violations = await runAxe(container)
     expect(violations, formatViolations(violations)).toHaveLength(0)
@@ -253,13 +267,15 @@ describe('ReviewsSection — ARIA roles and labels', () => {
 
   it('provides the #review-form target that the empty-state CTA links to', () => {
     const { container } = render(
-      <ReviewsSection
-        workerId="w1"
-        initialReviews={[]}
-        reviewCount={0}
-        averageRating={null}
-        distribution={[] as any}
-      />,
+      withQueryClient(
+        <ReviewsSection
+          workerId="w1"
+          initialReviews={[]}
+          reviewCount={0}
+          averageRating={null}
+          distribution={[] as any}
+        />,
+      ),
     )
     const cta = screen.getByRole('link', { name: /Write a Review/i })
     expect(cta).toHaveAttribute('href', '#review-form')
@@ -473,10 +489,9 @@ describe('ReviewsSection — live announcements', () => {
 
     expect(await screen.findByRole('status')).toHaveTextContent('Loading reviews…')
 
-    // Settle the request so the component's state update happens inside act().
-    await act(async () => {
-      resolve({ data: [] })
-    })
-    expect(screen.queryByRole('status')).not.toBeInTheDocument()
+    // Settle the request; react-query notifies observers a tick after the
+    // promise resolves, so wait rather than asserting immediately.
+    resolve({ data: [] })
+    await waitFor(() => expect(screen.queryByRole('status')).not.toBeInTheDocument())
   })
 })

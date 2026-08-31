@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import Link from "next/link";
@@ -10,8 +10,6 @@ import {
   Eye,
   MessageSquare,
   Star,
-  TrendingUp,
-  TrendingDown,
   Download,
   DollarSign,
   Shield,
@@ -21,6 +19,7 @@ import {
   Search,
   ExternalLink,
 } from "lucide-react";
+import { MetricCard } from "@/components/Dashboard";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/useToast";
 import { formatDate } from "@/lib/utils";
@@ -147,25 +146,25 @@ export default function AdminDashboard() {
 
       {/* Overview Cards */}
       <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <StatCard
+        <MetricCard
           icon={<Briefcase size={20} />}
           label="Total Workers"
           value={data.overview.totalWorkers}
           sub={`${data.overview.activeWorkers} active`}
         />
-        <StatCard
+        <MetricCard
           icon={<Users size={20} />}
           label="Total Users"
           value={data.overview.totalUsers}
           sub={`${data.overview.totalCurators} curators`}
         />
-        <StatCard
+        <MetricCard
           icon={<Eye size={20} />}
           label="Profile Views"
           value={data.engagement.totalViews}
           sub={`${data.engagement.viewsThisMonth.toLocaleString()} this month`}
         />
-        <StatCard
+        <MetricCard
           icon={<DollarSign size={20} />}
           label="Total Tips"
           value={`${data.revenue.totalTips.toLocaleString()} XLM`}
@@ -175,23 +174,23 @@ export default function AdminDashboard() {
 
       {/* Growth Cards */}
       <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <GrowthCard
+        <MetricCard
           label="Workers This Month"
           value={data.growth.workersThisMonth}
-          pct={data.growth.workerGrowthPct}
+          trend={data.growth.workerGrowthPct}
         />
-        <GrowthCard
+        <MetricCard
           label="Users This Month"
           value={data.growth.usersThisMonth}
-          pct={data.growth.userGrowthPct}
+          trend={data.growth.userGrowthPct}
         />
-        <StatCard
+        <MetricCard
           icon={<Star size={20} />}
           label="Reviews"
           value={data.engagement.totalReviews}
           sub={`${data.engagement.reviewsThisMonth} this month`}
         />
-        <StatCard
+        <MetricCard
           icon={<MessageSquare size={20} />}
           label="Contact Requests"
           value={data.engagement.totalContacts}
@@ -265,57 +264,8 @@ export default function AdminDashboard() {
   );
 }
 
-function StatCard({
-  icon,
-  label,
-  value,
-  sub,
-}: {
-  icon: ReactNode;
-  label: string;
-  value: string | number;
-  sub?: string;
-}) {
-  return (
-    <div className="rounded-lg border bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
-      <div className="flex items-center gap-2 text-gray-400 mb-2">
-        {icon}
-        <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{label}</p>
-      </div>
-      <p className="text-3xl font-bold text-gray-900 dark:text-gray-100 mt-1">{typeof value === "number" ? value.toLocaleString() : value}</p>
-      {sub && <p className="text-xs text-gray-400 mt-1">{sub}</p>}
-    </div>
-  );
-}
-
-function GrowthCard({
-  label,
-  value,
-  pct,
-}: {
-  label: string;
-  value: number;
-  pct: number;
-}) {
-  const isPositive = pct >= 0;
-  return (
-    <div className="rounded-lg border bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
-      <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{label}</p>
-      <div className="flex items-end gap-2 mt-2">
-        <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">{value}</p>
-        <span
-          className={`flex items-center gap-0.5 rounded-full px-2 py-0.5 text-xs font-medium ${
-            isPositive ? "bg-green-50 text-green-600" : "bg-red-50 text-red-600"
-          }`}
-        >
-          {isPositive ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
-          {Math.abs(pct)}%
-        </span>
-      </div>
-      <p className="text-xs text-gray-400 mt-1">vs last month</p>
-    </div>
-  );
-}
+// StatCard → use shared MetricCard from @/components/Dashboard
+// GrowthCard → use shared MetricCard with `trend` prop from @/components/Dashboard
 
 function RoleBadge({ role }: { role: string }) {
   const colors: Record<string, string> = {

@@ -10,7 +10,6 @@ import { join } from 'path'
 describe('Route Registration Guard', () => {
   it('should not have orphaned/unmounted route files', () => {
     const routesDir = join(import.meta.dirname, '../routes')
-    const controllersDir = join(import.meta.dirname, '../controllers')
     const appPath = join(import.meta.dirname, '../app.ts')
 
     // Get all route files
@@ -72,12 +71,16 @@ describe('Route Registration Guard', () => {
     const unusedControllers: string[] = []
 
     for (const controllerFile of controllerFiles) {
-      // Skip generic/utility controllers that might be imported elsewhere
+      // Skip generic/utility/sub-controllers that are re-exported via facade controllers
       const isUtilityController = [
         'audit',
         'webhooks',
         'analyticsEvents',
         'response-time',
+        'admin-users.controller',
+        'admin-workers.controller',
+        'admin-audit.controller',
+        'admin-stats.controller',
       ].includes(controllerFile)
 
       if (!isUtilityController) {

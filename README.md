@@ -29,6 +29,7 @@ Many skilled workers lack a platform to help them get noticed. Meanwhile, countl
 - [API Reference](#api-reference)
 - [Smart Contracts](#smart-contracts)
 - [Getting Started](#getting-started)
+- [Local Developer Setup Guide](docs/architecture/setup.md)
 - [Environment Variables](#environment-variables)
 - [Production Deployment](#production-deployment)
 - [Status Page](#status-page)
@@ -301,11 +302,11 @@ For the full contract reference including signatures, storage maps, events, and 
 
 ### Prerequisites
 
-- [Rust](https://rustup.rs/) with `wasm32-unknown-unknown` target
+- [Rust](https://rustup.rs/) with `wasm32v1-none` target
 - [Stellar CLI](https://developers.stellar.org/docs/tools/developer-tools/cli/stellar-cli)
 
 ```bash
-rustup target add wasm32-unknown-unknown
+rustup target add wasm32v1-none
 cargo install --locked stellar-cli
 ```
 
@@ -313,14 +314,14 @@ cargo install --locked stellar-cli
 
 ```bash
 cd packages/contracts
-cargo build --release --target wasm32-unknown-unknown
+cargo build --release --target wasm32v1-none
 ```
 
 ### Deploy to Testnet
 
 ```bash
 stellar contract deploy \
-  --wasm target/wasm32-unknown-unknown/release/bluecollar_registry.wasm \
+  --wasm target/wasm32v1-none/release/bluecollar_registry.wasm \
   --source <your-secret-key> \
   --network testnet
 ```
@@ -333,7 +334,7 @@ To upgrade a deployed contract without redeploying (preserving its contract ID a
 
 ```bash
 stellar contract install \
-  --wasm target/wasm32-unknown-unknown/release/bluecollar_registry.wasm \
+  --wasm target/wasm32v1-none/release/bluecollar_registry.wasm \
   --source <your-secret-key> \
   --network testnet
 # outputs: <new_wasm_hash>
@@ -407,10 +408,10 @@ pnpm docker:down
 
 ## Getting Started
 
-> This section is a quick-start for `api` + `app` only. For a single guide covering
+> This section is a quick-start for `api` + `app` only. For the authoritative guide covering
 > every package — `api`, `app`, `contracts`, `sdk`, `mobile`, `monitoring`, `types` —
-> plus environment variables and local Soroban/Stellar network setup, see
-> [docs/LOCAL_SETUP.md](docs/LOCAL_SETUP.md).
+> plus environment variables, database, and local Soroban/Stellar network setup, see the
+> **[Local Developer Setup Guide](docs/architecture/setup.md)**.
 
 ### Prerequisites
 

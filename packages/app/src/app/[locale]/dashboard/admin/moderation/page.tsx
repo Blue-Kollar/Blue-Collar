@@ -1,80 +1,44 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Search, Star, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/useToast";
+import { useModerationQueue, useModerateReview } from "@/hooks/queries";
 import { formatDate } from "@/lib/utils";
-
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/api";
-const TOKEN_KEY = "bc_token";
-
-interface ModerationReview {
-  id: string;
-  rating: number;
-  comment?: string | null;
-  body?: string | null;
-  flagged: boolean;
-  flagReason?: string | null;
-  status: string;
-  createdAt: string;
-  worker: { id: string; name: string };
-  author: { id: string; firstName: string; lastName: string };
-}
-
-function authHeaders() {
-  const token = typeof window !== "undefined" ? localStorage.getItem(TOKEN_KEY) : null;
-  return token ? { Authorization: `Bearer ${token}` } : {};
-}
 
 export default function AdminModerationPage() {
   const { user } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
-  const [reviews, setReviews] = useState<ModerationReview[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [actionLoading, setActionLoading] = useState<string | null>(null);
 
-  const fetchQueue = useCallback(async () => {
-    setLoading(true);
-    try {
-      const res = await fetch(`${API}/v1/reviews/moderation/queue`, { headers: authHeaders() });
-      if (!res.ok) throw new Error();
-      const json = await res.json();
-      setReviews(json.data);
-    } catch {
-      toast("Failed to load moderation queue", "error");
-    } finally {
-      setLoading(false);
-    }
-  }, [toast]);
+  const queueQuery = useModerationQueue();
+  const reviews = queueQuery.data?.data ?? [];
+  const loading = queueQuery.isLoading;
+
+  const moderateReview = useModerateReview();
+  const actionLoading = moderateReview.isPending ? moderateReview.variables?.reviewId ?? null : null;
 
   useEffect(() => {
     if (user && user.role !== "admin") {
       router.push("/");
-      return;
     }
-    fetchQueue();
-  }, [user, router, fetchQueue]);
+  }, [user, router]);
 
-  const handleModerate = async (reviewId: string, action: "approve" | "reject") => {
-    setActionLoading(reviewId);
-    try {
-      const res = await fetch(`${API}/v1/reviews/${reviewId}/moderate`, {
-        method: "PATCH",
-        headers: { ...authHeaders(), "Content-Type": "application/json" },
-        body: JSON.stringify({ action }),
-      });
-      if (!res.ok) throw new Error();
-      toast(`Review ${action}d`, "success");
-      setReviews((prev) => prev.filter((r) => r.id !== reviewId));
-    } catch {
-      toast("Failed to moderate review", "error");
-    } finally {
-      setActionLoading(null);
-    }
+  useEffect(() => {
+    if (queueQuery.isError) toast("Failed to load moderation queue", "error");
+  }, [queueQuery.isError, toast]);
+
+  const handleModerate = (reviewId: string, action: "approve" | "reject") => {
+    moderateReview.mutate(
+      { reviewId, action },
+      {
+        onSuccess: () => toast(`Review ${action}d`, "success"),
+        onError: () => toast("Failed to moderate review", "error"),
+      }
+    );
   };
 
   if (!user || user.role !== "admin") return null;

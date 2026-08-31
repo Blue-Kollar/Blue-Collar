@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Heart } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { toggleBookmark } from "@/lib/api";
+import { useToggleBookmark } from "@/hooks/queries";
 import { cn } from "@/lib/utils";
 
 interface BookmarkButtonProps {
@@ -14,7 +14,7 @@ interface BookmarkButtonProps {
 
 /**
  * Heart icon button that toggles a worker bookmark for the authenticated user.
- * Optimistically updates UI on click.
+ * Optimistically updates UI on click via the shared useToggleBookmark hook.
  */
 export default function BookmarkButton({
   workerId,
@@ -23,21 +23,19 @@ export default function BookmarkButton({
 }: BookmarkButtonProps) {
   const t = useTranslations("workerCard");
   const [bookmarked, setBookmarked] = useState(initialBookmarked);
-  const [loading, setLoading] = useState(false);
+  const toggleBookmark = useToggleBookmark();
 
   const handleClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (loading) return;
+    if (toggleBookmark.isPending) return;
+    // Optimistic update
     setBookmarked((prev) => !prev);
-    setLoading(true);
     try {
-      const res = await toggleBookmark(workerId);
+      const res = await toggleBookmark.mutateAsync(workerId);
       setBookmarked(res.data.bookmarked);
     } catch {
       setBookmarked((prev) => !prev); // revert on error
-    } finally {
-      setLoading(false);
     }
   };
 

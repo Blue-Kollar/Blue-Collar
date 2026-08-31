@@ -54,6 +54,10 @@ For the full public interface of every contract — including `market`, `dispute
 - **[packages/contracts/README.md](../contracts/README.md)** — build/deploy/upgrade
   instructions for the contracts themselves.
 
+## Architecture & Package Boundaries
+
+- **[ADR 0001: Monorepo Package Boundaries](../../docs/adr/0001-monorepo-package-boundaries.md)** — defines why `packages/sdk` is separated from `packages/types`, allowed dependency directions, and Stellar client responsibilities.
+
 ## Testing
 
 ```bash

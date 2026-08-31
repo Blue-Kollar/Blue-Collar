@@ -74,5 +74,9 @@ The app implements comprehensive offline support (Issue #840):
 - #839: [Mobile] Push Notifications (FCM/APNs)
 - #840: [Mobile] Offline Support & Local Caching ✅
 
+## Architecture & Package Boundaries
+
+- **[ADR 0001: Monorepo Package Boundaries](../../docs/adr/0001-monorepo-package-boundaries.md)** — defines monorepo package boundaries and import rules.
+
 ## License
 MIT

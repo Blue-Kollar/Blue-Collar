@@ -1,58 +1,38 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ClipboardList, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
+import { useAuditLogs } from "@/hooks/queries";
 import { formatDate } from "@/lib/utils";
-import type { AuditLogEntry } from "@/types";
-
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/api";
-const TOKEN_KEY = "bc_token";
-
-function authHeaders() {
-  const token = typeof window !== "undefined" ? localStorage.getItem(TOKEN_KEY) : null;
-  return token ? { Authorization: `Bearer ${token}` } : {};
-}
 
 export default function AdminAuditLogPage() {
   const { user } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
-  const [logs, setLogs] = useState<AuditLogEntry[]>([]);
-  const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
-  const [meta, setMeta] = useState<{ page: number; pages: number } | null>(null);
   const [filterAction, setFilterAction] = useState("");
 
-  const fetchLogs = useCallback(async (p: number) => {
-    setLoading(true);
-    try {
-      const params = new URLSearchParams({ page: String(p), limit: "50" });
-      if (filterAction) params.set("action", filterAction);
-      const res = await fetch(`${API}/v1/audit?${params.toString()}`, {
-        headers: authHeaders(),
-      });
-      if (!res.ok) throw new Error();
-      const json = await res.json();
-      setLogs(json.data);
-      setMeta(json.meta ?? null);
-    } catch {
-      toast("Failed to load audit logs", "error");
-    } finally {
-      setLoading(false);
-    }
-  }, [toast, filterAction]);
+  const params: Record<string, string> = { page: String(page), limit: "50" };
+  if (filterAction) params.action = filterAction;
+
+  const logsQuery = useAuditLogs(params);
+  const logs = logsQuery.data?.data ?? [];
+  const loading = logsQuery.isLoading;
+  const meta = logsQuery.data?.meta ?? null;
 
   useEffect(() => {
     if (user && user.role !== "admin") {
       router.push("/");
-      return;
     }
-    fetchLogs(page);
-  }, [user, router, page, fetchLogs]);
+  }, [user, router]);
+
+  useEffect(() => {
+    if (logsQuery.isError) toast("Failed to load audit logs", "error");
+  }, [logsQuery.isError, toast]);
 
   if (!user || user.role !== "admin") return null;
 

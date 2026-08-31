@@ -1,17 +1,17 @@
 # Load Testing Infrastructure Guide
 
-This guide covers setting up load testing with k6 to ensure application scalability and identify performance bottlenecks.
+This guide covers setting up load testing with k6 to ensure application scalability and identify performance bottlenecks for the BlueCollar API. The implementation lives in `packages/api/load/` with CI workflows in `.github/workflows/`.
 
 ## Architecture
 
 ```
-Load Test Scenarios (k6)
-      ↓
-  API Endpoints
-      ↓
-  Performance Metrics
-      ↓
-  Results Analysis
+k6 Load Scripts (packages/api/load/)
+        ↓
+API Endpoints (/api/*)
+        ↓
+Performance Metrics (custom Trends + built-in)
+        ↓
+CI Results (GitHub Artifacts + Step Summary)
 ```
 
 ## 1. k6 Installation
@@ -29,282 +29,92 @@ sudo apt-get install k6
 docker run -i grafana/k6 run - < script.js
 ```
 
-### 1.2 Add to package.json
+### 1.2 k6 Scripts
 
-```json
-{
-  "devDependencies": {
-    "k6": "^0.47.0"
-  }
-}
-```
+The following k6 scripts are maintained under `packages/api/load/`:
+
+| Script | Purpose | Endpoints |
+|--------|---------|-----------|
+| `search.js` | Search & discovery (read-heavy) | `GET /api/workers`, `GET /api/workers/:id`, `GET /api/categories`, `GET /api/workers?category=...` |
+| `auth.js` | Authentication flows | `POST /api/auth/login` |
+| `workers.js` | Worker CRUD (curator-gated writes) | `POST /api/workers`, update via method-override, `DELETE /api/workers/:id` |
 
 ## 2. Load Testing Scenarios
 
-### 2.1 Basic API Load Test
+### 2.1 Search & Discovery (`packages/api/load/search.js`)
 
-Create `deploy/load-tests/basic-load-test.js`:
-
-```javascript
-import http from 'k6/http';
-import { check, sleep } from 'k6';
-
-export const options = {
-  stages: [
-    { duration: '2m', target: 100 },  // Ramp up to 100 users
-    { duration: '5m', target: 100 },  // Stay at 100 users
-    { duration: '2m', target: 200 },  // Ramp up to 200 users
-    { duration: '5m', target: 200 },  // Stay at 200 users
-    { duration: '2m', target: 0 },    // Ramp down to 0 users
-  ],
-  thresholds: {
-    http_req_duration: ['p(95)<500', 'p(99)<1000'],
-    http_req_failed: ['rate<0.1'],
-  },
-};
-
-const BASE_URL = __ENV.BASE_URL || 'http://localhost:3000/api';
-
-export default function () {
-  // Test worker listing
-  let res = http.get(`${BASE_URL}/workers`);
-  check(res, {
-    'GET /workers status is 200': (r) => r.status === 200,
-    'GET /workers response time < 500ms': (r) => r.timings.duration < 500,
-  });
-
-  sleep(1);
-
-  // Test category listing
-  res = http.get(`${BASE_URL}/categories`);
-  check(res, {
-    'GET /categories status is 200': (r) => r.status === 200,
-    'GET /categories response time < 500ms': (r) => r.timings.duration < 500,
-  });
-
-  sleep(1);
-}
-```
-
-### 2.2 Authentication Load Test
-
-Create `deploy/load-tests/auth-load-test.js`:
+Covers the hot read paths: worker listing, single-worker lookup, categories, and filtered search.
 
 ```javascript
-import http from 'k6/http';
-import { check, sleep } from 'k6';
-
-export const options = {
-  stages: [
-    { duration: '1m', target: 50 },
-    { duration: '3m', target: 50 },
-    { duration: '1m', target: 0 },
-  ],
-  thresholds: {
-    http_req_duration: ['p(95)<1000'],
-    http_req_failed: ['rate<0.05'],
-  },
-};
-
-const BASE_URL = __ENV.BASE_URL || 'http://localhost:3000/api';
-
-export default function () {
-  // Login
-  const loginRes = http.post(`${BASE_URL}/auth/login`, {
-    email: `user${Math.random()}@example.com`,
-    password: 'password123',
-  });
-
-  check(loginRes, {
-    'Login status is 200 or 401': (r) => r.status === 200 || r.status === 401,
-  });
-
-  sleep(1);
-}
+k6 run --env SCENARIO=load packages/api/load/search.js
 ```
 
-### 2.3 Worker CRUD Load Test
+**Available scenarios**: `smoke` (1 VU, 1 min), `load` (0→100 VUs), `stress` (0→300 VUs), `soak` (50 VUs, 30 min)
 
-Create `deploy/load-tests/worker-crud-load-test.js`:
+**SLOs**:
+- `p(95) < 500ms` for worker list
+- `p(95) < 300ms` for categories
+- `p(95) < 400ms` for single worker
+- `p(99) < 1500ms` globally
+- `error rate < 2%`
 
-```javascript
-import http from 'k6/http';
-import { check, sleep } from 'k6';
+### 2.2 Authentication (`packages/api/load/auth.js`)
 
-export const options = {
-  stages: [
-    { duration: '1m', target: 30 },
-    { duration: '3m', target: 30 },
-    { duration: '1m', target: 0 },
-  ],
-  thresholds: {
-    http_req_duration: ['p(95)<1000', 'p(99)<2000'],
-    http_req_failed: ['rate<0.1'],
-  },
-};
+Tests login endpoint performance using invalid credentials (non-destructive).
 
-const BASE_URL = __ENV.BASE_URL || 'http://localhost:3000/api';
-const TOKEN = __ENV.AUTH_TOKEN || '';
-
-export default function () {
-  const headers = {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${TOKEN}`,
-  };
-
-  // Create worker
-  const createRes = http.post(
-    `${BASE_URL}/workers`,
-    JSON.stringify({
-      name: `Worker ${Math.random()}`,
-      category: 'plumber',
-      location: 'New York',
-      bio: 'Experienced plumber',
-    }),
-    { headers }
-  );
-
-  check(createRes, {
-    'Create worker status is 201': (r) => r.status === 201,
-  });
-
-  if (createRes.status === 201) {
-    const workerId = createRes.json('id');
-
-    sleep(1);
-
-    // Get worker
-    const getRes = http.get(`${BASE_URL}/workers/${workerId}`);
-    check(getRes, {
-      'Get worker status is 200': (r) => r.status === 200,
-    });
-
-    sleep(1);
-
-    // Update worker
-    const updateRes = http.post(
-      `${BASE_URL}/workers/${workerId}`,
-      JSON.stringify({
-        bio: 'Updated bio',
-      }),
-      {
-        headers: {
-          ...headers,
-          'X-HTTP-Method': 'PUT',
-        },
-      }
-    );
-
-    check(updateRes, {
-      'Update worker status is 200': (r) => r.status === 200,
-    });
-
-    sleep(1);
-
-    // Delete worker
-    const deleteRes = http.del(`${BASE_URL}/workers/${workerId}`, { headers });
-    check(deleteRes, {
-      'Delete worker status is 204': (r) => r.status === 204,
-    });
-  }
-
-  sleep(2);
-}
+```bash
+k6 run packages/api/load/auth.js
+k6 run --env BASE_URL=https://staging.bluecollar.app/api packages/api/load/auth.js
 ```
 
-### 2.4 Spike Test
+**SLOs**:
+- `p(95) < 800ms` for login
+- `error rate < 5%`
 
-Create `deploy/load-tests/spike-test.js`:
+### 2.3 Worker CRUD (`packages/api/load/workers.js`)
 
-```javascript
-import http from 'k6/http';
-import { check, sleep } from 'k6';
+Tests curator-gated write paths with proper authentication and cleanup.
 
-export const options = {
-  stages: [
-    { duration: '10s', target: 100 },
-    { duration: '1m', target: 100 },
-    { duration: '10s', target: 1000 }, // Spike
-    { duration: '1m', target: 1000 },
-    { duration: '10s', target: 100 },
-    { duration: '1m', target: 100 },
-    { duration: '10s', target: 0 },
-  ],
-  thresholds: {
-    http_req_duration: ['p(95)<1000', 'p(99)<2000'],
-    http_req_failed: ['rate<0.1'],
-  },
-};
-
-const BASE_URL = __ENV.BASE_URL || 'http://localhost:3000/api';
-
-export default function () {
-  const res = http.get(`${BASE_URL}/workers`);
-  check(res, {
-    'status is 200': (r) => r.status === 200,
-  });
-  sleep(1);
-}
+```bash
+k6 run --env AUTH_TOKEN=<jwt> packages/api/load/workers.js
 ```
 
-### 2.5 Stress Test
+**SLOs**:
+- `p(95) < 1000ms` for writes
+- `p(99) < 2000ms` globally
+- `error rate < 5%`
 
-Create `deploy/load-tests/stress-test.js`:
-
-```javascript
-import http from 'k6/http';
-import { check, sleep } from 'k6';
-
-export const options = {
-  stages: [
-    { duration: '2m', target: 100 },
-    { duration: '5m', target: 200 },
-    { duration: '5m', target: 300 },
-    { duration: '5m', target: 400 },
-    { duration: '5m', target: 500 },
-    { duration: '5m', target: 0 },
-  ],
-  thresholds: {
-    http_req_duration: ['p(95)<2000'],
-    http_req_failed: ['rate<0.2'],
-  },
-};
-
-const BASE_URL = __ENV.BASE_URL || 'http://localhost:3000/api';
-
-export default function () {
-  const res = http.get(`${BASE_URL}/workers`);
-  check(res, {
-    'status is 200': (r) => r.status === 200,
-  });
-  sleep(0.5);
-}
-```
+**Note**: Falls back to read-only mode (GET /workers) when no `AUTH_TOKEN` is provided.
 
 ## 3. Running Load Tests
 
-### 3.1 Basic Load Test
+### 3.1 Smoke Test (PR validation)
 
 ```bash
-k6 run deploy/load-tests/basic-load-test.js
+k6 run --env SCENARIO=smoke packages/api/load/search.js
+k6 run packages/api/load/auth.js
 ```
 
-### 3.2 With Custom Base URL
+### 3.2 Nightly Load Test
 
 ```bash
-BASE_URL=https://api.example.com k6 run deploy/load-tests/basic-load-test.js
+k6 run --env SCENARIO=load packages/api/load/search.js
+k6 run packages/api/load/auth.js
+k6 run --env AUTH_TOKEN=<jwt> packages/api/load/workers.js
 ```
 
-### 3.3 With Authentication Token
+### 3.3 With Custom Base URL
 
 ```bash
-AUTH_TOKEN=your_jwt_token k6 run deploy/load-tests/worker-crud-load-test.js
+BASE_URL=https://staging.bluecollar.app/api k6 run packages/api/load/search.js
 ```
 
 ### 3.4 Docker Execution
 
 ```bash
-docker run -i grafana/k6 run - < deploy/load-tests/basic-load-test.js
+docker run -i grafana/k6 run \
+  --env BASE_URL=http://localhost:3000/api \
+  - < packages/api/load/search.js
 ```
 
 ## 4. Load Test Results Analysis
@@ -335,40 +145,45 @@ Common issues identified:
 
 ## 5. Continuous Load Testing
 
-### 5.1 GitHub Actions Integration
-
-Create `.github/workflows/load-test.yml`:
+### 5.1 Nightly Load Tests (`.github/workflows/load.yml`)
 
 ```yaml
 name: Load Testing
 
 on:
+  pull_request:
+    paths:
+      - "packages/api/load/**"
+      - "packages/api/src/**"
   schedule:
     - cron: '0 2 * * *'  # Daily at 2 AM UTC
   workflow_dispatch:
-
-jobs:
-  load-test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      
-      - name: Run load tests
-        run: |
-          docker run -i grafana/k6 run - < deploy/load-tests/basic-load-test.js \
-            -e BASE_URL=${{ secrets.API_URL }}
-      
-      - name: Upload results
-        if: always()
-        uses: actions/upload-artifact@v3
-        with:
-          name: load-test-results
-          path: results/
+    inputs:
+      scenario:  # smoke | load | stress | soak
+      base_url:  # Custom API endpoint
 ```
 
-### 5.2 Docker Compose Integration
+**Jobs**:
+- **Smoke Test (PR Only)**: Fast (`smoke` profile) runs on every PR — validates thresholds
+- **Nightly Load Test**: Full suite (search + auth + workers) with configurable scenarios
 
-Add to `docker-compose.prod.example.yml`:
+### 5.2 Performance Testing (`.github/workflows/performance.yml`)
+
+```yaml
+name: Performance Testing
+
+on:
+  pull_request:
+    paths:
+      - "packages/api/load/**"
+      - "packages/api/src/**"
+```
+
+**Job**: `performance` — runs on every PR with a shortened `load` profile (~5 min) to catch regressions early.
+
+### 5.3 Docker Compose Integration
+
+Add to `docker-compose.yml`:
 
 ```yaml
 load-tester:
@@ -379,8 +194,8 @@ load-tester:
   environment:
     BASE_URL: http://api:3000/api
   volumes:
-    - ./deploy/load-tests:/scripts:ro
-  command: run /scripts/basic-load-test.js
+    - ./packages/api/load:/scripts:ro
+  command: run /scripts/search.js
   networks:
     - internal
 ```

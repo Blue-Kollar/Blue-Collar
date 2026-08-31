@@ -11,9 +11,10 @@
 // vi / jest compatibility: the consuming test file provides the `vi` global
 // when running under Vitest, or `jest` when running under Jest.
 // We expose thin wrappers that defer to whichever mock runtime is available.
-function _mockFn(): (...args: unknown[]) => unknown {
-  if (typeof vi !== 'undefined') return vi.fn()
-  if (typeof jest !== 'undefined') return jest.fn()
+function _mockFn(): any {
+  const g = globalThis as Record<string, unknown>
+  if (typeof g.vi !== 'undefined') return (g.vi as { fn: () => unknown }).fn()
+  if (typeof g.jest !== 'undefined') return (g.jest as { fn: () => unknown }).fn()
   // Fallback no-op (shouldn't be reached in a test environment)
   return () => undefined
 }

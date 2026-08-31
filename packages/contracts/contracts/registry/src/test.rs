@@ -24,9 +24,7 @@ extern crate std;
 
 use super::*;
 use soroban_sdk::{
-    testutils::Address as _,
-    token::StellarAssetClient,
-    Address, BytesN, Env, String, Symbol, Vec,
+    testutils::Address as _, token::StellarAssetClient, Address, BytesN, Env, String, Symbol, Vec,
 };
 
 // ===========================================================================
@@ -53,7 +51,10 @@ mod reputation_system {
         let w = f.client().get_worker(&id).unwrap();
         assert_eq!(w.avg_rating, 8_000);
         assert_eq!(w.review_count, 1);
-        assert!(w.reputation > 0, "reputation should be non-zero after review");
+        assert!(
+            w.reputation > 0,
+            "reputation should be non-zero after review"
+        );
     }
 
     #[test]
@@ -73,12 +74,14 @@ mod reputation_system {
     }
 
     #[test]
-    #[should_panic(expected = "Rating out of range")]
     fn submit_review_out_of_range_panics() {
         let f = setup();
         let id = f.register("worker1");
         let reviewer = Address::generate(&f.env);
-        f.client().submit_review(&reviewer, &id, &10_001);
+        assert_eq!(
+            f.client().try_submit_review(&reviewer, &id, &10_001),
+            Err(Ok(ContractError::RatingOutOfRange))
+        );
     }
 
     #[test]
@@ -109,12 +112,14 @@ mod reputation_system {
     }
 
     #[test]
-    #[should_panic(expected = "Missing role")]
     fn record_job_completion_requires_rep_mgr() {
         let f = setup();
         let id = f.register("worker1");
         let stranger = Address::generate(&f.env);
-        f.client().record_job_completion(&stranger, &id);
+        assert_eq!(
+            f.client().try_record_job_completion(&stranger, &id),
+            Err(Ok(ContractError::MissingRole))
+        );
     }
 
     #[test]
@@ -143,20 +148,24 @@ mod reputation_system {
     }
 
     #[test]
-    #[should_panic(expected = "Slash amount out of range")]
     fn slash_reputation_out_of_range_panics() {
         let f = setup();
         let id = f.register("worker1");
-        f.client().slash_reputation(&f.admin, &id, &10_001);
+        assert_eq!(
+            f.client().try_slash_reputation(&f.admin, &id, &10_001),
+            Err(Ok(ContractError::ScoreOutOfRange))
+        );
     }
 
     #[test]
-    #[should_panic(expected = "Missing role")]
     fn slash_requires_rep_mgr() {
         let f = setup();
         let id = f.register("worker1");
         let stranger = Address::generate(&f.env);
-        f.client().slash_reputation(&stranger, &id, &1_000);
+        assert_eq!(
+            f.client().try_slash_reputation(&stranger, &id, &1_000),
+            Err(Ok(ContractError::MissingRole))
+        );
     }
 
     #[test]
@@ -213,7 +222,9 @@ mod reputation_system {
         assert!(w.avg_rating < 3_000);
         // reputation should have been halved from the auto-slash
         let history = f.client().get_reputation_history(&id);
-        let has_slash = history.iter().any(|e| e.reason == Symbol::new(&f.env, "slash"));
+        let has_slash = history
+            .iter()
+            .any(|e| e.reason == Symbol::new(&f.env, "slash"));
         assert!(has_slash, "expected a slash event in history");
     }
 
@@ -259,7 +270,13 @@ impl UpgradeFixture {
         client.grant_role(&admin, &Symbol::new(&env, ROLE_REP_MGR), &admin);
         client.grant_role(&admin, &Symbol::new(&env, ROLE_UPGRADER), &admin);
 
-        UpgradeFixture { env, contract, admin, curator, owner }
+        UpgradeFixture {
+            env,
+            contract,
+            admin,
+            curator,
+            owner,
+        }
     }
 
     fn client(&self) -> RegistryContractClient {
@@ -329,20 +346,24 @@ mod state_migration {
     /// Replaying a migration for an already-applied version is rejected, so a
     /// migration can never run twice against the same schema.
     #[test]
-    #[should_panic(expected = "Wrong schema version")]
     fn migration_is_not_replayable() {
         let f = UpgradeFixture::new();
         f.client().migrate(&f.admin, &1u32);
-        f.client().migrate(&f.admin, &1u32);
+        assert_eq!(
+            f.client().try_migrate(&f.admin, &1u32),
+            Err(Ok(ContractError::WrongSchemaVersion))
+        );
     }
 
     /// Migrating with the wrong `expected_version` is rejected (no out-of-order
     /// migrations).
     #[test]
-    #[should_panic(expected = "Wrong schema version")]
     fn migration_rejects_out_of_order_version() {
         let f = UpgradeFixture::new();
-        f.client().migrate(&f.admin, &5u32);
+        assert_eq!(
+            f.client().try_migrate(&f.admin, &5u32),
+            Err(Ok(ContractError::WrongSchemaVersion))
+        );
     }
 
     /// Data registered before a migration is fully intact across several
@@ -404,8 +425,9 @@ mod backward_compat {
         let hash = BytesN::from_array(&f.env, &[1u8; 32]);
 
         // migrate(admin, expected_version)
-        let _migrate: fn(&RegistryContractClient, &Address, &u32) =
-            |c, a, v| { c.migrate(a, v); };
+        let _migrate: fn(&RegistryContractClient, &Address, &u32) = |c, a, v| {
+            c.migrate(a, v);
+        };
         // propose_upgrade(admin, wasm_hash) / get_pending_upgrade()
         f.client().propose_upgrade(&f.admin, &hash);
         let pending = f.client().get_pending_upgrade().unwrap();
@@ -479,7 +501,6 @@ mod security_regression {
 
     /// `upgrade` must reject a stored admin that does not hold ROLE_UPGRADER.
     #[test]
-    #[should_panic(expected = "Missing role")]
     fn upgrade_requires_upgrader_role() {
         // Bootstrap a contract whose admin was never granted ROLE_UPGRADER.
         let env = Env::default();
@@ -490,21 +511,25 @@ mod security_regression {
         client.initialize(&admin);
 
         let hash = BytesN::from_array(&env, &[1u8; 32]);
-        client.upgrade(&hash);
+        assert_eq!(
+            client.try_upgrade(&hash),
+            Err(Ok(ContractError::MissingRole))
+        );
     }
 
     /// `migrate` must reject callers without ROLE_ADMIN.
     #[test]
-    #[should_panic(expected = "Missing role")]
     fn migrate_requires_admin() {
         let f = UpgradeFixture::new();
         let stranger = Address::generate(&f.env);
-        f.client().migrate(&stranger, &1u32);
+        assert_eq!(
+            f.client().try_migrate(&stranger, &1u32),
+            Err(Ok(ContractError::MissingRole))
+        );
     }
 
     /// `propose_upgrade` must reject callers without ROLE_UPGRADER.
     #[test]
-    #[should_panic(expected = "Missing role")]
     fn propose_upgrade_requires_upgrader_role() {
         let env = Env::default();
         env.mock_all_auths();
@@ -515,27 +540,34 @@ mod security_regression {
         client.initialize(&admin);
 
         let hash = BytesN::from_array(&env, &[1u8; 32]);
-        client.propose_upgrade(&stranger, &hash);
+        assert_eq!(
+            client.try_propose_upgrade(&stranger, &hash),
+            Err(Ok(ContractError::MissingRole))
+        );
     }
 
     /// A proposed upgrade cannot be executed before its timelock expires.
     #[test]
-    #[should_panic(expected = "Timelock not expired")]
     fn timelocked_upgrade_cannot_execute_early() {
         let f = UpgradeFixture::new();
         let hash = BytesN::from_array(&f.env, &[9u8; 32]);
         f.client().propose_upgrade(&f.admin, &hash);
-        f.client().execute_upgrade();
+        assert_eq!(
+            f.client().try_execute_upgrade(),
+            Err(Ok(ContractError::TimelockNotExpired))
+        );
     }
 
     /// Only one upgrade may be pending at a time (no proposal overwrite).
     #[test]
-    #[should_panic(expected = "Upgrade already pending")]
     fn cannot_double_propose_upgrade() {
         let f = UpgradeFixture::new();
         let hash = BytesN::from_array(&f.env, &[9u8; 32]);
         f.client().propose_upgrade(&f.admin, &hash);
-        f.client().propose_upgrade(&f.admin, &hash);
+        assert_eq!(
+            f.client().try_propose_upgrade(&f.admin, &hash),
+            Err(Ok(ContractError::UpgradeAlreadyPending))
+        );
     }
 }
 
@@ -592,22 +624,26 @@ mod verification_levels {
     }
 
     #[test]
-    #[should_panic(expected = "Missing role")]
     fn set_verification_level_requires_curator_mgr() {
         let f = setup();
         let id = f.register("w1");
         let stranger = Address::generate(&f.env);
-        f.client()
-            .set_verification_level(&stranger, &id, &VerificationLevel::Basic);
+        assert_eq!(
+            f.client()
+                .try_set_verification_level(&stranger, &id, &VerificationLevel::Basic),
+            Err(Ok(ContractError::MissingRole))
+        );
     }
 
     #[test]
-    #[should_panic(expected = "Worker not found")]
     fn set_verification_level_unknown_worker_panics() {
         let f = setup();
         let bad_id = Symbol::new(&f.env, "nobody");
-        f.client()
-            .set_verification_level(&f.admin, &bad_id, &VerificationLevel::Basic);
+        assert_eq!(
+            f.client()
+                .try_set_verification_level(&f.admin, &bad_id, &VerificationLevel::Basic),
+            Err(Ok(ContractError::WorkerNotFound))
+        );
     }
 
     #[test]
@@ -651,16 +687,14 @@ mod verification_levels {
     }
 
     #[test]
-    #[should_panic(expected = "Missing role")]
     fn add_certified_skill_requires_curator_mgr() {
         let f = setup();
         let id = f.register("w1");
         let stranger = Address::generate(&f.env);
-        f.client().add_certified_skill(
-            &stranger,
-            &id,
-            &Symbol::new(&f.env, "skill_a"),
-            &0,
+        assert_eq!(
+            f.client()
+                .try_add_certified_skill(&stranger, &id, &Symbol::new(&f.env, "skill_a"), &0,),
+            Err(Ok(ContractError::MissingRole))
         );
     }
 
@@ -677,14 +711,16 @@ mod verification_levels {
     }
 
     #[test]
-    #[should_panic(expected = "Skill not found")]
     fn revoke_nonexistent_skill_panics() {
         let f = setup();
         let id = f.register("w1");
-        f.client().revoke_certified_skill(
-            &f.admin,
-            &id,
-            &Symbol::new(&f.env, "nonexistent"),
+        assert_eq!(
+            f.client().try_revoke_certified_skill(
+                &f.admin,
+                &id,
+                &Symbol::new(&f.env, "nonexistent"),
+            ),
+            Err(Ok(ContractError::SkillNotFound))
         );
     }
 
@@ -706,84 +742,99 @@ mod auth_failures {
     // -- Role-management auth failures --
 
     #[test]
-    #[should_panic(expected = "Missing role")]
     fn grant_role_requires_admin() {
         let f = UpgradeFixture::new();
         let role = Symbol::new(&f.env, ROLE_PAUSER);
-        f.client().grant_role(&f.owner, &role, &Address::generate(&f.env));
+        assert_eq!(
+            f.client()
+                .try_grant_role(&f.owner, &role, &Address::generate(&f.env)),
+            Err(Ok(ContractError::MissingRole))
+        );
     }
 
     #[test]
-    #[should_panic(expected = "Missing role")]
     fn revoke_role_requires_admin() {
         let f = UpgradeFixture::new();
         let role = Symbol::new(&f.env, ROLE_PAUSER);
-        f.client().revoke_role(&f.owner, &role, &f.admin);
+        assert_eq!(
+            f.client().try_revoke_role(&f.owner, &role, &f.admin),
+            Err(Ok(ContractError::MissingRole))
+        );
     }
 
     #[test]
-    #[should_panic(expected = "Missing role")]
     fn pause_requires_pauser() {
         let f = UpgradeFixture::new();
-        f.client().pause(&f.curator);
+        assert_eq!(
+            f.client().try_pause(&f.curator),
+            Err(Ok(ContractError::MissingRole))
+        );
     }
 
     #[test]
-    #[should_panic(expected = "Missing role")]
     fn unpause_requires_pauser() {
         let f = UpgradeFixture::new();
         // admin holds PAUSER, curator does not
         f.client().pause(&f.admin);
-        f.client().unpause(&f.curator);
+        assert_eq!(
+            f.client().try_unpause(&f.curator),
+            Err(Ok(ContractError::MissingRole))
+        );
     }
 
     // -- Curator management auth failures --
 
     #[test]
-    #[should_panic(expected = "Missing role")]
     fn add_curator_requires_curator_mgr() {
         let f = UpgradeFixture::new();
-        f.client().add_curator(&f.curator, &Address::generate(&f.env));
+        assert_eq!(
+            f.client()
+                .try_add_curator(&f.curator, &Address::generate(&f.env)),
+            Err(Ok(ContractError::MissingRole))
+        );
     }
 
     #[test]
-    #[should_panic(expected = "Missing role")]
     fn remove_curator_requires_curator_mgr() {
         let f = UpgradeFixture::new();
         f.client().add_curator(&f.admin, &f.curator);
-        f.client().remove_curator(&f.curator, &f.curator);
+        assert_eq!(
+            f.client().try_remove_curator(&f.curator, &f.curator),
+            Err(Ok(ContractError::MissingRole))
+        );
     }
 
     // -- Worker registration auth failures --
 
     #[test]
-    #[should_panic(expected = "Caller is not a curator")]
     fn register_requires_curator() {
         let f = UpgradeFixture::new();
-        f.client().register(
+        let res = f.client().try_register(
             &Symbol::new(&f.env, "w1"),
             &f.owner,
             &String::from_str(&f.env, "Alice"),
             &Symbol::new(&f.env, "plumber"),
             &f.zero_hash(),
             &f.zero_hash(),
-            &f.owner,  // owner is not a curator
+            &f.owner, // owner is not a curator
+        );
+        assert_eq!(res, Err(Ok(ContractError::CallerIsNotCurator)));
+    }
+
+    #[test]
+    fn batch_toggle_requires_curator() {
+        let f = UpgradeFixture::new();
+        let ids = Vec::from_array(&f.env, [Symbol::new(&f.env, "w1")]);
+        assert_eq!(
+            f.client().try_batch_toggle(&f.owner, &ids),
+            Err(Ok(ContractError::CallerIsNotCurator))
         );
     }
 
     #[test]
-    #[should_panic(expected = "Caller is not a curator")]
-    fn batch_toggle_requires_curator() {
-        let f = UpgradeFixture::new();
-        let ids = Vec::from_array(&f.env, [Symbol::new(&f.env, "w1")]);
-        f.client().batch_toggle(&f.owner, &ids);
-    }
-
-    #[test]
-    #[should_panic(expected = "Caller is not a curator")]
     fn batch_register_requires_curator() {
         let f = UpgradeFixture::new();
-        f.client().batch_register(
+        let res = f.client().try_batch_register(
             &f.owner,
             &Vec::new(&f.env),
             &Vec::new(&f.env),
@@ -792,28 +843,32 @@ mod auth_failures {
             &Vec::new(&f.env),
             &Vec::new(&f.env),
         );
+        assert_eq!(res, Err(Ok(ContractError::CallerIsNotCurator)));
     }
 
     // -- Worker owner-role auth failures --
 
     #[test]
-    #[should_panic(expected = "Not authorized")]
     fn toggle_requires_owner() {
         let f = UpgradeFixture::new();
         let id = f.register("toggle_auth");
-        f.client().toggle(&id, &f.curator);
+        assert_eq!(
+            f.client().try_toggle(&id, &f.curator),
+            Err(Ok(ContractError::NotAuthorized))
+        );
     }
 
     #[test]
-    #[should_panic(expected = "Not authorized")]
     fn deregister_requires_owner() {
         let f = UpgradeFixture::new();
         let id = f.register("dereg_auth");
-        f.client().deregister(&id, &f.curator);
+        assert_eq!(
+            f.client().try_deregister(&id, &f.curator),
+            Err(Ok(ContractError::NotAuthorized))
+        );
     }
 
     #[test]
-    #[should_panic(expected = "Not authorized")]
     fn stake_requires_owner() {
         let f = UpgradeFixture::new();
         let id = f.register("stake_auth");
@@ -821,67 +876,86 @@ mod auth_failures {
         let token_id = f.env.register_stellar_asset_contract_v2(f.admin.clone());
         let token_addr = token_id.address();
         StellarAssetClient::new(&f.env, &token_addr).mint(&f.owner, &10_000);
-        f.client().stake(&f.curator, &id, &token_addr, &1_000);
+        assert_eq!(
+            f.client().try_stake(&f.curator, &id, &token_addr, &1_000),
+            Err(Ok(ContractError::NotAuthorized))
+        );
     }
 
     // -- Reputation management auth failures --
 
     #[test]
-    #[should_panic(expected = "Missing role")]
     fn update_reputation_requires_rep_mgr() {
         let f = UpgradeFixture::new();
         let id = f.register("rep_auth");
-        f.client().update_reputation(&f.curator, &id, &5_000);
+        assert_eq!(
+            f.client().try_update_reputation(&f.curator, &id, &5_000),
+            Err(Ok(ContractError::MissingRole))
+        );
     }
 
     #[test]
-    #[should_panic(expected = "Missing role")]
     fn update_reviews_requires_admin() {
         let f = UpgradeFixture::new();
         let id = f.register("rev_auth");
-        f.client().update_reviews(&f.curator, &id, &10, &8_000);
+        assert_eq!(
+            f.client().try_update_reviews(&f.curator, &id, &10, &8_000),
+            Err(Ok(ContractError::MissingRole))
+        );
     }
 
     #[test]
-    #[should_panic(expected = "Missing role")]
     fn update_subscription_requires_admin() {
         let f = UpgradeFixture::new();
         let id = f.register("sub_auth");
-        f.client().update_subscription(&f.curator, &id, &1, &0);
+        assert_eq!(
+            f.client().try_update_subscription(&f.curator, &id, &1, &0),
+            Err(Ok(ContractError::MissingRole))
+        );
     }
 
     #[test]
-    #[should_panic(expected = "Missing role")]
     fn update_metrics_requires_rep_mgr() {
         let f = UpgradeFixture::new();
         let id = f.register("metric_auth");
-        f.client().update_metrics(&f.curator, &id, &5, &8_000);
+        assert_eq!(
+            f.client().try_update_metrics(&f.curator, &id, &5, &8_000),
+            Err(Ok(ContractError::MissingRole))
+        );
     }
 
     // -- Category management auth failures --
 
     #[test]
-    #[should_panic(expected = "Missing role")]
     fn add_category_requires_admin() {
         let f = UpgradeFixture::new();
-        f.client().add_category(&f.curator, &Symbol::new(&f.env, "electrician"));
+        assert_eq!(
+            f.client()
+                .try_add_category(&f.curator, &Symbol::new(&f.env, "electrician")),
+            Err(Ok(ContractError::MissingRole))
+        );
     }
 
     #[test]
-    #[should_panic(expected = "Missing role")]
     fn remove_category_requires_admin() {
         let f = UpgradeFixture::new();
-        f.client().remove_category(&f.curator, &Symbol::new(&f.env, "plumber"));
+        assert_eq!(
+            f.client()
+                .try_remove_category(&f.curator, &Symbol::new(&f.env, "plumber")),
+            Err(Ok(ContractError::MissingRole))
+        );
     }
 
     // -- Upgrade auth failures --
 
     #[test]
-    #[should_panic(expected = "Missing role")]
     fn cancel_upgrade_requires_upgrader() {
         let f = UpgradeFixture::new();
         let hash = BytesN::from_array(&f.env, &[9u8; 32]);
         f.client().propose_upgrade(&f.admin, &hash);
-        f.client().cancel_upgrade(&f.curator);
+        assert_eq!(
+            f.client().try_cancel_upgrade(&f.curator),
+            Err(Ok(ContractError::MissingRole))
+        );
     }
 }

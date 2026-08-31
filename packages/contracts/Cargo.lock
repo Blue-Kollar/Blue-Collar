@@ -238,6 +238,15 @@ dependencies = [
 name = "bluecollar-dispute"
 version = "0.1.0"
 dependencies = [
+ "bluecollar-types",
+ "soroban-sdk",
+]
+
+[[package]]
+name = "bluecollar-escrow"
+version = "0.1.0"
+dependencies = [
+ "bluecollar-types",
  "soroban-sdk",
 ]
 
@@ -246,10 +255,35 @@ name = "bluecollar-fuzz"
 version = "0.1.0"
 dependencies = [
  "arbitrary",
+ "bluecollar-dispute",
+ "bluecollar-escrow",
  "bluecollar-market",
+ "bluecollar-payment",
  "bluecollar-registry",
  "libfuzzer-sys",
  "proptest",
+ "soroban-sdk",
+]
+
+[[package]]
+name = "bluecollar-integration"
+version = "0.1.0"
+dependencies = [
+ "bluecollar-dispute",
+ "bluecollar-escrow",
+ "bluecollar-market",
+ "bluecollar-registry",
+ "bluecollar-reputation",
+ "bluecollar-types",
+ "bluecollar_insurance_pool",
+ "soroban-sdk",
+]
+
+[[package]]
+name = "bluecollar-job-registry"
+version = "0.1.0"
+dependencies = [
+ "bluecollar-types",
  "soroban-sdk",
 ]
 
@@ -262,9 +296,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "bluecollar-payment"
+version = "0.1.0"
+dependencies = [
+ "bluecollar-types",
+ "soroban-sdk",
+]
+
+[[package]]
 name = "bluecollar-registry"
 version = "0.1.0"
 dependencies = [
+ "bluecollar-types",
+ "soroban-sdk",
+]
+
+[[package]]
+name = "bluecollar-reputation"
+version = "0.1.0"
+dependencies = [
+ "bluecollar-types",
  "soroban-sdk",
 ]
 
@@ -279,6 +330,7 @@ dependencies = [
 name = "bluecollar_fee_distribution"
 version = "0.1.0"
 dependencies = [
+ "bluecollar-types",
  "soroban-sdk",
 ]
 
@@ -286,6 +338,7 @@ dependencies = [
 name = "bluecollar_insurance_pool"
 version = "0.1.0"
 dependencies = [
+ "bluecollar-types",
  "soroban-sdk",
 ]
 

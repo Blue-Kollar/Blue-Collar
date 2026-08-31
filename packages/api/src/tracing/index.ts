@@ -6,7 +6,7 @@ import { PgInstrumentation } from '@opentelemetry/instrumentation-pg';
 import { Resource } from '@opentelemetry/resources';
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions';
 import { BatchSpanProcessor } from '@opentelemetry/sdk-trace-base';
-import { trace, context, propagation, SpanStatusCode } from '@opentelemetry/api';
+import { trace, context, propagation, SpanStatusCode, type Attributes } from '@opentelemetry/api';
 import { W3CTraceContextPropagator } from '@opentelemetry/core';
 
 // Set propagator
@@ -48,8 +48,9 @@ const sdk = new NodeSDK({
         span.setAttribute('http.route', route);
         
         // Add user ID if available
-        if ((request as any).user?.id) {
-          span.setAttribute('user.id', (request as any).user.id);
+        const userId = (request as { user?: { id: string } }).user?.id;
+        if (userId) {
+          span.setAttribute('user.id', userId);
         }
       },
     }),
@@ -90,7 +91,7 @@ export const shutdownTracing = async () => {
 };
 
 // Helper to start a span
-export const startSpan = (name: string, attributes?: Record<string, any>) => {
+export const startSpan = (name: string, attributes?: Attributes) => {
   const tracer = trace.getTracer('blue-collar-api');
   const span = tracer.startSpan(name, {
     attributes: {

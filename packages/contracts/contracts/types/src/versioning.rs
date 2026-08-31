@@ -87,10 +87,7 @@ pub mod upgrade_verification {
     }
 
     /// Verify backward compatibility during schema upgrade
-    pub fn verify_schema_compatibility(
-        from_version: u32,
-        to_version: u32,
-    ) -> MigrationResult<()> {
+    pub fn verify_schema_compatibility(from_version: u32, to_version: u32) -> MigrationResult<()> {
         // Schema migrations must be sequential and monotonic
         if to_version <= from_version {
             return Err("New schema version must be greater than old version");

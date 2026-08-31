@@ -188,14 +188,14 @@ WHERE ${whereSQL}
   let results = rows
   if (lat !== undefined && lng !== undefined) {
     results = rows.filter(row => {
-      const loc = row['location'] as any
+      const loc = row['location'] as { lat: number; lng: number } | null | undefined
       if (!loc?.lat || !loc?.lng) return false
       const dist = haversine(lat, lng, loc.lat, loc.lng)
-      ;(row as any)['distanceKm'] = dist
+      row['distanceKm'] = dist
       return dist <= radius
     })
     if (sortBy === 'distance') {
-      results.sort((a, b) => ((a as any)['distanceKm'] ?? Infinity) - ((b as any)['distanceKm'] ?? Infinity))
+      results.sort((a, b) => ((a['distanceKm'] as number | undefined) ?? Infinity) - ((b['distanceKm'] as number | undefined) ?? Infinity))
     }
   }
 
@@ -279,7 +279,7 @@ export async function performAdvancedSearch(
     startTime: filters.startTime,
     endTime: filters.endTime,
     isVerified: filters.isVerified,
-    sortBy: filters.sortBy as any,
+    sortBy: filters.sortBy as 'relevance' | 'rating' | 'distance' | 'newest' | 'reviews' | undefined,
     skip: (page - 1) * limit,
     take: limit,
   })

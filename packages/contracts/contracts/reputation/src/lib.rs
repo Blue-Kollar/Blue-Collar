@@ -3,29 +3,15 @@
 //! Tracks on-chain reputation scores for workers. Reputation is updated by
 //! authorised `rep_manager` addresses only. All state-mutating functions follow
 //! the Checks-Effects-Interactions (CEI) pattern to prevent reentrancy.
-//!
-//! ## Security audit findings & fixes (issue #1017)
-//! | Finding | Severity | Fix |
-//! |---------|----------|-----|
-//! | `submit_review` updated storage *after* emitting an event | Medium | Move storage write before `env.events().publish` |
-//! | `slash_reputation` had no `require_auth` on caller | High | Added `require_role(ROLE_REP_MANAGER, caller)` guard |
-//! | `reset_reputation` reachable by any address | High | Gated behind `ROLE_ADMIN` |
-//! | `award_badge` emitted event before writing badge list | Low | Reordered to write first, emit second |
-//!
-//! ## Access Control
-//! - **Admin** (`ROLE_ADMIN`): initialise, grant/revoke roles, reset reputation, upgrade.
-//! - **Rep Manager** (`ROLE_REP_MGR`): submit_review, slash_reputation, award_badge.
-//! - **Anyone**: read-only queries (`get_score`, `get_reviews`, `has_badge`).
-//!
-//! ## CEI ordering (enforced throughout)
-//! 1. **Checks** – assert preconditions (auth, bounds, state).
-//! 2. **Effects** – update contract storage.
-//! 3. **Interactions** – emit events (no external token calls in this contract).
 
 #![no_std]
+// Lint policy: clippy::pedantic enabled at workspace level (issue #1254).
+// Blanket Soroban exceptions (needless_pass_by_value, must_use_candidate, etc.)
+// are configured in the workspace Cargo.toml; per-function overrides go here.
 
+use bluecollar_types::{helpers, storage::extend_ttl, ContractError};
 use soroban_sdk::{
-    contract, contractimpl, contracttype, symbol_short, Address, BytesN, Env, String, Symbol, Vec,
+    contract, contractimpl, contracttype, symbol_short, Address, BytesN, Env, Symbol, Vec,
 };
 
 pub const VERSION: u32 = 1;
@@ -72,7 +58,7 @@ fn role_to_id(env: &Env, role: &Symbol) -> u64 {
 
 /// A single review record contributed by a verified reviewer.
 #[contracttype]
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Review {
     /// Address of the reviewer (must hold `ROLE_REP_MGR`).
     pub reviewer: Address,
@@ -86,7 +72,7 @@ pub struct Review {
 
 /// Aggregated reputation record stored per worker.
 #[contracttype]
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct ReputationRecord {
     /// Current weighted score in basis points (0–10 000).
     pub score: u32,
@@ -133,19 +119,17 @@ impl ReputationContract {
     // -------------------------------------------------------------------------
 
     /// Initialise the contract. Must be called exactly once.
-    ///
-    /// # Panics
-    /// - `"Already initialized"` if called more than once.
-    pub fn initialize(env: Env, admin: Address) {
+    pub fn initialize(env: Env, admin: Address) -> Result<(), ContractError> {
         // --- Checks ---
-        assert!(
-            !env.storage().instance().has(&DataKey::Initialized),
-            "Already initialized"
-        );
+        if env.storage().instance().has(&DataKey::Initialized) {
+            return Err(ContractError::AlreadyInitialized);
+        }
         // --- Effects ---
         env.storage().instance().set(&DataKey::Initialized, &true);
         env.storage().persistent().set(&DataKey::Admin, &admin);
-        env.storage().persistent().set(&DataKey::SchemaVersion, &1u32);
+        env.storage()
+            .persistent()
+            .set(&DataKey::SchemaVersion, &1u32);
 
         // Bootstrap ROLE_ADMIN for the initial admin.
         let role = Symbol::new(&env, ROLE_ADMIN);
@@ -157,6 +141,7 @@ impl ReputationContract {
         // --- Interactions ---
         env.events()
             .publish((symbol_short!("Init"), admin), VERSION);
+        Ok(())
     }
 
     // -------------------------------------------------------------------------
@@ -171,24 +156,18 @@ impl ReputationContract {
     }
 
     /// Assert `caller` holds `role` and has authorised this transaction.
-    ///
-    /// # Panics
-    /// - `"Missing role"` if `caller` is not a member of `role`.
-    fn require_role(env: &Env, role: &Symbol, caller: &Address) {
-        // Checks: auth first, then membership
-        caller.require_auth();
+    fn require_role(env: &Env, role: &Symbol, caller: &Address) -> Result<(), ContractError> {
         let members = Self::get_role_members(env, role);
-        assert!(members.iter().any(|m| m == *caller), "Missing role");
+        helpers::require_role(caller, &members)
     }
 
-    fn require_not_paused(env: &Env) {
-        assert!(
-            !env.storage()
-                .instance()
-                .get::<_, bool>(&DataKey::Paused)
-                .unwrap_or(false),
-            "Contract is paused"
-        );
+    fn require_not_paused(env: &Env) -> Result<(), ContractError> {
+        let paused: bool = env
+            .storage()
+            .instance()
+            .get::<_, bool>(&DataKey::Paused)
+            .unwrap_or(false);
+        helpers::require_not_paused(paused)
     }
 
     // -------------------------------------------------------------------------
@@ -196,8 +175,14 @@ impl ReputationContract {
     // -------------------------------------------------------------------------
 
     /// Grant a role to an address. Caller must hold `ROLE_ADMIN`.
-    pub fn grant_role(env: Env, caller: Address, role: Symbol, account: Address) {
-        Self::require_role(&env, &Symbol::new(&env, ROLE_ADMIN), &caller);
+    pub fn grant_role(
+        env: Env,
+        caller: Address,
+        role: Symbol,
+        account: Address,
+    ) -> Result<(), ContractError> {
+        Self::require_role(&env, &Symbol::new(&env, ROLE_ADMIN), &caller)?;
+        Self::require_not_paused(&env)?;
         let mut members = Self::get_role_members(&env, &role);
         if !members.iter().any(|m| m == account) {
             members.push_back(account.clone());
@@ -207,11 +192,18 @@ impl ReputationContract {
             .set(&DataKey::RoleMembers(role_to_id(&env, &role)), &members);
         env.events()
             .publish((symbol_short!("RlGrnt"), role), account);
+        Ok(())
     }
 
     /// Revoke a role from an address. Caller must hold `ROLE_ADMIN`.
-    pub fn revoke_role(env: Env, caller: Address, role: Symbol, account: Address) {
-        Self::require_role(&env, &Symbol::new(&env, ROLE_ADMIN), &caller);
+    pub fn revoke_role(
+        env: Env,
+        caller: Address,
+        role: Symbol,
+        account: Address,
+    ) -> Result<(), ContractError> {
+        Self::require_role(&env, &Symbol::new(&env, ROLE_ADMIN), &caller)?;
+        Self::require_not_paused(&env)?;
         let members = Self::get_role_members(&env, &role);
         let mut updated: Vec<Address> = Vec::new(&env);
         for m in members.iter() {
@@ -224,13 +216,14 @@ impl ReputationContract {
             .set(&DataKey::RoleMembers(role_to_id(&env, &role)), &updated);
         env.events()
             .publish((symbol_short!("RlRevk"), role), account);
+        Ok(())
     }
 
     /// Check whether `account` holds `role`.
-    pub fn has_role(env: Env, role: Symbol, account: Address) -> bool {
-        Self::get_role_members(&env, &role)
+    pub fn has_role(env: Env, role: Symbol, account: Address) -> Result<bool, ContractError> {
+        Ok(Self::get_role_members(&env, &role)
             .iter()
-            .any(|m| m == account)
+            .any(|m| m == account))
     }
 
     // -------------------------------------------------------------------------
@@ -238,24 +231,28 @@ impl ReputationContract {
     // -------------------------------------------------------------------------
 
     /// Pause the contract. Caller must hold `ROLE_PAUSER`.
-    pub fn pause(env: Env, caller: Address) {
-        Self::require_role(&env, &Symbol::new(&env, ROLE_PAUSER), &caller);
+    pub fn pause(env: Env, caller: Address) -> Result<(), ContractError> {
+        Self::require_role(&env, &Symbol::new(&env, ROLE_PAUSER), &caller)?;
         env.storage().instance().set(&DataKey::Paused, &true);
         env.events().publish((symbol_short!("Paused"), caller), ());
+        Ok(())
     }
 
     /// Unpause the contract. Caller must hold `ROLE_PAUSER`.
-    pub fn unpause(env: Env, caller: Address) {
-        Self::require_role(&env, &Symbol::new(&env, ROLE_PAUSER), &caller);
+    pub fn unpause(env: Env, caller: Address) -> Result<(), ContractError> {
+        Self::require_role(&env, &Symbol::new(&env, ROLE_PAUSER), &caller)?;
         env.storage().instance().set(&DataKey::Paused, &false);
-        env.events().publish((symbol_short!("Unpaused"), caller), ());
+        env.events()
+            .publish((symbol_short!("Unpaused"), caller), ());
+        Ok(())
     }
 
-    pub fn is_paused(env: Env) -> bool {
-        env.storage()
+    pub fn is_paused(env: Env) -> Result<bool, ContractError> {
+        Ok(env
+            .storage()
             .instance()
             .get(&DataKey::Paused)
-            .unwrap_or(false)
+            .unwrap_or(false))
     }
 
     // -------------------------------------------------------------------------
@@ -263,32 +260,19 @@ impl ReputationContract {
     // -------------------------------------------------------------------------
 
     /// Submit a review for a worker.
-    ///
-    /// Security fixes applied (issue #1017):
-    /// - `caller.require_auth()` enforced via `require_role` before any state change.
-    /// - Storage updated (Effects) before event emission (Interactions) — CEI ordering.
-    ///
-    /// # Parameters
-    /// - `caller`: Must hold `ROLE_REP_MGR`.
-    /// - `worker_id`: The worker's symbolic identifier.
-    /// - `rating_bps`: Rating in basis points (0–10 000).
-    /// - `comment_hash`: SHA-256 of the review comment (zero bytes = no comment).
-    ///
-    /// # Panics
-    /// - `"Missing role"` if caller does not hold `ROLE_REP_MGR`.
-    /// - `"Contract is paused"` if paused.
-    /// - `"rating_bps out of range"` if `rating_bps > MAX_SCORE`.
     pub fn submit_review(
         env: Env,
         caller: Address,
         worker_id: Symbol,
         rating_bps: u32,
         comment_hash: BytesN<32>,
-    ) {
+    ) -> Result<(), ContractError> {
         // --- Checks ---
-        Self::require_role(&env, &Symbol::new(&env, ROLE_REP_MGR), &caller);
-        Self::require_not_paused(&env);
-        assert!(rating_bps <= MAX_SCORE, "rating_bps out of range");
+        Self::require_role(&env, &Symbol::new(&env, ROLE_REP_MGR), &caller)?;
+        Self::require_not_paused(&env)?;
+        if rating_bps > MAX_SCORE {
+            return Err(ContractError::RatingOutOfRange);
+        }
 
         // --- Effects ---
         let review = Review {
@@ -319,59 +303,54 @@ impl ReputationContract {
         env.storage()
             .persistent()
             .set(&DataKey::Reviews(worker_id.clone()), &reviews);
-        Self::extend_ttl(&env, &worker_id);
+        Self::extend_record_ttl(&env, &worker_id);
 
         // --- Interactions ---
         env.events().publish(
             (symbol_short!("Review"), worker_id),
             (caller, rating_bps, record.score),
         );
+        Ok(())
     }
 
     /// Slash a worker's reputation score by a fixed amount in basis points.
-    ///
-    /// Security fixes applied (issue #1017):
-    /// - Added `require_role(ROLE_REP_MGR, caller)` — previously unguarded.
-    /// - State written before event emission (CEI ordering).
-    ///
-    /// # Parameters
-    /// - `caller`: Must hold `ROLE_REP_MGR`.
-    /// - `worker_id`: Target worker.
-    /// - `slash_bps`: Amount to subtract (clamped at 0).
-    ///
-    /// # Panics
-    /// - `"Missing role"` if caller does not hold `ROLE_REP_MGR`.
-    /// - `"Contract is paused"` if paused.
-    /// - `"slash_bps out of range"` if `slash_bps > MAX_SCORE`.
-    pub fn slash_reputation(env: Env, caller: Address, worker_id: Symbol, slash_bps: u32) {
+    pub fn slash_reputation(
+        env: Env,
+        caller: Address,
+        worker_id: Symbol,
+        slash_bps: u32,
+    ) -> Result<(), ContractError> {
         // --- Checks ---
-        Self::require_role(&env, &Symbol::new(&env, ROLE_REP_MGR), &caller); // FIX: was missing
-        Self::require_not_paused(&env);
-        assert!(slash_bps <= MAX_SCORE, "slash_bps out of range");
+        Self::require_role(&env, &Symbol::new(&env, ROLE_REP_MGR), &caller)?;
+        Self::require_not_paused(&env)?;
+        if slash_bps > MAX_SCORE {
+            return Err(ContractError::ScoreOutOfRange);
+        }
 
         // --- Effects ---
         let mut record = Self::load_record(&env, &worker_id);
         record.score = record.score.saturating_sub(slash_bps);
         record.last_updated = env.ledger().sequence();
         Self::save_record(&env, &worker_id, &record); // write before emit
-        Self::extend_ttl(&env, &worker_id);
+        Self::extend_record_ttl(&env, &worker_id);
 
         // --- Interactions ---
         env.events().publish(
             (symbol_short!("Slashed"), worker_id),
             (caller, slash_bps, record.score),
         );
+        Ok(())
     }
 
     /// Reset a worker's reputation to zero. Caller must hold `ROLE_ADMIN`.
-    ///
-    /// Security fix (issue #1017): previously callable by any address.
-    ///
-    /// # Panics
-    /// - `"Missing role"` if caller does not hold `ROLE_ADMIN`.
-    pub fn reset_reputation(env: Env, caller: Address, worker_id: Symbol) {
+    pub fn reset_reputation(
+        env: Env,
+        caller: Address,
+        worker_id: Symbol,
+    ) -> Result<(), ContractError> {
         // --- Checks ---
-        Self::require_role(&env, &Symbol::new(&env, ROLE_ADMIN), &caller); // FIX: now admin-only
+        Self::require_role(&env, &Symbol::new(&env, ROLE_ADMIN), &caller)?;
+        Self::require_not_paused(&env)?;
 
         // --- Effects ---
         let mut record = Self::load_record(&env, &worker_id);
@@ -380,48 +359,52 @@ impl ReputationContract {
         record.rating_sum = 0;
         record.last_updated = env.ledger().sequence();
         Self::save_record(&env, &worker_id, &record);
-        Self::extend_ttl(&env, &worker_id);
+        Self::extend_record_ttl(&env, &worker_id);
 
         // --- Interactions ---
         env.events()
             .publish((symbol_short!("Reset"), worker_id), caller);
+        Ok(())
     }
 
     /// Award a badge to a worker. Caller must hold `ROLE_REP_MGR`.
-    ///
-    /// Security fix (issue #1017): badge list written to storage before event emission.
-    ///
-    /// # Panics
-    /// - `"Missing role"` if caller does not hold `ROLE_REP_MGR`.
-    /// - `"Contract is paused"` if paused.
-    /// - `"Badge already awarded"` if worker already holds this badge.
-    pub fn award_badge(env: Env, caller: Address, worker_id: Symbol, badge: Symbol) {
+    pub fn award_badge(
+        env: Env,
+        caller: Address,
+        worker_id: Symbol,
+        badge: Symbol,
+    ) -> Result<(), ContractError> {
         // --- Checks ---
-        Self::require_role(&env, &Symbol::new(&env, ROLE_REP_MGR), &caller);
-        Self::require_not_paused(&env);
+        Self::require_role(&env, &Symbol::new(&env, ROLE_REP_MGR), &caller)?;
+        Self::require_not_paused(&env)?;
 
         let mut record = Self::load_record(&env, &worker_id);
-        assert!(
-            !record.badges.iter().any(|b| b == badge),
-            "Badge already awarded"
-        );
+        if record.badges.iter().any(|b| b == badge) {
+            return Err(ContractError::BadgeAlreadyAwarded);
+        }
 
         // --- Effects ---
         record.badges.push_back(badge.clone()); // FIX: write before emit
         record.last_updated = env.ledger().sequence();
         Self::save_record(&env, &worker_id, &record);
-        Self::extend_ttl(&env, &worker_id);
+        Self::extend_record_ttl(&env, &worker_id);
 
         // --- Interactions ---
         env.events()
             .publish((symbol_short!("Badge"), worker_id), (caller, badge));
+        Ok(())
     }
 
     /// Revoke a badge from a worker. Caller must hold `ROLE_REP_MGR`.
-    pub fn revoke_badge(env: Env, caller: Address, worker_id: Symbol, badge: Symbol) {
+    pub fn revoke_badge(
+        env: Env,
+        caller: Address,
+        worker_id: Symbol,
+        badge: Symbol,
+    ) -> Result<(), ContractError> {
         // --- Checks ---
-        Self::require_role(&env, &Symbol::new(&env, ROLE_REP_MGR), &caller);
-        Self::require_not_paused(&env);
+        Self::require_role(&env, &Symbol::new(&env, ROLE_REP_MGR), &caller)?;
+        Self::require_not_paused(&env)?;
 
         let mut record = Self::load_record(&env, &worker_id);
         let mut updated_badges: Vec<Symbol> = Vec::new(&env);
@@ -435,11 +418,12 @@ impl ReputationContract {
         record.badges = updated_badges;
         record.last_updated = env.ledger().sequence();
         Self::save_record(&env, &worker_id, &record);
-        Self::extend_ttl(&env, &worker_id);
+        Self::extend_record_ttl(&env, &worker_id);
 
         // --- Interactions ---
         env.events()
             .publish((symbol_short!("BdgRevk"), worker_id), (caller, badge));
+        Ok(())
     }
 
     // -------------------------------------------------------------------------
@@ -447,42 +431,44 @@ impl ReputationContract {
     // -------------------------------------------------------------------------
 
     /// Get the current reputation score for a worker (0 if not yet rated).
-    pub fn get_score(env: Env, worker_id: Symbol) -> u32 {
-        Self::load_record(&env, &worker_id).score
+    pub fn get_score(env: Env, worker_id: Symbol) -> Result<u32, ContractError> {
+        Ok(Self::load_record(&env, &worker_id).score)
     }
 
     /// Get the full reputation record for a worker.
-    pub fn get_record(env: Env, worker_id: Symbol) -> ReputationRecord {
-        Self::load_record(&env, &worker_id)
+    pub fn get_record(env: Env, worker_id: Symbol) -> Result<ReputationRecord, ContractError> {
+        Ok(Self::load_record(&env, &worker_id))
     }
 
     /// Get the full review history for a worker.
-    pub fn get_reviews(env: Env, worker_id: Symbol) -> Vec<Review> {
-        env.storage()
+    pub fn get_reviews(env: Env, worker_id: Symbol) -> Result<Vec<Review>, ContractError> {
+        Ok(env
+            .storage()
             .persistent()
             .get(&DataKey::Reviews(worker_id))
-            .unwrap_or(Vec::new(&env))
+            .unwrap_or(Vec::new(&env)))
     }
 
     /// Return `true` if the worker holds the given badge.
-    pub fn has_badge(env: Env, worker_id: Symbol, badge: Symbol) -> bool {
-        Self::load_record(&env, &worker_id)
+    pub fn has_badge(env: Env, worker_id: Symbol, badge: Symbol) -> Result<bool, ContractError> {
+        Ok(Self::load_record(&env, &worker_id)
             .badges
             .iter()
-            .any(|b| b == badge)
+            .any(|b| b == badge))
     }
 
     /// Extend the TTL of a worker's reputation entry (permissionless).
-    pub fn extend_worker_ttl(env: Env, worker_id: Symbol) {
-        Self::extend_ttl(&env, &worker_id);
+    pub fn extend_worker_ttl(env: Env, worker_id: Symbol) -> Result<(), ContractError> {
+        Self::extend_record_ttl(&env, &worker_id);
+        Ok(())
     }
 
     /// Get the contract admin address.
-    pub fn get_admin(env: Env) -> Address {
+    pub fn get_admin(env: Env) -> Result<Address, ContractError> {
         env.storage()
             .persistent()
             .get(&DataKey::Admin)
-            .expect("Not initialized")
+            .ok_or(ContractError::NotInitialized)
     }
 
     // -------------------------------------------------------------------------
@@ -490,8 +476,8 @@ impl ReputationContract {
     // -------------------------------------------------------------------------
 
     /// Return the event schema version.
-    pub fn version(_env: Env) -> u32 {
-        VERSION
+    pub fn version(_env: Env) -> Result<u32, ContractError> {
+        Ok(VERSION)
     }
 
     // -------------------------------------------------------------------------
@@ -499,9 +485,14 @@ impl ReputationContract {
     // -------------------------------------------------------------------------
 
     /// Upgrade the contract WASM. Caller must hold `ROLE_UPGRADER`.
-    pub fn upgrade(env: Env, caller: Address, new_wasm_hash: BytesN<32>) {
-        Self::require_role(&env, &Symbol::new(&env, ROLE_UPGRADER), &caller);
+    pub fn upgrade(
+        env: Env,
+        caller: Address,
+        new_wasm_hash: BytesN<32>,
+    ) -> Result<(), ContractError> {
+        Self::require_role(&env, &Symbol::new(&env, ROLE_UPGRADER), &caller)?;
         env.deployer().update_current_contract_wasm(new_wasm_hash);
+        Ok(())
     }
 
     // -------------------------------------------------------------------------
@@ -527,13 +518,8 @@ impl ReputationContract {
             .set(&DataKey::Reputation(worker_id.clone()), record);
     }
 
-    fn extend_ttl(env: &Env, worker_id: &Symbol) {
-        let key = DataKey::Reputation(worker_id.clone());
-        if env.storage().persistent().has(&key) {
-            env.storage()
-                .persistent()
-                .extend_ttl(&key, TTL_THRESHOLD, TTL_EXTEND_TO);
-        }
+    fn extend_record_ttl(env: &Env, worker_id: &Symbol) {
+        extend_ttl(env, &DataKey::Reputation(worker_id.clone()));
     }
 }
 

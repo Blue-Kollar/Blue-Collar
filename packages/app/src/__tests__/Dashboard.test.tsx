@@ -1,5 +1,6 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import DashboardPage from "@/app/[locale]/dashboard/page";
 import * as AuthContext from "@/context/AuthContext";
 import * as WalletHook from "@/hooks/useWallet";
@@ -71,6 +72,19 @@ vi.mock("@/components/Skeleton", () => ({
   DashboardTableSkeleton: () => <div data-testid="skeleton-table" />,
 }));
 
+const getMyWorkers = vi.fn();
+const getCuratorAnalytics = vi.fn();
+const getWorkerViewTrends = vi.fn();
+const toggleWorker = vi.fn();
+const deleteWorker = vi.fn();
+vi.mock("@/lib/api", () => ({
+  getMyWorkers: (...args: unknown[]) => getMyWorkers(...args),
+  getCuratorAnalytics: (...args: unknown[]) => getCuratorAnalytics(...args),
+  getWorkerViewTrends: (...args: unknown[]) => getWorkerViewTrends(...args),
+  toggleWorker: (...args: unknown[]) => toggleWorker(...args),
+  deleteWorker: (...args: unknown[]) => deleteWorker(...args),
+}));
+
 const mockUser: AuthUser = {
   id: "user1",
   email: "curator@example.com",
@@ -128,9 +142,36 @@ const mockAnalytics = {
   },
 };
 
+/** Fresh per-test client — a shared one would leak cached results across tests. */
+function renderDashboard() {
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <DashboardPage />
+    </QueryClientProvider>
+  );
+}
+
+function mockAuthenticatedCurator() {
+  vi.mocked(AuthContext.useAuth).mockReturnValue({
+    user: mockUser,
+    token: "test-token",
+    isLoading: false,
+    login: vi.fn(),
+    logout: vi.fn(),
+    register: vi.fn(),
+  } as any);
+  vi.mocked(WalletHook.useWallet).mockReturnValue({ publicKey: null } as any);
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   global.fetch = vi.fn();
+  getMyWorkers.mockResolvedValue({ data: mockWorkers });
+  getCuratorAnalytics.mockResolvedValue({ data: mockAnalytics });
+  getWorkerViewTrends.mockResolvedValue({ data: [] });
+  toggleWorker.mockResolvedValue({ data: {} });
+  deleteWorker.mockResolvedValue(undefined);
 });
 
 describe("Dashboard", () => {
@@ -145,7 +186,7 @@ describe("Dashboard", () => {
     } as any);
     vi.mocked(WalletHook.useWallet).mockReturnValue({ publicKey: null } as any);
 
-    render(<DashboardPage />);
+    renderDashboard();
     expect(screen.getByTestId("skeleton-table")).toBeInTheDocument();
   });
 
@@ -160,29 +201,14 @@ describe("Dashboard", () => {
     } as any);
     vi.mocked(WalletHook.useWallet).mockReturnValue({ publicKey: null } as any);
 
-    render(<DashboardPage />);
+    renderDashboard();
     expect(screen.getByTestId("skeleton-table")).toBeInTheDocument();
   });
 
   it("renders main header for authenticated curator", async () => {
-    vi.mocked(AuthContext.useAuth).mockReturnValue({
-      user: mockUser,
-      token: "test-token",
-      isLoading: false,
-      login: vi.fn(),
-      logout: vi.fn(),
-      register: vi.fn(),
-    } as any);
-    vi.mocked(WalletHook.useWallet).mockReturnValue({ publicKey: null } as any);
+    mockAuthenticatedCurator();
 
-    vi.mocked(global.fetch).mockResolvedValueOnce(
-      new Response(JSON.stringify({ data: mockWorkers }))
-    );
-    vi.mocked(global.fetch).mockResolvedValueOnce(
-      new Response(JSON.stringify({ data: mockAnalytics }))
-    );
-
-    render(<DashboardPage />);
+    renderDashboard();
 
     await waitFor(() => {
       expect(screen.getByText("My Workers")).toBeInTheDocument();
@@ -193,24 +219,9 @@ describe("Dashboard", () => {
   });
 
   it("renders worker table with workers data", async () => {
-    vi.mocked(AuthContext.useAuth).mockReturnValue({
-      user: mockUser,
-      token: "test-token",
-      isLoading: false,
-      login: vi.fn(),
-      logout: vi.fn(),
-      register: vi.fn(),
-    } as any);
-    vi.mocked(WalletHook.useWallet).mockReturnValue({ publicKey: null } as any);
+    mockAuthenticatedCurator();
 
-    vi.mocked(global.fetch).mockResolvedValueOnce(
-      new Response(JSON.stringify({ data: mockWorkers }))
-    );
-    vi.mocked(global.fetch).mockResolvedValueOnce(
-      new Response(JSON.stringify({ data: mockAnalytics }))
-    );
-
-    render(<DashboardPage />);
+    renderDashboard();
 
     await waitFor(() => {
       expect(screen.getByText("Plumber Pro")).toBeInTheDocument();
@@ -221,24 +232,9 @@ describe("Dashboard", () => {
   });
 
   it("shows active/inactive status badges", async () => {
-    vi.mocked(AuthContext.useAuth).mockReturnValue({
-      user: mockUser,
-      token: "test-token",
-      isLoading: false,
-      login: vi.fn(),
-      logout: vi.fn(),
-      register: vi.fn(),
-    } as any);
-    vi.mocked(WalletHook.useWallet).mockReturnValue({ publicKey: null } as any);
+    mockAuthenticatedCurator();
 
-    vi.mocked(global.fetch).mockResolvedValueOnce(
-      new Response(JSON.stringify({ data: mockWorkers }))
-    );
-    vi.mocked(global.fetch).mockResolvedValueOnce(
-      new Response(JSON.stringify({ data: mockAnalytics }))
-    );
-
-    render(<DashboardPage />);
+    renderDashboard();
 
     await waitFor(() => {
       const activeElements = screen.getAllByText("Active");
@@ -248,24 +244,9 @@ describe("Dashboard", () => {
   });
 
   it("has tabs for workers and analytics", async () => {
-    vi.mocked(AuthContext.useAuth).mockReturnValue({
-      user: mockUser,
-      token: "test-token",
-      isLoading: false,
-      login: vi.fn(),
-      logout: vi.fn(),
-      register: vi.fn(),
-    } as any);
-    vi.mocked(WalletHook.useWallet).mockReturnValue({ publicKey: null } as any);
+    mockAuthenticatedCurator();
 
-    vi.mocked(global.fetch).mockResolvedValueOnce(
-      new Response(JSON.stringify({ data: mockWorkers }))
-    );
-    vi.mocked(global.fetch).mockResolvedValueOnce(
-      new Response(JSON.stringify({ data: mockAnalytics }))
-    );
-
-    render(<DashboardPage />);
+    renderDashboard();
 
     await waitFor(() => {
       expect(screen.getByText("Workers")).toBeInTheDocument();
@@ -274,22 +255,10 @@ describe("Dashboard", () => {
   });
 
   it("displays error message when fetch fails", async () => {
-    vi.mocked(AuthContext.useAuth).mockReturnValue({
-      user: mockUser,
-      token: "test-token",
-      isLoading: false,
-      login: vi.fn(),
-      logout: vi.fn(),
-      register: vi.fn(),
-    } as any);
-    vi.mocked(WalletHook.useWallet).mockReturnValue({ publicKey: null } as any);
+    mockAuthenticatedCurator();
+    getMyWorkers.mockRejectedValueOnce(new Error("Network error"));
 
-    vi.mocked(global.fetch).mockRejectedValueOnce(new Error("Network error"));
-    vi.mocked(global.fetch).mockResolvedValueOnce(
-      new Response(JSON.stringify({ data: mockAnalytics }))
-    );
-
-    render(<DashboardPage />);
+    renderDashboard();
 
     await waitFor(() => {
       expect(screen.getByText("Network error")).toBeInTheDocument();
@@ -297,24 +266,10 @@ describe("Dashboard", () => {
   });
 
   it("shows empty state when no workers exist", async () => {
-    vi.mocked(AuthContext.useAuth).mockReturnValue({
-      user: mockUser,
-      token: "test-token",
-      isLoading: false,
-      login: vi.fn(),
-      logout: vi.fn(),
-      register: vi.fn(),
-    } as any);
-    vi.mocked(WalletHook.useWallet).mockReturnValue({ publicKey: null } as any);
+    mockAuthenticatedCurator();
+    getMyWorkers.mockResolvedValueOnce({ data: [] });
 
-    vi.mocked(global.fetch).mockResolvedValueOnce(
-      new Response(JSON.stringify({ data: [] }))
-    );
-    vi.mocked(global.fetch).mockResolvedValueOnce(
-      new Response(JSON.stringify({ data: mockAnalytics }))
-    );
-
-    render(<DashboardPage />);
+    renderDashboard();
 
     await waitFor(() => {
       expect(screen.getByText("No workers yet")).toBeInTheDocument();
@@ -325,24 +280,9 @@ describe("Dashboard", () => {
   });
 
   it("has create worker and settings buttons", async () => {
-    vi.mocked(AuthContext.useAuth).mockReturnValue({
-      user: mockUser,
-      token: "test-token",
-      isLoading: false,
-      login: vi.fn(),
-      logout: vi.fn(),
-      register: vi.fn(),
-    } as any);
-    vi.mocked(WalletHook.useWallet).mockReturnValue({ publicKey: null } as any);
+    mockAuthenticatedCurator();
 
-    vi.mocked(global.fetch).mockResolvedValueOnce(
-      new Response(JSON.stringify({ data: mockWorkers }))
-    );
-    vi.mocked(global.fetch).mockResolvedValueOnce(
-      new Response(JSON.stringify({ data: mockAnalytics }))
-    );
-
-    render(<DashboardPage />);
+    renderDashboard();
 
     await waitFor(() => {
       const createButtons = screen.getAllByText("Create New Worker");
@@ -351,24 +291,9 @@ describe("Dashboard", () => {
   });
 
   it("renders action buttons for each worker", async () => {
-    vi.mocked(AuthContext.useAuth).mockReturnValue({
-      user: mockUser,
-      token: "test-token",
-      isLoading: false,
-      login: vi.fn(),
-      logout: vi.fn(),
-      register: vi.fn(),
-    } as any);
-    vi.mocked(WalletHook.useWallet).mockReturnValue({ publicKey: null } as any);
+    mockAuthenticatedCurator();
 
-    vi.mocked(global.fetch).mockResolvedValueOnce(
-      new Response(JSON.stringify({ data: mockWorkers }))
-    );
-    vi.mocked(global.fetch).mockResolvedValueOnce(
-      new Response(JSON.stringify({ data: mockAnalytics }))
-    );
-
-    render(<DashboardPage />);
+    renderDashboard();
 
     await waitFor(() => {
       expect(screen.getAllByTestId("icon-trending").length).toBeGreaterThan(0);

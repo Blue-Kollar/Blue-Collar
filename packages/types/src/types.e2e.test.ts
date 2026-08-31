@@ -224,9 +224,9 @@ describe('Category', () => {
 describe('Worker', () => {
   const category: Category = { id: 'cat-1', name: 'Plumbing' }
 
-  it('requires id, name, isVerified, and nested category', () => {
-    const w: Worker = { id: 'w-1', name: 'Bob', isVerified: false, category }
-    expect(hasKeys(w, 'id', 'name', 'isVerified', 'category')).toBe(true)
+  it('requires id, name, isVerified, isActive, and nested category', () => {
+    const w: Worker = { id: 'w-1', name: 'Bob', isVerified: false, isActive: true, category }
+    expect(hasKeys(w, 'id', 'name', 'isVerified', 'isActive', 'category')).toBe(true)
     expect(w.category.name).toBe('Plumbing')
   })
 
@@ -235,6 +235,7 @@ describe('Worker', () => {
       id: 'w-1',
       name: 'Bob',
       isVerified: true,
+      isActive: true,
       category,
       latitude: null,
       longitude: null,
@@ -248,6 +249,7 @@ describe('Worker', () => {
       id: 'w-1',
       name: 'Bob',
       isVerified: true,
+      isActive: true,
       category,
       portfolioImages: [{ id: 'img-1', url: 'https://cdn/img.jpg' }],
     }
@@ -542,6 +544,7 @@ describe('Full DTO round-trip — Worker create / read / update', () => {
       phone: createDto.phone,
       walletAddress: createDto.walletAddress,
       isVerified: false,
+      isActive: true,
       category,
       averageRating: null,
       reviewCount: 0,

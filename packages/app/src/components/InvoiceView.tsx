@@ -1,14 +1,16 @@
 "use client";
 
-import { useCallback, useEffect, useId, useState } from "react";
+import { useId } from "react";
 import { Download, ExternalLink, FileText } from "lucide-react";
-import { getInvoice } from "@/lib/api/payments";
+import { useInvoice } from "@/hooks/queries";
 import { formatErrorMessage } from "@/lib/errors";
-import { cn } from "@/lib/utils";
+import { cn, formatDate as sharedFormatDate } from "@/lib/utils";
 import ErrorState from "@/components/ErrorState";
 import type { Invoice, InvoiceStatus } from "@/types";
 
-const STELLAR_EXPLORER = "https://stellar.expert/explorer/testnet/tx";
+import { EXPLORER_TX_BASE } from "@/config/stellar";
+
+const STELLAR_EXPLORER = EXPLORER_TX_BASE;
 
 const STATUS_STYLES: Record<InvoiceStatus, string> = {
   draft: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300",
@@ -54,17 +56,14 @@ export function formatAmount(amount: number, currency: string): string {
 }
 
 function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+  return sharedFormatDate(iso);
 }
 
 /**
  * Renders a single invoice: parties, line items, totals and payment status.
  *
- * Fetches by `invoiceId` on mount, unless a pre-fetched `invoice` is passed.
+ * Fetches by `invoiceId` on mount via the shared useInvoice hook, unless a
+ * pre-fetched `invoice` is passed.
  */
 export default function InvoiceView({
   invoiceId,
@@ -72,35 +71,15 @@ export default function InvoiceView({
   onDownload,
   className,
 }: InvoiceViewProps) {
-  const [invoice, setInvoice] = useState<Invoice | null>(initialInvoice ?? null);
-  const [loading, setLoading] = useState(!initialInvoice);
-  const [error, setError] = useState<string | null>(null);
-
   const headingId = useId();
+  const query = useInvoice(initialInvoice ? "" : invoiceId);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await getInvoice(invoiceId);
-      setInvoice(res.data);
-    } catch (err) {
-      setError(formatErrorMessage(err, "We couldn't load this invoice."));
-      setInvoice(null);
-    } finally {
-      setLoading(false);
-    }
-  }, [invoiceId]);
-
-  useEffect(() => {
-    // A caller-supplied invoice is authoritative; don't refetch over it.
-    if (initialInvoice) {
-      setInvoice(initialInvoice);
-      setLoading(false);
-      return;
-    }
-    void load();
-  }, [initialInvoice, load]);
+  // Prefer the caller-supplied invoice; fall back to the query result.
+  const invoice: Invoice | null = initialInvoice ?? query.data?.data ?? null;
+  const loading = !initialInvoice && query.isLoading;
+  const error = !initialInvoice && query.isError
+    ? formatErrorMessage(query.error, "We couldn't load this invoice.")
+    : null;
 
   if (loading) {
     return (

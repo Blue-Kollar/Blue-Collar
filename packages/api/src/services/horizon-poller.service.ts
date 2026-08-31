@@ -8,8 +8,8 @@
 import { logger } from '../config/logger.js'
 import { publishEvent } from './webhook.service.js'
 import * as indexerService from './indexer.service.js'
+import { stellarRpcClient } from './stellar-rpc.client.js'
 
-const HORIZON_URL = process.env.HORIZON_URL ?? 'https://horizon-testnet.stellar.org'
 const REGISTRY_CONTRACT_ID = process.env.REGISTRY_CONTRACT_ID ?? ''
 const MARKET_CONTRACT_ID = process.env.MARKET_CONTRACT_ID ?? ''
 const POLL_INTERVAL_MS = 30_000
@@ -34,38 +34,11 @@ async function fetchContractEvents(contractId: string): Promise<void> {
   try {
     // Get cursor from database
     const cursor = await indexerService.getOrCreateCursor(contractId)
-    
-    const url = new URL(`${HORIZON_URL}/contracts/${contractId}/events`)
-    url.searchParams.set('order', 'asc')
-    url.searchParams.set('limit', '100')
-    
-    // Start from the next event after the cursor
-    if (cursor.ledger > 0) {
-      // Note: Horizon uses paging tokens, but we'll use ledger-based filtering
-      url.searchParams.set('start_ledger', cursor.ledger.toString())
-    }
 
-    const res = await fetch(url.toString(), { signal: AbortSignal.timeout(10_000) })
-    if (!res.ok) {
-      logger.warn({ status: res.status, contractId }, 'Horizon events fetch failed')
-      return
-    }
-
-    const json = (await res.json()) as {
-      _embedded?: {
-        records: Array<{
-          id: string
-          type: string
-          contract_id: string
-          topic: string[]
-          value: unknown
-          paging_token: string
-          ledger_close_time: string
-        }>
-      }
-    }
-
-    const records = json._embedded?.records ?? []
+    const records = await stellarRpcClient.getContractEvents(
+      contractId,
+      cursor.ledger > 0 ? cursor.ledger : undefined,
+    )
     let lastLedger = cursor.ledger
     let lastTxIndex = cursor.txIndex
 

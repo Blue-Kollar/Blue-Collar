@@ -22,6 +22,10 @@ coverage/
 playwright-report/
 test-results/
 
+# k6 load test results
+load-results/
+performance-results/
+
 # Build artifacts
 *.tsbuildinfo
 build/
@@ -59,3 +63,10 @@ package-lock.json
 *.tmp
 *.bak
 .cache/
+
+
+
+
+
+# Mobile E2E junit output
+packages/mobile/e2e/e2e-results/

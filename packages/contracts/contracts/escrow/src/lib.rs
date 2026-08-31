@@ -15,18 +15,24 @@
 //! `pause`, `unpause`, `is_paused`, `get_admin`, `upgrade`.
 
 #![no_std]
+// Lint policy: clippy::pedantic enabled at workspace level (issue #1254).
+// Blanket Soroban exceptions (needless_pass_by_value, must_use_candidate, etc.)
+// are configured in the workspace Cargo.toml; per-function overrides go here.
 
+use bluecollar_types::ContractError;
 use soroban_sdk::{contract, contractimpl, symbol_short, Address, BytesN, Env, Symbol, Vec};
 
 mod logic;
 mod storage;
 
+pub use storage::EscrowState;
+
 #[cfg(test)]
 mod test;
 
 use logic::{
-    do_cancel, do_create, do_dispute, do_initialize, do_release, do_resolve, require_not_paused,
-    require_role, role_to_id, ROLE_ADMIN, ROLE_PAUSER, ROLE_UPGRADER,
+    do_cancel, do_create, do_dispute, do_initialize, do_release, do_resolve, require_role,
+    role_to_id, ROLE_ADMIN, ROLE_PAUSER, ROLE_UPGRADER,
 };
 use storage::{
     is_paused, load_admin, load_escrow, load_escrow_list, load_role_members, save_role_members,
@@ -45,11 +51,8 @@ impl EscrowContract {
     // -------------------------------------------------------------------------
 
     /// Initialise the contract with an admin address.
-    ///
-    /// # Panics
-    /// - `"Already initialized"` if called more than once.
-    pub fn initialize(env: Env, admin: Address) {
-        do_initialize(&env, &admin);
+    pub fn initialize(env: Env, admin: Address) -> Result<(), ContractError> {
+        do_initialize(&env, &admin)
     }
 
     // -------------------------------------------------------------------------
@@ -57,8 +60,13 @@ impl EscrowContract {
     // -------------------------------------------------------------------------
 
     /// Grant a role to an address. Caller must hold `ROLE_ADMIN`.
-    pub fn grant_role(env: Env, caller: Address, role: Symbol, account: Address) {
-        require_role(&env, &Symbol::new(&env, ROLE_ADMIN), &caller);
+    pub fn grant_role(
+        env: Env,
+        caller: Address,
+        role: Symbol,
+        account: Address,
+    ) -> Result<(), ContractError> {
+        require_role(&env, &Symbol::new(&env, ROLE_ADMIN), &caller)?;
         let id = role_to_id(&env, &role);
         let mut members = load_role_members(&env, id);
         if !members.iter().any(|m| m == account) {
@@ -67,11 +75,17 @@ impl EscrowContract {
         save_role_members(&env, id, &members);
         env.events()
             .publish((symbol_short!("RlGrnt"), role), account);
+        Ok(())
     }
 
     /// Revoke a role from an address. Caller must hold `ROLE_ADMIN`.
-    pub fn revoke_role(env: Env, caller: Address, role: Symbol, account: Address) {
-        require_role(&env, &Symbol::new(&env, ROLE_ADMIN), &caller);
+    pub fn revoke_role(
+        env: Env,
+        caller: Address,
+        role: Symbol,
+        account: Address,
+    ) -> Result<(), ContractError> {
+        require_role(&env, &Symbol::new(&env, ROLE_ADMIN), &caller)?;
         let id = role_to_id(&env, &role);
         let members = load_role_members(&env, id);
         let mut updated: Vec<Address> = Vec::new(&env);
@@ -83,12 +97,13 @@ impl EscrowContract {
         save_role_members(&env, id, &updated);
         env.events()
             .publish((symbol_short!("RlRevk"), role), account);
+        Ok(())
     }
 
     /// Return `true` if `account` holds `role`.
-    pub fn has_role(env: Env, role: Symbol, account: Address) -> bool {
+    pub fn has_role(env: Env, role: Symbol, account: Address) -> Result<bool, ContractError> {
         let id = role_to_id(&env, &role);
-        load_role_members(&env, id).iter().any(|m| m == account)
+        Ok(load_role_members(&env, id).iter().any(|m| m == account))
     }
 
     // -------------------------------------------------------------------------
@@ -96,31 +111,30 @@ impl EscrowContract {
     // -------------------------------------------------------------------------
 
     /// Pause the contract. Caller must hold `ROLE_PAUSER`.
-    pub fn pause(env: Env, caller: Address) {
-        require_role(&env, &Symbol::new(&env, ROLE_PAUSER), &caller);
+    pub fn pause(env: Env, caller: Address) -> Result<(), ContractError> {
+        require_role(&env, &Symbol::new(&env, ROLE_PAUSER), &caller)?;
         set_paused(&env, true);
         env.events().publish((symbol_short!("Paused"), caller), ());
+        Ok(())
     }
 
     /// Unpause the contract. Caller must hold `ROLE_PAUSER`.
-    pub fn unpause(env: Env, caller: Address) {
-        require_role(&env, &Symbol::new(&env, ROLE_PAUSER), &caller);
+    pub fn unpause(env: Env, caller: Address) -> Result<(), ContractError> {
+        require_role(&env, &Symbol::new(&env, ROLE_PAUSER), &caller)?;
         set_paused(&env, false);
         env.events()
             .publish((symbol_short!("Unpaused"), caller), ());
+        Ok(())
     }
 
     /// Return `true` if the contract is paused.
-    pub fn is_paused(env: Env) -> bool {
-        is_paused(&env)
+    pub fn is_paused(env: Env) -> Result<bool, ContractError> {
+        Ok(is_paused(&env))
     }
 
     /// Return the admin address.
-    ///
-    /// # Panics
-    /// - `"Not initialized"` if called before `initialize`.
-    pub fn get_admin(env: Env) -> Address {
-        load_admin(&env).expect("Not initialized")
+    pub fn get_admin(env: Env) -> Result<Address, ContractError> {
+        load_admin(&env).ok_or(ContractError::NotInitialized)
     }
 
     // -------------------------------------------------------------------------
@@ -128,14 +142,6 @@ impl EscrowContract {
     // -------------------------------------------------------------------------
 
     /// Create a new escrow and lock `amount` tokens from `depositor`.
-    ///
-    /// # Parameters
-    /// - `depositor`: Payer; `require_auth()` enforced.
-    /// - `beneficiary`: Address that receives funds on release.
-    /// - `token`: Token contract address.
-    /// - `id`: Unique escrow identifier.
-    /// - `amount`: Amount to lock (must be > 0).
-    /// - `expiry`: Unix timestamp after which depositor may self-cancel.
     pub fn create_escrow(
         env: Env,
         depositor: Address,
@@ -144,28 +150,33 @@ impl EscrowContract {
         id: Symbol,
         amount: i128,
         expiry: u64,
-    ) {
-        do_create(&env, &depositor, beneficiary, token, id, amount, expiry);
+    ) -> Result<(), ContractError> {
+        do_create(&env, &depositor, beneficiary, token, id, amount, expiry)
     }
 
     /// Release escrow funds to the beneficiary. Depositor or admin only.
-    pub fn release_escrow(env: Env, caller: Address, id: Symbol) {
-        do_release(&env, &caller, id);
+    pub fn release_escrow(env: Env, caller: Address, id: Symbol) -> Result<(), ContractError> {
+        do_release(&env, &caller, id)
     }
 
     /// Cancel escrow and refund depositor. Admin any time; depositor after expiry.
-    pub fn cancel_escrow(env: Env, caller: Address, id: Symbol) {
-        do_cancel(&env, &caller, id);
+    pub fn cancel_escrow(env: Env, caller: Address, id: Symbol) -> Result<(), ContractError> {
+        do_cancel(&env, &caller, id)
     }
 
     /// File a dispute on an active escrow. Either party may call.
-    pub fn dispute_escrow(env: Env, caller: Address, id: Symbol) {
-        do_dispute(&env, &caller, id);
+    pub fn dispute_escrow(env: Env, caller: Address, id: Symbol) -> Result<(), ContractError> {
+        do_dispute(&env, &caller, id)
     }
 
     /// Resolve a disputed escrow. Caller must hold `ROLE_ARBITRATOR`.
-    pub fn resolve_dispute(env: Env, caller: Address, id: Symbol, release_to_beneficiary: bool) {
-        do_resolve(&env, &caller, id, release_to_beneficiary);
+    pub fn resolve_dispute(
+        env: Env,
+        caller: Address,
+        id: Symbol,
+        release_to_beneficiary: bool,
+    ) -> Result<(), ContractError> {
+        do_resolve(&env, &caller, id, release_to_beneficiary)
     }
 
     // -------------------------------------------------------------------------
@@ -173,21 +184,19 @@ impl EscrowContract {
     // -------------------------------------------------------------------------
 
     /// Get a single escrow record.
-    ///
-    /// # Panics
-    /// - `"Escrow not found"` if id does not exist.
-    pub fn get_escrow(env: Env, id: Symbol) -> EscrowRecord {
-        load_escrow(&env, &id).expect("Escrow not found")
+    pub fn get_escrow(env: Env, id: Symbol) -> Result<EscrowRecord, ContractError> {
+        load_escrow(&env, &id).ok_or(ContractError::EscrowNotFound)
     }
 
     /// Return all escrow ids in creation order.
-    pub fn list_escrows(env: Env) -> Vec<Symbol> {
-        load_escrow_list(&env)
+    pub fn list_escrows(env: Env) -> Result<Vec<Symbol>, ContractError> {
+        Ok(load_escrow_list(&env))
     }
 
     /// Extend the TTL of an escrow entry (permissionless).
-    pub fn extend_escrow_ttl(env: Env, id: Symbol) {
+    pub fn extend_escrow_ttl(env: Env, id: Symbol) -> Result<(), ContractError> {
         storage::extend_escrow_ttl(&env, &id);
+        Ok(())
     }
 
     // -------------------------------------------------------------------------
@@ -195,8 +204,8 @@ impl EscrowContract {
     // -------------------------------------------------------------------------
 
     /// Return the event schema version.
-    pub fn version(_env: Env) -> u32 {
-        VERSION
+    pub fn version(_env: Env) -> Result<u32, ContractError> {
+        Ok(VERSION)
     }
 
     // -------------------------------------------------------------------------
@@ -204,8 +213,62 @@ impl EscrowContract {
     // -------------------------------------------------------------------------
 
     /// Upgrade the contract WASM. Caller must hold `ROLE_UPGRADER`.
-    pub fn upgrade(env: Env, caller: Address, new_wasm_hash: BytesN<32>) {
-        require_role(&env, &Symbol::new(&env, ROLE_UPGRADER), &caller);
+    pub fn upgrade(
+        env: Env,
+        caller: Address,
+        new_wasm_hash: BytesN<32>,
+    ) -> Result<(), ContractError> {
+        require_role(&env, &Symbol::new(&env, ROLE_UPGRADER), &caller)?;
         env.deployer().update_current_contract_wasm(new_wasm_hash);
+        Ok(())
+    }
+
+    // -------------------------------------------------------------------------
+    // Migration
+    // -------------------------------------------------------------------------
+
+    /// Run version-specific storage migration logic.
+    ///
+    /// `expected_version` must match the current schema version stored on-chain;
+    /// this guards against running a migration against the wrong contract version.
+    /// Caller must hold `ROLE_ADMIN`.
+    pub fn migrate(env: Env, admin: Address, expected_version: u32) -> Result<(), ContractError> {
+        require_role(&env, &Symbol::new(&env, ROLE_ADMIN), &admin)?;
+
+        let current: u32 = env
+            .storage()
+            .persistent()
+            .get(&storage::DataKey::SchemaVersion)
+            .unwrap_or(1u32);
+
+        if current != expected_version {
+            return Err(ContractError::WrongSchemaVersion);
+        }
+
+        // version-specific migration logic
+        // Version 1 → 2: no structural change needed for v1→v2 in this release.
+        // Future migrations add field-backfill logic here.
+
+        let new_version = expected_version
+            .checked_add(1)
+            .expect("version overflow");
+        env.storage()
+            .persistent()
+            .set(&storage::DataKey::SchemaVersion, &new_version);
+
+        env.events().publish(
+            (soroban_sdk::symbol_short!("Migrated"),),
+            (expected_version, new_version),
+        );
+        Ok(())
+    }
+
+    /// Return the current schema version (defaults to 1 on fresh deployments).
+    pub fn get_schema_version(env: Env) -> Result<u32, ContractError> {
+        Ok(env
+            .storage()
+            .persistent()
+            .get(&storage::DataKey::SchemaVersion)
+            .unwrap_or(1u32))
     }
 }

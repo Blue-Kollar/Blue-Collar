@@ -1,43 +1,21 @@
+/**
+ * Worker validation schemas for the API.
+ * Core schemas are imported from @bluecollar/types to stay in sync with the App.
+ */
 import { z } from 'zod'
-import { emailField, nameField, phoneField } from './shared.js'
 
-// POST /workers
-export const createWorkerRules = z
-  .object({
-    name: nameField,
-    categoryId: z.string().min(1),
-    phone: phoneField,
-    email: emailField.optional(),
-    bio: z.string().optional(),
-    walletAddress: z.string().optional(),
-  })
-  .refine((d) => d.phone || d.email, {
-    message: 'Either phone or email is required',
-    path: ['phone'],
-  })
+export {
+  createWorkerSchema as createWorkerRules,
+  updateWorkerSchema as updateWorkerRules,
+  createReviewSchema as createReviewRules,
+} from '@bluecollar/types'
 
-// PUT /workers/:id — all fields optional
-export const updateWorkerRules = z.object({
-  name: nameField.optional(),
-  categoryId: z.string().optional(),
-  phone: phoneField,
-  email: emailField.optional(),
-  bio: z.string().optional(),
-  walletAddress: z.string().optional(),
-})
-
-// POST /workers/:id/reviews
-export const createReviewRules = z.object({
-  rating: z.number().int().min(1).max(5),
-  comment: z.string().optional(),
-})
-
-// POST /workers/:id/contact
+// POST /workers/:id/contact — API-only (no frontend form schema needed)
 export const contactRequestRules = z.object({
-  message: z.string().min(10),
+  message: z.string().min(10, 'Message must be at least 10 characters'),
 })
 
-// Advanced search and filtering
+// Advanced search — API-only query parsing
 export const advancedSearchRules = z.object({
   query: z.string().optional(),
   lat: z.coerce.number().optional(),
