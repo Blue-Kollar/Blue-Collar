@@ -16,7 +16,7 @@ import {
   syncReputation,
 } from '../controllers/workers.js'
 import { toggleBookmark } from '../controllers/bookmarks.js'
-import { createWorkerReview, deleteReview, listWorkerReviews } from './reviews.js'
+import { createWorkerReview, deleteReview, listWorkerReviews } from '../controllers/reviews.js'
 import { getAvailability, upsertAvailability, addAvailabilitySlot, deleteAvailabilitySlot } from '../controllers/availability.js'
 import { registerOnChain } from '../controllers/stellar.js'
 import { createContactRequest, getContactRequests, updateContactRequestStatus } from '../controllers/contact-request.js'
