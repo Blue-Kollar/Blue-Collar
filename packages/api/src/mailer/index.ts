@@ -49,7 +49,14 @@ export async function sendModerationEmail(
     subject: `Your review has been ${action}`,
     html: `<p>Hi <strong>${firstName}</strong>, your review has been <strong>${action}</strong> by our moderation team.</p>`,
   })
+  // nodemailer's jsonTransport option is not part of the public type definitions;
+  // we use it in dev/test to capture emails without a real SMTP server.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- nodemailer jsonTransport internal option
   if ((transporter as any).options?.jsonTransport) {
+    // nodemailer's jsonTransport stub exposes a non-standard `.message` string on the
+    // returned SentMessageInfo. There is no official type for this internal property;
+    // the cast is intentional and only executed in dev/test environments.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- nodemailer jsonTransport internal property
     logger.debug({ message: JSON.parse((info as any).message) }, '[mailer] Moderation email (dev stub)')
   }
 }

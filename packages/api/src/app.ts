@@ -233,6 +233,9 @@ app.put('/api/v2/admin/rollout', updateRolloutEndpoint)
 
 // ── Redirect unversioned /api/* → /api/v1/* with deprecation headers ──────────
 app.use('/api', deprecationWarning, (req, res) => {
+  // Express types req.query as ParsedQs; URLSearchParams accepts Record<string,string>.
+  // At this redirect path all query values are simple strings, so the cast is safe.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- ParsedQs → URLSearchParams safe at redirect path
   const qs = Object.keys(req.query).length ? '?' + new URLSearchParams(req.query as any).toString() : ''
   const target = `/api/v1${req.path}${qs}`
   res.redirect(301, target)

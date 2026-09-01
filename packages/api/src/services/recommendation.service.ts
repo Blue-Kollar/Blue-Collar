@@ -7,7 +7,12 @@ const INTERACTION_WEIGHTS: Record<string, number> = { view: 1, bookmark: 3, tip:
 
 /** Track a user interaction with a worker */
 export async function trackInteraction(userId: string, workerId: string, type: string) {
-  await db.userInteraction.create({ data: { userId, workerId, type: type as any } })
+  await db.userInteraction.create({
+    // `type` is a string from the caller but Prisma expects the InteractionType enum.
+    // Validated by the caller; cast is intentional.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Prisma InteractionType enum cast
+    data: { userId, workerId, type: type as any },
+  })
   // Invalidate cached recommendations for this user
   await redis.del(`recommendations:${userId}`).catch(() => {})
 }
@@ -128,7 +133,11 @@ export async function getRecommendations(userId: string, limit = 10) {
   })
 
   scored.sort((a, b) => b.score - a.score)
-  const top = scored.slice(0, limit).map((s) => formatWorker(s.worker as any))
+  const top = scored.slice(0, limit).map((s) =>
+    // db.worker.findMany with include guarantees non-null relations; Prisma infers nullable.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Prisma nullable-relation inference vs formatWorker shape
+    formatWorker(s.worker as any)
+  )
 
   const result = { data: top, source: 'collaborative' }
   await redis.setex(cacheKey, CACHE_TTL, JSON.stringify(result)).catch(() => {})

@@ -201,6 +201,10 @@ export async function listWorkersCursor(opts: {
   const data = rows.slice(0, limit)
 
   return {
+    // db.worker.findMany with `include: { category, curator }` returns the full relations
+    // but TypeScript infers a nullable type for the relation fields. WorkerCollection
+    // requires non-nullable relations; the shape is guaranteed by the include clause.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Prisma nullable-relation inference vs WorkerWithRelations
     data: WorkerCollection(data as any),
     nextCursor: rows.length > limit ? data[data.length - 1]?.id ?? null : null,
   }
@@ -370,6 +374,9 @@ async function listWorkersFullText(opts: FtsOpts) {
       category: row['category'],
       curator:  row['curator'],
       location: row['location'],
+      // Raw SQL result is Record<string,unknown>; cast to the expected Prisma shape
+      // which is guaranteed by the JOIN clauses in the FTS query above.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- raw SQL result cast to Prisma Worker shape
     } as any),
     highlight: {
       name: (row['nameHighlight'] as string) ?? null,
@@ -392,6 +399,9 @@ export async function getWorker(id: string) {
 export async function createWorker(data: CreateWorkerBody, curatorId: string) {
   logger.debug('Creating worker', { curatorId, name: data.name })
   const worker = await db.worker.create({
+    // `createdById` and `updatedById` are audit fields added by our schema but
+    // not part of CreateWorkerBody — extend the Prisma input explicitly.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Prisma.WorkerCreateInput vs CreateWorkerBody audit fields
     data: { ...data, curatorId, createdById: curatorId, updatedById: curatorId } as any,
     include: workerInclude,
   })
@@ -405,7 +415,9 @@ export async function updateWorker(id: string, data: UpdateWorkerBody, updatedBy
   logger.debug('Updating worker', { workerId: id })
   const worker = await db.worker.update({
     where: { id },
-    data: { ...data as any, ...(updatedById ? { updatedById } : {}) },
+    // `updatedById` is an audit field not present in UpdateWorkerBody.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Prisma.WorkerUpdateInput vs UpdateWorkerBody audit field
+    data: { ...(data as any), ...(updatedById ? { updatedById } : {}) },
     include: workerInclude,
   })
   publishEvent('worker.updated', { worker: formatWorker(worker) }).catch(() => {})

@@ -260,6 +260,9 @@ export async function changeRole(req: Request, res: Response) {
 
   const updated = await db.user.update({
     where: { id: req.params.id },
+    // `role` is validated by the route schema as 'user'|'curator'|'admin'; Prisma expects the
+    // Role enum. String cast is safe here given upstream validation.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Prisma Role enum cast validated by route schema
     data: { role: role as any },
     select: { id: true, email: true, firstName: true, lastName: true, role: true },
   })

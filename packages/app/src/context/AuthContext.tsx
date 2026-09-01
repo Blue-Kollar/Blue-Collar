@@ -18,6 +18,10 @@ export interface AuthUser {
   lastName: string;
   email: string;
   role: "user" | "curator" | "admin";
+  /** Optional profile fields returned by /auth/me and /auth/profile endpoints */
+  phone?: string;
+  bio?: string;
+  avatar?: string;
 }
 
 interface AuthContextValue {

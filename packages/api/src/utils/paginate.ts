@@ -47,6 +47,10 @@ export async function paginate<T>({
   page,
   limit,
 }: PaginateArgs): Promise<{ data: T[]; meta: PaginationMeta }> {
+  // Prisma client exposes model delegates via string-indexed access but TypeScript
+  // cannot narrow `db[model]` to the correct delegate type from a generic string key.
+  // The caller is responsible for passing a valid Prisma model name.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Prisma dynamic model delegate access
   const delegate = db[model] as any
   const skip = (page - 1) * limit
 

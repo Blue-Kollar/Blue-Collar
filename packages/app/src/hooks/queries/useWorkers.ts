@@ -31,6 +31,9 @@ export function useWorkersInfinite(params?: Omit<Record<string, string>, "cursor
     queryFn: ({ pageParam }) =>
       api.getWorkers({ ...params, ...(pageParam ? { cursor: pageParam as string } : {}) }),
     initialPageParam: undefined as string | undefined,
+    // The API cursor response includes `nextCursor` but the React Query page type
+    // is inferred as the generic fetch return; cast is safe given the API contract.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- cursor pagination shape from API
     getNextPageParam: (last) => (last as any).nextCursor ?? undefined,
   });
 }

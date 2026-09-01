@@ -9,6 +9,9 @@ import { dispatchNotification } from './notification.service.js'
 // ── helpers ───────────────────────────────────────────────────────────────────
 
 function notifyBoth(payerId: string, payeeId: string, title: string, message: string, href?: string) {
+  // `channels` must match the NotificationChannel union type from the notification service.
+  // Listing literals inline and casting avoids importing the full union type here.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- NotificationChannel union cast
   const payload = { type: 'system' as const, title, message, href, channels: ['inapp', 'email'] as any }
   dispatchNotification({ userId: payerId, ...payload }).catch(() => {})
   dispatchNotification({ userId: payeeId, ...payload }).catch(() => {})

@@ -24,7 +24,7 @@ export function getDynamicRateLimitConfig(version: string, userId?: string) {
  */
 export function versionRateLimit(req: Request, res: Response, next: NextFunction) {
   const version = req.apiVersion || 'v1'
-  const userId = (req as any).user?.id
+  const userId = req.user?.id
 
   const config = getDynamicRateLimitConfig(version, userId)
   if (!config) {
@@ -36,6 +36,8 @@ export function versionRateLimit(req: Request, res: Response, next: NextFunction
 
   const limiter = rateLimit({
     store: new RedisStore({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- ioredis is compatible with rate-limit-redis's
+      // `sendCommand` interface but the library types expect a dedicated Client type; the cast is safe at runtime.
       client: redis as any,
       prefix: `${key}:`,
     }),

@@ -16,8 +16,9 @@ export type SerializedWorker = Omit<Worker, 'searchVector' | 'phone' | 'email'> 
 
 export class WorkerSerializer extends BaseSerializer<WorkerWithRelations, SerializedWorker> {
   serialize(worker: WorkerWithRelations): SerializedWorker {
-    // PII SAFETY: phone and email are excluded from public API responses
-    const { searchVector, phone, email, category, curator, ...rest } = worker as any
+    // PII SAFETY: phone and email are excluded from public API responses.
+    // Destructuring directly from the typed parameter — no cast needed.
+    const { searchVector: _sv, phone: _ph, email: _em, category, curator, ...rest } = worker
     return {
       ...rest,
       images: {

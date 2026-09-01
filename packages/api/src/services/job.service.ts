@@ -163,6 +163,10 @@ export async function updateJob(
 
   return db.job.update({
     where: { id },
+    // The input type includes `expiresAt` as a string (from JSON body), converted to
+    // Date above. Prisma's generated JobUpdateInput uses `Date | DateTimeFieldUpdateOperationsInput`;
+    // the spread produces a compatible shape but TypeScript can't prove it without the cast.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Prisma input type vs partial body spread
     data: { ...data, expiresAt: data.expiresAt ? new Date(data.expiresAt) : undefined } as any,
     include: jobInclude,
   })

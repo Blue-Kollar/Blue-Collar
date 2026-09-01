@@ -187,15 +187,19 @@ WHERE ${whereSQL}
   // Apply exact haversine geo filter post-query
   let results = rows
   if (lat !== undefined && lng !== undefined) {
+    type RowWithDistance = Record<string, unknown> & { distanceKm?: number }
     results = rows.filter(row => {
+      // Raw SQL result typed as Record<string,unknown>; `location` is a JSON object
+      // from row_to_json() in the query above.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- raw SQL row_to_json result
       const loc = row['location'] as any
       if (!loc?.lat || !loc?.lng) return false
       const dist = haversine(lat, lng, loc.lat, loc.lng)
-      ;(row as any)['distanceKm'] = dist
+      ;(row as RowWithDistance).distanceKm = dist
       return dist <= radius
     })
     if (sortBy === 'distance') {
-      results.sort((a, b) => ((a as any)['distanceKm'] ?? Infinity) - ((b as any)['distanceKm'] ?? Infinity))
+      results.sort((a, b) => ((a as RowWithDistance).distanceKm ?? Infinity) - ((b as RowWithDistance).distanceKm ?? Infinity))
     }
   }
 
@@ -279,7 +283,7 @@ export async function performAdvancedSearch(
     startTime: filters.startTime,
     endTime: filters.endTime,
     isVerified: filters.isVerified,
-    sortBy: filters.sortBy as any,
+    sortBy: filters.sortBy as 'relevance' | 'rating' | 'distance' | 'newest' | undefined,
     skip: (page - 1) * limit,
     take: limit,
   })

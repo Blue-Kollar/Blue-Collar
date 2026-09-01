@@ -11,6 +11,10 @@ export async function registerOnChain(req: Request, res: Response) {
     }
     const worker = await stellarService.registerOnChain(req.params.id, contractId)
     return res.json({
+      // stellarService.registerOnChain returns the Prisma worker with relations that satisfy
+      // WorkerWithRelations; Prisma infers nullable relation fields, WorkerResource expects
+      // the full type. The include clause guarantees the shape at runtime.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Prisma nullable-relation inference vs WorkerResource
       data: WorkerResource(worker as any),
       status: 'success',
       code: 200

@@ -6,8 +6,23 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Download } from 'lucide-react'
 
+interface TopPerformer {
+  workerId: string
+  workerName: string
+  value: number
+}
+
+interface AdminDashboardData {
+  growth: { newUsers: number; newWorkers: number; newReviews: number }
+  engagement: { views: number; contacts: number; bookmarks: number }
+  revenue: { totalRevenue: number; totalTransactions: number }
+  disputes: { total: number; resolved: number; resolutionRate: number }
+  topPerformers: TopPerformer[]
+}
+
 interface AdminDashboardProps {
-  initialData?: any
+  /** Pre-fetched data for SSR; dashboard fetches fresh data client-side when filters change. */
+  initialData?: AdminDashboardData
 }
 
 export function AdminAnalyticsDashboard({ initialData }: AdminDashboardProps) {
@@ -155,7 +170,7 @@ export function AdminAnalyticsDashboard({ initialData }: AdminDashboardProps) {
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                {data.topPerformers.slice(0, 5).map((performer: any, idx: number) => (
+                {data.topPerformers.slice(0, 5).map((performer: TopPerformer, idx: number) => (
                   <div key={performer.workerId} className="flex justify-between">
                     <span className="text-sm">
                       {idx + 1}. {performer.workerName}

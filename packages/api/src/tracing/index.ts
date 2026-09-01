@@ -47,8 +47,12 @@ const sdk = new NodeSDK({
         span.setAttribute('express.route', route);
         span.setAttribute('http.route', route);
         
-        // Add user ID if available
+        // Add user ID if available — the Express request type is augmented in express.d.ts;
+        // the OpenTelemetry hook receives an `IncomingMessage` not an Express `Request`, so
+        // we use a defensive cast rather than importing the Express type into tracing setup.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- OTel IncomingMessage vs Express Request
         if ((request as any).user?.id) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- same reason as above
           span.setAttribute('user.id', (request as any).user.id);
         }
       },

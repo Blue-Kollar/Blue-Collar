@@ -101,8 +101,8 @@ export default function SettingsPage() {
       resetProfile({
         firstName: user.firstName,
         lastName: user.lastName,
-        phone: (user as any).phone ?? "",
-        bio: (user as any).bio ?? "",
+        phone: user.phone ?? "",
+        bio: user.bio ?? "",
       });
     }
   }, [user, resetProfile]);
@@ -111,6 +111,7 @@ export default function SettingsPage() {
     try {
       const res = await api.updateProfile(data);
       // Refresh auth user with updated data
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- api.updateProfile returns unknown response shape
       const updated = (res as any).data;
       if (updated) {
         const token = localStorage.getItem("bc_token") ?? "";

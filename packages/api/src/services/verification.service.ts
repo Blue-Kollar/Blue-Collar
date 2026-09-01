@@ -22,6 +22,10 @@ export async function requestVerification(workerId: string, requestedById: strin
 
 /** List verification requests (admin) */
 export async function listRequests(status?: string, page = 1, limit = 20) {
+  // Prisma requires the `status` field to match the VerificationStatus enum. The
+  // value is validated by the route schema before reaching here; we cast to satisfy
+  // the Prisma type without importing the full generated enum at runtime.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Prisma enum cast validated upstream by route schema
   const where = status ? { status: status as any } : {}
   const [data, total] = await Promise.all([
     db.verificationRequest.findMany({

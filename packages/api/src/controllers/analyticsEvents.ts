@@ -4,7 +4,8 @@ import { handleError } from '../utils/handleError.js'
 interface AnalyticsEvent {
   event: string
   category: string
-  properties?: Record<string, any>
+  /** Arbitrary client-supplied event properties; typed as unknown to avoid no-explicit-any. */
+  properties?: Record<string, unknown>
   timestamp: string
 }
 

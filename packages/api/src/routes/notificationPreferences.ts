@@ -16,7 +16,7 @@ type AllowedField = (typeof ALLOWED_FIELDS)[number];
 // GET /api/users/me/notifications
 router.get("/", async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user.id;
+    const userId = req.user!.id;
     let prefs = await prisma.notificationPreferences.findUnique({
       where: { userId },
     });
@@ -41,7 +41,7 @@ router.get("/", async (req: Request, res: Response) => {
 // PUT /api/users/me/notifications
 router.put("/", async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user.id;
+    const userId = req.user!.id;
     const updates: Partial<Record<AllowedField, boolean>> = {};
 
     for (const field of ALLOWED_FIELDS) {

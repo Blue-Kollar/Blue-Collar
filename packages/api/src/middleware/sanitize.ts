@@ -52,6 +52,9 @@ function sanitizeObject(obj: { [key: string]: Sanitizable }, depth = 0) {
 export function sanitize(req: Request, _res: Response, next: NextFunction) {
   if (req.body && typeof req.body === 'object') req.body = sanitizeObject(req.body)
   if (req.query && typeof req.query === 'object')
+    // Express types req.query as ParsedQs which is structurally compatible with
+    // { [key: string]: Sanitizable } at runtime; the cast is intentional.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Express ParsedQs<->Sanitizable structural mismatch
     req.query = sanitizeObject(req.query as { [key: string]: Sanitizable }) as any
   next()
 }
@@ -59,6 +62,8 @@ export function sanitize(req: Request, _res: Response, next: NextFunction) {
 /** Sanitize req.params (route parameters). */
 export function sanitizeParams(req: Request, _res: Response, next: NextFunction) {
   if (req.params && typeof req.params === 'object')
+    // Same intentional cast as above for req.params.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Express params type<->Sanitizable structural mismatch
     req.params = sanitizeObject(req.params as { [key: string]: Sanitizable }) as any
   next()
 }

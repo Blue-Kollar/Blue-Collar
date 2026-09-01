@@ -106,13 +106,13 @@ async function listWorkersOffsetMode(query: Record<string, unknown>, fieldSet: S
     maxRating: maxRating ? Number(maxRating) : undefined,
     available: available !== undefined ? Number(available) : undefined,
     listedSince: listedSince ? Number(listedSince) : undefined,
-    sortBy: sortBy as any,
-    sortOrder: sortOrder as any,
+    sortBy: sortBy as 'rating' | 'newest' | 'oldest' | 'name' | undefined,
+    sortOrder: sortOrder as 'asc' | 'desc' | undefined,
     isVerified: isVerified !== undefined ? isVerified === 'true' : undefined,
   })
 
-  const resultData = fieldSet && Array.isArray((result as any).data)
-    ? { ...result, data: (result as any).data.map((w: Record<string, unknown>) => sparseFields(w, fieldSet)) }
+  const resultData = fieldSet && Array.isArray(result.data)
+    ? { ...result, data: result.data.map((w: Record<string, unknown>) => sparseFields(w as Record<string, unknown>, fieldSet)) }
     : result
   return res.json({ ...resultData, status: 'success', code: 200 })
 }
@@ -157,6 +157,8 @@ export async function createWorker(req: Request<{}, {}, CreateWorkerBody>, res: 
     const worker = await workerService.createWorkerWithMedia(req.body, req.user!.id, req.file)
     await invalidateCachePattern(`cache:*workers?*`)
     return res.status(201).json({
+      // createWorkerWithMedia returns formatWorker output; serializer expects raw Prisma type.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- formatWorker output vs WorkerWithRelations input
       data: workerSerializer.serialize(worker as any),
       status: 'success',
       code: 201
@@ -194,6 +196,7 @@ export async function updateWorker(req: Request<{ id: string }, {}, UpdateWorker
     await invalidateCachePattern(`cache:*workers/${req.params.id}*`)
     await invalidateCachePattern(`cache:*workers?*`)
     return res.json({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- formatWorker output vs WorkerWithRelations
       data: workerSerializer.serialize(worker as any),
       status: 'success',
       code: 200
@@ -234,6 +237,7 @@ export async function toggleActivation(req: Request, res: Response) {
     await invalidateCachePattern(`cache:*workers/${req.params.id}*`)
     await invalidateCachePattern(`cache:*workers?*`)
     return res.json({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- formatWorker output vs WorkerWithRelations
       data: workerSerializer.serialize(updated as any),
       status: 'success',
       code: 200
@@ -289,7 +293,7 @@ export function createSearchHandlers(service: SearchService = searchService) {
         maxRating: maxRating ? Number(maxRating) : undefined,
         dayOfWeek: dayOfWeek !== undefined ? Number(dayOfWeek) : undefined,
         isVerified: isVerified !== undefined ? isVerified === 'true' : undefined,
-        sortBy: sortBy as any,
+        sortBy: sortBy as 'relevance' | 'rating' | 'distance' | 'newest' | undefined,
         page: Number(page),
         limit: Math.min(Math.max(Number(limit) || 20, 1), 100),
       }, req.ip)

@@ -8,7 +8,7 @@ import { catchAsync } from '../utils/catchAsync.js'
 import * as contractsService from '../services/contracts.service.js'
 
 export const listEscrows = catchAsync(async (req: Request, res: Response) => {
-  const { page, limit } = req.query as any
+  const { page, limit } = req.query
   const result = await contractsService.escrow.listEscrows(
     req.user!.id,
     req.user!.role,

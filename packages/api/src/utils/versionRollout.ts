@@ -98,7 +98,7 @@ export function getCanaryStats(version: string): {
  */
 export function versionRolloutMiddleware(req: Request, res: Response, next: NextFunction) {
   const version = req.apiVersion || 'v1'
-  const userId = (req as any).user?.id
+  const userId = req.user?.id
 
   if (!isVersionEnabled(version, userId)) {
     return res.status(503).json({
@@ -111,7 +111,11 @@ export function versionRolloutMiddleware(req: Request, res: Response, next: Next
     })
   }
 
-  // Store rollout info in request
+  // Store rollout info in request — typed via express.d.ts augmentation.
+  // rolloutConfig is not on the default Request; add it if needed, or use
+  // a local req.app.locals pattern. For now we attach it as a well-understood
+  // side-effect of this middleware only.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- rolloutConfig is middleware-specific, not on the shared Request type
   ;(req as any).rolloutConfig = ROLLOUT_CONFIG[version]
 
   next()
@@ -170,11 +174,11 @@ export function updateRolloutConfig(
 /**
  * Get current rollout status for all versions
  */
-export function getRolloutStatus(): Record<string, any> {
+export function getRolloutStatus(): Record<string, RolloutConfig & { status: 'stable' | 'canary' | 'disabled' }> {
   return Object.entries(ROLLOUT_CONFIG).reduce(
     (acc, [version, config]) => {
       acc[version] = {
-        version,
+        version: config.version,
         enabled: config.enabled,
         trafficPercentage: config.trafficPercentage,
         status: getCanaryStats(version).status,
@@ -182,7 +186,7 @@ export function getRolloutStatus(): Record<string, any> {
       }
       return acc
     },
-    {} as Record<string, any>
+    {} as Record<string, RolloutConfig & { status: 'stable' | 'canary' | 'disabled' }>
   )
 }
 

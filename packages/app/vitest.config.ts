@@ -29,7 +29,9 @@ export default defineConfig({
     css: false,
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'html'],
+      // 'json' is required by the root aggregate-coverage script (scripts/aggregate-coverage.sh)
+      // which merges coverage/coverage-final.json from every package into a single report.
+      reporter: ['text', 'json', 'html'],
       include: ['src/components/**', 'src/hooks/**', 'src/lib/**', 'src/utils/**', 'src/context/**'],
       exclude: [
         'src/app/**',

@@ -50,6 +50,8 @@ export async function login(req: Request<{}, {}, LoginBody>, res: Response) {
       ipAddress,
     )
     return res.status(202).json({
+      // authService.loginUser returns a DB user with extra fields not in UserResource's input type.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- authService user shape vs UserResource input
       data: UserResource(data as any),
       status: "success",
       message: "Login successful",
@@ -78,6 +80,7 @@ export async function register(
   try {
     const data = await authService.registerUser(req.body);
     return res.status(201).json({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- registerUser returns extra DB fields
       data: UserResource(data as any),
       status: "success",
       message:
@@ -122,6 +125,9 @@ export const verifyAccount = catchAsync(async (req: Request, res: Response) => {
  *              or `APP_URL/login?error=oauth-failed` on failure.
  */
 export async function googleAuthCallback(req: Request, res: Response) {
+  // Passport sets req.user after OAuth; our Request augmentation types it as
+  // { id, role } but the Google strategy attaches the full DB user object.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Passport Google OAuth user shape
   const user = req.user as any;
   if (!user) return res.redirect(`${env.APP_URL}/login?error=oauth-failed`);
   const token = jwt.sign({ id: user.id, role: user.role }, env.JWT_SECRET, {

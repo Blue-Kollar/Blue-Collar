@@ -88,7 +88,7 @@ export async function processAndStore(req: Request, _res: Response, next: NextFu
       },
     })
 
-    ;(req as any).mediaAsset = asset
+    req.mediaAsset = asset
     next()
   } catch (err) {
     next(err)

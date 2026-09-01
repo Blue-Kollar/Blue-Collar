@@ -18,7 +18,7 @@ export type SortDirection = "asc" | "desc";
 export interface ColumnDef<T> {
   key: string;
   header: string;
-  /** Render cell content; receives the row. Defaults to `(row as any)[key]`. */
+  /** Render cell content; receives the row. Defaults to `String(row[key as keyof T] ?? '')`. */
   cell?: (row: T) => React.ReactNode;
   sortable?: boolean;
   /** Hide on mobile (stacked layout shows only non-hidden columns). */
