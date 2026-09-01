@@ -65,3 +65,79 @@ from the unit/integration test run to prevent CI failures unrelated to code chan
 export TEST_DATABASE_URL=postgresql://localhost:5432/bluecollar_test
 pnpm --filter @bluecollar/api exec vitest run src/__tests__/e2e
 ```
+
+---
+
+## #1263 Flaky Integration Test Audit
+
+**Issue:** [#1263] Remove flaky integration tests duplicating unit coverage
+
+### Methodology
+
+Every test file under `src/__tests__/` was categorised by abstraction level:
+
+| Level | Characteristic | Files |
+|---|---|---|
+| **Unit** | Calls controller/service/middleware functions directly with mocked `req`/`res` | `workers.test.ts`, `middleware/auth.test.ts`, `services/*.test.ts` |
+| **Integration (HTTP-stack)** | Fires real HTTP via supertest; DB and external calls mocked with `vi.mock` | `integration/workers.integration.test.ts`, `integration/wallet.test.ts`, `integration/search.integration.test.ts`, `integration/admin.integration.test.ts`, `integration/onchain-sync.integration.test.ts` |
+| **E2E** | Requires a live PostgreSQL instance; sequential describes share `let`-bound state | `e2e/*.e2e.test.ts` ← **already quarantined in this file** |
+
+Flakiness patterns targeted:
+
+1. **Real-DB dependency** — tests that call `prisma.worker.create()` / `db.user.create()` etc. without mocking.
+2. **Order-dependence** — `let` variables set in one `describe`, consumed by a later one.
+3. **Timing dependency** — wall-clock `setTimeout`, TOTP windows, escrow expiry timers.
+4. **Cross-file duplication** — same assertion exercised at the same abstraction level in two files.
+
+---
+
+### Files examined
+
+| File | Abstraction | DB mocked? | Verdict |
+|---|---|---|---|
+| `integration/workers.integration.test.ts` | HTTP-stack | ✅ `vi.mock('../../db.js')` | **Keep — tests full Express routing + middleware chain** |
+| `integration/wallet.test.ts` | HTTP-stack | ✅ `vi.mock('../../db.js')` + fetch stub | **Keep — exercises wallet route → controller → Stellar service; unit tests do not cover HTTP layer** |
+| `integration/onchain-sync.integration.test.ts` | Service integration | ✅ `vi.mock('../../db.js')` + global `fetch` stub | **Keep — only coverage for horizon-poller cursor advancement and signed webhook delivery** |
+| `integration/search.integration.test.ts` | HTTP-stack | ✅ `vi.mock('../../db.js')` | **Keep — advanced search endpoints not covered at unit level** |
+| `workers.test.ts` | Controller unit | N/A (no DB) | **Keep — primary coverage for `authenticate`, `authorize`, cursor/offset pagination dispatch logic; no HTTP-stack equivalent for middleware edge cases** |
+
+---
+
+### Overlap analysis: `workers.test.ts` vs `workers.integration.test.ts`
+
+These two files share scenario *names* but test **different abstraction layers**:
+
+| Scenario | `workers.test.ts` (unit) | `workers.integration.test.ts` (HTTP-stack) |
+|---|---|---|
+| GET /api/workers → 200 | Calls `listWorkers(req, res)` directly | HTTP `GET /api/workers` through supertest |
+| GET /api/workers with `?category` | Asserts `workerService.listWorkers` called with `{ category }` | HTTP request; verifies response status 200 |
+| GET /api/workers with `?search` | Asserts service called with `{ search }` | HTTP request; verifies 200 (no crash) |
+| GET /api/workers/:id → 200 | Calls `showWorker` directly; asserts body shape | HTTP request; verifies response status + `status: "success"` |
+| GET /api/workers/:id → 404 | Calls `showWorker` with `null` service result | HTTP request through full routing + error handler |
+| POST → 201 | Calls `createWorker` directly | HTTP POST with real JWT; exercises `authenticate` + `authorize` middleware in express context |
+| PUT → 200 | Calls `updateWorker` directly | HTTP PUT with real JWT |
+| PUT → 404 | Service mock throws `AppError(404)` | HTTP PUT to nonexistent ID |
+| DELETE → 204 | Calls `deleteWorker` directly | HTTP DELETE with real JWT |
+| 401 no auth header | Calls `authenticate` middleware directly | HTTP request with no `Authorization` header |
+| 403 wrong role | Calls `authorize("curator")` directly | HTTP POST with a `user`-role token |
+
+**Conclusion:** These scenarios are *not* duplicates. The unit tests verify the controller and middleware logic in isolation. The integration tests verify that the **Express router wires them together correctly** — the JWT is parsed by `authenticate`, the role is enforced by `authorize`, and errors reach the global error handler and are serialized to the correct HTTP response. Both layers are necessary.
+
+---
+
+### What was removed
+
+**Nothing additional.** The only genuine cross-file duplication at the same abstraction level was `integration/worker.test.ts` (singular), which was already removed under issue #1053 (see the first section of this document). That file called `prisma.worker.create()` without mocking, duplicated every scenario in `workers.integration.test.ts`, and had a broken `app` import.
+
+No further test files were found that duplicate coverage at the same abstraction level with no unique assertions.
+
+---
+
+### Remaining candidates for future cleanup
+
+| File | Candidate action | Rationale |
+|---|---|---|
+| `workers.test.ts` | Rename to `controllers/workers.controller.test.ts` | Current name implies it is a top-level workers test; it is specifically a controller + middleware unit test |
+| `workers.test.ts` — `authenticate`/`authorize` describes | Consider moving to `middleware/auth.test.ts` | The file comment acknowledges this; middleware tests belong in a dedicated file |
+| `integration/workers.integration.test.ts` — `?search` and `?category` tests | Could be deduplicated into `search.integration.test.ts` | Minor; no flakiness risk, so low priority |
+| E2E files (already quarantined) | Run separately via `pnpm test:e2e` against a provisioned DB | Already implemented via vitest `exclude` pattern |

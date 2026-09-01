@@ -6,6 +6,7 @@
  * gets identical, consistent behaviour instead of hand-rolled copies.
  *
  * Issue: #1054 — Introduce shared mock service layer for Stellar SDK calls
+ * Issue: #1265 — Add mock Stellar SDK fixtures for backend tests
  *
  * ─── Usage ────────────────────────────────────────────────────────────────────
  *
@@ -18,6 +19,13 @@
  *   vi.stubGlobal('fetch', makeMockHorizonFetch({
  *     account: { balance: '250.0000000', sequence: '9999' },
  *     tx: { hash: 'custom_hash', successful: true },
+ *   }))
+ *
+ *   // Mock the full StellarClient:
+ *   import { makeMockStellarClient } from '@bluecollar/test-utils/stellar-mocks'
+ *   vi.mock('../clients/stellar.client.js', () => ({
+ *     stellarClient: makeMockStellarClient(),
+ *     StellarClient: vi.fn().mockImplementation(() => makeMockStellarClient()),
  *   }))
  */
 
@@ -37,11 +45,23 @@ export const MOCK_WORKER_ADDRESS =
 export const MOCK_FEE_RECIPIENT_ADDRESS =
   'GBZVR55UH7NODXNZMBMOZSGSGQKGLYFQSYWJBGX2MKMJCSVPAJFX7KRF'
 
+// ─── Common fixture constants (#1265) ─────────────────────────────────────────
+
+/** A stable 64-hex-character transaction hash used as a fixture in Stellar tests. */
+export const MOCK_TX_HASH =
+  'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890'
+
+/** A stable sequence number (as bigint) returned by account-info fixtures. */
+export const MOCK_SEQUENCE = BigInt(1234567)
+
+/** A stable XLM balance (as a number) returned by account-info fixtures. */
+export const MOCK_BALANCE = 100
+
 // ─── Default fixture values ────────────────────────────────────────────────────
 
 const DEFAULT_BALANCE = '100.0000000'
 const DEFAULT_SEQUENCE = '1234567'
-const DEFAULT_TX_HASH = 'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890'
+const DEFAULT_TX_HASH = MOCK_TX_HASH
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -287,5 +307,180 @@ export function makeSorobanRpcMock(options: MockSorobanRpcOptions = {}) {
       text: vi.fn().mockReturnValue({}),
     },
     BASE_FEE: '100',
+  }
+}
+
+// ─── Fixture helpers (#1265) ──────────────────────────────────────────────────
+
+/**
+ * Shape of the object returned by `StellarClient.getAccountInfo`.
+ */
+export interface AccountInfoFixture {
+  publicKey: string
+  balance: number
+  sequence: bigint
+}
+
+/**
+ * Shape of the object returned by `StellarClient.broadcastTransaction`.
+ */
+export interface TransactionFixture {
+  txHash: string
+  txId: string
+}
+
+/**
+ * Shape of the object returned by `StellarClient.pollTransactionStatus`.
+ */
+export interface BalanceFixture {
+  status: string
+  resultCode?: string
+}
+
+/**
+ * Returns a default `getAccountInfo` response fixture with optional field overrides.
+ *
+ * @example
+ * ```ts
+ * const info = accountFixture({ balance: 500 })
+ * // { publicKey: MOCK_STELLAR_ADDRESS, balance: 500, sequence: MOCK_SEQUENCE }
+ * ```
+ */
+export function accountFixture(overrides: Partial<AccountInfoFixture> = {}): AccountInfoFixture {
+  return {
+    publicKey: MOCK_STELLAR_ADDRESS,
+    balance: MOCK_BALANCE,
+    sequence: MOCK_SEQUENCE,
+    ...overrides,
+  }
+}
+
+/**
+ * Returns a default `broadcastTransaction` response fixture with optional field overrides.
+ *
+ * @example
+ * ```ts
+ * const tx = transactionFixture({ txHash: 'deadbeef...' })
+ * // { txHash: 'deadbeef...', txId: 'id_deadbeef' }
+ * ```
+ */
+export function transactionFixture(overrides: Partial<TransactionFixture> = {}): TransactionFixture {
+  const txHash = overrides.txHash ?? MOCK_TX_HASH
+  return {
+    txHash,
+    txId: `id_${txHash.slice(0, 8)}`,
+    ...overrides,
+  }
+}
+
+/**
+ * Returns a default `pollTransactionStatus` response fixture with optional field overrides.
+ *
+ * @example
+ * ```ts
+ * const bal = balanceFixture({ status: 'failed', resultCode: 'op_underfunded' })
+ * ```
+ */
+export function balanceFixture(overrides: Partial<BalanceFixture> = {}): BalanceFixture {
+  return {
+    status: 'confirmed',
+    resultCode: 'ok',
+    ...overrides,
+  }
+}
+
+// ─── MockStellarClient (#1265) ────────────────────────────────────────────────
+
+/**
+ * Options for `makeMockStellarClient`.
+ *
+ * Each field corresponds to the resolved value (or thrown error) of a matching
+ * `StellarClient` method.  Pass `undefined` to keep the built-in default.
+ */
+export interface MockStellarClientOptions {
+  /** Override the resolved value of `getAccountInfo`. */
+  accountInfo?: AccountInfoFixture
+  /** If true, `getAccountInfo` rejects with an error. */
+  accountInfoFails?: boolean
+
+  /** Override the resolved value of `broadcastTransaction`. */
+  broadcastResult?: TransactionFixture
+  /** If true, `broadcastTransaction` rejects with an error. */
+  broadcastFails?: boolean
+
+  /** Override the resolved value of `pollTransactionStatus`. */
+  txStatus?: BalanceFixture
+  /** If true, `pollTransactionStatus` rejects with an error. */
+  pollFails?: boolean
+
+  /** Override the resolved value of `fundTestnetAccount`. */
+  fundResult?: { txHash: string; message: string }
+  /** If true, `fundTestnetAccount` rejects with an error. */
+  fundFails?: boolean
+
+  /** Override the resolved value of `getAccountTransactions`. */
+  accountTransactions?: Array<{ hash: string; created_at: string }>
+  /** If true, `getAccountTransactions` rejects with an error. */
+  accountTransactionsFails?: boolean
+}
+
+/**
+ * Creates a fully-typed mock of `StellarClient` suitable for dependency
+ * injection or `vi.mock(...)` factories.
+ *
+ * Every method is a `vi.fn()` so you can assert call counts / arguments in
+ * your tests, or override behaviour with `.mockResolvedValueOnce(...)`.
+ *
+ * @example
+ * ```ts
+ * // In a test file:
+ * import { makeMockStellarClient, accountFixture } from '@bluecollar/test-utils/stellar-mocks'
+ *
+ * vi.mock('../clients/stellar.client.js', () => ({
+ *   stellarClient: makeMockStellarClient(),
+ *   StellarClient: vi.fn().mockImplementation(() => makeMockStellarClient()),
+ * }))
+ *
+ * // Or with custom values:
+ * const client = makeMockStellarClient({
+ *   accountInfo: accountFixture({ balance: 9999 }),
+ *   broadcastFails: true,
+ * })
+ * ```
+ */
+export function makeMockStellarClient(options: MockStellarClientOptions = {}) {
+  const {
+    accountInfo = accountFixture(),
+    accountInfoFails = false,
+    broadcastResult = transactionFixture(),
+    broadcastFails = false,
+    txStatus = balanceFixture(),
+    pollFails = false,
+    fundResult = { txHash: MOCK_TX_HASH, message: 'Account funded successfully' },
+    fundFails = false,
+    accountTransactions = [],
+    accountTransactionsFails = false,
+  } = options
+
+  return {
+    getAccountInfo: accountInfoFails
+      ? vi.fn().mockRejectedValue(new Error('Account not found on Stellar network'))
+      : vi.fn().mockResolvedValue(accountInfo),
+
+    broadcastTransaction: broadcastFails
+      ? vi.fn().mockRejectedValue(new Error('Broadcast failed: op_underfunded'))
+      : vi.fn().mockResolvedValue(broadcastResult),
+
+    pollTransactionStatus: pollFails
+      ? vi.fn().mockRejectedValue(new Error('Failed to fetch transaction status'))
+      : vi.fn().mockResolvedValue(txStatus),
+
+    fundTestnetAccount: fundFails
+      ? vi.fn().mockRejectedValue(new Error('Friendbot failed'))
+      : vi.fn().mockResolvedValue(fundResult),
+
+    getAccountTransactions: accountTransactionsFails
+      ? vi.fn().mockRejectedValue(new Error('Failed to fetch transactions'))
+      : vi.fn().mockResolvedValue(accountTransactions),
   }
 }
