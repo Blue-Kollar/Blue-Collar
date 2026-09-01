@@ -1,0 +1,26 @@
+# docker-compose.test.yml — Test database for integration tests
+#
+# Usage:
+#   docker compose -f docker-compose.test.yml up -d
+#   pnpm --filter @bluecollar/api test:integration:db
+#   docker compose -f docker-compose.test.yml down -v
+#
+# This creates an isolated PostgreSQL instance for tests only.
+# Data is discarded when the container is stopped with -v.
+services:
+  test-db:
+    image: postgres:16-alpine
+    restart: "no"
+    environment:
+      POSTGRES_USER: bluecollar_test
+      POSTGRES_PASSWORD: bluecollar_test
+      POSTGRES_DB: bluecollar_test
+    ports:
+      - "5433:5432"
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bluecollar_test -d bluecollar_test"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
