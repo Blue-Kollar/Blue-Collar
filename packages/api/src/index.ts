@@ -19,10 +19,10 @@ import portfolioRoutes from './routes/portfolio.js'
 import reviewRoutes from './routes/reviews.js'
 import subscriptionRoutes from './routes/subscriptions.js'
 import messagesRoutes from './routes/messages.js'
-import { startReminderScheduler } from './services/reminder.service.js'
-import { startHorizonPoller } from './services/horizon-poller.service.js'
+import { startAllJobs } from './jobs/index.js'
 import { metricsRecorder } from './monitoring/business-metrics.js'
 import { errorHandler } from './middleware/errorHandler.js'
+import { requestId } from './middleware/requestId.js'
 import { logger } from './config/logger.js'
 import { WebSocketServer } from './websocket/server.js'
 
@@ -52,6 +52,7 @@ app.use(compress())
 app.use(cors(corsConfig))
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
+app.use(requestId)      // generate/propagate X-Request-ID before logging
 app.use(pinoHttp())
 app.use(methodOverride('X-HTTP-Method'))
 app.use(passport.initialize())
@@ -73,8 +74,7 @@ if (process.env.NODE_ENV !== 'test') {
   
   httpServer.listen(PORT, () => {
     logger.info(`BlueCollar API running on port ${PORT}`)
-    startReminderScheduler()
-    startHorizonPoller()
+    startAllJobs()
     metricsRecorder.startPeriodicSync()
   })
 }

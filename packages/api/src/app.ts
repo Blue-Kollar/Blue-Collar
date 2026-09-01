@@ -6,6 +6,7 @@ import { db } from './db.js'
 import { disconnectDb } from './db.js'
 import { logger } from './config/logger.js'
 import { requestLogger } from './middleware/requestLogger.js'
+import { requestId } from './middleware/requestId.js'
 import { getErrorMessage } from './utils/getErrorMessage.js'
 import { registerEventHandlers } from './events/index.js'
 import { applySecurity, depthLimiter } from './middleware/security.js'
@@ -74,6 +75,7 @@ applySecurity(app)
 app.use(express.json({ limit: '100kb' }))
 app.use(express.urlencoded({ extended: true, limit: '100kb' }))
 app.use(sanitize)
+app.use(requestId)          // generate/propagate X-Request-ID before logging
 app.use(sanitizeParams)
 app.use(depthLimiter)
 app.use(metricsMiddleware)
