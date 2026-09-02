@@ -1,8 +1,9 @@
 "use client";
 
 import { Eye, Star, TrendingUp, Wallet } from "lucide-react";
-import { cn } from "@/lib/utils";
+
 import type { PersonalAnalytics } from "@/hooks/useWorkerAnalytics";
+import { cn } from "@/lib/utils";
 
 interface WorkerAnalyticsSummaryProps {
   data: PersonalAnalytics;

@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express'
-import { catchAsync } from '../utils/catchAsync.js'
+
 import { AppError, ErrorCode } from '../utils/AppError.js'
+import { catchAsync } from '../utils/catchAsync.js'
 
 interface AnalyticsEvent {
   event: string

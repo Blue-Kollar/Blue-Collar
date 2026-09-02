@@ -9,9 +9,10 @@
  *  - Standalone re-exports (getAccountInfo, broadcastTransaction, etc.)
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { createWalletService } from './wallet.service.js'
+import { beforeEach,describe, expect, it, vi } from 'vitest'
+
 import { AppError } from '../utils/AppError.js'
+import { createWalletService } from './wallet.service.js'
 
 // ── Minimal repo mock ─────────────────────────────────────────────────────────
 

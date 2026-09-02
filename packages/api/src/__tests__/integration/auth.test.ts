@@ -6,10 +6,11 @@
  *
  * Issue: #1007 [Backend] Add integration tests for auth endpoints
  */
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-import request from 'supertest'
-import jwt from 'jsonwebtoken'
 import crypto from 'node:crypto'
+
+import jwt from 'jsonwebtoken'
+import request from 'supertest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 // ─── Env setup ────────────────────────────────────────────────────────────────
 process.env.JWT_SECRET = 'test-integration-secret'

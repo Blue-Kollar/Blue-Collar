@@ -5,18 +5,19 @@
  * edge cases: empty input, invalid Stellar amounts, timezone handling.
  */
 
-import { describe, it, expect, beforeEach } from "vitest";
+import { beforeEach,describe, expect, it } from "vitest";
+
 import {
   cn,
+  formatCurrency,
   formatDate,
+  formatNumber,
   formatRelativeTime,
   formatStellarAddress,
   formatXLM,
-  formatCurrency,
-  formatNumber,
-  truncate,
-  setLocale,
   getLocale,
+  setLocale,
+  truncate,
 } from "@/lib/utils";
 
 // ─── cn (classname merging) ───────────────────────────────────────────────────

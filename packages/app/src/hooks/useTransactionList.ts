@@ -1,10 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useTransactionFilters } from "./useTransactionFilters";
-import { useTransactionPolling } from "./useTransactionPolling";
 
 import { HORIZON_URL } from "@/config/stellar";
+
+import { useTransactionFilters } from "./useTransactionFilters";
+import { useTransactionPolling } from "./useTransactionPolling";
 
 const HORIZON = HORIZON_URL;
 const DEFAULT_PAGE_SIZE = 10;

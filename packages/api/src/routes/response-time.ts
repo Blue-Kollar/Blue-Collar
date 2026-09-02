@@ -1,7 +1,8 @@
 import { Router } from 'express'
-import { respondToContact, getWorkerResponseStats, getResponseTimeAnalytics } from '../controllers/response-time.js'
-import { authenticate, authorize } from '../middleware/auth.js'
+
 import { publicReadRateLimiter } from '../config/rateLimiter.js'
+import { getResponseTimeAnalytics,getWorkerResponseStats, respondToContact } from '../controllers/response-time.js'
+import { authenticate, authorize } from '../middleware/auth.js'
 
 const router = Router()
 

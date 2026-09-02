@@ -5,10 +5,11 @@
  * Verifies that the running API satisfies all consumer pacts.
  * Run with: pnpm test:contract:provider
  */
-import { describe, it, beforeAll, afterAll } from 'vitest';
 import { Verifier } from '@pact-foundation/pact';
-import path from 'path';
 import { createServer } from 'http';
+import path from 'path';
+import { afterAll,beforeAll, describe, it } from 'vitest';
+
 import app from '../../app.js';
 
 let server: ReturnType<typeof createServer>;

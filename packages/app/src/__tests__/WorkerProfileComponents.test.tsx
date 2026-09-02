@@ -1,7 +1,8 @@
 import { render, screen } from '@testing-library/react'
-import { describe, it, expect } from 'vitest'
-import { WorkerHeader } from '@/app/[locale]/workers/[id]/components/WorkerHeader'
+import { describe, expect,it } from 'vitest'
+
 import { WorkerContactDetails } from '@/app/[locale]/workers/[id]/components/WorkerContactDetails'
+import { WorkerHeader } from '@/app/[locale]/workers/[id]/components/WorkerHeader'
 import { WorkerTipSection } from '@/app/[locale]/workers/[id]/components/WorkerTipSection'
 import type { Worker } from '@/types'
 

@@ -6,9 +6,9 @@
  * last processed ledger/transaction so restarts are safe and no events are missed.
  */
 import { logger } from '../config/logger.js'
-import { publishEvent } from './webhook.service.js'
 import * as indexerService from './indexer.service.js'
 import { stellarRpcClient } from './stellar-rpc.client.js'
+import { publishEvent } from './webhook.service.js'
 
 const REGISTRY_CONTRACT_ID = process.env.REGISTRY_CONTRACT_ID ?? ''
 const MARKET_CONTRACT_ID = process.env.MARKET_CONTRACT_ID ?? ''

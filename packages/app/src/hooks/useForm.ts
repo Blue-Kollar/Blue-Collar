@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, ChangeEvent } from "react";
+import { ChangeEvent,useCallback, useState } from "react";
 
 type FormErrors<T> = Partial<Record<keyof T, string>>;
 type Validator<T> = (values: T) => FormErrors<T>;

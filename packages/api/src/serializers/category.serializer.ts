@@ -1,4 +1,5 @@
 import type { Category } from '@prisma/client'
+
 import { BaseSerializer } from './base.serializer.js'
 
 export type SerializedCategory = Pick<Category, 'id' | 'name' | 'description' | 'icon' | 'createdAt' | 'updatedAt'>

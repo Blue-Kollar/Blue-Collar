@@ -9,9 +9,10 @@
  * - Graceful degradation when Redis is unavailable
  */
 
-import { redis } from '../config/redis.js'
-import { logger } from '../config/logger.js'
 import { Counter, Histogram, register } from 'prom-client'
+
+import { logger } from '../config/logger.js'
+import { redis } from '../config/redis.js'
 
 // ── Prometheus metrics ────────────────────────────────────────────────────────
 

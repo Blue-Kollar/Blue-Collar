@@ -17,7 +17,8 @@
  * snapshot the part that changes. Assert behaviour and semantics instead.
  */
 import { render, screen } from "@testing-library/react";
-import { describe, it, expect, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
 import LoadingState from "@/components/LoadingState";
 
 vi.mock("lucide-react", () => ({

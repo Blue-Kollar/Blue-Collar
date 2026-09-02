@@ -1,5 +1,6 @@
 import { Router } from 'express'
-import { getMyReferralCode, applyReferralCode, getMyReferralStats, getLeaderboard, rewardReferral } from '../controllers/referral.js'
+
+import { applyReferralCode, getLeaderboard, getMyReferralCode, getMyReferralStats, rewardReferral } from '../controllers/referral.js'
 import { authenticate, authorize } from '../middleware/auth.js'
 
 const router = Router()

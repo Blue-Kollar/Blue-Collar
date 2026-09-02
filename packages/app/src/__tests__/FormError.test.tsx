@@ -15,7 +15,8 @@
  * Closes #1204
  */
 import { render, screen } from "@testing-library/react";
-import { describe, it, expect, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
 import FormError from "@/components/FormError";
 
 vi.mock("lucide-react", () => ({

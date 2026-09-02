@@ -2,8 +2,8 @@
  * Event handlers — register side-effects for application events.
  * Call `registerEventHandlers()` once at app startup.
  */
-import { appEvents } from './app-events.js'
 import logger from '../config/logger.js'
+import { appEvents } from './app-events.js'
 
 export function registerEventHandlers(): void {
   appEvents.on('worker.created', ({ workerId, curatorId }) => {

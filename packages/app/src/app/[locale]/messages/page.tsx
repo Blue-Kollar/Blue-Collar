@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { useAuth } from "@/hooks/useAuth";
-import { useToast } from "@/hooks/useToast";
+import { useCallback,useEffect, useState } from "react";
+
 import ConversationList from "@/components/ConversationList";
 import MessageThread from "@/components/MessageThread";
-import { getConversations, getConversationMessages, sendMessage } from "@/lib/api";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/useToast";
+import { getConversationMessages, getConversations, sendMessage } from "@/lib/api";
 import type { Conversation, Message } from "@/types";
 
 export default function MessagesPage() {

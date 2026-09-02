@@ -1,11 +1,12 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
 import { Bell, Check, CheckCheck, Trash2 } from "lucide-react";
 import Link from "next/link";
+import { useEffect,useRef, useState } from "react";
+
 import { useNotifications } from "@/context/NotificationContext";
-import type { NotificationType } from "@/types";
 import { cn, formatRelativeTime } from "@/lib/utils";
+import type { NotificationType } from "@/types";
 
 const TYPE_STYLES: Record<NotificationType, string> = {
   tip: "bg-yellow-100 text-yellow-700",

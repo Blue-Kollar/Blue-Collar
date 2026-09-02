@@ -1,13 +1,15 @@
 "use client";
 
-import Link from "next/link";
-import Image from "next/image";
 import { BadgeCheck, MapPin, Zap } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
+
+import { useCompare } from "@/context/CompareContext";
 import type { Worker } from "@/types";
+
 import BookmarkButton from "./BookmarkButton";
 import StarRating from "./StarRating";
-import { useCompare } from "@/context/CompareContext";
 
 interface WorkerCardProps {
   worker: Worker;

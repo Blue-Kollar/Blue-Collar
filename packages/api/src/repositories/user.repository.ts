@@ -1,6 +1,7 @@
-import type { User, Prisma } from '@prisma/client'
-import type { IRepository } from './base.repository.js'
+import type { Prisma,User } from '@prisma/client'
+
 import { db } from '../db.js'
+import type { IRepository } from './base.repository.js'
 import { QueryBuilder } from './queryBuilder.js'
 
 // ── Interface ─────────────────────────────────────────────────────────────────

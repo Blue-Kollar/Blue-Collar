@@ -1,4 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { beforeEach,describe, expect, it, vi } from 'vitest'
+
 import { AppError } from '../utils/AppError.js'
 
 vi.mock('../db.js', () => ({
@@ -33,8 +34,8 @@ vi.mock('./webhook.service.js', () => ({ publishEvent: vi.fn().mockResolvedValue
 vi.mock('../events/app-events.js', () => ({ appEvents: { emit: vi.fn() } }))
 
 import { db } from '../db.js'
-import { deleteWorker, getWorker, restoreWorker, listWorkers } from './worker.service.js'
 import { purgeExpiredSoftDeletes, purgeService } from './purge.service.js'
+import { deleteWorker, getWorker, listWorkers,restoreWorker } from './worker.service.js'
 
 const mockDb = db as any
 

@@ -4,8 +4,9 @@
  * DELETE /api/admin/workers/bulk-delete
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { bulkToggleWorkers, bulkDeleteWorkers, bulkSuspendUsers, bulkUnsuspendUsers } from '../controllers/admin.js'
+import { beforeEach,describe, expect, it, vi } from 'vitest'
+
+import { bulkDeleteWorkers, bulkSuspendUsers, bulkToggleWorkers, bulkUnsuspendUsers } from '../controllers/admin.js'
 
 process.env.JWT_SECRET = 'test-secret'
 process.env.APP_URL = 'http://localhost:3001'

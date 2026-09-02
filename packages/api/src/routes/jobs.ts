@@ -1,14 +1,15 @@
 import { Router } from 'express'
+
+import { publicReadRateLimiter } from '../config/rateLimiter.js'
 import {
-  listJobs, showJob, createJob, updateJob, deleteJob, renewJob,
-  applyToJob, listApplications, updateApplicationStatus, withdrawApplication,
-  sendMessage, listMessages,
-  myPostedJobs, myApplications, recommendedJobs,
-  validateCreateJob, validateUpdateJob, validateApply,
-  validateAppStatus, validateSendMessage, validateListQuery,
+  applyToJob, createJob, deleteJob, listApplications,   listJobs, listMessages,
+myApplications,   myPostedJobs, recommendedJobs,
+renewJob,
+  sendMessage, showJob, updateApplicationStatus, updateJob, validateApply,
+  validateAppStatus,   validateCreateJob, validateListQuery,
+validateSendMessage, validateUpdateJob, withdrawApplication,
 } from '../controllers/jobs.js'
 import { authenticate } from '../middleware/auth.js'
-import { publicReadRateLimiter } from '../config/rateLimiter.js'
 
 const router = Router()
 

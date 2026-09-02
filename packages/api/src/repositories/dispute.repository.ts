@@ -1,6 +1,7 @@
 import type { Dispute, Prisma } from '@prisma/client'
-import type { IRepository } from './base.repository.js'
+
 import { db } from '../db.js'
+import type { IRepository } from './base.repository.js'
 
 // ── Include ───────────────────────────────────────────────────────────────────
 

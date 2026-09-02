@@ -1,23 +1,24 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
-import { useRouter } from "next/navigation";
-import { Shield, ShieldOff, Ban, ArrowLeft } from "lucide-react";
+import { ArrowLeft,Ban, Shield, ShieldOff } from "lucide-react";
 import Link from "next/link";
-import { useAuth } from "@/hooks/useAuth";
-import { useToast } from "@/hooks/useToast";
-import { useDebounce } from "@/hooks/useDebounce";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo,useState } from "react";
+
 import {
   useAdminUsers,
-  useSuspendUser,
-  useUnsuspendUser,
   useBanUser,
-  useChangeUserRole,
   useBulkSuspendUsers,
   useBulkUnsuspendUsers,
+  useChangeUserRole,
+  useSuspendUser,
+  useUnsuspendUser,
 } from "@/hooks/queries";
-import { formatDate } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
+import { useDebounce } from "@/hooks/useDebounce";
+import { useToast } from "@/hooks/useToast";
 import type { AdminUser } from "@/lib/api";
+import { formatDate } from "@/lib/utils";
 
 type Role = "user" | "curator" | "admin";
 

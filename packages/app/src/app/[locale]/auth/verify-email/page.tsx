@@ -1,9 +1,10 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { AlertCircle, CheckCircle2, Loader2,MailCheck } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { MailCheck, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
+import { Suspense, useEffect, useState } from "react";
+
 import { authApi } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 

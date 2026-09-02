@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react'
-import { CompactWorkerCard, StandardWorkerCard, FeaturedWorkerCard } from '@/components/WorkerCardVariants'
+
+import { CompactWorkerCard, FeaturedWorkerCard,StandardWorkerCard } from '@/components/WorkerCardVariants'
 import type { Worker } from '@/types'
 
 const mockWorker: Worker = {

@@ -1,5 +1,6 @@
 import { z } from 'zod'
-import { registry, BearerAuth, SuccessSchema } from '../registry.js'
+
+import { BearerAuth, registry, SuccessSchema } from '../registry.js'
 
 const NotificationSchema = registry.register('Notification', z.object({
   id: z.string(),

@@ -11,11 +11,12 @@
  * Closes #1210
  */
 
-import { describe, it, expect, vi } from "vitest";
-import { render, screen, fireEvent, act } from "@testing-library/react";
+import { act,fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { ModalProvider, useModal } from "@/context/ModalContext";
 import { type ReactNode } from "react";
+import { describe, expect, it, vi } from "vitest";
+
+import { ModalProvider, useModal } from "@/context/ModalContext";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 

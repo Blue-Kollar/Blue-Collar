@@ -1,11 +1,12 @@
-import { Suspense } from 'react'
 import { Metadata } from 'next'
-import Navbar from '@/components/Navbar'
+import { Suspense } from 'react'
+
 import Footer from '@/components/Footer'
-import Hero from '@/features/landing-page/Hero'
+import Navbar from '@/components/Navbar'
 import Categories, { CategoriesSkeleton } from '@/features/landing-page/Categories'
-import HowItWorks from '@/features/landing-page/HowItWorks'
 import FeaturedWorkers, { FeaturedWorkersSkeleton } from '@/features/landing-page/FeaturedWorkers'
+import Hero from '@/features/landing-page/Hero'
+import HowItWorks from '@/features/landing-page/HowItWorks'
 import Testimonials from '@/features/landing-page/Testimonials'
 
 export const metadata: Metadata = {

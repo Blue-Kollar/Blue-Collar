@@ -1,18 +1,19 @@
 "use client";
 
 import {
-  Droplets,
-  Zap,
-  Hammer,
-  PaintBucket,
-  Flame,
   Building2,
-  Wind,
+  Droplets,
+  Flame,
+  Hammer,
   Leaf,
-  Sparkles,
-  Wrench,
   type LucideIcon,
+  PaintBucket,
+  Sparkles,
+  Wind,
+  Wrench,
+  Zap,
 } from "lucide-react";
+
 import { getCategoryConfig } from "../config/categoryConfig";
 
 const ICON_MAP: Record<string, LucideIcon> = {

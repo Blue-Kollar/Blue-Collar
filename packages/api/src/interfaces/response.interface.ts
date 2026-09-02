@@ -1,17 +1,9 @@
-export interface ApiResponse<T = undefined> {
-  status: 'success' | 'error'
-  message: string
-  code: number
-  data?: T
-  token?: string
-}
-
-export interface PaginatedResult<T> {
-  data: T[]
-  meta: {
-    total: number
-    page: number
-    limit: number
-    pages: number
-  }
-}
+/**
+ * #1291 — Consolidated response types.
+ *
+ * ApiResponse and PaginatedResult were duplicated here; the canonical
+ * definitions now live in @bluecollar/types.  This file is kept so that
+ * existing internal imports (../interfaces) continue to resolve without
+ * touching every consumer.
+ */
+export type { ApiResponse, PaginatedResult } from '@bluecollar/types'

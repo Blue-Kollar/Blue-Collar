@@ -1,8 +1,8 @@
-import profiler from 'v8-profiler-next';
+import type { Application, Request, Response } from 'express';
 import fs from 'fs';
 import path from 'path';
 import v8 from 'v8';
-import type { Application, Request, Response } from 'express';
+import profiler from 'v8-profiler-next';
 
 const PROFILE_DIR = process.env.PROFILE_DIR || './profiles';
 

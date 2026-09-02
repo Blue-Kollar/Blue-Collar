@@ -14,9 +14,9 @@
  *
  * Closes #1206
  */
-import { renderHook, render, screen } from "@testing-library/react";
-import { describe, it, expect, vi } from "vitest";
+import { render, renderHook, screen } from "@testing-library/react";
 import React from "react";
+import { describe, expect, it, vi } from "vitest";
 
 // ── WalletContext mock ────────────────────────────────────────────────────────
 
@@ -47,8 +47,8 @@ vi.mock("@/lib/utils", () => ({
   cn: (...classes: any[]) => classes.filter(Boolean).join(" "),
 }));
 
-import { useWalletBalance } from "@/hooks/useWallet";
 import { WalletBalanceWidget } from "@/components/wallet/WalletBalanceWidget";
+import { useWalletBalance } from "@/hooks/useWallet";
 
 // ── useWalletBalance ──────────────────────────────────────────────────────────
 

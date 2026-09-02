@@ -1,7 +1,8 @@
 "use client";
 
+import { BadgeCheck, MapPin, Star,X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { X, BadgeCheck, MapPin, Star } from "lucide-react";
+
 import { useCompare } from "@/context/CompareContext";
 import type { Worker } from "@/types";
 

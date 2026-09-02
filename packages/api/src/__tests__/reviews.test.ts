@@ -1,7 +1,8 @@
 import express from 'express'
-import request from 'supertest'
 import jwt from 'jsonwebtoken'
+import request from 'supertest'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+
 import reviewRoutes from '../routes/reviews.js'
 
 process.env.JWT_SECRET = 'test-secret'

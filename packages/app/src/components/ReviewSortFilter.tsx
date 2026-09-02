@@ -1,7 +1,7 @@
 "use client";
 
-import { useId } from "react";
 import { ArrowUpDown } from "lucide-react";
+import { useId } from "react";
 
 export type SortOption = "newest" | "oldest" | "highest" | "lowest";
 

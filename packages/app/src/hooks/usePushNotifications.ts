@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+
 import { useToast } from "./useToast";
 
 export function usePushNotifications() {

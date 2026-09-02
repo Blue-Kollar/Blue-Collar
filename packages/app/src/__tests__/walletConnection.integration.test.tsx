@@ -19,10 +19,10 @@
  * All Freighter calls are mocked so no real network is hit.
  */
 
-import React from 'react'
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { act,fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { renderHook } from '@testing-library/react'
+import React from 'react'
+import { afterEach,beforeEach, describe, expect, it, vi } from 'vitest'
 
 // ── Freighter mock ────────────────────────────────────────────────────────────
 
@@ -64,8 +64,8 @@ vi.stubGlobal('window', { open: mockOpen })
 
 // ── Imports (after all mocks) ─────────────────────────────────────────────────
 
-import { WalletProvider, useWallet } from '@/context/WalletContext'
 import WalletGuard from '@/components/Payment/WalletGuard'
+import { useWallet,WalletProvider } from '@/context/WalletContext'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 

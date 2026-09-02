@@ -1,4 +1,5 @@
-import { MapPin, Mail, Phone } from "lucide-react";
+import { Mail, MapPin, Phone } from "lucide-react";
+
 import type { Worker } from "@/types";
 
 export function WorkerContactDetails({ worker }: { worker: Worker }) {

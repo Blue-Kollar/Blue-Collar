@@ -8,8 +8,9 @@
  * while still giving meaningful coverage of the error contract.
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import type { Request, Response, NextFunction } from 'express'
+import type { NextFunction,Request, Response } from 'express'
+import { beforeEach,describe, expect, it, vi } from 'vitest'
+
 import { AppError, ErrorCode } from '../../utils/AppError.js'
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
@@ -38,8 +39,8 @@ vi.mock('../../config/logger.js', () => ({
 }))
 
 import * as usersController from '../../controllers/users.ts'
-import * as userService from '../../services/user.service.js'
 import { db } from '../../db.js'
+import * as userService from '../../services/user.service.js'
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 

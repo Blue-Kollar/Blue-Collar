@@ -11,7 +11,8 @@
  * Mocks the database layer entirely so tests run without a real database.
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { beforeEach,describe, expect, it, vi } from 'vitest'
+
 import * as searchService from '../../services/search.service.js'
 
 // Mock database

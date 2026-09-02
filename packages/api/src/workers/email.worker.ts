@@ -4,9 +4,10 @@
  * Processes jobs from the email queue with retry/backoff and DLQ.
  */
 
-import { Worker, type Job } from 'bullmq'
-import { redis } from '../config/redis.js'
+import { type Job,Worker } from 'bullmq'
+
 import { logger } from '../config/logger.js'
+import { redis } from '../config/redis.js'
 import { mailer } from '../mailer/index.js'
 import type { EmailJobData } from '../queue/index.js'
 

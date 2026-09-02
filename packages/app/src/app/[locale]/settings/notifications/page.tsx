@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+
 import { useAuth } from "@/context/AuthContext";
-import { cn } from "@/lib/utils";
 import { useEmailNotificationPrefs, useUpdateEmailNotificationPrefs } from "@/hooks/queries";
 import type { EmailNotificationPrefs as NotificationPrefs } from "@/lib/api";
+import { cn } from "@/lib/utils";
 
 const DEFAULT_PREFS: NotificationPrefs = {
   newWorkerInArea: true,

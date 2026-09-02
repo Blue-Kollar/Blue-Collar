@@ -1,8 +1,9 @@
 import { Router } from 'express'
-import { listCategories, getCategory, createCategory, updateCategory, deleteCategory } from '../controllers/categories.js'
-import { cacheMiddleware, CacheTTL } from '../middleware/cache.js'
-import { authenticate, authorize } from '../middleware/auth.js'
+
 import { publicReadRateLimiter } from '../config/rateLimiter.js'
+import { createCategory, deleteCategory,getCategory, listCategories, updateCategory } from '../controllers/categories.js'
+import { authenticate, authorize } from '../middleware/auth.js'
+import { cacheMiddleware, CacheTTL } from '../middleware/cache.js'
 
 const router = Router()
 

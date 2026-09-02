@@ -1,8 +1,9 @@
-import type { Review } from "@/types";
-import StarRating from "./StarRating";
-import ReviewHelpfulButton from "./ReviewHelpfulButton";
-import VerifiedTransactionBadge from "./VerifiedTransactionBadge";
 import { formatDate } from "@/lib/utils";
+import type { Review } from "@/types";
+
+import ReviewHelpfulButton from "./ReviewHelpfulButton";
+import StarRating from "./StarRating";
+import VerifiedTransactionBadge from "./VerifiedTransactionBadge";
 
 interface ReviewCardProps {
   review: Review;

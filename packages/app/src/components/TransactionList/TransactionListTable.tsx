@@ -1,8 +1,9 @@
 import { ExternalLink } from "lucide-react";
 import { memo } from "react";
+
 import type { TransactionListItem } from "@/hooks/useTransactionList";
-import { formatXlmAmount, stellarExplorerTxUrl, truncateStellarAddress } from "@/utils";
 import { formatDate } from "@/lib/utils";
+import { formatXlmAmount, stellarExplorerTxUrl, truncateStellarAddress } from "@/utils";
 
 interface TransactionListTableProps {
   transactions: TransactionListItem[];

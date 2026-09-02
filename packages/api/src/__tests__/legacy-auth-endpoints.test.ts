@@ -10,7 +10,7 @@
  * All active 2FA routes are in controllers/twoFactor.ts.
  * All active device routes are in controllers/devices.ts.
  */
-import { describe, it, expect } from 'vitest'
+import { describe, expect,it } from 'vitest'
 
 describe('auth controller — deprecated endpoints absent', () => {
   it('does not export enrollTwoFactor', async () => {

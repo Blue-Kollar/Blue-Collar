@@ -1,8 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { beforeEach,describe, expect, it, vi } from 'vitest'
 
 vi.mock('node:fs', () => ({ readFileSync: vi.fn() }))
 
 import { readFileSync } from 'node:fs'
+
 import { render } from './templateEngine.js'
 
 const mockReadFileSync = vi.mocked(readFileSync)

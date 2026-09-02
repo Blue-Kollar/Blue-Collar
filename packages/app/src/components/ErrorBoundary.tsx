@@ -1,8 +1,8 @@
 "use client";
 
+import { AlertTriangle } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
-import { AlertTriangle } from "lucide-react";
 
 interface Props {
   error: Error & { digest?: string };

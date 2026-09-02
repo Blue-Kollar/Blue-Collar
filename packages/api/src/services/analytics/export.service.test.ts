@@ -3,7 +3,7 @@
  *
  * Mocks DB and the worker.service dependency to keep tests isolated.
  */
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { beforeEach,describe, expect, it, vi } from 'vitest'
 
 // ── Mocks ────────────────────────────────────────────────────────────────────
 
@@ -20,12 +20,12 @@ vi.mock('./worker.service.js', () => ({
   getWorkerPersonalDashboard: vi.fn(),
 }))
 
-import {
-  exportWorkerAnalyticsCsv,
-  exportPlatformAnalyticsCsv,
-  exportPersonalWorkerAnalyticsCsv,
-} from './export.service.js'
 import { db } from '../../db.js'
+import {
+  exportPersonalWorkerAnalyticsCsv,
+  exportPlatformAnalyticsCsv,
+  exportWorkerAnalyticsCsv,
+} from './export.service.js'
 import { getWorkerPersonalDashboard } from './worker.service.js'
 
 // ── Test fixtures ────────────────────────────────────────────────────────────

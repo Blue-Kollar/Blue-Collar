@@ -4,8 +4,9 @@
  * business logic or contracts service is involved.
  */
 
-import { describe, it, expect, beforeEach } from 'vitest'
 import type { Request, Response } from 'express'
+import { beforeEach,describe, expect, it } from 'vitest'
+
 import { createPaymentController } from '../../controllers/payment.js'
 import { PaymentService } from '../../services/payment.service.js'
 

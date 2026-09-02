@@ -11,10 +11,11 @@
  * - Graceful degradation when Redis is unavailable
  */
 
-import type { Request, Response, NextFunction } from 'express'
-import { redis } from '../config/redis.js'
+import type { NextFunction,Request, Response } from 'express'
+
 import { logger } from '../config/logger.js'
 import { RATE_LIMIT_ALLOWLIST, type RateLimitConfig } from '../config/rateLimits.js'
+import { redis } from '../config/redis.js'
 
 // ── Sliding window implementation ─────────────────────────────────────────────
 
@@ -149,13 +150,13 @@ export function createRateLimiter(config: RateLimitConfig) {
 // ── Pre-built limiters for common use cases ───────────────────────────────────
 
 import {
-  AUTH_STRICT,
   AUTH_MODERATE,
-  WORKERS_READ,
-  WORKERS_WRITE,
+  AUTH_STRICT,
+  BOOKINGS,
   CONTACT,
   GENERAL_API,
-  BOOKINGS,
+  WORKERS_READ,
+  WORKERS_WRITE,
 } from '../config/rateLimits.js'
 
 /** Strict auth limiter — login, register, forgot-password */

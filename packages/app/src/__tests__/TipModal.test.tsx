@@ -1,8 +1,9 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import messages from '@/messages/en.json'
+import { afterEach,beforeEach, describe, expect, it, vi } from 'vitest'
+
 import TipModal from '@/components/TipModal'
+import messages from '@/messages/en.json'
 
 vi.mock('@/lib/utils', () => ({
   cn: (...args: unknown[]) => args.filter(Boolean).join(' '),

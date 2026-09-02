@@ -1,4 +1,5 @@
 import type { Request } from 'express'
+
 import { VERSION_CONFIG } from '../middleware/version.js'
 
 /**

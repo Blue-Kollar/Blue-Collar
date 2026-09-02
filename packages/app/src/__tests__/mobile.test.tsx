@@ -5,11 +5,12 @@
  * Tests screen sizes, touch interactions, mobile navigation, and performance.
  * Uses @testing-library/react with jsdom and matchMedia mocking.
  */
-import { render, screen, fireEvent, act } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import WorkerCard from '@/components/WorkerCard';
-import Navbar from '@/components/Navbar';
+import { act,fireEvent, render, screen } from '@testing-library/react';
+import { afterEach,beforeEach, describe, expect, it, vi } from 'vitest';
+
 import BottomNav from '@/components/BottomNav';
+import Navbar from '@/components/Navbar';
+import WorkerCard from '@/components/WorkerCard';
 import type { Worker } from '@/types';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────

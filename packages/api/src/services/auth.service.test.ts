@@ -1,7 +1,9 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import crypto from 'node:crypto'
+
 import argon2 from 'argon2'
 import jwt from 'jsonwebtoken'
-import crypto from 'node:crypto'
+import { afterEach,beforeEach, describe, expect, it, vi } from 'vitest'
+
 import { AppError } from '../utils/AppError.js'
 import * as authService from './auth.service.js'
 
@@ -80,8 +82,8 @@ vi.mock('../config/logger.js', () => ({
 }))
 
 import { db } from '../db.js'
+import { sendPasswordResetEmail,sendVerificationEmail } from '../mailer/index.js'
 import { userRepository } from '../repositories/user.repository.js'
-import { sendVerificationEmail, sendPasswordResetEmail } from '../mailer/index.js'
 
 const mockDb = db as any
 const mockUserRepo = userRepository as any

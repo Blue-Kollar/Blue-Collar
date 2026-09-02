@@ -1,20 +1,20 @@
 "use client";
 
 import {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  useCallback,
-  type ReactNode,
-} from "react";
-import {
-  isConnected,
-  requestAccess,
   getAddress,
   getNetwork,
+  isConnected,
+  requestAccess,
   signTransaction as freighterSignTransaction,
 } from "@stellar/freighter-api";
+import {
+  createContext,
+  type ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 
 const STORAGE_KEY = "bc_wallet_address";
 

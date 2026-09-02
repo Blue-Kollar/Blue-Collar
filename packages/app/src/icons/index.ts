@@ -11,8 +11,8 @@
  *            <Icon name="star" />
  */
 
-export { default } from './Icon';
 export type { IconName } from './Icon';
+export { default } from './Icon';
 
 // ---------------------------------------------------------------------------
 // Backward-compatible named wrappers — deprecated, prefer <Icon name="…" />

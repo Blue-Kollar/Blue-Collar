@@ -1,5 +1,6 @@
 import { z } from 'zod'
-import { registry, BearerAuth, SuccessSchema } from '../registry.js'
+
+import { BearerAuth, registry, SuccessSchema } from '../registry.js'
 
 registry.registerPath({
   method: 'post', path: '/api/v1/verifications', tags: ['Verifications'],

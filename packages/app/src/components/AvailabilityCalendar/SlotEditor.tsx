@@ -1,4 +1,5 @@
 import { Clock, Plus, Trash2 } from "lucide-react";
+
 import type { Slot } from "@/components/AvailabilityCalendar";
 
 const DAY_LABELS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];

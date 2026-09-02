@@ -5,9 +5,10 @@
  */
 
 import type { Request, Response } from 'express'
-import { catchAsync } from '../utils/catchAsync.js'
+
 import * as bookingService from '../services/booking.service.js'
 import { AppError } from '../utils/AppError.js'
+import { catchAsync } from '../utils/catchAsync.js'
 
 /**
  * POST /bookings

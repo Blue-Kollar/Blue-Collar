@@ -16,7 +16,7 @@
  *  - sendMessage / listMessages: marks unread messages read for the recipient
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { beforeEach,describe, expect, it, vi } from 'vitest'
 
 // ── DB mock ───────────────────────────────────────────────────────────────────
 
@@ -78,18 +78,18 @@ vi.mock('../services/notification.service.js', () => ({
 // ── Import after mocks ────────────────────────────────────────────────────────
 
 import {
-  listJobs,
-  getJob,
-  createJob,
-  updateJob,
-  deleteJob,
-  renewJob,
   applyToJob,
+  createJob,
+  deleteJob,
+  getJob,
   listApplications,
-  updateApplicationStatus,
-  withdrawApplication,
-  sendMessage,
+  listJobs,
   listMessages,
+  renewJob,
+  sendMessage,
+  updateApplicationStatus,
+  updateJob,
+  withdrawApplication,
 } from './job.service.js'
 
 const JOB_ID = 'job-001'

@@ -5,9 +5,9 @@
  */
 export {
   emailField,
-  passwordField,
   nameField,
-  tokenField,
+  passwordField,
   phoneField,
   stellarAddressField,
+  tokenField,
 } from '@bluecollar/types'

@@ -7,14 +7,16 @@
  * If this fails, either the code changed and the doc needs updating, or vice versa.
  */
 
-import { describe, it, expect } from 'vitest'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+
+import { describe, expect,it } from 'vitest'
+
+import { HttpStatus } from '../constants/index.js'
+import { serializeError } from '../serializers/error.serializer.js'
 import { ErrorCode } from '../utils/AppError.js'
 import { AppError } from '../utils/AppError.js'
-import { serializeError } from '../serializers/error.serializer.js'
-import { HttpStatus } from '../constants/index.js'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const REPO_ROOT = path.resolve(HERE, '../../../..')

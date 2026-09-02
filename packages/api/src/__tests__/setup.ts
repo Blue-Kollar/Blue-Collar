@@ -1,4 +1,5 @@
-import { beforeAll, afterAll, beforeEach, afterEach, vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, beforeEach, vi } from 'vitest';
+
 import { db } from '../db.js';
 
 // Set test environment variables

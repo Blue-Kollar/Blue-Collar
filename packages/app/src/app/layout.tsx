@@ -1,15 +1,17 @@
-import type { Metadata } from "next";
 import "./globals.css";
-import type { ReactNode } from "react";
-import { AuthProvider } from "@/context/AuthContext";
-import { WalletProvider } from "@/context/WalletContext";
-import { OnboardingProvider } from "@/context/OnboardingContext";
+
+import type { Metadata } from "next";
 import { ThemeProvider } from "next-themes";
+import type { ReactNode } from "react";
 import { Toaster } from "sonner";
+
+import OfflineBanner from "@/components/OfflineBanner";
 import PushNotificationPrompt from "@/components/PushNotificationPrompt";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 import WebVitalsReporter from "@/components/WebVitalsReporter";
-import OfflineBanner from "@/components/OfflineBanner";
+import { AuthProvider } from "@/context/AuthContext";
+import { OnboardingProvider } from "@/context/OnboardingContext";
+import { WalletProvider } from "@/context/WalletContext";
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://bluecollar.app";
 

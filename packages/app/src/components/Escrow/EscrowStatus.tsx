@@ -1,7 +1,8 @@
 "use client";
 
+import { AlertCircle, CheckCircle2, Clock, Loader2,XCircle } from "lucide-react";
 import { useEffect, useId, useRef } from "react";
-import { Clock, CheckCircle2, AlertCircle, XCircle, Loader2 } from "lucide-react";
+
 import { EXPLORER_TX_BASE } from "@/config/stellar";
 
 export interface Escrow {

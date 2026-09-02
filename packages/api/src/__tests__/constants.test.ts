@@ -8,9 +8,10 @@
  *  - ErrorMessages.ROUTE_NOT_FOUND builds the expected string
  */
 
-import { describe, it, expect } from 'vitest'
-import { HttpStatus, HttpStatusCode } from '../constants/httpStatus.js'
+import { describe, expect,it } from 'vitest'
+
 import { ErrorMessages } from '../constants/errors.js'
+import { HttpStatus, HttpStatusCode } from '../constants/httpStatus.js'
 import * as ConstantsIndex from '../constants/index.js'
 
 // ─── HttpStatus ───────────────────────────────────────────────────────────────

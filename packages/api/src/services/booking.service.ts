@@ -5,11 +5,11 @@
  * and notification dispatch on booking events.
  */
 
+import { logger } from '../config/logger.js'
+import type { BookingServiceDeps } from '../container/types.js'
+import { enqueueNotification } from '../queue/index.js'
 import { bookingRepository as defaultBookingRepository } from '../repositories/booking.repository.js'
 import { AppError } from '../utils/AppError.js'
-import { logger } from '../config/logger.js'
-import { enqueueNotification } from '../queue/index.js'
-import type { BookingServiceDeps } from '../container/types.js'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 

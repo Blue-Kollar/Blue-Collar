@@ -1,5 +1,5 @@
 import { createHash } from 'crypto'
-import type { Request, Response, NextFunction } from 'express'
+import type { NextFunction,Request, Response } from 'express'
 import { Counter, Gauge } from 'prom-client'
 
 // ── Prometheus metrics for cache-hit ratio tracking ──────────────────────────

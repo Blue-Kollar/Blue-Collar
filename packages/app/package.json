@@ -34,7 +34,7 @@
     "leaflet": "^1.9.4",
     "leaflet.markercluster": "^1.5.3",
     "lucide-react": "^1.6.0",
-    "next": "^14.2.0",
+    "next": "^15.5.25",
     "next-intl": "^4.8.3",
     "next-themes": "^0.4.6",
     "qrcode.react": "^4.2.0",
@@ -47,8 +47,8 @@
     "zod": "^3.23.0"
   },
   "devDependencies": {
-    "@bluecollar/test-utils": "workspace:*",
     "@axe-core/playwright": "^4.9.0",
+    "@bluecollar/test-utils": "workspace:*",
     "@percy/playwright": "^1.1.0",
     "@playwright/test": "^1.44.0",
     "@storybook/addon-a11y": "^8.1.0",
@@ -64,16 +64,17 @@
     "@types/node": "^22.0.0",
     "@types/react": "^18.3.0",
     "@vitejs/plugin-react": "^4.0.0",
-    "@vitest/coverage-v8": "^1.6.1",
+    "@vitest/coverage-v8": "^3.2.7",
     "axe-core": "^4.9.0",
     "eslint": "^8.57.1",
-    "eslint-config-next": "14.2.35",
+    "eslint-config-next": "15.5.25",
+    "eslint-plugin-simple-import-sort": "^10.0.0",
     "jsdom": "^24.0.0",
     "postcss": "^8.5.8",
     "storybook": "^8.1.0",
     "tailwindcss": "^4.2.2",
     "typescript": "^5.4.0",
-    "vitest": "^1.4.0"
+    "vitest": "^3.2.7"
   },
   "license": "MIT"
 }

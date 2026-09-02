@@ -19,6 +19,6 @@
     "@bluecollar/test-utils": "workspace:*",
     "@vitest/coverage-v8": "^1.6.1",
     "typescript": "^5.4.0",
-    "vitest": "^1.4.0"
+    "vitest": "^3.2.7"
   }
 }

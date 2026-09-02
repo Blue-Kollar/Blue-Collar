@@ -1,7 +1,8 @@
 import type { RequestHandler } from "express";
+import type { ZodSchema } from "zod";
+
 import { authenticate, authorize } from "./auth.js";
 import { validate } from "./validate.js";
-import type { ZodSchema } from "zod";
 
 /**
  * Compose authenticate + optional authorize into a single middleware array.

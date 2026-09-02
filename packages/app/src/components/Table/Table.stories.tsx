@@ -1,8 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { useState } from "react";
 import { Pencil, Trash2 } from "lucide-react";
-import { Table } from "./Table";
+import { useState } from "react";
+
 import type { ColumnDef, RowAction, SortDirection } from "./Table";
+import { Table } from "./Table";
 
 interface Row {
   id: number;

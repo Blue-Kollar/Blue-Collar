@@ -1,2 +1,2 @@
+export type { ColumnDef, RowAction, SortDirection,TableProps } from "./Table";
 export { Table } from "./Table";
-export type { TableProps, ColumnDef, RowAction, SortDirection } from "./Table";

@@ -1,14 +1,14 @@
-import { db as defaultDb } from '../db.js'
-import { sendVerificationEmail, sendPasswordResetEmail } from '../mailer/index.js'
-import { userRepository as defaultUserRepository } from '../repositories/user.repository.js'
 import type { AuthServiceDeps } from '../container/types.js'
+import { db as defaultDb } from '../db.js'
 import type { LoginBody, RegisterBody } from '../interfaces/index.js'
-import { createAuthSessionService, generateRefreshToken } from './auth-session.service.js'
-import { createAuthRecoveryService, generateVerificationToken } from './auth-recovery.service.js'
+import { sendPasswordResetEmail,sendVerificationEmail } from '../mailer/index.js'
+import { userRepository as defaultUserRepository } from '../repositories/user.repository.js'
 import * as auth2FA from './auth-2fa.service.js'
+import { createAuthRecoveryService, generateVerificationToken } from './auth-recovery.service.js'
+import { createAuthSessionService, generateRefreshToken } from './auth-session.service.js'
 
 export { generateRefreshToken, generateVerificationToken }
-export { createAuthSessionService, createAuthRecoveryService }
+export { createAuthRecoveryService,createAuthSessionService }
 export const generateTOTPSecret = auth2FA.generateTOTPSecret
 export const enableTwoFactorAuth = auth2FA.enableTwoFactorAuth
 export const verifyTOTPCode = auth2FA.verifyTOTPCode

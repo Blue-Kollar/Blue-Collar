@@ -1,6 +1,7 @@
 import type { Review, User } from '@prisma/client'
+
 import { BaseSerializer } from './base.serializer.js'
-import { userSerializer, type SerializedUser } from './user.serializer.js'
+import { type SerializedUser,userSerializer } from './user.serializer.js'
 
 type ReviewWithAuthor = Review & { author?: User | null }
 

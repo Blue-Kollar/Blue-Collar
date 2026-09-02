@@ -2,6 +2,7 @@
 
 import { SlidersHorizontal, X } from "lucide-react";
 import { useTranslations } from "next-intl";
+
 import type { Category } from "@/types";
 
 export interface FilterValues {

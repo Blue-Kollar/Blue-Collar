@@ -1,6 +1,7 @@
 "use client";
 
 import { Wallet } from "lucide-react";
+
 import TipModal from "@/components/TipModal";
 import { usePaymentFlow } from "@/context/PaymentFlowContext";
 

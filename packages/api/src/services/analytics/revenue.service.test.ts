@@ -4,7 +4,7 @@
  * revenue.service.ts is a thin re-export of two repository functions, so these
  * tests verify that the exported symbols are callable with the correct shape.
  */
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { beforeEach,describe, expect, it, vi } from 'vitest'
 
 // ── Mock DB ──────────────────────────────────────────────────────────────────
 
@@ -21,8 +21,8 @@ vi.mock('../../db.js', () => ({
   },
 }))
 
-import { getRevenueMetrics, getDisputeMetrics } from './revenue.service.js'
 import { db } from '../../db.js'
+import { getDisputeMetrics,getRevenueMetrics } from './revenue.service.js'
 
 // ── getRevenueMetrics ────────────────────────────────────────────────────────
 

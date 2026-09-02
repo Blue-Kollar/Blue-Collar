@@ -1,4 +1,5 @@
-import { useState, useMemo, useCallback } from "react";
+import { useCallback,useMemo, useState } from "react";
+
 import type { Slot } from "@/components/AvailabilityCalendar";
 
 export function useAvailabilityCalendar(availability: Slot[]) {

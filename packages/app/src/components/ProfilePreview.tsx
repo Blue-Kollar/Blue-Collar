@@ -1,10 +1,11 @@
 "use client";
 
+import { Eye, EyeOff, Mail, MapPin, Phone, Star, Wallet } from "lucide-react";
 import { useState } from "react";
-import { Eye, EyeOff, Star, MapPin, Phone, Mail, Wallet } from "lucide-react";
-import { cn, formatStellarAddress } from "@/lib/utils";
+
 import type { PortfolioImage } from "@/components/PortfolioGallery";
 import VerificationBadges from "@/components/VerificationBadges";
+import { cn, formatStellarAddress } from "@/lib/utils";
 
 interface Props {
   name: string;

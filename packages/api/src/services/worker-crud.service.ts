@@ -1,11 +1,12 @@
 import type { Prisma } from '@prisma/client'
+
 import { db } from '../db.js'
-import { AppError } from '../utils/AppError.js'
-import { formatWorker } from '../models/worker.model.js'
-import type { CreateWorkerBody, UpdateWorkerBody } from '../interfaces/index.js'
-import { publishEvent } from './webhook.service.js'
 import { appEvents } from '../events/app-events.js'
+import type { CreateWorkerBody, UpdateWorkerBody } from '../interfaces/index.js'
+import { formatWorker } from '../models/worker.model.js'
+import { AppError } from '../utils/AppError.js'
 import { createServiceLogger } from '../utils/logger.js'
+import { publishEvent } from './webhook.service.js'
 
 const logger = createServiceLogger('WorkerService')
 const workerInclude = { category: true, curator: true } as const

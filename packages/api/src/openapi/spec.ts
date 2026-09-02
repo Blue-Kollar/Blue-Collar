@@ -1,14 +1,15 @@
 import { OpenApiGeneratorV31 } from '@asteasolutions/zod-to-openapi'
 import { z } from 'zod'
+
 import {
-  registerRules, loginRules, forgotPasswordRules,
-  resetPasswordRules, verifyAccountRules, resendVerificationRules,
-} from '../validations/auth.js'
+forgotPasswordRules,
+loginRules,   registerRules, resendVerificationRules,
+  resetPasswordRules, verifyAccountRules, } from '../validations/auth.js'
 import { createWorkerRules, updateWorkerRules } from '../validations/worker.js'
 import {
-  registry, BearerAuth, ErrorSchema, SuccessSchema, CategorySchema,
-  WorkerSchema, UserSchema, TokenResponseSchema, PaginatedWorkersSchema,
-} from './registry.js'
+BearerAuth, CategorySchema,
+ErrorSchema, PaginatedWorkersSchema,
+  registry, SuccessSchema, TokenResponseSchema, UserSchema,   WorkerSchema, } from './registry.js'
 
 export { registry }
 

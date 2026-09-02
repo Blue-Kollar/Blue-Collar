@@ -1,15 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
 import * as Dialog from "@radix-ui/react-dialog";
-import { Plus, X, AlertTriangle, Loader2 } from "lucide-react";
-import { useAuth } from "@/context/AuthContext";
-import { ListingsTable } from "@/components/Curator/ListingsTable";
+import { AlertTriangle, Loader2,Plus, X } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+
 import type { CuratorWorker } from "@/components/Curator/ListingsTable";
+import { ListingsTable } from "@/components/Curator/ListingsTable";
 import ErrorState from "@/components/ErrorState";
-import { useMyWorkers, useToggleWorker, useDeleteWorker } from "@/hooks/queries";
+import { useAuth } from "@/context/AuthContext";
+import { useDeleteWorker,useMyWorkers, useToggleWorker } from "@/hooks/queries";
 
 export default function CuratorConsolePage() {
   const { user, isLoading: authLoading } = useAuth();

@@ -1,5 +1,5 @@
+import { Bookmark, Search, Star, TrendingUp,Users } from 'lucide-react'
 import Link from 'next/link'
-import { Search, Bookmark, Star, Users, TrendingUp } from 'lucide-react'
 
 type Variant = 'no-workers' | 'no-bookmarks' | 'no-reviews' | 'no-search-results' | 'no-transactions'
 

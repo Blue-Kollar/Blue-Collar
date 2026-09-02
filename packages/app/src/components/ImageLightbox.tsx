@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
-import { X, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
+import { RotateCcw,X, ZoomIn, ZoomOut } from "lucide-react";
+import { useCallback,useEffect, useRef, useState } from "react";
 
 interface Props {
   src: string;

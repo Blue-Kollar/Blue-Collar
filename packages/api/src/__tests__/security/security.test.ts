@@ -8,8 +8,8 @@
  *
  * All external dependencies are mocked — no DB or Redis required.
  */
-import { describe, it, expect, vi, beforeEach } from 'vitest'
 import request from 'supertest'
+import { beforeEach,describe, expect, it, vi } from 'vitest'
 
 process.env.JWT_SECRET = 'test-secret'
 process.env.APP_URL = 'http://localhost:3000'

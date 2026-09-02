@@ -1,23 +1,24 @@
-import type { ReactNode } from "react";
-import { Suspense } from "react";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { queryClient } from "@/lib/queryClient";
-import { AuthProvider } from "@/context/AuthContext";
-import { WalletProvider } from "@/context/WalletContext";
-import { CompareProvider } from "@/context/CompareContext";
-import { NotificationProvider } from "@/context/NotificationContext";
-import { ModalProvider } from "@/context/ModalContext";
-import { ThemeProvider } from "next-themes";
-import { Toaster } from "sonner";
 import { NextIntlClientProvider } from 'next-intl'
 import { getMessages } from 'next-intl/server'
-import CompareDrawer from "@/components/CompareDrawer";
+import { ThemeProvider } from "next-themes";
+import type { ReactNode } from "react";
+import { Suspense } from "react";
+import { Toaster } from "sonner";
+
 import BottomNav from "@/components/BottomNav";
-import OnboardingTour from "@/components/OnboardingTour";
-import { HORIZON_URL } from "@/config/stellar";
-import WebVitalsReporter from "@/components/WebVitalsReporter";
-import OfflineBanner from "@/components/OfflineBanner";
+import CompareDrawer from "@/components/CompareDrawer";
 import InstallPrompt from "@/components/InstallPrompt";
+import OfflineBanner from "@/components/OfflineBanner";
+import OnboardingTour from "@/components/OnboardingTour";
+import WebVitalsReporter from "@/components/WebVitalsReporter";
+import { HORIZON_URL } from "@/config/stellar";
+import { AuthProvider } from "@/context/AuthContext";
+import { CompareProvider } from "@/context/CompareContext";
+import { ModalProvider } from "@/context/ModalContext";
+import { NotificationProvider } from "@/context/NotificationContext";
+import { WalletProvider } from "@/context/WalletContext";
+import { queryClient } from "@/lib/queryClient";
 
 // ── Deferred (non-critical) component wrappers to reduce CLS ─────────────────
 function DeferredNonCritical() {

@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import userEvent from '@testing-library/user-event'
 import { axe, toHaveNoViolations } from 'jest-axe'
+import { afterEach,beforeEach, describe, expect, it, vi } from 'vitest'
 
 expect.extend(toHaveNoViolations)
 

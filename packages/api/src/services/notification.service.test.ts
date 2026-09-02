@@ -16,7 +16,7 @@
  *  - isInQuietHours: returns false when no prefs row, true in quiet window
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { afterEach,beforeEach, describe, expect, it, vi } from 'vitest'
 
 // ── DB mock ───────────────────────────────────────────────────────────────────
 
@@ -71,8 +71,8 @@ vi.mock('../../config/logger.js', () => ({
 import {
   dispatchNotification,
   getDeliveryLog,
-  updateNotificationPreferences,
   isInQuietHours,
+  updateNotificationPreferences,
 } from './notification.service.js'
 
 const USER_ID = 'user-unit-001'

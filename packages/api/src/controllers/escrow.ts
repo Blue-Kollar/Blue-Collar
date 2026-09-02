@@ -4,8 +4,9 @@
  * All business logic and validation lives in contracts.service / escrow.service.
  */
 import type { Request, Response } from 'express'
-import { catchAsync } from '../utils/catchAsync.js'
+
 import * as contractsService from '../services/contracts.service.js'
+import { catchAsync } from '../utils/catchAsync.js'
 
 export const listEscrows = catchAsync(async (req: Request, res: Response) => {
   const { page, limit } = req.query as Record<string, string | undefined>

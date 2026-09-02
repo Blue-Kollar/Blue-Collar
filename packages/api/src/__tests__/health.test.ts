@@ -1,8 +1,8 @@
 /**
  * Tests for GET /health and GET /ready endpoints (#516)
  */
-import { describe, it, expect, vi, beforeEach } from 'vitest'
 import request from 'supertest'
+import { beforeEach,describe, expect, it, vi } from 'vitest'
 
 process.env.JWT_SECRET = 'test-secret'
 process.env.DATABASE_URL = 'postgresql://localhost:5432/test'
@@ -39,8 +39,8 @@ vi.mock('../events/index.js', () => ({ registerEventHandlers: vi.fn() }))
 vi.mock('../mailer/transport.js', () => ({ transporter: { sendMail: vi.fn() } }))
 
 import app from '../app.js'
-import { db } from '../db.js'
 import { redis } from '../config/redis.js'
+import { db } from '../db.js'
 
 describe('GET /health', () => {
   it('returns 200 with status ok immediately', async () => {

@@ -1,13 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, ArrowLeft, CheckCircle2 } from "lucide-react";
-import { forgotPasswordSchema, type ForgotPasswordInput, authApi } from "@/lib/auth";
-import FormField from "@/components/FormField";
+import { ArrowLeft, CheckCircle2,Loader2 } from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+
 import FormError from "@/components/FormError";
+import FormField from "@/components/FormField";
+import { authApi,type ForgotPasswordInput, forgotPasswordSchema } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 
 export default function ForgotPasswordPage() {

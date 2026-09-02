@@ -5,8 +5,8 @@
 import { z } from 'zod'
 
 export {
-  updateProfileSchema as updateProfileRules,
   changePasswordSchema as changePasswordRules,
+  updateProfileSchema as updateProfileRules,
 } from '@bluecollar/types'
 
 // POST /users/me/push-subscription — API-only

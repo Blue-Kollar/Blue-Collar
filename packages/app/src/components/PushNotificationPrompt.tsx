@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { Bell, X } from "lucide-react";
+import { useEffect, useState } from "react";
+
 import { Button } from "@/components/ui/button";
-import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { useAuth } from "@/hooks/useAuth";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
 
 export default function PushNotificationPrompt() {
   const { user } = useAuth();

@@ -3,7 +3,7 @@
  * All external dependencies (auth service, db, nodemailer) are mocked.
  */
 
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach,describe, expect, it, vi } from "vitest";
 
 // ─── Env setup (must run before any module that reads process.env) ─────────────
 process.env.JWT_SECRET = "test-secret";
@@ -48,15 +48,15 @@ vi.mock("../mailer/transport.js", () => ({
 
 // ─── Imports (after mocks) ────────────────────────────────────────────────────
 
-import * as authService from "../services/auth.service.js";
-import { db } from "../db.js";
 import {
-  register,
+  forgotPassword,
   login,
   logout,
-  forgotPassword,
+  register,
   resetPassword,
 } from "../controllers/auth.js";
+import { db } from "../db.js";
+import * as authService from "../services/auth.service.js";
 import { AppError } from "../utils/AppError.js";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────

@@ -1,13 +1,14 @@
 import type { Request, Response } from 'express'
-import * as workerService from '../services/worker.service.js'
-import * as searchService from '../services/search.service.js'
-import { catchAsync } from '../utils/catchAsync.js'
-import { AppError, ErrorCode } from '../utils/AppError.js'
-import { workerSerializer } from '../serializers/index.js'
+
+import { ErrorMessages } from '../constants/errors.js'
 import type { CreateWorkerBody, UpdateWorkerBody } from '../interfaces/index.js'
 import { invalidateCachePattern } from '../middleware/cache.js'
+import { workerSerializer } from '../serializers/index.js'
+import * as searchService from '../services/search.service.js'
 import { getWorkerReputation, syncReputationToDb } from '../services/stellar.service.js'
-import { ErrorMessages } from '../constants/errors.js'
+import * as workerService from '../services/worker.service.js'
+import { AppError, ErrorCode } from '../utils/AppError.js'
+import { catchAsync } from '../utils/catchAsync.js'
 
 // Parse a comma-separated ?fields= query param into a set for O(1) lookup.
 // An empty/absent param means "return all fields".

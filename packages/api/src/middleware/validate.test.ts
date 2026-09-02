@@ -1,15 +1,16 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { Request, Response } from 'express'
+import { beforeEach,describe, expect, it, vi } from 'vitest'
 import { z } from 'zod'
-import { validate } from './validate.js'
+
 import {
-  registerRules,
-  loginRules,
   forgotPasswordRules,
+  loginRules,
+  registerRules,
   resetPasswordRules,
   verifyAccountRules,
 } from '../validations/auth.js'
 import { createWorkerRules } from '../validations/worker.js'
-import { Request, Response } from 'express'
+import { validate } from './validate.js'
 
 describe('validate middleware', () => {
   const mockRes = () => {

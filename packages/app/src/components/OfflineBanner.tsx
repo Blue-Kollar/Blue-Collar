@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { WifiOff, Loader2 } from "lucide-react";
-import { getOfflineQueue } from "@/lib/offlineQueue";
+import { Loader2,WifiOff } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useEffect, useState } from "react";
+
+import { getOfflineQueue } from "@/lib/offlineQueue";
 
 export default function OfflineBanner() {
   const t = useTranslations("offline");

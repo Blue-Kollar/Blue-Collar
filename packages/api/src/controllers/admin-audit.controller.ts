@@ -5,6 +5,7 @@
  * any rejection propagates to the global `errorHandler` middleware.
  */
 import type { Request, Response } from 'express'
+
 import { catchAsync } from '../utils/catchAsync.js'
 
 export const listAuditLogs = catchAsync(async (req: Request, res: Response) => {

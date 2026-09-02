@@ -1,12 +1,14 @@
 "use client";
 
+import { Download,Eye, Heart, MessageSquare, Star } from "lucide-react";
 import dynamic from "next/dynamic";
-import { Eye, Heart, Star, MessageSquare, Download } from "lucide-react";
-import { Table, type ColumnDef } from "@/components/Table";
-import { MetricCard } from "./MetricCard";
+
 import { DashboardTableSkeleton } from "@/components/Skeleton";
+import { type ColumnDef,Table } from "@/components/Table";
 import { cn } from "@/lib/utils";
 import type { CuratorAnalytics } from "@/types";
+
+import { MetricCard } from "./MetricCard";
 
 // ── Dynamic import (code splitting) ─────────────────────────────────────────
 const CuratorCharts = dynamic(

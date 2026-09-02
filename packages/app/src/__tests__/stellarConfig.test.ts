@@ -5,7 +5,7 @@
  * URLs and flags from the NEXT_PUBLIC_STELLAR_NETWORK environment variable.
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { afterEach,beforeEach, describe, expect, it, vi } from "vitest";
 
 // We need to re-import the module after mutating process.env so we use
 // vi.resetModules() to get a fresh module evaluation each time.

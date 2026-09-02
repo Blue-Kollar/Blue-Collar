@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Bell, Check, CheckCheck, Trash2, ArrowLeft } from "lucide-react";
+import { ArrowLeft,Bell, Check, CheckCheck, Trash2 } from "lucide-react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+
 import { useNotifications } from "@/context/NotificationContext";
 import { deleteNotification } from "@/lib/api";
 import { cn, formatRelativeTime } from "@/lib/utils";

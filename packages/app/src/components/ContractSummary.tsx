@@ -1,8 +1,9 @@
 "use client";
 
-import type { TipDTO } from "@/types";
-import { TrendingUp, Calendar, DollarSign } from "lucide-react";
+import { Calendar, DollarSign,TrendingUp } from "lucide-react";
+
 import { formatDate } from "@/lib/utils";
+import type { TipDTO } from "@/types";
 
 interface ContractSummaryProps {
   tip: TipDTO;

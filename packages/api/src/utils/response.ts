@@ -1,5 +1,13 @@
 import type { Response } from 'express'
 
+/**
+ * Intentionally minimal response envelope used only by the sendSuccess/sendError
+ * helpers in this file. It does NOT include the optional `token` or `meta` fields
+ * that @bluecollar/types ApiResponse carries — those are added by callers that
+ * need them (e.g. the auth controller appends `token` directly). Do not replace
+ * this with the shared ApiResponse from @bluecollar/types; the shapes serve
+ * different purposes.
+ */
 export interface ApiResponse<T = unknown> {
   data?: T
   status: 'success' | 'error'

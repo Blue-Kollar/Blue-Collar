@@ -1,5 +1,5 @@
-import { gzipSync, brotliCompressSync, constants } from 'zlib'
-import type { Request, Response, NextFunction } from 'express'
+import type { NextFunction,Request, Response } from 'express'
+import { brotliCompressSync, constants,gzipSync } from 'zlib'
 
 // Minimum response size (bytes) to bother compressing.
 // Tiny payloads gain nothing and pay the CPU cost.

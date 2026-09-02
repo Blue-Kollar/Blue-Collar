@@ -1,6 +1,6 @@
+import type { DisputeServiceDeps } from '../container/types.js'
 import { disputeRepository as defaultDisputeRepository } from '../repositories/dispute.repository.js'
 import { AppError, ErrorCode } from '../utils/AppError.js'
-import type { DisputeServiceDeps } from '../container/types.js'
 
 // ── Factory ───────────────────────────────────────────────────────────────────
 

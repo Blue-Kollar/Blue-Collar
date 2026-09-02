@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Loader2 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useLocale } from "next-intl";
-import { Loader2 } from "lucide-react";
-import { useAuth } from "@/context/AuthContext";
+import { useEffect, useState } from "react";
+
 import type { AuthUser } from "@/context/AuthContext";
+import { useAuth } from "@/context/AuthContext";
 import { useOAuthCallback } from "@/hooks/queries";
 
 const TOKEN_KEY = "bc_token";

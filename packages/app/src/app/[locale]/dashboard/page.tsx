@@ -1,16 +1,17 @@
 "use client";
 
-import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import FriendbotBanner from "@/components/FriendbotBanner";
-import { DashboardTableSkeleton } from "@/components/Skeleton";
+import { useEffect } from "react";
+
 import {
+  AnalyticsPanel,
   DashboardHeader,
   DashboardTabs,
-  WorkersPanel,
-  AnalyticsPanel,
   DeleteWorkerDialog,
+  WorkersPanel,
 } from "@/components/Dashboard";
+import FriendbotBanner from "@/components/FriendbotBanner";
+import { DashboardTableSkeleton } from "@/components/Skeleton";
 import { useCuratorDashboard } from "@/hooks/useCuratorDashboard";
 
 export default function DashboardPage() {

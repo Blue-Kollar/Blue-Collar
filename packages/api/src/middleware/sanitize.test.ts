@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
+
 import { sanitize } from './sanitize.js'
 
 function mockReqRes(body: Record<string, any> = {}, query: Record<string, any> = {}) {

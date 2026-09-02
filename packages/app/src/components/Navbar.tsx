@@ -1,17 +1,18 @@
 "use client";
 
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
+import { ChevronDown, Globe, Menu, MessageSquare,Moon, Sun, User, Wallet, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useId, useRef, useState } from "react";
-import { Menu, Wallet, ChevronDown, User, Sun, Moon, Globe, X, MessageSquare } from "lucide-react";
-import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
-import { useTheme } from "next-themes";
-import { useAuth } from "@/hooks/useAuth";
-import { useWallet } from "@/hooks/useWallet";
 import { useLocale, useTranslations } from "next-intl";
-import { cn, formatStellarAddress } from "@/lib/utils";
+import { useTheme } from "next-themes";
+import { useEffect, useId, useRef, useState } from "react";
+
 import NotificationDropdown from "@/components/NotificationDropdown";
 import { WalletBalanceWidget } from "@/components/wallet/WalletBalanceWidget";
+import { useAuth } from "@/hooks/useAuth";
+import { useWallet } from "@/hooks/useWallet";
+import { cn, formatStellarAddress } from "@/lib/utils";
 
 const LANGUAGES = [
   { code: "en", label: "English" },

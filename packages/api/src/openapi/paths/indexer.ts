@@ -1,4 +1,5 @@
 import { z } from 'zod'
+
 import { registry } from '../registry.js'
 
 registry.registerPath({

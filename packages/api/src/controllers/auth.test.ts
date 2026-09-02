@@ -2,9 +2,10 @@
  * Unit tests for the authentication and account management flow.
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
 import crypto from 'node:crypto'
+
 import jwt from 'jsonwebtoken'
+import { beforeEach,describe, expect, it, vi } from 'vitest'
 
 // ─── Env setup ───────────────────────────────────────────────────────────────
 process.env.JWT_SECRET = 'test-secret'
@@ -29,13 +30,13 @@ vi.mock('../mailer/index.js', () => ({
 
 // Import AFTER mocks are registered
 import { db } from '../db.js'
-import { sendVerificationEmail, sendPasswordResetEmail } from '../mailer/index.js'
+import { sendPasswordResetEmail,sendVerificationEmail } from '../mailer/index.js'
 import {
   loginUser,
   registerUser,
-  verifyAccount,
   requestPasswordReset,
   resetPassword,
+  verifyAccount,
 } from '../services/auth.service.js'
 import { AppError } from '../utils/AppError.js'
 

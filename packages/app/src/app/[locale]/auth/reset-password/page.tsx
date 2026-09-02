@@ -1,15 +1,16 @@
 "use client";
 
-import { Suspense, useState } from "react";
-import Link from "next/link";
-import { useSearchParams, useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, CheckCircle2, AlertCircle } from "lucide-react";
-import { resetPasswordSchema, type ResetPasswordInput, authApi } from "@/lib/auth";
-import FormField from "@/components/FormField";
+import { AlertCircle,CheckCircle2, Loader2 } from "lucide-react";
+import Link from "next/link";
+import { useRouter,useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
+import { useForm } from "react-hook-form";
+
 import FormError from "@/components/FormError";
+import FormField from "@/components/FormField";
 import PasswordStrength from "@/components/PasswordStrength";
+import { authApi,type ResetPasswordInput, resetPasswordSchema } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 
 function ResetPasswordForm() {

@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react'
+
 import EmptyStateWithIllustration from '@/components/EmptyStateWithIllustration'
 
 const meta: Meta<typeof EmptyStateWithIllustration> = {

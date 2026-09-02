@@ -1,6 +1,7 @@
-import { render, screen, waitFor } from "@testing-library/react";
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { render, screen, waitFor } from "@testing-library/react";
+import { beforeEach,describe, expect, it, vi } from "vitest";
+
 import DashboardPage from "@/app/[locale]/dashboard/page";
 import * as AuthContext from "@/context/AuthContext";
 import * as WalletHook from "@/hooks/useWallet";

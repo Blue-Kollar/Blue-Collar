@@ -3,7 +3,7 @@
  *
  * All DB access is mocked via vi.mock so no real database connection is needed.
  */
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { beforeEach,describe, expect, it, vi } from 'vitest'
 
 // ── Mock DB ──────────────────────────────────────────────────────────────────
 
@@ -19,8 +19,8 @@ vi.mock('../../db.js', () => ({
   },
 }))
 
-import { getPlatformAnalytics } from './platform.service.js'
 import { db } from '../../db.js'
+import { getPlatformAnalytics } from './platform.service.js'
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 

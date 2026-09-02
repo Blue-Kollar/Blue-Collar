@@ -1,5 +1,6 @@
 import { EventEmitter } from 'node:events'
-import type { AppEvents, AppEventName } from './event-types.js'
+
+import type { AppEventName,AppEvents } from './event-types.js'
 
 /**
  * Type-safe wrapper around Node's EventEmitter.

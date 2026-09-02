@@ -1,6 +1,7 @@
 import webpush from 'web-push'
-import { db } from '../db.js'
+
 import { logger } from '../config/logger.js'
+import { db } from '../db.js'
 
 const vapidPublicKey = process.env.VAPID_PUBLIC_KEY
 const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY

@@ -8,9 +8,10 @@
  * See docs/DI_PATTERN.md for the full pattern guide.
  */
 
+import type { StellarClient } from '../clients/stellar.client.js'
 import type { IAvailabilityRepository } from '../repositories/availability.repository.js'
-import type { IBookmarkRepository } from '../repositories/bookmark.repository.js'
 import type { IBookingRepository } from '../repositories/booking.repository.js'
+import type { IBookmarkRepository } from '../repositories/bookmark.repository.js'
 import type { ICategoryRepository } from '../repositories/category.repository.js'
 import type { IContactRequestRepository } from '../repositories/contact-request.repository.js'
 import type { IDisputeRepository } from '../repositories/dispute.repository.js'
@@ -24,7 +25,6 @@ import type { IReviewRepository } from '../repositories/review.repository.js'
 import type { IUserRepository } from '../repositories/user.repository.js'
 import type { IVerificationRepository } from '../repositories/verification.repository.js'
 import type { IWalletRepository } from '../repositories/wallet.repository.js'
-import type { StellarClient } from '../clients/stellar.client.js'
 
 // ── Service dependency bags ───────────────────────────────────────────────────
 

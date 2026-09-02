@@ -1,8 +1,15 @@
-import type { Worker, Category, User } from '@prisma/client'
+import type { Category, User,Worker } from '@prisma/client'
+
 import { BaseSerializer } from './base.serializer.js'
 import { categorySerializer, type SerializedCategory } from './category.serializer.js'
-import { userSerializer, type SerializedUser } from './user.serializer.js'
+import { type SerializedUser,userSerializer } from './user.serializer.js'
 
+/**
+ * Prisma relational type — extends the generated `Worker` model with optional
+ * joined relations. This is intentionally local to the API package because it
+ * depends on `@prisma/client` generated types, not the domain `Worker` type
+ * from `@bluecollar/types`. Do not replace with the shared type.
+ */
 type WorkerWithRelations = Worker & {
   category?: Category | null
   curator?: User | null

@@ -4,12 +4,13 @@
  * All error handling flows through the global errorHandler middleware via catchAsync.
  */
 import type { Request, Response } from 'express'
-import { catchAsync } from '../utils/catchAsync.js'
-import { AppError, ErrorCode } from '../utils/AppError.js'
+
+import { ErrorMessages, HttpStatus } from '../constants/index.js'
 import { db } from '../db.js'
 import { sanitizeUser } from '../models/user.model.js'
 import * as userService from '../services/user.service.js'
-import { ErrorMessages, HttpStatus } from '../constants/index.js'
+import { AppError, ErrorCode } from '../utils/AppError.js'
+import { catchAsync } from '../utils/catchAsync.js'
 
 // ── Profile update ────────────────────────────────────────────────────────────
 

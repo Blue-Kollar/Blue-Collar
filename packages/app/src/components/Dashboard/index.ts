@@ -1,22 +1,17 @@
-export { ActivityTimeline } from "./ActivityTimeline";
 export type { ActivityItem, ActivityType } from "./ActivityTimeline";
-
-export { SavedWorkers } from "./SavedWorkers";
-export { MessagesPreview } from "./MessagesPreview";
-export { QuickProfileEdit } from "./QuickProfileEdit";
-
-export { MetricCard } from "./MetricCard";
-export type { MetricCardProps } from "./MetricCard";
-
-export { WorkersPanel } from "./WorkersPanel";
-export type { DashboardWorker } from "./WorkersPanel";
-
+export { ActivityTimeline } from "./ActivityTimeline";
 export { AnalyticsPanel } from "./AnalyticsPanel";
-export { DeleteWorkerDialog } from "./DeleteWorkerDialog";
 export { DashboardHeader } from "./DashboardHeader";
-export { DashboardTabs } from "./DashboardTabs";
 export type { DashboardTabType } from "./DashboardTabs";
-
+export { DashboardTabs } from "./DashboardTabs";
+export { DeleteWorkerDialog } from "./DeleteWorkerDialog";
+export { MessagesPreview } from "./MessagesPreview";
+export type { MetricCardProps } from "./MetricCard";
+export { MetricCard } from "./MetricCard";
+export { QuickProfileEdit } from "./QuickProfileEdit";
+export { SavedWorkers } from "./SavedWorkers";
+export { WorkerAnalyticsCharts } from "./WorkerAnalyticsCharts";
 export { WorkerAnalyticsFilters } from "./WorkerAnalyticsFilters";
 export { WorkerAnalyticsSummary } from "./WorkerAnalyticsSummary";
-export { WorkerAnalyticsCharts } from "./WorkerAnalyticsCharts";
+export type { DashboardWorker } from "./WorkersPanel";
+export { WorkersPanel } from "./WorkersPanel";

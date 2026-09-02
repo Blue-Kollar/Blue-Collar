@@ -1,9 +1,10 @@
 import type { Prisma } from '@prisma/client'
+
+import { logger } from '../config/logger.js'
+import type { VerificationServiceDeps } from '../container/types.js'
+import { sendVerificationStatusEmail } from '../mailer/index.js'
 import { verificationRepository as defaultVerificationRepository } from '../repositories/verification.repository.js'
 import { AppError } from '../utils/AppError.js'
-import { logger } from '../config/logger.js'
-import { sendVerificationStatusEmail } from '../mailer/index.js'
-import type { VerificationServiceDeps } from '../container/types.js'
 
 // ── Factory ───────────────────────────────────────────────────────────────────
 

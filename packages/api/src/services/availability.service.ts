@@ -1,6 +1,6 @@
+import type { AvailabilityServiceDeps } from '../container/types.js'
 import { availabilityRepository as defaultAvailabilityRepository } from '../repositories/availability.repository.js'
 import { AppError } from '../utils/AppError.js'
-import type { AvailabilityServiceDeps } from '../container/types.js'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 

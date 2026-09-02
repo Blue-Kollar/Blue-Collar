@@ -6,10 +6,10 @@
  *
  * Issue: #1005 [Backend] Add integration tests for reviews endpoints
  */
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-import request from 'supertest'
-import jwt from 'jsonwebtoken'
 import express from 'express'
+import jwt from 'jsonwebtoken'
+import request from 'supertest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 // ─── Env setup ────────────────────────────────────────────────────────────────
 process.env.JWT_SECRET = 'test-reviews-secret'

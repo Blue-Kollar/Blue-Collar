@@ -1,17 +1,18 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, CheckCircle2 } from "lucide-react";
-import FormField from "@/components/FormField";
-import ImageUpload from "@/components/ImageUpload";
-import { cn } from "@/lib/utils";
-import { getCategories } from "@/lib/api";
-import type { Category } from "@/types";
+import type { CreateWorkerInput as WorkerFormInput } from "@bluecollar/types";
 // ─── Schema (single source of truth in @bluecollar/types) ────────────────────
 import { createWorkerSchema as workerSchema } from "@bluecollar/types";
-import type { CreateWorkerInput as WorkerFormInput } from "@bluecollar/types";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { CheckCircle2,Loader2 } from "lucide-react";
+import { useEffect, useMemo,useState } from "react";
+import { useForm } from "react-hook-form";
+
+import FormField from "@/components/FormField";
+import ImageUpload from "@/components/ImageUpload";
+import { getCategories } from "@/lib/api";
+import { cn } from "@/lib/utils";
+import type { Category } from "@/types";
 
 export { workerSchema };
 export type { WorkerFormInput };
@@ -88,7 +89,7 @@ function ProfileCompletionBar({
   );
 }
 
-export { useProfileCompletion, ProfileCompletionBar };
+export { ProfileCompletionBar,useProfileCompletion };
 
 interface Props {
   defaultValues?: Partial<WorkerFormInput>;

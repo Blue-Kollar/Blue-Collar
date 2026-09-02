@@ -1,8 +1,9 @@
 import { Router } from 'express'
+
 import {
-  getSubscription,
-  createOrUpgradeSubscription,
   cancelSubscription,
+  createOrUpgradeSubscription,
+  getSubscription,
   stripeWebhook,
 } from '../controllers/subscriptions.js'
 import { authenticate, authorize } from '../middleware/auth.js'

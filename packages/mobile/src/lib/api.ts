@@ -8,7 +8,14 @@ export interface ApiRequestOptions {
   params?: Record<string, string | number | boolean>;
 }
 
-export interface ApiResponse<T = unknown> {
+/**
+ * HTTP-level fetch wrapper response shape. This is NOT the same as the API
+ * envelope `ApiResponse<T>` exported from `@bluecollar/types`, which represents
+ * the `{ data, status, code, message, token?, meta? }` envelope returned by the
+ * BlueCollar API. This type wraps the raw fetch Response metadata (ok, status,
+ * statusText) alongside the parsed body, and is specific to this HTTP client.
+ */
+export interface HttpResponse<T = unknown> {
   ok: boolean;
   status: number;
   statusText: string;
@@ -40,7 +47,7 @@ class ApiClient {
     return null;
   }
 
-  async request<T = unknown>(options: ApiRequestOptions): Promise<ApiResponse<T>> {
+  async request<T = unknown>(options: ApiRequestOptions): Promise<HttpResponse<T>> {
     const { url, method = "GET", data, headers = {}, params } = options;
     const fullUrl = this.buildUrl(url, params);
     const authToken = await this.getAuthToken();

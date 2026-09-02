@@ -2,7 +2,7 @@
  * Request/Response schema transformation utilities for API versioning
  */
 
-import type { Request, Response, NextFunction } from 'express'
+import type { NextFunction,Request, Response } from 'express'
 
 /**
  * Define schema transformations between API versions

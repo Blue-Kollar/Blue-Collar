@@ -1,17 +1,18 @@
-import { describe, it, expect } from 'vitest'
+import { describe, expect,it } from 'vitest'
+
+import { bulkDeleteRules, bulkToggleRules } from './admin.js'
 import {
-  registerRules,
-  loginRules,
   forgotPasswordRules,
+  loginRules,
+  registerRules,
+  resendVerificationRules,
   resetPasswordRules,
   verifyAccountRules,
-  resendVerificationRules,
 } from './auth.js'
-import { createWorkerRules, updateWorkerRules, createReviewRules, advancedSearchRules } from './worker.js'
-import { updateProfileRules, changePasswordRules, pushSubscriptionRules } from './user.js'
-import { bulkDeleteRules, bulkToggleRules } from './admin.js'
-import { tipRules, createEscrowRules, updateFeeRules } from './payment.js'
 import { revokeOtherDevicesRules } from './device.js'
+import { createEscrowRules, tipRules, updateFeeRules } from './payment.js'
+import { changePasswordRules, pushSubscriptionRules,updateProfileRules } from './user.js'
+import { advancedSearchRules,createReviewRules, createWorkerRules, updateWorkerRules } from './worker.js'
 
 // ── Auth validators ───────────────────────────────────────────────────────────
 

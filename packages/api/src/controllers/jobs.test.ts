@@ -7,10 +7,11 @@
  * without touching the database.
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { Request, Response } from 'express'
-import { createJobsController, type JobsService } from './jobs.js'
+import { beforeEach,describe, expect, it, vi } from 'vitest'
+
 import { AppError } from '../utils/AppError.js'
+import { createJobsController, type JobsService } from './jobs.js'
 
 function makeRes() {
   const res: Partial<Response> = {}

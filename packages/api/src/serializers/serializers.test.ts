@@ -1,8 +1,9 @@
-import { describe, it, expect } from 'vitest'
-import { userSerializer } from '../serializers/user.serializer.js'
+import { describe, expect,it } from 'vitest'
+
 import { categorySerializer } from '../serializers/category.serializer.js'
-import { workerSerializer } from '../serializers/worker.serializer.js'
 import { serializeError } from '../serializers/error.serializer.js'
+import { userSerializer } from '../serializers/user.serializer.js'
+import { workerSerializer } from '../serializers/worker.serializer.js'
 import { AppError, ErrorCode } from '../utils/AppError.js'
 
 const mockUser: any = {

@@ -1,8 +1,9 @@
 "use client";
 
+import { Bookmark, Star } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { Bookmark, Star } from "lucide-react";
+
 import { WorkerCardSkeleton } from "@/components/Skeleton";
 import type { Worker } from "@/types";
 

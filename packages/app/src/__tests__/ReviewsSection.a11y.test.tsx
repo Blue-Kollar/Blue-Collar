@@ -8,12 +8,12 @@
  * changes, and live-region announcements.
  */
 
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
 import axe from 'axe-core'
 import React from 'react'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { beforeEach,describe, expect, it, vi } from 'vitest'
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
 

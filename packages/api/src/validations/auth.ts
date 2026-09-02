@@ -3,10 +3,10 @@
  * Core schemas are imported from @bluecollar/types to stay in sync with the App.
  */
 export {
+  forgotPasswordSchema as forgotPasswordRules,
   loginSchema as loginRules,
   registerSchema as registerRules,
-  forgotPasswordSchema as forgotPasswordRules,
+  resendVerificationSchema as resendVerificationRules,
   resetPasswordSchema as resetPasswordRules,
   verifyAccountSchema as verifyAccountRules,
-  resendVerificationSchema as resendVerificationRules,
 } from '@bluecollar/types'

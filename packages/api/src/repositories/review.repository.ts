@@ -1,6 +1,7 @@
-import type { Review, Prisma } from '@prisma/client'
-import type { IRepository } from './base.repository.js'
+import type { Prisma,Review } from '@prisma/client'
+
 import { db } from '../db.js'
+import type { IRepository } from './base.repository.js'
 
 // ── Interface ─────────────────────────────────────────────────────────────────
 

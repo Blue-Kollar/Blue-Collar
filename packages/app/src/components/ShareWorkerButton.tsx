@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import { Share2 } from "lucide-react";
+import { useState } from "react";
 
 interface ShareWorkerButtonProps {
   workerName: string;

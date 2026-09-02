@@ -1,8 +1,9 @@
 import type { Prisma } from '@prisma/client'
-import { jobRepository as defaultJobRepository } from '../repositories/job.repository.js'
-import { AppError } from '../utils/AppError.js'
-import { dispatchNotification } from '../services/notification.service.js'
+
 import type { JobServiceDeps } from '../container/types.js'
+import { jobRepository as defaultJobRepository } from '../repositories/job.repository.js'
+import { dispatchNotification } from '../services/notification.service.js'
+import { AppError } from '../utils/AppError.js'
 
 // ── Factory ───────────────────────────────────────────────────────────────────
 

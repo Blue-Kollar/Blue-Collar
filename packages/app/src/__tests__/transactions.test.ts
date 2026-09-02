@@ -3,17 +3,18 @@
  * Closes #823 acceptance criteria: wrong-network/contract blocks, tampering tests
  */
 
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach,describe, expect, it, vi } from "vitest";
+
 import {
-  validateNetwork,
-  validateDestination,
-  validateContractId,
-  validateAmount,
   assertXdrNotTampered,
   buildTransactionSummary,
-  TransactionValidationError,
-  NETWORKS,
   MIN_AMOUNT_XLM,
+  NETWORKS,
+  TransactionValidationError,
+  validateAmount,
+  validateContractId,
+  validateDestination,
+  validateNetwork,
 } from "@/lib/transactions";
 
 // ---------------------------------------------------------------------------

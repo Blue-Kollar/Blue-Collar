@@ -1,8 +1,9 @@
 "use client";
 
+import { Compass, Search, User,Wallet } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Compass, Search, Wallet, User } from "lucide-react";
+
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 

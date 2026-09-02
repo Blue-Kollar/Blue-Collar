@@ -1,5 +1,6 @@
-import { describe, it, expect } from 'vitest'
-import { emailField, passwordField, nameField, tokenField, phoneField } from './shared.js'
+import { describe, expect,it } from 'vitest'
+
+import { emailField, nameField, passwordField, phoneField,tokenField } from './shared.js'
 
 describe('emailField', () => {
   it('accepts a valid email', () => {

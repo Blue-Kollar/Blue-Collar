@@ -1,7 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { Briefcase, Clock, DollarSign } from "lucide-react";
+import Link from "next/link";
+
 import { cn } from "@/lib/utils";
 import type { Job } from "@/types";
 

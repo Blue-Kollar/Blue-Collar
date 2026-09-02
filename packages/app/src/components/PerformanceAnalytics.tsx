@@ -1,14 +1,15 @@
 "use client";
 
-import { useMemo } from "react";
 import {
-  Star,
-  Eye,
-  MessageSquare,
-  TrendingUp,
   Bookmark,
+  Eye,
   type LucideIcon,
+  MessageSquare,
+  Star,
+  TrendingUp,
 } from "lucide-react";
+import { useMemo } from "react";
+
 import { cn } from "@/lib/utils";
 
 interface StatCard {

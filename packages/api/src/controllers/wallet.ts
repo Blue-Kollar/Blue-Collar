@@ -1,7 +1,8 @@
 import type { Request, Response } from 'express'
+
 import * as walletService from '../services/wallet.service.js'
-import { catchAsync } from '../utils/catchAsync.js'
 import { AppError, ErrorCode } from '../utils/AppError.js'
+import { catchAsync } from '../utils/catchAsync.js'
 
 // ── Service type ──────────────────────────────────────────────────────────────
 

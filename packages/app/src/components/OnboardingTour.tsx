@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { X, ChevronRight, ChevronLeft, Search, Bookmark, Wallet, Star } from "lucide-react";
+import { Bookmark, ChevronLeft, ChevronRight, Search, Star,Wallet, X } from "lucide-react";
+import { useCallback,useEffect, useState } from "react";
+
 import { cn } from "@/lib/utils";
 
 const TOUR_KEY = "bc_tour_done";

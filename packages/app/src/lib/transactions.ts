@@ -11,11 +11,12 @@
  */
 
 import * as StellarSdk from "@stellar/stellar-sdk";
+
 import {
-  HORIZON_URL,
-  SOROBAN_RPC_URL,
   EXPLORER_TX_BASE,
+  HORIZON_URL,
   NETWORK_PASSPHRASE,
+  SOROBAN_RPC_URL,
 } from "@/config/stellar";
 
 // ---------------------------------------------------------------------------

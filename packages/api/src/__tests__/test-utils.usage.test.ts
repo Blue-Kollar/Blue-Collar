@@ -15,7 +15,7 @@
  *   import { makeRequest, makeResponse, makeNext, userFactory } from '@bluecollar/test-utils'
  */
 
-import { describe, it, expect, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 // ---------------------------------------------------------------------------
 // Re-implement the helpers inline here so this test file does NOT require

@@ -1,20 +1,21 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import { useParams, useRouter } from "next/navigation";
+import {
+AlertTriangle,   ArrowLeft, Briefcase, CheckCircle, Clock, DollarSign, Loader2,
+MessageSquare, RefreshCw,
+  Send, XCircle, } from "lucide-react";
 import Link from "next/link";
-import {
-  ArrowLeft, Briefcase, Clock, DollarSign, Loader2,
-  Send, CheckCircle, XCircle, AlertTriangle, MessageSquare, RefreshCw,
-} from "lucide-react";
-import { useAuth } from "@/context/AuthContext";
-import { cn, formatDate } from "@/lib/utils";
+import { useParams, useRouter } from "next/navigation";
+import { useCallback,useEffect, useState } from "react";
+
 import LoadingState from "@/components/LoadingState";
+import { useAuth } from "@/context/AuthContext";
 import {
-  getJob, applyToJob, withdrawJobApplication, getJobApplications,
-  updateJobApplicationStatus, getJobMessages, sendJobMessage, renewJob,
-  getMyApplications,
-} from "@/lib/api/jobs";
+applyToJob,   getJob, getJobApplications,
+getJobMessages,   getMyApplications,
+renewJob,
+sendJobMessage,   updateJobApplicationStatus, withdrawJobApplication, } from "@/lib/api/jobs";
+import { cn, formatDate } from "@/lib/utils";
 import type { Job, JobApplication, JobMessage } from "@/types";
 
 const STATUS_STYLE: Record<string, string> = {

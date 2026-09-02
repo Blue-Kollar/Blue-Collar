@@ -5,6 +5,7 @@
  * any rejection propagates to the global `errorHandler` middleware.
  */
 import type { Request, Response } from 'express'
+
 import { db } from '../db.js'
 import { catchAsync } from '../utils/catchAsync.js'
 

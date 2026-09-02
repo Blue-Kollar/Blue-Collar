@@ -1,6 +1,6 @@
+import type { MessagingServiceDeps } from '../container/types.js'
 import { messagingRepository as defaultMessagingRepository } from '../repositories/messaging.repository.js'
 import { AppError, ErrorCode } from '../utils/AppError.js'
-import type { MessagingServiceDeps } from '../container/types.js'
 
 // ── Factory ───────────────────────────────────────────────────────────────────
 

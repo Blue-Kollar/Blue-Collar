@@ -14,12 +14,13 @@
 
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import messages from '@/messages/en.json'
-import FilterPanel, { EMPTY_FILTERS, type FilterValues } from '@/components/Filters/FilterPanel'
+import { beforeEach,describe, expect, it, vi } from 'vitest'
+
 import ActiveFilters from '@/components/Filters/ActiveFilters'
+import FilterPanel, { EMPTY_FILTERS, type FilterValues } from '@/components/Filters/FilterPanel'
 import MobileFilterSheet from '@/components/Filters/MobileFilterSheet'
 import SearchInput from '@/components/Search/SearchInput'
+import messages from '@/messages/en.json'
 import type { Category } from '@/types'
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────

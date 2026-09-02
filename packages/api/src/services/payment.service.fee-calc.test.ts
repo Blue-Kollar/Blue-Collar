@@ -10,18 +10,19 @@
  *
  * Run with: pnpm --filter @bluecollar/api test:mutation
  */
-import { describe, it, expect, afterEach } from 'vitest';
+import { afterEach,describe, expect, it } from 'vitest';
+
+import { AppError } from '../utils/AppError.js';
 import {
   calculateFee,
-  tip,
   createEscrow,
   createMultiSigEscrow,
-  updateFeeBps,
   getFeeBps,
-  PaymentService,
   type MultiSigEscrowParams,
+  PaymentService,
+  tip,
+  updateFeeBps,
 } from './payment.service.js';
-import { AppError } from '../utils/AppError.js';
 
 const FUTURE = () => new Date(Date.now() + 60 * 60 * 1000);
 const PAST = () => new Date(Date.now() - 60_000);

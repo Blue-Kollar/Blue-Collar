@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useCallback, useEffect,useState } from "react";
+
+import type { DashboardWorker } from "@/components/Dashboard";
+import { HORIZON_URL, IS_TESTNET } from "@/config/stellar";
 import { useAuth } from "@/context/AuthContext";
 import { useWallet } from "@/hooks/useWallet";
 import type { CuratorAnalytics, ViewTrend } from "@/types";
-import type { DashboardWorker } from "@/components/Dashboard";
-
-import { HORIZON_URL, IS_TESTNET } from "@/config/stellar";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/api";
 const HORIZON_TESTNET = HORIZON_URL;

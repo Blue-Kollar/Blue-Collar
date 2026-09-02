@@ -1,5 +1,12 @@
-import type { Worker, Category, User } from '@prisma/client'
+import type { Category, User,Worker } from '@prisma/client'
 
+/**
+ * Prisma relational type — extends the generated `Worker` model with required
+ * joined relations for the formatted response shape. This is intentionally local
+ * to the API package because it depends on `@prisma/client` generated types,
+ * not the domain `Worker` type from `@bluecollar/types`. Do not replace with
+ * the shared type.
+ */
 type WorkerWithRelations = Worker & {
   category: Category
   curator: User

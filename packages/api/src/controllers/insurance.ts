@@ -1,7 +1,8 @@
 import type { Request, Response } from 'express'
+
 import * as insuranceService from '../services/insurance.service.js'
-import { catchAsync } from '../utils/catchAsync.js'
 import { AppError, ErrorCode } from '../utils/AppError.js'
+import { catchAsync } from '../utils/catchAsync.js'
 
 export const uploadInsurance = catchAsync(async (req: Request, res: Response) => {
   const { expiresAt, provider, policyNumber } = req.body

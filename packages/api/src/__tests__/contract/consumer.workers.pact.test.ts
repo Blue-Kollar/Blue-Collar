@@ -2,9 +2,9 @@
  * Pact Consumer Contract Tests – Workers API
  * Closes #430
  */
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { PactV3, MatchersV3 } from '@pact-foundation/pact';
+import { MatchersV3,PactV3 } from '@pact-foundation/pact';
 import path from 'path';
+import { afterAll,beforeAll, describe, expect, it } from 'vitest';
 
 const { like, eachLike, string, integer } = MatchersV3;
 

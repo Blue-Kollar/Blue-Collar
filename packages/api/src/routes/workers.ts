@@ -2,36 +2,36 @@
  * Worker Routes
  * Execution Order: Rate Limit -> Auth -> Validation -> Cache -> Controller
  */
-import { Router, type Request, type Response } from 'express'
-import {
-  listWorkers,
-  listMyWorkers,
-  createWorker,
-  updateWorker,
-  deleteWorker,
-  toggleActivation,
-  advancedSearch,
-  searchWorkersHandler,
-  getReputation,
-  syncReputation,
-} from '../controllers/workers.js'
-import { toggleBookmark } from '../controllers/bookmarks.js'
-import { createWorkerReview, deleteReview, listWorkerReviews } from './reviews.js'
-import { getAvailability, upsertAvailability, addAvailabilitySlot, deleteAvailabilitySlot } from '../controllers/availability.js'
-import { registerOnChain } from '../controllers/stellar.js'
-import { createContactRequest, getContactRequests, updateContactRequestStatus } from '../controllers/contact-request.js'
-import { getWorkerVerifications } from '../controllers/verifications.js'
-import { getAnalytics, trackView, getViewTrends, getWorkerPersonalDashboard, exportWorkerPersonalCsv } from '../controllers/analytics.js'
-import { authenticate, authorize } from '../middleware/auth.js'
-import { validate } from '../middleware/validate.js'
-import { withAuth, withAuthAndValidation } from '../middleware/composition.js'
-import { upload, handleMulterError } from '../middleware/upload.js'
-import { createWorkerRules } from '../validations/index.js'
-import { cacheMiddleware, invalidateCachePattern, CacheTTL } from '../middleware/cache.js'
-import { contactRateLimit, generalRateLimit } from '../middleware/userRateLimit.js'
-import { db } from '../db.js'
+import { type Request, type Response,Router } from 'express'
 
+import { exportWorkerPersonalCsv,getAnalytics, getViewTrends, getWorkerPersonalDashboard, trackView } from '../controllers/analytics.js'
+import { addAvailabilitySlot, deleteAvailabilitySlot,getAvailability, upsertAvailability } from '../controllers/availability.js'
+import { toggleBookmark } from '../controllers/bookmarks.js'
+import { createContactRequest, getContactRequests, updateContactRequestStatus } from '../controllers/contact-request.js'
+import { registerOnChain } from '../controllers/stellar.js'
+import { getWorkerVerifications } from '../controllers/verifications.js'
+import {
+  advancedSearch,
+  createWorker,
+  deleteWorker,
+  getReputation,
+  listMyWorkers,
+  listWorkers,
+  searchWorkersHandler,
+  syncReputation,
+  toggleActivation,
+  updateWorker,
+} from '../controllers/workers.js'
+import { db } from '../db.js'
+import { authenticate, authorize } from '../middleware/auth.js'
+import { cacheMiddleware, CacheTTL,invalidateCachePattern } from '../middleware/cache.js'
+import { withAuth, withAuthAndValidation } from '../middleware/composition.js'
 import { idempotency } from '../middleware/idempotency.js'
+import { handleMulterError,upload } from '../middleware/upload.js'
+import { contactRateLimit, generalRateLimit } from '../middleware/userRateLimit.js'
+import { validate } from '../middleware/validate.js'
+import { createWorkerRules } from '../validations/index.js'
+import { createWorkerReview, deleteReview, listWorkerReviews } from './reviews.js'
 
 const router = Router()
 
