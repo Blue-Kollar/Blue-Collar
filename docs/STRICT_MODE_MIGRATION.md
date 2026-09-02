@@ -50,6 +50,10 @@ Enabling strict checking surfaced several pre-existing errors that were fixed as
 - **`__tests__/regression.shared-types.test.ts` line 152**: Useless escape `[\{<]` in a regex
   character class — `\{` has no special meaning inside `[]`. Fixed to `[{<]`.
 
+- **`__tests__/regression.shared-types.test.ts` line 14**: `vi` was imported from `vitest` but
+  never called anywhere in the file. Removed to silence the `@typescript-eslint/no-unused-vars`
+  warning surfaced by the shared ESLint config (#1289).
+
 ## Pre-existing Type Debt (out of scope)
 
 `packages/api` has ~150+ pre-existing type errors across controllers, services, and tests. These
