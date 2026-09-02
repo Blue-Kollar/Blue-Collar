@@ -1,7 +1,8 @@
 import { Router } from 'express'
-import { authenticate, authorize } from '../middleware/auth.js'
+
 import { publicReadRateLimiter } from '../config/rateLimiter.js'
 import { createPaymentController } from '../controllers/payment.js'
+import { authenticate, authorize } from '../middleware/auth.js'
 import { paymentService } from '../services/payment.service.js'
 
 const router = Router()

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { afterEach,beforeEach, describe, expect, it } from 'vitest'
 
 // Helpers that mirror the config module's internal logic (tested in isolation
 // so we don't need to reload the module with different env vars each time).

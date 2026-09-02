@@ -21,9 +21,9 @@
  * All DB / Redis / external deps are mocked; the full HTTP cycle is
  * exercised via supertest against the real Express app.
  */
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import request from 'supertest'
 import jwt from 'jsonwebtoken'
+import request from 'supertest'
+import { beforeEach,describe, expect, it, vi } from 'vitest'
 
 // ─── Environment ─────────────────────────────────────────────────────────────
 process.env.JWT_SECRET = 'test-integration-secret'

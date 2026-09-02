@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { beforeEach,describe, expect, it, vi } from 'vitest'
 
 // ── Mock Prisma db ────────────────────────────────────────────────────────────
 vi.mock('../db.js', () => ({
@@ -15,12 +15,12 @@ vi.mock('../db.js', () => ({
 }))
 
 import { db } from '../db.js'
-import { AppError } from '../utils/AppError.js'
 import {
   createWorker,
-  toggleWorker,
   listWorkers,
+  toggleWorker,
 } from '../services/worker.service.js'
+import { AppError } from '../utils/AppError.js'
 
 // ── Shared fixtures ───────────────────────────────────────────────────────────
 

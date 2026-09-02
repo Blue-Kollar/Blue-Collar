@@ -8,8 +8,9 @@
  * In production profiling, tighten these values.
  */
 
-import { describe, it, expect, vi, beforeAll, afterAll } from 'vitest'
 import request from 'supertest'
+import { afterAll,beforeAll, describe, expect, it, vi } from 'vitest'
+
 import app from '../../app.js'
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────

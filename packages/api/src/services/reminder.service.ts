@@ -1,7 +1,9 @@
 import crypto from 'node:crypto'
+
 import jwt from 'jsonwebtoken'
-import { db } from '../db.js'
+
 import { logger } from '../config/logger.js'
+import { db } from '../db.js'
 import { sendVerificationReminderEmail } from '../mailer/index.js'
 
 const HOUR = 60 * 60 * 1000

@@ -3,7 +3,7 @@
  *
  * All DB access is mocked via vi.mock.
  */
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { beforeEach,describe, expect, it, vi } from 'vitest'
 
 // ── Mock DB ──────────────────────────────────────────────────────────────────
 
@@ -19,21 +19,21 @@ vi.mock('../../db.js', () => ({
   },
 }))
 
+import { db } from '../../db.js'
 import {
   assertCanAccessWorkerAnalytics,
+  getCuratorAnalytics,
+  getTopWorkers,
+  getWorkerAnalytics,
+  getWorkerDashboardSeries,
+  getWorkerPersonalDashboard,
+  getWorkerViewTrends,
   parseAnalyticsDateRange,
+  recordContact,
   recordProfileView,
   recordTip,
   updateBookmarkCount,
-  recordContact,
-  getWorkerAnalytics,
-  getCuratorAnalytics,
-  getWorkerViewTrends,
-  getWorkerPersonalDashboard,
-  getWorkerDashboardSeries,
-  getTopWorkers,
 } from './worker.service.js'
-import { db } from '../../db.js'
 
 // ── assertCanAccessWorkerAnalytics ───────────────────────────────────────────
 

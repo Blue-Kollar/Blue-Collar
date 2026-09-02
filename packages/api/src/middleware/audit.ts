@@ -1,4 +1,5 @@
-import type { Request, Response, NextFunction } from 'express'
+import type { NextFunction,Request, Response } from 'express'
+
 import { log } from '../services/audit.service.js'
 
 // Map HTTP method + route pattern to an audit action

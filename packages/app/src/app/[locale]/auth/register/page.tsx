@@ -1,15 +1,16 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
-import { registerSchema, type RegisterInput, authApi } from "@/lib/auth";
-import FormField from "@/components/FormField";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+
 import FormError from "@/components/FormError";
+import FormField from "@/components/FormField";
 import PasswordStrength from "@/components/PasswordStrength";
+import { authApi,type RegisterInput, registerSchema } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 
 export default function RegisterPage() {

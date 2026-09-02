@@ -1,22 +1,23 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { ArrowLeft, Loader2 } from "lucide-react";
-import WorkerForm, {
-  type WorkerFormInput,
-  useProfileCompletion,
-  ProfileCompletionBar,
-} from "@/components/WorkerForm";
-import PortfolioGallery, { type PortfolioImage } from "@/components/PortfolioGallery";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useCallback,useEffect, useState } from "react";
+
 import AvailabilityCalendar, { type Slot } from "@/components/AvailabilityCalendar";
-import VerificationBadges from "@/components/VerificationBadges";
 import PerformanceAnalytics from "@/components/PerformanceAnalytics";
+import PortfolioGallery, { type PortfolioImage } from "@/components/PortfolioGallery";
 import ProfilePreview from "@/components/ProfilePreview";
+import VerificationBadges from "@/components/VerificationBadges";
+import WorkerForm, {
+  ProfileCompletionBar,
+  useProfileCompletion,
+  type WorkerFormInput,
+} from "@/components/WorkerForm";
 import { useToast } from "@/hooks/useToast";
-import { getWorker, updateWorker, getCategories } from "@/lib/api";
-import type { Worker, Category } from "@/types";
+import { getCategories,getWorker, updateWorker } from "@/lib/api";
+import type { Category,Worker } from "@/types";
 
 export default function EditWorkerPage({ params }: { params: { id: string } }) {
   const router = useRouter();

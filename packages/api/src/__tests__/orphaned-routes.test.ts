@@ -3,9 +3,9 @@
  * Ensures all controller files have corresponding mounted routes
  * Prevents issue #932 recurrence
  */
-import { describe, it, expect } from 'vitest'
 import { readdirSync, readFileSync } from 'fs'
 import { join } from 'path'
+import { describe, expect,it } from 'vitest'
 
 describe('Route Registration Guard', () => {
   it('should not have orphaned/unmounted route files', () => {

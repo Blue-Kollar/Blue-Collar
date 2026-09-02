@@ -4,11 +4,12 @@
  * Processes notification fan-out jobs (email, push, in-app).
  */
 
-import { Worker, type Job } from 'bullmq'
-import { redis } from '../config/redis.js'
+import { type Job,Worker } from 'bullmq'
+
 import { logger } from '../config/logger.js'
-import { dispatchNotification } from '../services/notification.service.js'
+import { redis } from '../config/redis.js'
 import type { NotificationJobData } from '../queue/index.js'
+import { dispatchNotification } from '../services/notification.service.js'
 
 const connection = { host: redis.options.host ?? 'localhost', port: redis.options.port ?? 6379 }
 

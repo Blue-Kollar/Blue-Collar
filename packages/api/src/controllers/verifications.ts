@@ -1,8 +1,9 @@
 import type { Request, Response } from 'express'
-import * as verificationService from '../services/verification.service.js'
-import { catchAsync } from '../utils/catchAsync.js'
-import { AppError, ErrorCode } from '../utils/AppError.js'
+
 import { ErrorMessages, HttpStatus } from '../constants/index.js'
+import * as verificationService from '../services/verification.service.js'
+import { AppError, ErrorCode } from '../utils/AppError.js'
+import { catchAsync } from '../utils/catchAsync.js'
 
 /** POST /api/verifications — submit a verification request */
 export const requestVerification = catchAsync(async (req: Request, res: Response) => {

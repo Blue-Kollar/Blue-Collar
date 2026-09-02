@@ -10,19 +10,20 @@
  *
  * Run: pnpm --filter @bluecollar/api test:contract
  */
-import { describe, it, expect } from 'vitest';
+import { describe, expect,it } from 'vitest';
+
 import { categorySerializer } from '../../serializers/category.serializer.js';
-import { userSerializer } from '../../serializers/user.serializer.js';
 import { reviewSerializer } from '../../serializers/review.serializer.js';
+import { userSerializer } from '../../serializers/user.serializer.js';
 import { workerSerializer } from '../../serializers/worker.serializer.js';
 import {
+  AccountInfoSchema,
   ApiEnvelopeSchema,
   CategorySchema,
-  SerializedUserSchema,
-  SerializedReviewSchema,
-  SerializedWorkerSchema,
   PaginatedSchema,
-  AccountInfoSchema,
+  SerializedReviewSchema,
+  SerializedUserSchema,
+  SerializedWorkerSchema,
 } from './responseSchemas.js';
 
 // ── Fixtures (representative Prisma-shaped records) ───────────────────────────

@@ -1,7 +1,8 @@
-import type { NextFunction, Request, Response } from 'express'
-import helmet from 'helmet'
 import cors from 'cors'
+import type { NextFunction, Request, Response } from 'express'
 import rateLimit from 'express-rate-limit'
+import helmet from 'helmet'
+
 import { corsConfig } from '../config/cors.js'
 
 export const MAX_BODY_SIZE = '100kb'

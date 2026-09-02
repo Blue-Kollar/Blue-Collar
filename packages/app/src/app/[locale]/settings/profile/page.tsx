@@ -1,18 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import type { User } from "@bluecollar/types";
 import { Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+
 import { useAuth } from "@/context/AuthContext";
-import { validateUserProfile, validatePassword, validateRequired } from "@/utils/validation";
+import { validatePassword, validateRequired,validateUserProfile } from "@/utils/validation";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/api";
 
-interface UserProfile {
-  firstName: string;
-  lastName: string;
-  email: string;
-}
+// UserProfile is a subset of the shared User type — use Pick<User, ...> instead
+// of a separate interface to stay in sync with @bluecollar/types.
+type UserProfile = Pick<User, "firstName" | "lastName" | "email">;
 
 export default function ProfileSettingsPage() {
   const router = useRouter();
@@ -140,7 +140,7 @@ export default function ProfileSettingsPage() {
 
       <section className="space-y-4">
         <h2 className="text-lg font-semibold text-gray-900">Personal Information</h2>
-        {(["firstName", "lastName", "email"] as (keyof UserProfile)[]).map((field) => (
+        {(["firstName", "lastName", "email"] as ("firstName" | "lastName" | "email")[]).map((field) => (
           <div key={field}>
             <label className="mb-1 block text-sm font-medium text-gray-700">
               {field === "firstName" ? "First name" : field === "lastName" ? "Last name" : "Email"}

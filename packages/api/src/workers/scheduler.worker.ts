@@ -5,9 +5,10 @@
  * Scheduled jobs are added by the queue scheduler (cron-like) at startup.
  */
 
-import { Worker, Queue, type Job } from 'bullmq'
-import { redis } from '../config/redis.js'
+import { type Job,Queue, Worker } from 'bullmq'
+
 import { logger } from '../config/logger.js'
+import { redis } from '../config/redis.js'
 import type { CleanupJobData, SchedulerJobData } from '../queue/index.js'
 import { cleanupQueue, ttlQueue } from '../queue/index.js'
 

@@ -1,7 +1,8 @@
 import type { Request, Response } from 'express'
+
 import * as webhookService from '../services/webhook.service.js'
-import { catchAsync } from '../utils/catchAsync.js'
 import { AppError, ErrorCode } from '../utils/AppError.js'
+import { catchAsync } from '../utils/catchAsync.js'
 
 const VALID_EVENTS = [
   'worker.created', 'worker.updated', 'worker.deleted',

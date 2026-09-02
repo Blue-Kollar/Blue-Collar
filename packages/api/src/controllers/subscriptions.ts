@@ -1,8 +1,9 @@
 import type { Request, Response } from 'express'
-import { catchAsync } from '../utils/catchAsync.js'
-import { AppError, ErrorCode } from '../utils/AppError.js'
+
 import { ErrorMessages } from '../constants/errors.js'
 import { db } from '../db.js'
+import { AppError, ErrorCode } from '../utils/AppError.js'
+import { catchAsync } from '../utils/catchAsync.js'
 
 // Tier feature gates
 const TIER_FEATURES: Record<string, string[]> = {

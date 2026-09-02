@@ -1,8 +1,8 @@
 /**
  * Tests for idempotency middleware (#517)
  */
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import type { Request, Response, NextFunction } from 'express'
+import type { NextFunction,Request, Response } from 'express'
+import { beforeEach,describe, expect, it, vi } from 'vitest'
 
 vi.mock('../db.js', () => ({
   db: {
@@ -13,8 +13,8 @@ vi.mock('../db.js', () => ({
   },
 }))
 
-import { idempotency } from '../middleware/idempotency.js'
 import { db } from '../db.js'
+import { idempotency } from '../middleware/idempotency.js'
 
 function makeReqRes(headers: Record<string, string> = {}, userId?: string) {
   const req = {

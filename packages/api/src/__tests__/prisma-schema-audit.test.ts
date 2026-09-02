@@ -16,7 +16,8 @@
  * compilation error will surface before these tests run. If a model is added
  * but never wired up, code review and CI will catch it here.
  */
-import { describe, it, expect } from 'vitest'
+import { describe, expect,it } from 'vitest'
+
 import { db } from '../db.js'
 
 describe('Prisma schema model audit (#1218)', () => {

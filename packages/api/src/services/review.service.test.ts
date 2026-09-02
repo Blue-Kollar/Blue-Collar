@@ -33,14 +33,14 @@ vi.mock('../config/env.js', () => ({
 import { db } from '../db.js'
 import { sendModerationEmail } from '../mailer/index.js'
 import {
-  isSpam,
   createReview,
-  listReviews,
-  listWorkerReviews,
+  deleteReview,
   flagReview,
   getModerationQueue,
+  isSpam,
+  listReviews,
+  listWorkerReviews,
   moderateReview,
-  deleteReview,
 } from '../services/review.service.js'
 
 // ─── isSpam ───────────────────────────────────────────────────────────────────

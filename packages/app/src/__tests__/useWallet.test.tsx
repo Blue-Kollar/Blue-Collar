@@ -1,6 +1,6 @@
-import { renderHook, act, waitFor } from '@testing-library/react'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { act, renderHook, waitFor } from '@testing-library/react'
 import React from 'react'
+import { beforeEach,describe, expect, it, vi } from 'vitest'
 
 // ── Freighter API mock ────────────────────────────────────────────────────────
 
@@ -38,7 +38,7 @@ vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
-import { WalletProvider, useWallet } from '@/context/WalletContext'
+import { useWallet,WalletProvider } from '@/context/WalletContext'
 
 function wrapper({ children }: { children: React.ReactNode }) {
   return React.createElement(WalletProvider, null, children)

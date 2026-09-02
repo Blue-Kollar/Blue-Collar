@@ -10,7 +10,7 @@
  *   - `getDisputeMetrics` — dispute counts and resolution rates
  */
 export {
-  getRevenueMetrics,
-  getDisputeMetrics,
   type DateRangeFilter,
+  getDisputeMetrics,
+  getRevenueMetrics,
 } from '../../repositories/analytics.repository.js'

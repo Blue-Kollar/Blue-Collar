@@ -17,9 +17,9 @@
  *  - multiple rapid connect() calls are safely idempotent
  */
 
-import { renderHook, act, waitFor } from '@testing-library/react'
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { act, renderHook, waitFor } from '@testing-library/react'
 import React from 'react'
+import { afterEach,beforeEach, describe, expect, it, vi } from 'vitest'
 
 // ── Freighter API mock ────────────────────────────────────────────────────────
 
@@ -60,7 +60,7 @@ vi.stubGlobal('window', { open: mockWindowOpen })
 
 // ── imports (after mocks are set up) ─────────────────────────────────────────
 
-import { WalletProvider, useWallet } from '@/context/WalletContext'
+import { useWallet,WalletProvider } from '@/context/WalletContext'
 import { useWalletNetworkWarning } from '@/hooks/useWallet'
 
 function wrapper({ children }: { children: React.ReactNode }) {

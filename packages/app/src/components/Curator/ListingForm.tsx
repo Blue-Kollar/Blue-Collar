@@ -1,18 +1,19 @@
 "use client";
 
-import { useState } from "react";
-import { useForm } from "react-hook-form";
+import type { CreateWorkerInput as Fields } from "@bluecollar/types";
+// ─── Schema (single source of truth in @bluecollar/types) ────────────────────
+import { createWorkerSchema as schema } from "@bluecollar/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+
+import { FileUpload } from "@/components/Form/FileUpload";
 import { Input } from "@/components/Form/Input";
 import { Select } from "@/components/Form/Select";
-import { FileUpload } from "@/components/Form/FileUpload";
 import { useCategories, useCreateWorker, useUpdateWorker } from "@/hooks/queries";
 import { cn } from "@/lib/utils";
 import type { Category } from "@/types";
-// ─── Schema (single source of truth in @bluecollar/types) ────────────────────
-import { createWorkerSchema as schema } from "@bluecollar/types";
-import type { CreateWorkerInput as Fields } from "@bluecollar/types";
 
 export interface ListingFormProps {
   /** If provided, the form is in edit mode and uses the X-HTTP-Method: PUT pattern */

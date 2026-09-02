@@ -1,15 +1,17 @@
-import type { Prisma } from '@prisma/client'
 import crypto from 'node:crypto'
-import jwt from 'jsonwebtoken'
+
+import type { Prisma } from '@prisma/client'
 import argon2 from 'argon2'
+import jwt from 'jsonwebtoken'
 import { z } from 'zod'
+
+import type { UserServiceDeps } from '../container/types.js'
 import { db } from '../db.js'
 import { sendVerificationEmail } from '../mailer/index.js'
 import { sanitizeUser } from '../models/user.model.js'
+import { userRepository as defaultUserRepository } from '../repositories/user.repository.js'
 import { AppError, ErrorCode } from '../utils/AppError.js'
 import { createServiceLogger } from '../utils/logger.js'
-import { userRepository as defaultUserRepository } from '../repositories/user.repository.js'
-import type { UserServiceDeps } from '../container/types.js'
 
 const logger = createServiceLogger('UserService')
 

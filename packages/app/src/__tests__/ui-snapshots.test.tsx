@@ -15,23 +15,23 @@
  * (or)         pnpm --filter @bluecollar/app test -- --update-snapshots
  */
 import { render, screen } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
 import * as React from 'react';
+import { describe, expect, it, vi } from 'vitest';
 
-import { Button } from '@/components/ui/button';
+import { CategoryBadge } from '@/components/CategoryBadge';
+import { IconButton } from '@/components/IconButton';
+import StarRating from '@/components/StarRating';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardFooter,CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
-  DialogTrigger,
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from '@/components/ui/dialog';
-import { IconButton } from '@/components/IconButton';
-import StarRating from '@/components/StarRating';
-import { CategoryBadge } from '@/components/CategoryBadge';
+import { Input } from '@/components/ui/input';
 
 // Deterministic class concatenation (mirrors tailwind-merge output for our uses).
 vi.mock('@/lib/utils', () => ({

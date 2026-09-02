@@ -1,4 +1,5 @@
 import { Clock } from "lucide-react";
+
 import type { Slot } from "@/components/AvailabilityCalendar";
 import { formatDate } from "@/lib/utils";
 

@@ -9,10 +9,10 @@
  * instead of a raw fetch/import inside the component.
  */
 
-import React from "react";
-import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { act,fireEvent, render, screen, waitFor } from "@testing-library/react";
+import React from "react";
+import { beforeEach,describe, expect, it, vi } from "vitest";
 
 // ── mock @/lib/api so components don't hit the network ───────────────────────
 vi.mock("@/lib/api", () => ({

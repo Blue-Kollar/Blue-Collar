@@ -10,15 +10,16 @@
  *
  * Run via: pnpm --filter @bluecollar/api test:mutation
  */
-import { describe, it, expect, afterEach } from 'vitest';
+import { afterEach,describe, expect, it } from 'vitest';
+
 import {
   calculateFee,
-  tip,
   createEscrow,
   createMultiSigEscrow,
-  updateFeeBps,
-  PaymentService,
   type MultiSigEscrowParams,
+  PaymentService,
+  tip,
+  updateFeeBps,
 } from './payment.service.js';
 
 const FUTURE = () => new Date(Date.now() + 60 * 60 * 1000);

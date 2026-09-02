@@ -12,8 +12,9 @@
  * are not asserting that ownership is checked today.
  */
 
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { NextFunction } from "express";
+import { beforeEach,describe, expect, it, vi } from "vitest";
+
 import { AppError } from "../utils/AppError.js";
 
 // ─── Env setup ────────────────────────────────────────────────────────────────
@@ -53,17 +54,18 @@ vi.mock("../config/env.js", () => ({
 
 // ─── Imports (after mocks) ────────────────────────────────────────────────────
 
-import * as workerService from "../services/worker.service.js";
+import jwt from "jsonwebtoken";
+
 import {
+  createWorker,
+  deleteWorker,
   listWorkers,
   showWorker,
-  createWorker,
-  updateWorker,
-  deleteWorker,
   toggleActivation,
+  updateWorker,
 } from "../controllers/workers.js";
 import { authenticate, authorize } from "../middleware/auth.js";
-import jwt from "jsonwebtoken";
+import * as workerService from "../services/worker.service.js";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 

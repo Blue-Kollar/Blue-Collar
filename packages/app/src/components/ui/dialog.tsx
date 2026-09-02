@@ -1,8 +1,9 @@
 'use client'
 
-import * as React from 'react'
 import * as DialogPrimitive from '@radix-ui/react-dialog'
 import { X } from 'lucide-react'
+import * as React from 'react'
+
 import { cn } from '@/lib/utils'
 
 const Dialog = DialogPrimitive.Root
@@ -55,4 +56,4 @@ const DialogTitle = React.forwardRef<
 ))
 DialogTitle.displayName = DialogPrimitive.Title.displayName
 
-export { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogClose }
+export { Dialog, DialogClose,DialogContent, DialogHeader, DialogTitle, DialogTrigger }

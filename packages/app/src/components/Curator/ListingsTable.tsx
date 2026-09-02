@@ -1,9 +1,10 @@
 "use client";
 
+import { ExternalLink, Loader2,Pencil, ToggleLeft, ToggleRight, Trash2 } from "lucide-react";
 import Link from "next/link";
-import { Pencil, Trash2, ToggleLeft, ToggleRight, ExternalLink, Loader2 } from "lucide-react";
-import { cn, formatDate } from "@/lib/utils";
+
 import LoadingState from "@/components/LoadingState";
+import { cn, formatDate } from "@/lib/utils";
 
 export interface CuratorWorker {
   id: string;

@@ -1,5 +1,6 @@
 import { Router } from 'express'
-import { listDevices, revokeDevice, revokeAllOtherDevices } from '../controllers/devices.js'
+
+import { listDevices, revokeAllOtherDevices,revokeDevice } from '../controllers/devices.js'
 import { authenticate } from '../middleware/auth.js'
 import { validate } from '../middleware/validate.js'
 import { revokeOtherDevicesRules } from '../validations/device.js'

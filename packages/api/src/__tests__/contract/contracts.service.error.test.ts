@@ -4,18 +4,19 @@
  * so that the global errorHandler serializes them consistently.
  */
 
-import { describe, it, expect } from 'vitest'
-import { AppError, ErrorCode } from '../../utils/AppError.js'
+import { describe, expect,it } from 'vitest'
+
 import {
-  createEscrowRecord,
   activateEscrowRecord,
+  createEscrowRecord,
+  createPaymentEscrow,
   fileEscrowDispute,
-  resolveEscrowDispute,
   fileWorkerDispute,
   processTip,
-  createPaymentEscrow,
+  resolveEscrowDispute,
   updatePaymentFee,
 } from '../../services/contracts.service.js'
+import { AppError, ErrorCode } from '../../utils/AppError.js'
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 

@@ -9,7 +9,7 @@
  *  - getWorkerBookings / getRequesterBookings: delegation to repo
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { beforeEach,describe, expect, it, vi } from 'vitest'
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
 
@@ -21,8 +21,8 @@ vi.mock('../config/logger.js', () => ({
   logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }))
 
-import { createBookingService, type CreateBookingInput } from './booking.service.js'
 import { AppError } from '../utils/AppError.js'
+import { type CreateBookingInput,createBookingService } from './booking.service.js'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { beforeEach,describe, expect, it, vi } from 'vitest'
 
 vi.mock('../services/category.service.js', () => ({
   listCategories: vi.fn(),
@@ -11,7 +11,7 @@ vi.mock('../resources/index.js', () => ({
 }))
 
 import * as categoryService from '../services/category.service.js'
-import { listCategories, getCategory } from './categories.js'
+import { getCategory,listCategories } from './categories.js'
 
 function makeRes() {
   const res: any = {}

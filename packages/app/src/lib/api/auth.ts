@@ -1,4 +1,5 @@
 import type { ApiResponse } from "@/types";
+
 import { request } from "./client";
 
 export const login = (email: string, password: string) =>

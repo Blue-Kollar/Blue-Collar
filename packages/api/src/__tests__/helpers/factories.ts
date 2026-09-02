@@ -1,14 +1,14 @@
-import { faker } from '@faker-js/faker';
-import argon2 from 'argon2';
 // Shared mock request/response/next and JWT helpers (issue #1278) — single
 // source of truth now lives in @bluecollar/test-utils.
 import {
-  makeJwt,
   makeExpiredJwt,
+  makeJwt,
   makeNext,
   makeRequest,
   makeResponse,
 } from '@bluecollar/test-utils/express';
+import { faker } from '@faker-js/faker';
+import argon2 from 'argon2';
 
 /**
  * Test data factories for creating consistent test data

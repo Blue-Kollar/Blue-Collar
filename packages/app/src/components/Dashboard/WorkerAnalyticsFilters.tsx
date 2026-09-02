@@ -1,7 +1,7 @@
 "use client";
 
-import { cn } from "@/lib/utils";
 import type { DashboardWorker, DatePreset } from "@/hooks/useWorkerAnalytics";
+import { cn } from "@/lib/utils";
 
 interface WorkerAnalyticsFiltersProps {
   workers: DashboardWorker[];

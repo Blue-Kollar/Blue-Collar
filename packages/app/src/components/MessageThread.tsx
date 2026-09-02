@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useCallback } from "react";
 import { User } from "lucide-react";
+import { useCallback,useEffect, useRef } from "react";
+
 import { cn, formatDate as sharedFormatDate, formatTime as sharedFormatTime } from "@/lib/utils";
-import MessageInput from "./MessageInput";
 import type { Message } from "@/types";
+
+import MessageInput from "./MessageInput";
 
 interface Props {
   messages: Message[];

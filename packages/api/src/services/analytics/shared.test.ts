@@ -2,19 +2,20 @@
  * Tests for analytics/shared.ts — pure date/math/CSV helpers.
  * No DB access; all assertions are deterministic.
  */
-import { describe, it, expect } from 'vitest'
+import { describe, expect,it } from 'vitest'
+
 import {
-  daysAgo,
-  daysBefore,
-  parseDateBoundary,
-  dateRangeWhere,
-  getPreviousRange,
-  dayKey,
-  toRangePayload,
   buildDailyMap,
   calcGrowthPct,
   calcRatingDelta,
   csvEscape,
+  dateRangeWhere,
+  dayKey,
+  daysAgo,
+  daysBefore,
+  getPreviousRange,
+  parseDateBoundary,
+  toRangePayload,
 } from './shared.js'
 
 // ── daysAgo ──────────────────────────────────────────────────────────────────

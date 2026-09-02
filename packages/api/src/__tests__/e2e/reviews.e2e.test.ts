@@ -11,10 +11,11 @@
  * - Duplicate prevention and ownership checks
  */
 
-import { describe, it, expect, beforeAll } from 'vitest'
 import request from 'supertest'
-import { db } from '../../db.js'
+import { beforeAll,describe, expect, it } from 'vitest'
+
 import app from '../../app.js'
+import { db } from '../../db.js'
 
 vi.mock('../../mailer/transport.js', () => ({
   transporter: { sendMail: vi.fn().mockResolvedValue({ messageId: 'mock' }) },

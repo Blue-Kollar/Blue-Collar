@@ -1,4 +1,5 @@
 import * as NodeVault from 'node-vault';
+
 import { logger } from '../config/logger.js'
 
 const vault = new NodeVault({

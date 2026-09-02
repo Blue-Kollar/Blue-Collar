@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from "react";
+import { useCallback,useEffect, useRef } from "react";
 
 const SSE_URL = "/api/workers/events";
 const POLL_INTERVAL_MS = 30_000;

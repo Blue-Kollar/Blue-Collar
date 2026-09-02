@@ -4,9 +4,10 @@
  * Injects mock dependencies directly — no vi.mock() of entire modules required.
  * See docs/DI_PATTERN.md for the full guide.
  */
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { createAuthService } from './auth.service.js'
+import { beforeEach,describe, expect, it, vi } from 'vitest'
+
 import { AppError } from '../utils/AppError.js'
+import { createAuthService } from './auth.service.js'
 
 // ── Stub heavy dependencies ───────────────────────────────────────────────────
 

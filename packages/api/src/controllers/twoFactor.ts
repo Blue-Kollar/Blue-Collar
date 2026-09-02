@@ -1,7 +1,8 @@
 import type { Request, Response } from 'express'
+
 import * as twoFactorService from '../services/twoFactor.service.js'
-import { catchAsync } from '../utils/catchAsync.js'
 import { AppError, ErrorCode } from '../utils/AppError.js'
+import { catchAsync } from '../utils/catchAsync.js'
 
 /** POST /api/auth/2fa/setup — generate secret + QR code */
 export const setup2FA = catchAsync(async (req: Request, res: Response) => {

@@ -1,7 +1,9 @@
 "use client";
 
 import { useCallback } from "react";
+
 import { queueOfflineAction } from "@/lib/offlineQueue";
+
 import { useToast } from "./useToast";
 
 export function useOfflineActions() {

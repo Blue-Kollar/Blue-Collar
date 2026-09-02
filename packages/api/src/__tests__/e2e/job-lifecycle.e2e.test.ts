@@ -12,10 +12,11 @@
  * Run: pnpm --filter @bluecollar/api exec vitest run src/__tests__/e2e/job-lifecycle.e2e.test.ts
  */
 
-import { describe, it, expect, beforeAll, vi } from 'vitest'
 import request from 'supertest'
-import { db } from '../../db.js'
+import { beforeAll, describe, expect, it, vi } from 'vitest'
+
 import app from '../../app.js'
+import { db } from '../../db.js'
 
 vi.mock('../../mailer/transport.js', () => ({
   transporter: { sendMail: vi.fn().mockResolvedValue({ messageId: 'mock' }) },

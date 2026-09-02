@@ -4,8 +4,9 @@
  * All business logic and validation lives in contracts.service / dispute.service.
  */
 import type { Request, Response } from 'express'
-import { catchAsync } from '../utils/catchAsync.js'
+
 import * as contractsService from '../services/contracts.service.js'
+import { catchAsync } from '../utils/catchAsync.js'
 
 /** POST /api/disputes — file a dispute against a worker */
 export const createDispute = catchAsync(async (req: Request, res: Response) => {

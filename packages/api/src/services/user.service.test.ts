@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { updateProfile } from './user.service.js'
+
 import { db } from '../db.js'
 import { sendVerificationEmail } from '../mailer/index.js'
+import { updateProfile } from './user.service.js'
 
 vi.mock('../db.js', () => ({
   db: {

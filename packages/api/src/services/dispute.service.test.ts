@@ -8,9 +8,10 @@
  *  - resolveDispute: not found, already resolved, happy path
  */
 
-import { describe, it, expect, vi } from 'vitest'
-import { createDisputeService } from './dispute.service.js'
+import { describe, expect, it, vi } from 'vitest'
+
 import { AppError } from '../utils/AppError.js'
+import { createDisputeService } from './dispute.service.js'
 
 // ── Mock repository ───────────────────────────────────────────────────────────
 

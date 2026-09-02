@@ -1,4 +1,5 @@
 import { faker } from "@faker-js/faker";
+
 import type { User } from "../types";
 
 export const userFactory = (overrides: Partial<User> = {}): User => {

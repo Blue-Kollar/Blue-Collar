@@ -25,10 +25,10 @@
  *   DB_READ_POOL_SIZE  — max connections for replica  (default: 20)
  */
 
+import { PrismaPg } from '@prisma/adapter-pg'
+import { PrismaClient } from '@prisma/client'
 import dotenv from 'dotenv'
 import path from 'path'
-import { PrismaClient } from '@prisma/client'
-import { PrismaPg } from '@prisma/adapter-pg'
 
 // Explicitly load env from the api package directory so this file can also be
 // run standalone (e.g. `tsx src/db.ts` for quick debugging).

@@ -4,10 +4,11 @@
  * Database is seeded/cleaned by testSetup.ts.
  */
 
-import { describe, it, expect, beforeAll } from 'vitest'
 import request from 'supertest'
-import { db } from '../../db.js'
+import { beforeAll,describe, expect, it } from 'vitest'
+
 import app from '../../app.js'
+import { db } from '../../db.js'
 
 // Silence nodemailer in e2e — we don't need real emails
 vi.mock('../../mailer/transport.js', () => ({

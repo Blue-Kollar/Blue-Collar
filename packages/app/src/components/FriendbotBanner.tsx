@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import { X, Zap } from "lucide-react";
+import { useState } from "react";
 
 interface FriendbotBannerProps {
   walletAddress: string;

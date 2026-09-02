@@ -1,14 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { ArrowLeft, Scale, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2,Scale } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+
+import LoadingState from "@/components/LoadingState";
+import { useDisputes, useResolveDispute } from "@/hooks/queries";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
-import { useDisputes, useResolveDispute } from "@/hooks/queries";
 import { formatDate } from "@/lib/utils";
-import LoadingState from "@/components/LoadingState";
 
 const STATUS_COLORS: Record<string, string> = {
   open: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",

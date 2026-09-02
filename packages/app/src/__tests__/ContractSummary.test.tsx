@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
-import { describe, it, expect, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
 import ContractSummary from "@/components/ContractSummary";
 import type { TipDTO } from "@/types";
 

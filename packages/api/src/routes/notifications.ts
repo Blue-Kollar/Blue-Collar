@@ -1,14 +1,15 @@
 import { Router } from 'express'
+
 import {
-  listNotifications,
-  markRead,
-  markAllRead,
-  getUnreadCount,
   deleteNotification,
-  getPreferences,
-  updatePreferences,
   dispatchMultiChannel,
   getDeliveryLog,
+  getPreferences,
+  getUnreadCount,
+  listNotifications,
+  markAllRead,
+  markRead,
+  updatePreferences,
 } from '../controllers/notifications.js'
 import { authenticate } from '../middleware/auth.js'
 

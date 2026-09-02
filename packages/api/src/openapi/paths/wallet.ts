@@ -1,5 +1,6 @@
 import { z } from 'zod'
-import { registry, BearerAuth, ErrorSchema } from '../registry.js'
+
+import { BearerAuth, ErrorSchema,registry } from '../registry.js'
 
 registry.registerPath({
   method: 'get', path: '/api/wallet/account/{publicKey}', tags: ['Wallet'],

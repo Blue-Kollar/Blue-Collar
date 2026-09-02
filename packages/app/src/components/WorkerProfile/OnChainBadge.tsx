@@ -1,6 +1,7 @@
 "use client";
 
 import { ExternalLink } from "lucide-react";
+
 import { EXPLORER_CONTRACT_BASE } from "@/config/stellar";
 
 interface OnChainBadgeProps {

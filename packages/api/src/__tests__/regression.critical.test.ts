@@ -11,8 +11,8 @@
  *   pnpm vitest run src/__tests__/regression.critical.test.ts
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import type { Request, Response, NextFunction } from 'express'
+import type { NextFunction,Request, Response } from 'express'
+import { afterEach,beforeEach, describe, expect, it, vi } from 'vitest'
 
 // ── Combined db mock (all describe blocks share this shape) ───────────────────
 // Each test section only configures the spies it needs via .mockResolvedValue.

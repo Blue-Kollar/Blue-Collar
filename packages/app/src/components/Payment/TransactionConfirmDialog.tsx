@@ -10,8 +10,9 @@
 
 import * as Dialog from "@radix-ui/react-dialog";
 import { AlertTriangle, CheckCircle2, X } from "lucide-react";
-import { cn } from "@/lib/utils";
+
 import type { TransactionSummary } from "@/lib/transactions";
+import { cn } from "@/lib/utils";
 
 const FOCUS_RING =
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-900";

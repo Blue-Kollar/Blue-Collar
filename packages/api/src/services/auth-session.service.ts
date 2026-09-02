@@ -1,12 +1,14 @@
-import { db as defaultDb } from '../db.js'
+import crypto from 'node:crypto'
+
 import argon2 from 'argon2'
 import jwt from 'jsonwebtoken'
-import crypto from 'node:crypto'
-import { AppError } from '../utils/AppError.js'
-import { sanitizeUser } from '../models/user.model.js'
-import { createServiceLogger } from '../utils/logger.js'
-import type { LoginBody } from '../interfaces/index.js'
+
 import type { AuthServiceDeps } from '../container/types.js'
+import { db as defaultDb } from '../db.js'
+import type { LoginBody } from '../interfaces/index.js'
+import { sanitizeUser } from '../models/user.model.js'
+import { AppError } from '../utils/AppError.js'
+import { createServiceLogger } from '../utils/logger.js'
 
 const logger = createServiceLogger('AuthService')
 const ACCESS_TOKEN_TTL = '15m'

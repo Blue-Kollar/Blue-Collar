@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
-import { X, Loader2, CheckCircle2, MessageSquare } from "lucide-react";
+import { CheckCircle2, Loader2, MessageSquare,X } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useState } from "react";
+
 import { useSendContactRequest } from "@/hooks/queries";
 
 interface Props {

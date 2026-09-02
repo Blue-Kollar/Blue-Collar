@@ -1,9 +1,10 @@
 'use client'
 
-import * as React from 'react'
 import * as DialogPrimitive from '@radix-ui/react-dialog'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { X } from 'lucide-react'
+import * as React from 'react'
+
 import { cn } from '@/lib/utils'
 
 const Sheet = DialogPrimitive.Root
@@ -70,4 +71,4 @@ const SheetTitle = React.forwardRef<
 ))
 SheetTitle.displayName = 'SheetTitle'
 
-export { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle, SheetClose }
+export { Sheet, SheetClose,SheetContent, SheetHeader, SheetTitle, SheetTrigger }

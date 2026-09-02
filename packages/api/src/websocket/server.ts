@@ -1,9 +1,10 @@
 import { Server as HTTPServer } from 'http'
 import { Server as SocketIOServer, Socket } from 'socket.io'
+
 import { corsConfig } from '../config/cors.js'
 import { logger } from '../config/logger.js'
-import { verifyToken } from '../utils/tokenValidator.js'
 import { db } from '../db.js'
+import { verifyToken } from '../utils/tokenValidator.js'
 
 interface AuthenticatedSocket extends Socket {
   userId?: string

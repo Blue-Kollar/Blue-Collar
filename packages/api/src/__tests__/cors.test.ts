@@ -4,11 +4,11 @@
  * Tests the corsConfig function directly with a minimal Express app so we
  * control ALLOWED_ORIGINS and NODE_ENV without fighting module caching.
  */
-import express from 'express'
+import type { CorsOptions } from 'cors'
 import cors from 'cors'
+import express from 'express'
 import request from 'supertest'
 import { describe, expect, it } from 'vitest'
-import type { CorsOptions } from 'cors'
 
 /** Build a minimal Express app with the given CORS config */
 function makeApp(corsOptions: CorsOptions) {

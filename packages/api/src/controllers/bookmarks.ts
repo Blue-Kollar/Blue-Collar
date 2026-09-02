@@ -1,4 +1,5 @@
 import type { Request, Response } from 'express'
+
 import * as bookmarkService from '../services/bookmark.service.js'
 import { catchAsync } from '../utils/catchAsync.js'
 

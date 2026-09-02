@@ -1,6 +1,7 @@
 import express from 'express'
 import request from 'supertest'
 import { describe, expect, it } from 'vitest'
+
 import { moderateAuthRateLimiter, strictAuthRateLimiter } from './rateLimiter.js'
 
 describe('auth rate limiters', () => {

@@ -1,15 +1,16 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { Briefcase,Plus, Search, SlidersHorizontal } from "lucide-react";
 import Link from "next/link";
-import { Search, SlidersHorizontal, Plus, Briefcase } from "lucide-react";
+import { useCallback,useEffect, useState } from "react";
+
+import ErrorState from "@/components/ErrorState";
+import JobCard from "@/components/JobCard";
+import { useAuth } from "@/context/AuthContext";
 import { getCategories } from "@/lib/api";
 import { getJobs } from "@/lib/api/jobs";
-import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
-import JobCard from "@/components/JobCard";
-import ErrorState from "@/components/ErrorState";
-import type { Job, Category, Meta } from "@/types";
+import type { Category, Job, Meta } from "@/types";
 
 export default function JobsPage() {
   const { user } = useAuth();

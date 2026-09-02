@@ -1,15 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Bell, ArrowLeft } from "lucide-react";
+import { ArrowLeft,Bell } from "lucide-react";
 import Link from "next/link";
 import { useLocale } from "next-intl";
-import { cn } from "@/lib/utils";
+import { useEffect, useState } from "react";
+
 import {
   getNotificationPreferences,
-  updateNotificationPreferences,
   type NotificationPreferences,
+  updateNotificationPreferences,
 } from "@/lib/api";
+import { cn } from "@/lib/utils";
 
 const DEFAULT_PREFS: NotificationPreferences = {
   newWorkerNearby: true,

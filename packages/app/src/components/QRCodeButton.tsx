@@ -1,8 +1,10 @@
 "use client";
 
 import { QrCode } from "lucide-react";
-import QRCodeModal from "./QRCodeModal";
+
 import { useModal } from "@/context/ModalContext";
+
+import QRCodeModal from "./QRCodeModal";
 
 interface QRCodeButtonProps {
   workerName: string;

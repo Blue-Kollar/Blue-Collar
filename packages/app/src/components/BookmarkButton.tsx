@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import { Heart } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useState } from "react";
+
 import { useToggleBookmark } from "@/hooks/queries";
 import { cn } from "@/lib/utils";
 

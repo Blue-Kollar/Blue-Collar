@@ -1,7 +1,7 @@
+import type { ContactRequestServiceDeps } from '../container/types.js'
+import { sendContactRequestEmail } from '../mailer/index.js'
 import { contactRequestRepository as defaultContactRequestRepository } from '../repositories/contact-request.repository.js'
 import { AppError } from '../utils/AppError.js'
-import { sendContactRequestEmail } from '../mailer/index.js'
-import type { ContactRequestServiceDeps } from '../container/types.js'
 
 // ── Factory ───────────────────────────────────────────────────────────────────
 

@@ -1,7 +1,8 @@
 import type { Request, Response } from 'express'
+
 import * as recommendationService from '../services/recommendation.service.js'
-import { catchAsync } from '../utils/catchAsync.js'
 import { AppError, ErrorCode } from '../utils/AppError.js'
+import { catchAsync } from '../utils/catchAsync.js'
 
 export const getRecommendations = catchAsync(async (req: Request, res: Response) => {
   const limit = Math.min(Number(req.query.limit ?? 10), 50)

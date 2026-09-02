@@ -1,5 +1,5 @@
-import { AppError, ErrorCode } from '../utils/AppError.js'
 import { logger } from '../config/logger.js'
+import { AppError, ErrorCode } from '../utils/AppError.js'
 
 const HORIZON_URL = process.env.HORIZON_URL || 'https://horizon-testnet.stellar.org'
 const FRIENDBOT_URL = 'https://friendbot-testnet.stellar.org/bump_sequence'

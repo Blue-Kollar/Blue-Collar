@@ -14,8 +14,9 @@
 
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, it, expect, vi, beforeAll } from 'vitest'
 import axe from 'axe-core'
+import { beforeAll,describe, expect, it, vi } from 'vitest'
+
 import JobCard, { URGENCY_LABEL } from '@/components/JobCard'
 import type { Job } from '@/types'
 

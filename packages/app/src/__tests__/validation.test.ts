@@ -1,22 +1,23 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect,it } from "vitest";
+
 import {
-  isValidEmail,
-  validateEmail,
-  isValidPassword,
-  validatePassword,
   isRequired,
-  validateRequired,
-  validateMinLength,
-  validateMaxLength,
-  isValidStellarAddress,
-  validateStellarAddress,
+  isValidEmail,
+  isValidPassword,
   isValidPhone,
-  validatePhone,
+  isValidStellarAddress,
   validateAmount,
-  validateMatch,
-  validateUserProfile,
-  validateEscrowForm,
   validateContactMessage,
+  validateEmail,
+  validateEscrowForm,
+  validateMatch,
+  validateMaxLength,
+  validateMinLength,
+  validatePassword,
+  validatePhone,
+  validateRequired,
+  validateStellarAddress,
+  validateUserProfile,
 } from "@/utils/validation";
 
 describe("Validation Utilities", () => {

@@ -7,8 +7,8 @@
  */
 
 import { db } from '../db.js'
-import * as workerService from './worker.service.js'
 import { WorkerResource } from '../resources/index.js'
+import * as workerService from './worker.service.js'
 
 const VALID_LANG_CONFIGS = new Set([
   'simple', 'english', 'french', 'german', 'spanish',

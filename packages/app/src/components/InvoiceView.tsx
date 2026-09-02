@@ -1,14 +1,14 @@
 "use client";
 
-import { useId } from "react";
 import { Download, ExternalLink, FileText } from "lucide-react";
+import { useId } from "react";
+
+import ErrorState from "@/components/ErrorState";
+import { EXPLORER_TX_BASE } from "@/config/stellar";
 import { useInvoice } from "@/hooks/queries";
 import { formatErrorMessage } from "@/lib/errors";
 import { cn, formatDate as sharedFormatDate } from "@/lib/utils";
-import ErrorState from "@/components/ErrorState";
 import type { Invoice, InvoiceStatus } from "@/types";
-
-import { EXPLORER_TX_BASE } from "@/config/stellar";
 
 const STELLAR_EXPLORER = EXPLORER_TX_BASE;
 

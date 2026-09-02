@@ -5,7 +5,8 @@
  * Import the queue you need and add jobs with `queue.add(...)`.
  */
 
-import { Queue, type JobsOptions } from 'bullmq'
+import { type JobsOptions,Queue } from 'bullmq'
+
 import { redis } from '../config/redis.js'
 
 // ── Shared BullMQ connection ──────────────────────────────────────────────────

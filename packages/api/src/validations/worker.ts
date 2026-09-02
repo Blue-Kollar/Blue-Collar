@@ -5,9 +5,9 @@
 import { z } from 'zod'
 
 export {
+  createReviewSchema as createReviewRules,
   createWorkerSchema as createWorkerRules,
   updateWorkerSchema as updateWorkerRules,
-  createReviewSchema as createReviewRules,
 } from '@bluecollar/types'
 
 // POST /workers/:id/contact — API-only (no frontend form schema needed)

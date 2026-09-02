@@ -16,29 +16,29 @@ export { getPlatformAnalytics } from './platform.service.js'
 
 // Worker engagement / recording
 export {
+  assertCanAccessWorkerAnalytics,
+  getCuratorAnalytics,
+  getTopWorkers,
+  getWorkerAnalytics,
+  getWorkerDashboardSeries,
+  getWorkerPersonalDashboard,
+  getWorkerViewTrends,
+  parseAnalyticsDateRange,
+  recordContact,
   recordProfileView,
   recordTip,
   updateBookmarkCount,
-  recordContact,
-  assertCanAccessWorkerAnalytics,
-  parseAnalyticsDateRange,
-  getWorkerAnalytics,
-  getCuratorAnalytics,
-  getWorkerViewTrends,
-  getWorkerPersonalDashboard,
-  getWorkerDashboardSeries,
-  getTopWorkers,
 } from './worker.service.js'
 
 // Revenue / escrow aggregation
-export { getRevenueMetrics, getDisputeMetrics } from './revenue.service.js'
 export type { DateRangeFilter } from './revenue.service.js'
+export { getDisputeMetrics,getRevenueMetrics } from './revenue.service.js'
 
 // CSV / report formatting
 export {
-  exportWorkerAnalyticsCsv,
-  exportPlatformAnalyticsCsv,
   exportPersonalWorkerAnalyticsCsv,
+  exportPlatformAnalyticsCsv,
+  exportWorkerAnalyticsCsv,
 } from './export.service.js'
 
 // Shared types (useful for external consumers)

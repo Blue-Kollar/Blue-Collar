@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useRef } from "react";
 import { Download, X } from "lucide-react";
 import QRCode from "qrcode.react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useRef,useState } from "react";
+
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface QRCodeModalProps {
   isOpen: boolean;

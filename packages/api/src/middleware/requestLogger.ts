@@ -1,8 +1,9 @@
-import pinoHttp from 'pino-http'
-import pino from 'pino'
 import fs from 'node:fs'
-import path from 'node:path'
 import type { IncomingMessage } from 'node:http'
+import path from 'node:path'
+
+import pino from 'pino'
+import pinoHttp from 'pino-http'
 
 /** Request augmented with the authenticated user attached by auth middleware. */
 type LoggedRequest = IncomingMessage & { user?: { id?: string } }

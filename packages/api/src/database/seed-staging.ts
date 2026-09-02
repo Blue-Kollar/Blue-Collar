@@ -13,8 +13,9 @@
  *   ALLOW_STAGING_SEED=true pnpm seed:staging
  */
 
-import { hash } from 'argon2'
 import { faker } from '@faker-js/faker'
+import { hash } from 'argon2'
+
 import { db } from '../db.js'
 
 // ── Guard ─────────────────────────────────────────────────────────────────────

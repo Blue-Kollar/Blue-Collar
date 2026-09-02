@@ -14,8 +14,9 @@
  * Closes #1206
  */
 
-import { memo } from "react";
 import { Wallet } from "lucide-react";
+import { memo } from "react";
+
 import { useWalletBalance } from "@/hooks/useWallet";
 import { cn } from "@/lib/utils";
 

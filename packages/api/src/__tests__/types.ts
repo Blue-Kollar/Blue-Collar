@@ -1,28 +1,9 @@
-export type User = {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  role: "user" | "curator" | "admin";
-  createdAt: Date;
-  updatedAt: Date;
-};
-
-export type Category = {
-  id: string;
-  name: string;
-  description?: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-};
-
-export type Worker = {
-  id: string;
-  name: string;
-  categoryId: string;
-  curatorId: string;
-  isActive: boolean;
-  isVerified: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-};
+/**
+ * #1291 — Consolidated test types.
+ *
+ * These aliases previously duplicated Prisma-layer shapes already present
+ * in @bluecollar/test-utils.  All internal test factories import from here
+ * so this single redirect keeps their import paths unchanged while removing
+ * the duplicate definitions.
+ */
+export type { FakeCategory as Category,FakeUser as User, FakeWorker as Worker } from '@bluecollar/test-utils'

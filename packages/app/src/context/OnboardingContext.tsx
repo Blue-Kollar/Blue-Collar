@@ -1,8 +1,9 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
-import { useAuth } from "@/hooks/useAuth";
+import { createContext, ReactNode,useContext, useEffect, useState } from "react";
+
 import OnboardingModal from "@/components/OnboardingModal";
+import { useAuth } from "@/hooks/useAuth";
 
 interface OnboardingContextType {
   showOnboarding: boolean;

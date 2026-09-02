@@ -1,14 +1,15 @@
 "use client";
 
 import {
-  ShieldCheck,
   BadgeCheck,
-  Phone,
-  Mail,
-  Wallet,
   Camera,
   type LucideIcon,
+  Mail,
+  Phone,
+  ShieldCheck,
+  Wallet,
 } from "lucide-react";
+
 import { cn } from "@/lib/utils";
 
 interface Badge {

@@ -1,6 +1,6 @@
-import { transporter } from './transport.js'
 import { logger } from '../config/logger.js'
 import { render } from './templateEngine.js'
+import { transporter } from './transport.js'
 
 const APP_URL = process.env.APP_URL ?? 'http://localhost:3000'
 const FROM = `BlueCollar <${process.env.MAIL_USER}>`

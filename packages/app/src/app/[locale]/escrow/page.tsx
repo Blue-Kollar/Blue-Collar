@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { useWallet } from "@/context/WalletContext";
+
 import EscrowForm from "@/components/Escrow/EscrowForm";
 import EscrowStatus, { Escrow } from "@/components/Escrow/EscrowStatus";
+import { useWallet } from "@/context/WalletContext";
 
 let idCounter = 1;
 

@@ -1,14 +1,15 @@
 import { Router } from 'express'
+
 import {
-  getCuratorDashboard,
-  getPlatformDashboard,
-  getTopWorkers,
+  exportAdminCsv,
   exportCuratorCsv,
   exportPlatformCsv,
+  getAdminDashboard,
+  getCuratorDashboard,
+  getPlatformDashboard,
   getProtocolMetrics,
   getProtocolMetricsTimeSeries,
-  getAdminDashboard,
-  exportAdminCsv,
+  getTopWorkers,
 } from '../controllers/analytics.js'
 import { recordEvents } from '../controllers/analyticsEvents.js'
 import { authenticate, authorize } from '../middleware/auth.js'

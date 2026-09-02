@@ -1,4 +1,5 @@
 import type { Job, JobApplication, JobMessage, PaginatedResponse } from "@/types";
+
 import { request } from "./client";
 
 export interface ListJobsParams {

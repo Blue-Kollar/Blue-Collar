@@ -3,7 +3,8 @@
  * Verifies that error paths throw AppError with the correct statusCode and errorCode.
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { beforeEach,describe, expect, it, vi } from 'vitest'
+
 import { AppError, ErrorCode } from '../../utils/AppError.js'
 
 // Mock the db module before importing the service
@@ -26,8 +27,8 @@ vi.mock('../../db.js', () => ({
   },
 }))
 
-import * as messagingService from '../../services/messaging.service.js'
 import { db } from '../../db.js'
+import * as messagingService from '../../services/messaging.service.js'
 
 beforeEach(() => vi.clearAllMocks())
 

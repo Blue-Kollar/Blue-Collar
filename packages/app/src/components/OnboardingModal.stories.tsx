@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react'
 import { fn } from '@storybook/test'
+
 import OnboardingModal from '@/components/OnboardingModal'
 
 const meta: Meta<typeof OnboardingModal> = {

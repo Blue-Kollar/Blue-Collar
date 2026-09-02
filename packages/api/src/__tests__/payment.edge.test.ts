@@ -1,10 +1,11 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { beforeEach,describe, expect, it } from 'vitest'
+
 import {
-  tip,
-  createEscrow,
   calculateFee,
-  updateFeeBps,
+  createEscrow,
   getFeeBps,
+  tip,
+  updateFeeBps,
 } from '../services/payment.service.js'
 import { AppError } from '../utils/AppError.js'
 

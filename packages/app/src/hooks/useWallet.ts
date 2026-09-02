@@ -1,8 +1,8 @@
 // Re-export from WalletContext so all consumers share the same state.
 export {
+  FreighterNotInstalledError,
   useWallet,
   WalletNotConnectedError,
-  FreighterNotInstalledError,
 } from "@/context/WalletContext";
 import { useWallet } from "@/context/WalletContext";
 

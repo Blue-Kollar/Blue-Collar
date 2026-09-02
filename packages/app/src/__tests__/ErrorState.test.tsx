@@ -12,7 +12,8 @@
  * policy on when snapshots are and are not appropriate.
  */
 import { render, screen } from "@testing-library/react";
-import { describe, it, expect, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
 import ErrorState from "@/components/ErrorState";
 
 vi.mock("lucide-react", () => ({

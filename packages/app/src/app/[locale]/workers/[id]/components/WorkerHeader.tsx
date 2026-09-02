@@ -1,9 +1,10 @@
 import { BadgeCheck } from "lucide-react";
 import dynamic from "next/dynamic";
-import StarRating from "@/components/StarRating";
+
 import BookmarkButton from "@/components/BookmarkButton";
-import ZoomableAvatar from "@/components/ZoomableAvatar";
 import ShareWorkerButton from "@/components/ShareWorkerButton";
+import StarRating from "@/components/StarRating";
+import ZoomableAvatar from "@/components/ZoomableAvatar";
 import type { Worker } from "@/types";
 
 // Interaction-gated widgets — split out so they aren't bundled into the initial route chunk.

@@ -1,7 +1,8 @@
 import type { Request, Response } from 'express'
+
 import * as referralService from '../services/referral.service.js'
-import { catchAsync } from '../utils/catchAsync.js'
 import { AppError, ErrorCode } from '../utils/AppError.js'
+import { catchAsync } from '../utils/catchAsync.js'
 
 export const getMyReferralCode = catchAsync(async (req: Request, res: Response) => {
   const data = await referralService.getOrCreateReferralCode(req.user!.id)

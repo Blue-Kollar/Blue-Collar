@@ -1,5 +1,6 @@
 import { z } from 'zod'
-import { registry, BearerAuth, ErrorSchema, SuccessSchema } from '../registry.js'
+
+import { BearerAuth, ErrorSchema, registry, SuccessSchema } from '../registry.js'
 
 const EscrowSchema = registry.register('Escrow', z.object({
   id: z.string(),

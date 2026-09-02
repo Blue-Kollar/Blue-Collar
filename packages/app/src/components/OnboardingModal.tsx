@@ -6,8 +6,9 @@
  * Closes #1210
  */
 
+import { ChevronRight, User, Users,Wallet } from "lucide-react";
 import { useState } from "react";
-import { ChevronRight, User, Wallet, Users } from "lucide-react";
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface OnboardingModalProps {

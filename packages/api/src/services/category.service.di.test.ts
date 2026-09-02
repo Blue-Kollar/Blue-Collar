@@ -7,9 +7,10 @@
  *
  * See docs/DI_PATTERN.md for the full guide.
  */
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { createCategoryService } from './category.service.js'
+import { beforeEach,describe, expect, it, vi } from 'vitest'
+
 import { AppError } from '../utils/AppError.js'
+import { createCategoryService } from './category.service.js'
 
 const makeMockRepo = () => ({
   findAll: vi.fn(),

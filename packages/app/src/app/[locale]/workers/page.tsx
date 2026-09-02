@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import WorkersDiscovery from "@/components/WorkersDiscovery";
+
 import { WorkerCardSkeleton } from "@/components/Skeleton";
+import WorkersDiscovery from "@/components/WorkersDiscovery";
 
 export const metadata: Metadata = {
   title: "Browse Workers",

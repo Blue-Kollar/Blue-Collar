@@ -1,7 +1,8 @@
 import crypto from 'node:crypto'
+
+import type { ReferralServiceDeps } from '../container/types.js'
 import { referralRepository as defaultReferralRepository } from '../repositories/referral.repository.js'
 import { AppError } from '../utils/AppError.js'
-import type { ReferralServiceDeps } from '../container/types.js'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 

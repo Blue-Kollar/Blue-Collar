@@ -7,7 +7,7 @@
  * Business-logic behavior (queries, filters, image handling, ownership of
  * data) is covered directly against the service in `worker.service.test.ts`.
  */
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { beforeEach,describe, expect, it, vi } from 'vitest'
 
 // Other controller imports (search.service, stellar.service) transitively
 // import the real db.ts; stub it so nothing in this file touches Prisma.
@@ -40,13 +40,13 @@ vi.mock('../middleware/cache.js', () => ({
 import * as workerService from '../services/worker.service.js'
 import { AppError } from '../utils/AppError.js'
 import {
+  createWorker,
+  deleteWorker,
+  listMyWorkers,
   listWorkers,
   showWorker,
-  createWorker,
-  updateWorker,
-  deleteWorker,
   toggleActivation,
-  listMyWorkers,
+  updateWorker,
 } from './workers.js'
 
 function makeRes() {

@@ -1,13 +1,13 @@
-import { NodeSDK } from '@opentelemetry/sdk-node';
+import { type Attributes,context, propagation, SpanStatusCode, trace } from '@opentelemetry/api';
+import { W3CTraceContextPropagator } from '@opentelemetry/core';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
 import { ExpressInstrumentation } from '@opentelemetry/instrumentation-express';
 import { HttpInstrumentation } from '@opentelemetry/instrumentation-http';
 import { PgInstrumentation } from '@opentelemetry/instrumentation-pg';
 import { Resource } from '@opentelemetry/resources';
-import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions';
+import { NodeSDK } from '@opentelemetry/sdk-node';
 import { BatchSpanProcessor } from '@opentelemetry/sdk-trace-base';
-import { trace, context, propagation, SpanStatusCode, type Attributes } from '@opentelemetry/api';
-import { W3CTraceContextPropagator } from '@opentelemetry/core';
+import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions';
 
 // Set propagator
 propagation.setGlobalPropagator(new W3CTraceContextPropagator());
@@ -123,4 +123,4 @@ export const endSpanWithError = (span: EndableSpan, error: Error) => {
   span.end();
 };
 
-export { sdk, trace, context, propagation };
+export { context, propagation,sdk, trace };

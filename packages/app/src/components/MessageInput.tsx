@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { Send, Paperclip, Smile } from "lucide-react";
+import { Paperclip, Send, Smile } from "lucide-react";
+import { useRef,useState } from "react";
 
 interface Props {
   onSend: (body: string) => void;

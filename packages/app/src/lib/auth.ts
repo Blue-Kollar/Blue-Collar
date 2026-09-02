@@ -1,17 +1,17 @@
-import { z } from "zod";
 import {
-  loginSchema,
-  forgotPasswordSchema,
-  passwordField,
   emailField,
+  forgotPasswordSchema,
+  loginSchema,
   nameField,
+  passwordField,
 } from "@bluecollar/types";
+import { z } from "zod";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/api";
 
 // ─── Re-export shared schemas ─────────────────────────────────────────────────
 
-export { loginSchema, forgotPasswordSchema };
+export { forgotPasswordSchema,loginSchema };
 
 /**
  * Register schema extends the shared base with a UI-only confirmPassword field.

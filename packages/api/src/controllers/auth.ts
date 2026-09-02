@@ -22,20 +22,21 @@
  */
 import type { Request, Response } from 'express'
 import jwt from 'jsonwebtoken'
+
 import { env } from '../config/env.js'
-import * as authService from '../services/auth.service.js'
-import { db } from '../db.js'
-import { sanitizeUser } from '../models/user.model.js'
-import { UserResource } from '../resources/index.js'
-import { AppError, ErrorCode } from '../utils/AppError.js'
-import { catchAsync } from '../utils/catchAsync.js'
 import { ErrorMessages } from '../constants/errors.js'
+import { db } from '../db.js'
 import type {
+  ForgotPasswordBody,
   LoginBody,
   RegisterBody,
-  ForgotPasswordBody,
   ResetPasswordBody,
 } from '../interfaces/index.js'
+import { sanitizeUser } from '../models/user.model.js'
+import { UserResource } from '../resources/index.js'
+import * as authService from '../services/auth.service.js'
+import { AppError, ErrorCode } from '../utils/AppError.js'
+import { catchAsync } from '../utils/catchAsync.js'
 
 /**
  * POST /api/auth/login

@@ -1,15 +1,15 @@
 "use client";
 
-import { useState } from "react";
-import type { ReactNode, ChangeEvent } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
-import { X, Loader2, CheckCircle2, AlertCircle, ExternalLink, Zap } from "lucide-react";
+import { AlertCircle, CheckCircle2, ExternalLink, Loader2, X, Zap } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useWallet, FreighterNotInstalledError, WalletNotConnectedError } from "@/hooks/useWallet";
-import { usePaymentFlow } from "@/context/PaymentFlowContext";
-import { cn } from "@/lib/utils";
+import type { ChangeEvent,ReactNode } from "react";
+import { useState } from "react";
 
-import { HORIZON_URL, SOROBAN_RPC_URL, EXPLORER_TX_BASE, NETWORK_PASSPHRASE } from "@/config/stellar";
+import { EXPLORER_TX_BASE, HORIZON_URL, NETWORK_PASSPHRASE,SOROBAN_RPC_URL } from "@/config/stellar";
+import { usePaymentFlow } from "@/context/PaymentFlowContext";
+import { FreighterNotInstalledError, useWallet, WalletNotConnectedError } from "@/hooks/useWallet";
+import { cn } from "@/lib/utils";
 
 const STROOPS_PER_XLM = 10_000_000n;
 const NETWORK_FEE = 0.00001;

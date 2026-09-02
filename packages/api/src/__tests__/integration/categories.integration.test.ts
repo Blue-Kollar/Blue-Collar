@@ -2,9 +2,9 @@
  * Integration tests for categories endpoints.
  * DB/Redis/external deps are mocked; full HTTP cycle via supertest.
  */
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import request from "supertest";
 import jwt from "jsonwebtoken";
+import request from "supertest";
+import { beforeEach,describe, expect, it, vi } from "vitest";
 
 // ─── Env ─────────────────────────────────────────────────────────────────────
 process.env.JWT_SECRET = "test-integration-secret";

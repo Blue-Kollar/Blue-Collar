@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import swaggerUi from 'swagger-ui-express'
+
 import { buildSpec } from './spec.js'
 import { openApiSpecV1, openApiSpecV2 } from './spec-versioned.js'
 

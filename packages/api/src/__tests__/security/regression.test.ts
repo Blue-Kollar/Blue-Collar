@@ -11,13 +11,13 @@
  * Uses a minimal Express app to avoid loading the full application with
  * all its runtime dependencies (DB, Redis, OpenTelemetry, etc.).
  */
-import express from 'express'
 import type { NextFunction, Request, Response } from 'express'
+import express from 'express'
 import request from 'supertest'
 import { describe, expect, it, vi } from 'vitest'
 
-import { securityHeaders, depthLimiter, globalRateLimiter } from '../../middleware/security.js'
 import { sanitize } from '../../middleware/sanitize.js'
+import { depthLimiter, globalRateLimiter,securityHeaders } from '../../middleware/security.js'
 
 function buildApp() {
   const app = express()

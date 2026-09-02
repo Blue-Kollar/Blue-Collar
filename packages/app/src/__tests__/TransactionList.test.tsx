@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react'
-import { renderHook, act } from '@testing-library/react'
+import { act,renderHook } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { afterEach,beforeEach, describe, expect, it, vi } from 'vitest'
 
 const WALLET = 'GWALLETOWNERADDRESSAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
 const MARKET = 'GMARKETCONTRACTIDBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB'

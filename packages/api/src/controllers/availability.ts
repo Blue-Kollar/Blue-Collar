@@ -1,4 +1,5 @@
 import type { Request, Response } from 'express'
+
 import * as availabilityService from '../services/availability.service.js'
 import { catchAsync } from '../utils/catchAsync.js'
 

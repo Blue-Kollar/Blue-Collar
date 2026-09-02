@@ -1,18 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Activity, Heart, Loader2, MessageSquare, User } from "lucide-react";
 import Link from "next/link";
-import { Loader2, Activity, Heart, MessageSquare, User } from "lucide-react";
-import { useAuth } from "@/context/AuthContext";
-import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+
+import type { ActivityItem } from "@/components/Dashboard/ActivityTimeline";
 import { ActivityTimeline } from "@/components/Dashboard/ActivityTimeline";
-import { SavedWorkers } from "@/components/Dashboard/SavedWorkers";
 import { MessagesPreview } from "@/components/Dashboard/MessagesPreview";
 import { QuickProfileEdit } from "@/components/Dashboard/QuickProfileEdit";
-import type { ActivityItem } from "@/components/Dashboard/ActivityTimeline";
+import { SavedWorkers } from "@/components/Dashboard/SavedWorkers";
+import { useAuth } from "@/context/AuthContext";
+import { useBookmarks, useConversations, useNotifications, useToggleBookmark } from "@/hooks/queries";
+import { cn } from "@/lib/utils";
 import type { AppNotification } from "@/types";
-import { useNotifications, useBookmarks, useConversations, useToggleBookmark } from "@/hooks/queries";
 
 type Tab = "activity" | "saved" | "messages" | "profile";
 

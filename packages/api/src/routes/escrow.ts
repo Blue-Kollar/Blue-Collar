@@ -1,10 +1,11 @@
 import { Router } from 'express'
-import { authenticate, authorize } from '../middleware/auth.js'
+
 import {
-  listEscrows, getEscrow, createEscrow,
-  activateEscrow, releaseEscrow, cancelEscrow,
-  fileDispute, resolveDispute,
+  activateEscrow, cancelEscrow,
+createEscrow,
+  fileDispute, getEscrow,   listEscrows, releaseEscrow, resolveDispute,
 } from '../controllers/escrow.js'
+import { authenticate, authorize } from '../middleware/auth.js'
 
 const router = Router()
 

@@ -6,9 +6,9 @@
  *
  * Issue: #1006 [Backend] Add integration tests for wallets endpoints
  */
-import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest'
-import request from 'supertest'
 import jwt from 'jsonwebtoken'
+import request from 'supertest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 // ─── Env setup ────────────────────────────────────────────────────────────────
 process.env.JWT_SECRET = 'test-wallet-secret'
@@ -91,8 +91,8 @@ vi.mock('../../monitoring/business-metrics.js', () => ({
 
 // ─── Imports (after mocks) ────────────────────────────────────────────────────
 
-import { db } from '../../db.js'
 import app from '../../app.js'
+import { db } from '../../db.js'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 

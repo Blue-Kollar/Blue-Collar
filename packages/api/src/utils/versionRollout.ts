@@ -3,7 +3,7 @@
  * Supports canary deployments, traffic splitting, and feature flags
  */
 
-import type { Request, Response, NextFunction } from 'express'
+import type { NextFunction,Request, Response } from 'express'
 
 export interface RolloutConfig {
   version: string

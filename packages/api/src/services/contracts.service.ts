@@ -9,14 +9,14 @@
  */
 
 import { AppError, ErrorCode } from '../utils/AppError.js'
-import * as escrowService from './escrow.service.js'
 import * as disputeService from './dispute.service.js'
-import { paymentService, type TipParams, type EscrowParams } from './payment.service.js'
+import * as escrowService from './escrow.service.js'
+import { type EscrowParams,paymentService, type TipParams } from './payment.service.js'
 
 // ── Re-exported types (so controllers only import from this module) ────────────
 
-export type { TipParams, EscrowParams } from './payment.service.js'
-export type { TipResult, EscrowResult } from './payment.service.js'
+export type { EscrowParams,TipParams } from './payment.service.js'
+export type { EscrowResult,TipResult } from './payment.service.js'
 
 // ── Escrow operations ─────────────────────────────────────────────────────────
 

@@ -1,17 +1,19 @@
-import type { Metadata } from "next";
-import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
+import type { Metadata } from "next";
 import dynamic from "next/dynamic";
-import ReviewsSection from "@/components/ReviewsSection";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+
 import AvailabilityCalendar from "@/components/AvailabilityCalendar";
-import VerificationBadges from "@/components/VerificationBadges";
 import RatingBreakdown from "@/components/RatingBreakdown";
+import ReviewsSection from "@/components/ReviewsSection";
+import VerificationBadges from "@/components/VerificationBadges";
 import OnChainBadge from "@/components/WorkerProfile/OnChainBadge";
-import { WorkerHeader } from "./components/WorkerHeader";
+import type { ApiResponse, RatingDistributionEntry,Review, Worker } from "@/types";
+
 import { WorkerContactDetails } from "./components/WorkerContactDetails";
+import { WorkerHeader } from "./components/WorkerHeader";
 import { WorkerTipSection } from "./components/WorkerTipSection";
-import type { Worker, ApiResponse, Review, RatingDistributionEntry } from "@/types";
 
 // Below-the-fold widget — split out so it isn't bundled into the initial route chunk.
 const PortfolioGallery = dynamic(() => import("@/components/PortfolioGallery"));

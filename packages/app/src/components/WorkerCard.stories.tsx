@@ -1,6 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react'
-import WorkerCard from './WorkerCard'
+
 import { CompareProvider } from '@/context/CompareContext'
+
+import WorkerCard from './WorkerCard'
 
 const meta: Meta<typeof WorkerCard> = {
   title: 'Components/WorkerCard',

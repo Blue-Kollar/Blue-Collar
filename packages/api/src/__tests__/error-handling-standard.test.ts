@@ -11,8 +11,9 @@
  * 3. Non-operational errors never leak stack traces or original messages in
  *    production.
  */
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import type { Request, Response, NextFunction } from 'express'
+import type { NextFunction,Request, Response } from 'express'
+import { afterEach,beforeEach, describe, expect, it, vi } from 'vitest'
+
 import { errorHandler } from '../middleware/errorHandler.js'
 import { AppError, ErrorCode } from '../utils/AppError.js'
 

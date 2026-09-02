@@ -1,14 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
+// #1291 — use canonical User type from shared package instead of a local duplicate
+import type { User } from '@bluecollar/types'
 import { SecureStorage } from '../auth/SecureStorage'
 import { BiometricAuth } from '../auth/BiometricAuth'
-
-interface User {
-  id: string
-  email: string
-  firstName: string
-  lastName: string
-  role: string
-}
 
 interface AuthContextType {
   user: User | null

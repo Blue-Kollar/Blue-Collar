@@ -1,13 +1,13 @@
 "use client";
 
-import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, ExternalLink, Loader2, RefreshCw } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import LoadingState from "@/components/LoadingState";
-import ErrorState from "@/components/ErrorState";
-import { formatStellarAddress } from "@/lib/utils";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 
-import { HORIZON_URL, MARKET_CONTRACT_ID, EXPLORER_NETWORK_SLUG, EXPLORER_TX_BASE } from "@/config/stellar";
+import ErrorState from "@/components/ErrorState";
+import LoadingState from "@/components/LoadingState";
+import { Button } from "@/components/ui/button";
+import { EXPLORER_NETWORK_SLUG, EXPLORER_TX_BASE,HORIZON_URL, MARKET_CONTRACT_ID } from "@/config/stellar";
+import { formatStellarAddress } from "@/lib/utils";
 
 const DEFAULT_LIMIT = 10;
 const EXPLORER_NETWORK = EXPLORER_NETWORK_SLUG;

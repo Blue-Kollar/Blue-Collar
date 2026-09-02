@@ -1,14 +1,15 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { versionMiddleware, deprecationWarning, versionDeprecationMiddleware, VERSION_CONFIG } from '../middleware/version.js'
+import type { NextFunction,Request, Response } from 'express'
+import { beforeEach,describe, expect, it, vi } from 'vitest'
+
+import { deprecationWarning, VERSION_CONFIG,versionDeprecationMiddleware, versionMiddleware } from '../middleware/version.js'
 import {
   getApiVersion,
-  isSupportedVersion,
-  isDeprecatedVersion,
   getSupportedVersions,
-  getVersionRateLimitConfig,
   getVersionMigrationInfo,
+  getVersionRateLimitConfig,
+  isDeprecatedVersion,
+  isSupportedVersion,
 } from '../utils/versioning.js'
-import type { Request, Response, NextFunction } from 'express'
 
 function mockReq(path: string, headers: Record<string, string> = {}): Partial<Request> {
   return {

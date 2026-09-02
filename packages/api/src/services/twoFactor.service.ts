@@ -1,7 +1,9 @@
+import crypto from 'node:crypto'
+
+import argon2 from 'argon2'
 import * as OTPAuth from 'otpauth'
 import QRCode from 'qrcode'
-import crypto from 'node:crypto'
-import argon2 from 'argon2'
+
 import { db } from '../db.js'
 import { AppError } from '../utils/AppError.js'
 

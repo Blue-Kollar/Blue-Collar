@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import { SlidersHorizontal } from "lucide-react";
 import * as Dialog from "@radix-ui/react-dialog";
+import { SlidersHorizontal } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useState } from "react";
+
 import type { Category } from "@/types";
+
 import FilterPanel, { type FilterValues } from "./FilterPanel";
 
 interface MobileFilterSheetProps {

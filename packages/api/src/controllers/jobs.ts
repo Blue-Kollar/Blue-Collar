@@ -1,17 +1,18 @@
 import type { Request, Response } from 'express'
-import { catchAsync } from '../utils/catchAsync.js'
-import { AppError, ErrorCode } from '../utils/AppError.js'
+
 import { ErrorMessages } from '../constants/errors.js'
-import * as jobService from '../services/job.service.js'
 import { validate } from '../middleware/validate.js'
+import * as jobService from '../services/job.service.js'
+import { AppError, ErrorCode } from '../utils/AppError.js'
+import { catchAsync } from '../utils/catchAsync.js'
 import {
-  createJobSchema,
-  updateJobSchema,
   applyToJobSchema,
-  updateApplicationStatusSchema,
-  sendMessageSchema,
-  listJobsQuerySchema,
+  createJobSchema,
   type ListJobsQuery,
+  listJobsQuerySchema,
+  sendMessageSchema,
+  updateApplicationStatusSchema,
+  updateJobSchema,
 } from '../validations/job.js'
 
 // ── Exported validators for use in router ─────────────────────────────────────

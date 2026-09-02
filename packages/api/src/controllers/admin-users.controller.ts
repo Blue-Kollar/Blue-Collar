@@ -9,12 +9,13 @@
  * Issue #1215: standardize error handling — wraps all previously bare async
  * handlers in `catchAsync`.
  */
-import type { Request, Response } from 'express'
 import type { Role } from '@prisma/client'
+import type { Request, Response } from 'express'
+
 import { db } from '../db.js'
-import { paginate } from '../utils/paginate.js'
 import { AppError, ErrorCode } from '../utils/AppError.js'
 import { catchAsync } from '../utils/catchAsync.js'
+import { paginate } from '../utils/paginate.js'
 
 export const listUsers = catchAsync(async (req: Request, res: Response) => {
   const { page = '1', limit = '20', search, role, status } = req.query as Record<string, string | undefined>

@@ -1,13 +1,14 @@
 import { Router } from 'express'
+
 import { listMyBookmarks } from '../controllers/bookmarks.js'
 import {
-  updateProfile,
-  updateMe,
   changePassword,
-  deleteAccount,
-  savePushSubscription,
-  deletePushSubscription,
   completeOnboarding,
+  deleteAccount,
+  deletePushSubscription,
+  savePushSubscription,
+  updateMe,
+  updateProfile,
 } from '../controllers/users.js'
 import { authenticate } from '../middleware/auth.js'
 

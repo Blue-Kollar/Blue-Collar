@@ -1,13 +1,8 @@
+// #1291 — use canonical Worker type from shared package instead of a local duplicate
+import type { Worker } from '@bluecollar/types'
 import Image from 'next/image'
 import Link from 'next/link'
 import { getTranslations } from 'next-intl/server'
-
-interface Worker {
-  id: string
-  name: string
-  avatar: string | null
-  category: { name: string }
-}
 
 async function getFeaturedWorkers(): Promise<Worker[]> {
   const base = process.env.NEXT_PUBLIC_API_URL;

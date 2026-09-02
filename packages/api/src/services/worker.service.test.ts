@@ -1,4 +1,5 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { afterEach,beforeEach, describe, expect, it, vi } from 'vitest'
+
 import { AppError } from '../utils/AppError.js'
 import * as workerService from './worker.service.js'
 
@@ -43,7 +44,7 @@ vi.mock('../utils/imageProcessor.js', () => ({
   deleteImages: vi.fn(),
 }))
 
-import { processImage, deleteImages } from '../utils/imageProcessor.js'
+import { deleteImages,processImage } from '../utils/imageProcessor.js'
 
 // Mock the logger
 vi.mock('../utils/logger.js', () => ({

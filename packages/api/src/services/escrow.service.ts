@@ -2,11 +2,11 @@
  * Escrow orchestration service.
  * Mirrors the on-chain escrow lifecycle in the DB and notifies parties on transitions.
  */
+import type { EscrowServiceDeps } from '../container/types.js'
+import { db } from '../db.js'
 import { escrowRepository as defaultEscrowRepository } from '../repositories/escrow.repository.js'
 import { AppError, ErrorCode } from '../utils/AppError.js'
 import { dispatchNotification } from './notification.service.js'
-import { db } from '../db.js'
-import type { EscrowServiceDeps } from '../container/types.js'
 
 // ── Pause guard ───────────────────────────────────────────────────────────────
 

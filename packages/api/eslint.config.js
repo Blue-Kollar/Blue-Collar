@@ -4,6 +4,7 @@ import js from '@eslint/js'
 import tsPlugin from '@typescript-eslint/eslint-plugin'
 import tsParser from '@typescript-eslint/parser'
 import globals from 'globals'
+import simpleImportSort from 'eslint-plugin-simple-import-sort'
 
 export default [
   {
@@ -25,6 +26,7 @@ export default [
     },
     plugins: {
       '@typescript-eslint': tsPlugin,
+      'simple-import-sort': simpleImportSort,
     },
     rules: {
       ...tsPlugin.configs.recommended.rules,
@@ -33,6 +35,8 @@ export default [
       '@typescript-eslint/explicit-function-return-type': 'off',
       'no-console': 'error',
       'no-debugger': 'error',
+      'simple-import-sort/imports': 'error',
+      'simple-import-sort/exports': 'error',
     },
   },
   {

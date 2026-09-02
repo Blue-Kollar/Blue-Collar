@@ -1,8 +1,10 @@
 import crypto from 'node:crypto'
-import { db as defaultDb } from '../db.js'
-import { logger } from '../config/logger.js'
-import { getErrorMessage } from '../utils/getErrorMessage.js'
+
 import type { PrismaClient } from '@prisma/client'
+
+import { logger } from '../config/logger.js'
+import { db as defaultDb } from '../db.js'
+import { getErrorMessage } from '../utils/getErrorMessage.js'
 
 interface WebhookServiceDeps {
   db?: PrismaClient

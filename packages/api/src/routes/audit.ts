@@ -1,4 +1,5 @@
 import { Router } from 'express'
+
 import { queryLogs } from '../controllers/audit.js'
 import { authenticate, authorize } from '../middleware/auth.js'
 

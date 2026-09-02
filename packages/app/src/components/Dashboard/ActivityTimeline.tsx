@@ -1,6 +1,7 @@
 "use client";
 
-import { Clock, Star, MessageSquare, Wallet, Heart } from "lucide-react";
+import { Clock, Heart,MessageSquare, Star, Wallet } from "lucide-react";
+
 import { cn, formatDate } from "@/lib/utils";
 
 export type ActivityType = "tip" | "review" | "message" | "bookmark" | "escrow";

@@ -3,7 +3,8 @@
  * The category service is mocked; no real DB calls are made.
  */
 
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach,describe, expect, it, vi } from "vitest";
+
 import { AppError } from "../utils/AppError.js";
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
@@ -21,8 +22,8 @@ vi.mock("../resources/index.js", () => ({
 
 // ─── Imports (after mocks) ────────────────────────────────────────────────────
 
+import { getCategory,listCategories } from "../controllers/categories.js";
 import * as categoryService from "../services/category.service.js";
-import { listCategories, getCategory } from "../controllers/categories.js";
 import { categoryFactory } from "./factories/category.factory.js";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────

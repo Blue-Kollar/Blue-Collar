@@ -1,5 +1,5 @@
-import { renderHook, act } from '@testing-library/react'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { act,renderHook } from '@testing-library/react'
+import { beforeEach,describe, expect, it, vi } from 'vitest'
 
 // Mock sonner before importing the hook
 vi.mock('sonner', () => ({
@@ -26,8 +26,9 @@ vi.mock('@/lib/errors', () => ({
   }),
 }))
 
-import { useToast } from '@/hooks/useToast'
 import { toast as sonnerToast } from 'sonner'
+
+import { useToast } from '@/hooks/useToast'
 
 describe('useToast', () => {
   beforeEach(() => {

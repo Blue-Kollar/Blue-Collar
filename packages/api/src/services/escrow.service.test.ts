@@ -8,9 +8,10 @@
  *  - releaseEscrow: (depends on activateEscrow shape — covered via mocked repo)
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { createEscrowService } from './escrow.service.js'
+import { beforeEach,describe, expect, it, vi } from 'vitest'
+
 import { AppError } from '../utils/AppError.js'
+import { createEscrowService } from './escrow.service.js'
 
 // ── DB mock (for requireNotPaused) ────────────────────────────────────────────
 

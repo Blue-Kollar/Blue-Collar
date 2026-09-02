@@ -9,13 +9,14 @@
  * the internal promise resolves in the microtask queue. We use `flushPromises`
  * to await all pending microtasks after each handler call.
  */
-import { describe, it, expect, vi } from 'vitest'
-import type { Request, Response } from 'express'
-import { createWalletController, type WalletService } from './wallet.js'
-import { AppError, ErrorCode } from '../utils/AppError.js'
 // Shared mock response helper (issue #1278) — reuse the single implementation
 // from @bluecollar/test-utils instead of redefining it in every controller test.
 import { makeResponse as makeRes } from '@bluecollar/test-utils/express'
+import type { Request, Response } from 'express'
+import { describe, expect, it, vi } from 'vitest'
+
+import { AppError, ErrorCode } from '../utils/AppError.js'
+import { createWalletController, type WalletService } from './wallet.js'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const flushPromises = () => new Promise<void>(resolve => setImmediate(resolve))

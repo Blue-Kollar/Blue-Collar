@@ -4,9 +4,10 @@
  * Injects mock dependencies directly — no vi.mock() required.
  * See docs/DI_PATTERN.md for the full guide.
  */
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { createUserService } from './user.service.js'
+import { beforeEach,describe, expect, it, vi } from 'vitest'
+
 import { AppError } from '../utils/AppError.js'
+import { createUserService } from './user.service.js'
 
 // Stub JWT sign so no real secret is needed
 vi.mock('jsonwebtoken', () => ({

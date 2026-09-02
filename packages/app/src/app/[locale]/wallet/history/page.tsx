@@ -1,7 +1,7 @@
 "use client";
 
-import TransactionHistory from "@/components/wallet/TransactionHistory";
 import { Button } from "@/components/ui/button";
+import TransactionHistory from "@/components/wallet/TransactionHistory";
 import { useWallet } from "@/hooks/useWallet";
 
 export default function WalletHistoryPage() {

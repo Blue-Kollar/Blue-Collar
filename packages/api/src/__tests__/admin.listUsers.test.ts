@@ -3,7 +3,7 @@
  * `paginate()` is mocked so we can assert on the `where` clause the
  * controller builds without needing a real Prisma client.
  */
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { beforeEach,describe, expect, it, vi } from 'vitest'
 
 const { paginateMock } = vi.hoisted(() => ({
   paginateMock: vi.fn().mockResolvedValue({ data: [], meta: { total: 0, page: 1, limit: 20, pages: 0 } }),

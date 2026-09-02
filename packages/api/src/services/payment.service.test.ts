@@ -1,5 +1,6 @@
-import { describe, it, expect, beforeEach } from 'vitest'
-import { PaymentService, calculateFee } from '../services/payment.service.js'
+import { beforeEach,describe, expect, it } from 'vitest'
+
+import { calculateFee,PaymentService } from '../services/payment.service.js'
 
 describe('PaymentService', () => {
   let svc: PaymentService

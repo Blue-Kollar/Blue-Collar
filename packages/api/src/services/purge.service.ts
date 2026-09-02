@@ -7,10 +7,11 @@
  *
  * The scheduler.worker.ts delegates to `purgeService.*` (the default export).
  */
-import path from 'node:path'
 import fs from 'node:fs/promises'
-import { db } from '../db.js'
+import path from 'node:path'
+
 import { logger } from '../config/logger.js'
+import { db } from '../db.js'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 

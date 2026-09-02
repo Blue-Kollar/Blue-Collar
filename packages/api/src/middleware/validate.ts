@@ -1,5 +1,5 @@
+import type { NextFunction,Request, Response } from 'express'
 import { z, ZodSchema } from 'zod'
-import type { Request, Response, NextFunction } from 'express'
 
 // Maximum field string length — rejects absurdly large individual field values.
 const MAX_FIELD_LENGTH = 10_000

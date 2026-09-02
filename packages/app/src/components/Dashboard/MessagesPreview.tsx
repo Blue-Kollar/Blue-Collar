@@ -1,10 +1,11 @@
 "use client";
 
-import Link from "next/link";
-import Image from "next/image";
 import { MessageSquare } from "lucide-react";
-import { cn, formatDate } from "@/lib/utils";
+import Image from "next/image";
+import Link from "next/link";
+
 import Skeleton from "@/components/Skeleton";
+import { cn, formatDate } from "@/lib/utils";
 import type { Conversation } from "@/types";
 
 interface Props {

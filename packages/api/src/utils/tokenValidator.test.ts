@@ -1,5 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
 import jwt from 'jsonwebtoken'
+import { beforeEach,describe, expect, it, vi } from 'vitest'
+
 import { verifyToken } from './tokenValidator.js'
 
 vi.mock('jsonwebtoken', () => ({

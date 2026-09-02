@@ -1,19 +1,20 @@
 "use client";
 
-import Link from "next/link";
-import dynamic from "next/dynamic";
 import {
-  Plus,
   Pencil,
-  Trash2,
+  Plus,
   ToggleLeft,
   ToggleRight,
+  Trash2,
   TrendingUp,
   X,
 } from "lucide-react";
-import { cn, formatDate } from "@/lib/utils";
-import { Table, type ColumnDef, type RowAction } from "@/components/Table";
+import dynamic from "next/dynamic";
+import Link from "next/link";
+
 import { DashboardTableSkeleton } from "@/components/Skeleton";
+import { type ColumnDef, type RowAction,Table } from "@/components/Table";
+import { cn, formatDate } from "@/lib/utils";
 import type { ViewTrend } from "@/types";
 
 // ── Dynamic import (code splitting) ─────────────────────────────────────────

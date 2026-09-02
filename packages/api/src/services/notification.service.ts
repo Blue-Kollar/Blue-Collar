@@ -1,10 +1,11 @@
 import type { NotificationType } from '@prisma/client'
+
+import { logger } from '../config/logger.js'
+import type { NotificationServiceDeps } from '../container/types.js'
+import { mailer } from '../mailer/index.js'
 import { notificationRepository as defaultNotificationRepository } from '../repositories/notification.repository.js'
 import { AppError } from '../utils/AppError.js'
-import { logger } from '../config/logger.js'
-import { mailer } from '../mailer/index.js'
 import * as pushService from './push.service.js'
-import type { NotificationServiceDeps } from '../container/types.js'
 
 interface NotificationPayload {
   userId: string

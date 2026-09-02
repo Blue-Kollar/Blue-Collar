@@ -1,12 +1,14 @@
 'use client'
 
-import Link from 'next/link'
-import Image from 'next/image'
 import { BadgeCheck, MapPin, Star } from 'lucide-react'
+import Image from 'next/image'
+import Link from 'next/link'
+
+import { useCompare } from '@/context/CompareContext'
 import type { Worker } from '@/types'
+
 import BookmarkButton from './BookmarkButton'
 import StarRating from './StarRating'
-import { useCompare } from '@/context/CompareContext'
 
 type CardVariant = 'compact' | 'standard' | 'featured'
 

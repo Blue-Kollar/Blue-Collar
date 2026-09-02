@@ -5,18 +5,18 @@
  * Integrate with services to track worker registrations, payments, user growth, etc.
  */
 
+import { logger } from '../config/logger.js'
+import { db } from '../db.js'
 import {
-  recordWorkerRegistration,
-  setActiveWorkers,
-  recordTip,
-  setUsersTotal,
-  setUsersVerified,
-  recordReview,
   recordContractRegistration,
   recordContractTransaction,
+  recordReview,
+  recordTip,
+  recordWorkerRegistration,
+  setActiveWorkers,
+  setUsersTotal,
+  setUsersVerified,
 } from '../middleware/metrics.js'
-import { db } from '../db.js'
-import { logger } from '../config/logger.js'
 import { getErrorMessage } from '../utils/getErrorMessage.js'
 
 class BusinessMetricsRecorder {

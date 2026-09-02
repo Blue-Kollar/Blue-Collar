@@ -1,7 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { beforeEach,describe, expect, it, vi } from 'vitest'
+
+import { CategoryRepository } from '../repositories/category.repository.js'
 import { UserRepository } from '../repositories/user.repository.js'
 import { WorkerRepository } from '../repositories/worker.repository.js'
-import { CategoryRepository } from '../repositories/category.repository.js'
 
 // ── Mock Prisma ───────────────────────────────────────────────────────────────
 

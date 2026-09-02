@@ -1,5 +1,6 @@
+import { AlertCircle, CheckCircle2, Info } from "lucide-react";
 import type { ReactNode } from "react";
-import { CheckCircle2, AlertCircle, Info } from "lucide-react";
+
 import { cn } from "@/lib/utils";
 
 interface Props {

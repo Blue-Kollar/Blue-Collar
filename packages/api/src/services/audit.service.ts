@@ -1,6 +1,7 @@
 import type { Prisma } from '@prisma/client'
-import { db } from '../db.js'
+
 import { logger } from '../config/logger.js'
+import { db } from '../db.js'
 
 export interface AuditOptions {
   userId?: string

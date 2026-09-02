@@ -1,7 +1,7 @@
+import type { InsuranceServiceDeps } from '../container/types.js'
+import { sendInsuranceRenewalReminder } from '../mailer/index.js'
 import { insuranceRepository as defaultInsuranceRepository } from '../repositories/insurance.repository.js'
 import { AppError } from '../utils/AppError.js'
-import { sendInsuranceRenewalReminder } from '../mailer/index.js'
-import type { InsuranceServiceDeps } from '../container/types.js'
 
 // ── Factory ───────────────────────────────────────────────────────────────────
 
