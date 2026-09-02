@@ -29,7 +29,31 @@
     "@commitlint/config-conventional": "^18.4.0",
     "concurrently": "^9.1.2",
     "husky": "^9.0.0",
+    "lint-staged": "17.4.1",
     "prettier": "^3.5.3"
+  },
+  "lint-staged": {
+    "packages/api/src/**/*.ts": [
+      "pnpm --filter @bluecollar/api exec eslint --fix --max-warnings=0",
+      "prettier --write"
+    ],
+    "packages/app/src/**/*.{ts,tsx}": [
+      "prettier --write"
+    ],
+    "packages/sdk/src/**/*.ts": [
+      "pnpm --filter @bluecollar/sdk exec eslint --fix --max-warnings=0",
+      "prettier --write"
+    ],
+    "packages/types/src/**/*.ts": [
+      "pnpm --filter @bluecollar/types exec eslint --fix --max-warnings=0",
+      "prettier --write"
+    ],
+    "packages/monitoring/src/**/*.ts": [
+      "prettier --write"
+    ],
+    "**/*.{js,json,md}": [
+      "prettier --write"
+    ]
   },
   "license": "MIT",
   "dependencies": {

@@ -14,7 +14,7 @@ resource "aws_s3_bucket" "this" {
     enabled = true
   }
 
-  force_destroy = var.force_destroy
+  force_destroy = false
 
   tags = {
     Name        = "bluecollar-${var.environment}-assets"
