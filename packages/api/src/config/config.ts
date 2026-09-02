@@ -8,32 +8,34 @@
  * Optional variables fall back to documented defaults.
  */
 
+import { TESTNET_HORIZON_URL } from '@bluecollar/sdk';
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function required(key: string): string {
-  const value = process.env[key]
-  if (!value) throw new Error(`Config error: required env var "${key}" is missing or empty`)
-  return value
+  const value = process.env[key];
+  if (!value) throw new Error(`Config error: required env var "${key}" is missing or empty`);
+  return value;
 }
 
 function optional(key: string, fallback: string): string {
-  return process.env[key] || fallback
+  return process.env[key] || fallback;
 }
 
 function optionalInt(key: string, fallback: number): number {
-  const raw = process.env[key]
-  if (!raw) return fallback
-  const parsed = parseInt(raw, 10)
-  if (isNaN(parsed)) throw new Error(`Config error: "${key}" must be an integer, got "${raw}"`)
-  return parsed
+  const raw = process.env[key];
+  if (!raw) return fallback;
+  const parsed = parseInt(raw, 10);
+  if (isNaN(parsed)) throw new Error(`Config error: "${key}" must be an integer, got "${raw}"`);
+  return parsed;
 }
 
 function optionalBool(key: string, fallback: boolean): boolean {
-  const raw = process.env[key]
-  if (!raw) return fallback
-  if (raw === 'true' || raw === '1') return true
-  if (raw === 'false' || raw === '0') return false
-  throw new Error(`Config error: "${key}" must be true/false/1/0, got "${raw}"`)
+  const raw = process.env[key];
+  if (!raw) return fallback;
+  if (raw === 'true' || raw === '1') return true;
+  if (raw === 'false' || raw === '0') return false;
+  throw new Error(`Config error: "${key}" must be true/false/1/0, got "${raw}"`);
 }
 
 // ── Config object ─────────────────────────────────────────────────────────────
@@ -52,7 +54,9 @@ export const config = {
   logLevel: optional('LOG_LEVEL', 'info'),
 
   /** Comma-separated allowed CORS origins */
-  allowedOrigins: optional('ALLOWED_ORIGINS', 'http://localhost:3001').split(',').map(s => s.trim()),
+  allowedOrigins: optional('ALLOWED_ORIGINS', 'http://localhost:3001')
+    .split(',')
+    .map((s) => s.trim()),
 
   db: {
     /** Primary database connection string */
@@ -80,18 +84,18 @@ export const config = {
   },
 
   upload: {
-    dir:         optional('UPLOAD_DIR', 'storage/uploads'),
+    dir: optional('UPLOAD_DIR', 'storage/uploads'),
     maxFileSize: optionalInt('MAX_FILE_SIZE', 5_242_880),
   },
 
   push: {
-    vapidPublicKey:  optional('VAPID_PUBLIC_KEY', ''),
+    vapidPublicKey: optional('VAPID_PUBLIC_KEY', ''),
     vapidPrivateKey: optional('VAPID_PRIVATE_KEY', ''),
   },
 
   stellar: {
     /** Horizon RPC base URL */
-    horizonUrl: optional('HORIZON_URL', 'https://horizon-testnet.stellar.org'),
+    horizonUrl: optional('HORIZON_URL', TESTNET_HORIZON_URL),
     /** Stellar network passphrase: testnet or mainnet */
     network: optional('STELLAR_NETWORK', 'testnet') as 'testnet' | 'mainnet',
     /** Deployed Registry Soroban contract ID (optional at startup) */
@@ -99,7 +103,7 @@ export const config = {
     /** Deployed Market Soroban contract ID (optional at startup) */
     marketContractId: optional('MARKET_CONTRACT_ID', ''),
   },
-} as const
+} as const;
 
-export type Config = typeof config
-export default config
+export type Config = typeof config;
+export default config;

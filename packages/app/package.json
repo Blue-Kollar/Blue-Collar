@@ -22,6 +22,7 @@
     "build-storybook": "storybook build"
   },
   "dependencies": {
+    "@bluecollar/sdk": "workspace:*",
     "@bluecollar/types": "workspace:*",
     "@hookform/resolvers": "^3.9.0",
     "@radix-ui/react-dialog": "^1.1.15",

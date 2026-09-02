@@ -46,6 +46,7 @@
   "license": "MIT",
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "7.3.4",
+    "@bluecollar/sdk": "workspace:*",
     "@bluecollar/types": "workspace:*",
     "@opentelemetry/api": "^1.7.0",
     "@opentelemetry/auto-instrumentations-node": "^0.40.0",
