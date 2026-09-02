@@ -1,11 +1,32 @@
 // ─── Core domain types ────────────────────────────────────────────────────────
 // ─── API Response Contracts ───────────────────────────────────────────────────
+//
+// ─── Null / undefined convention (#1297) ─────────────────────────────────────
+//
+// These types sit at the API/client boundary and are serialised to/from JSON.
+// JSON has `null` but not `undefined`, so fields that may be absent in a JSON
+// response are typed as `T | null` (Prisma-originated nullable columns) or as
+// optional (`T?`) when they are truly absent rather than explicitly cleared.
+//
+// Rule of thumb:
+//   • Use `string | null`  — field exists in the DB schema as nullable and the
+//     API sends `null` when no value is set (Prisma columns, JSON payloads).
+//   • Use `field?: T`      — field may be omitted entirely from the response
+//     (e.g., pagination meta is absent on single-item responses).
+//   • Do NOT use `null` for internal/service-layer types that never reach JSON.
+//     Those live in packages/api and should use `undefined` per
+//     docs/NULL_UNDEFINED_CONVENTIONS.md.
+//
+// Changing existing `string | null` fields to `string | undefined` would be a
+// breaking API contract change and is deliberately deferred per that doc.
+// ─────────────────────────────────────────────────────────────────────────────
 
 /** Standard API envelope returned by all endpoints. */
 export interface ApiResponse<T = undefined> {
   data?: T;
   meta?: Meta;
-  status: "success" | "error" | string;
+  /** 'success' on 2xx, 'error' on 4xx/5xx responses. */
+  status: 'success' | 'error';
   code: number;
   message?: string;
   token?: string;
@@ -58,7 +79,7 @@ export interface User {
   email: string;
   firstName: string;
   lastName: string;
-  role: "user" | "curator" | "admin";
+  role: 'user' | 'curator' | 'admin';
   verified: boolean;
   avatar?: string | null;
   onboardingCompleted?: boolean;
@@ -213,7 +234,7 @@ export interface SdkConfig {
 
 // ─── Notifications ────────────────────────────────────────────────────────────
 
-export type NotificationType = "tip" | "review" | "contact" | "system" | "message";
+export type NotificationType = 'tip' | 'review' | 'contact' | 'system' | 'message';
 
 export interface AppNotification {
   id: string;
@@ -228,9 +249,9 @@ export interface AppNotification {
 
 // ─── Jobs ─────────────────────────────────────────────────────────────────────
 
-export type JobStatus = "open" | "closed" | "expired" | "filled";
-export type JobUrgency = "low" | "normal" | "urgent";
-export type ApplicationStatus = "pending" | "accepted" | "rejected" | "withdrawn";
+export type JobStatus = 'open' | 'closed' | 'expired' | 'filled';
+export type JobUrgency = 'low' | 'normal' | 'urgent';
+export type ApplicationStatus = 'pending' | 'accepted' | 'rejected' | 'withdrawn';
 
 export interface Job {
   id: string;
@@ -262,7 +283,13 @@ export interface JobApplication {
   createdAt: string;
   updatedAt: string;
   job?: { id: string; title: string; postedById: string };
-  worker?: { id: string; name: string; avatar?: string | null; email?: string | null; category?: Category };
+  worker?: {
+    id: string;
+    name: string;
+    avatar?: string | null;
+    email?: string | null;
+    category?: Category;
+  };
 }
 
 // ─── Payments ─────────────────────────────────────────────────────────────────
@@ -340,4 +367,4 @@ export interface AuditLogEntry {
 }
 
 // ─── Shared Validation Schemas ────────────────────────────────────────────────
-export * from './validations.js'
+export * from './validations.js';
