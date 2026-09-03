@@ -24,6 +24,11 @@ and reviewers had nothing written down to point at.
   - [Structured fields](#structured-fields)
   - [PII rules](#pii-rules)
 - [Correlation ID propagation](#correlation-id-propagation)
+- [Contract errors (Rust / Soroban)](#contract-errors-rust--soroban)
+  - [Naming convention rationale](#naming-convention-rationale)
+  - [`ContractError` codes](#contracterror-codes)
+  - [Adding a new contract error code](#adding-a-new-contract-error-code)
+  - [How the API surfaces contract errors](#how-the-api-surfaces-contract-errors)
 - [Frontend: error handling](#frontend-error-handling)
 - [Frontend: logging](#frontend-logging)
 - [Before / after examples](#before--after-examples)
@@ -339,6 +344,114 @@ The two things that break it:
 
 ---
 
+## Contract errors (Rust / Soroban)
+
+### Naming convention rationale
+
+BlueCollar has two distinct error systems that live at different layers of the stack, and
+**they are intentionally named differently**. This is not an oversight — the difference communicates
+which layer owns the failure.
+
+| Layer | Type | Location | When it applies |
+|---|---|---|---|
+| HTTP API (TypeScript) | `ErrorCode` enum | `packages/api/src/utils/AppError.ts` | Any failure surfaced over the REST API — auth, validation, missing records, server faults |
+| On-chain contracts (Rust) | `ContractError` enum | `packages/contracts/contracts/types/src/errors.rs` | Any failure returned by a Soroban contract invocation |
+
+Rationale for the different names:
+
+- `ErrorCode` is a transport-layer concept. Its values become the `errorCode` field in the JSON
+  response envelope and form a **client API contract**. They intentionally stay coarse-grained
+  (11 codes) because clients branch on them.
+- `ContractError` is an on-chain domain concept. Soroban contracts use the `#[contracterror]` macro
+  which requires an integer-backed enum. Its values are **protocol constants** stored in the WASM
+  ABI; renaming or renumbering is a breaking upgrade. They are intentionally fine-grained (79 codes)
+  because on-chain logic must distinguish between, say, `EscrowNotFound` and `DisputeNotFound`.
+- Sharing one enum across both layers would produce either a bloated REST client contract or an
+  under-specified on-chain ABI.
+
+**Rule:** Do not rename either enum or introduce a third error enum in either package. If you need
+a new failure category that must cross both layers, define the `ContractError` variant first (it is
+the lower-level contract), then map it to the appropriate `ErrorCode` in the API layer.
+
+### `ContractError` codes
+
+All contract error codes are centralised in one place:
+`packages/contracts/contracts/types/src/errors.rs`.
+
+Every contract imports from this shared module:
+
+```rust
+use bluecollar_types::ContractError;
+
+pub fn my_fn(env: Env) -> Result<(), ContractError> {
+    Err(ContractError::NotAuthorized)
+}
+```
+
+The enum is grouped into semantic sections. Each code has a stable integer discriminant that must
+never be reused or changed once deployed to mainnet:
+
+| Group | Example codes |
+|---|---|
+| Initialisation | `NotInitialized (1)`, `AlreadyInitialized (4)` |
+| Authorisation | `MissingRole (2)`, `NotAuthorized (5)`, `Unauthorized (6)`, `NotAdmin (8)` |
+| Not found | `EscrowNotFound (3)`, `WorkerNotFound (13)`, `JobNotFound (16)` |
+| Existence / duplication | `AlreadyExists (22)`, `EscrowAlreadyExists (23)` |
+| State / status | `InvalidStatus (29)`, `EscrowNotActive (34)`, `JobNotOpen (37)` |
+| Expiry / time | `EscrowNotYetExpired (44)`, `ExpiryMustBeInFuture (45)` |
+| Validation | `AmountMustBePositive (48)`, `RatingOutOfRange (52)`, `BatchTooLarge (55)` |
+| Fees | `FeeBpsExceedsMaximum (57)`, `InvalidFeeSplit (59)` |
+| Contract state | `ContractIsPaused (60)`, `WrongSchemaVersion (63)` |
+| Market / dispute / insurance | `InvalidThreshold (64)`, `ClaimNotPending (69)`, `CooldownNotElapsed (79)` |
+
+### Adding a new contract error code
+
+1. Add the variant to the centralised enum in `contracts/types/src/errors.rs`.
+2. Assign the **next available integer** — never reuse or reorder existing values.
+3. Place it in the correct semantic group and add a comment if the name is ambiguous.
+4. If the error can propagate to the REST API (e.g. through `contracts.service.ts`), add a mapping
+   entry in the API service that catches it and maps it to the appropriate `AppError` + `ErrorCode`.
+5. Document it in the `ContractError` table above.
+
+### How the API surfaces contract errors
+
+When the API calls a Soroban contract via `packages/api/src/services/contracts.service.ts` or
+`stellar-rpc.client.ts`, contract invocation failures arrive as Soroban host-function errors
+carrying a `ContractError` discriminant.
+
+The API translates these to `AppError` before they reach the error handler:
+
+```ts
+// Example mapping in a service that wraps a contract call
+try {
+  await contracts.registerWorker(workerId, data)
+} catch (err) {
+  // Contract error codes are integers in Soroban error responses.
+  // Map the domain code to the appropriate HTTP-layer code.
+  if (isSorobanContractError(err, ContractErrorCode.WorkerNotFound)) {
+    throw new AppError(ErrorMessages.WORKER_NOT_FOUND, HttpStatus.NOT_FOUND, true, ErrorCode.NOT_FOUND)
+  }
+  if (isSorobanContractError(err, ContractErrorCode.NotAuthorized)) {
+    throw new AppError(ErrorMessages.FORBIDDEN, HttpStatus.FORBIDDEN, true, ErrorCode.FORBIDDEN)
+  }
+  // Unmapped contract errors become 503 — the contract layer is unavailable or misbehaving
+  throw new AppError(ErrorMessages.INTERNAL_SERVER_ERROR, HttpStatus.SERVICE_UNAVAILABLE, true, ErrorCode.SERVICE_UNAVAILABLE)
+}
+```
+
+**Rules for contract-to-HTTP mapping:**
+
+- Map **at the service boundary**, not in the controller. Controllers must not inspect contract error
+  codes directly.
+- Unmapped contract errors must not leak raw Soroban error details to HTTP clients. Always re-throw
+  as an `AppError`.
+- Do not return `500 INTERNAL_ERROR` for expected contract failures (access denied, resource not
+  found). Map them to the correct 4xx `ErrorCode` so clients can handle them.
+- Cross-layer error mapping is integration-tested in
+  `src/__tests__/contract/contracts.service.error.test.ts`.
+
+---
+
 ## Frontend: error handling
 
 `packages/app` has no `AppError`. It has one parser and one boundary.
@@ -574,6 +687,8 @@ For the reviewer, and for you before you request review:
 - [ ] The same failure is not logged twice.
 - [ ] Work leaving the request context forwards `traceId` explicitly.
 - [ ] Frontend renders `parseApiError(...).message`, never a raw thrown message.
+- [ ] New `ContractError` codes are added to `contracts/types/src/errors.rs` only, with the next available integer.
+- [ ] Contract errors that reach the API are mapped to `AppError` at the service boundary, not in controllers.
 
 ## Testing requirements
 
@@ -583,7 +698,8 @@ For the reviewer, and for you before you request review:
 - `__tests__/error-logging-conventions.test.ts` asserts that this document stays in sync with the
   code: every `ErrorCode` member is documented here, the envelope fields listed here are the fields
   `serializeError` actually emits, and the `traceId` contract holds. It fails if the code and this
-  file diverge.
+  file diverge. It also verifies that this document contains a `ContractError` section, so the
+  cross-layer naming convention stays documented.
 - New controllers should have at least one test asserting the failure status **and** `errorCode`,
   not just the status.
 - Frontend components with an error branch need a test rendering that branch — see
