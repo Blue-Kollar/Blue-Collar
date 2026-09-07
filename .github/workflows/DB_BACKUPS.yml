@@ -53,14 +53,14 @@ jobs:
       S3_BUCKET: ${{ secrets.BACKUP_S3_BUCKET }}
       AWS_REGION: ${{ secrets.AWS_REGION || 'us-east-1' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install dependencies
         run: sudo apt-get install -y postgresql-client gpg
 
       - name: Configure AWS credentials
         if: env.S3_BUCKET != ''
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -73,7 +73,7 @@ jobs:
         run: deploy/backups/backup.sh
 
       - name: Upload backup artifact (30-day retention)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: db-backup-${{ github.run_id }}
           path: /tmp/backups/*.gpg
@@ -82,7 +82,7 @@ jobs:
 
       - name: Alert on failure
         if: failure()
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             await github.rest.issues.create({
@@ -124,14 +124,14 @@ jobs:
       BACKUP_DIR: /tmp/backups
       GPG_PASSPHRASE: ${{ secrets.BACKUP_GPG_PASSPHRASE }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install dependencies
         run: sudo apt-get install -y postgresql-client gpg
 
       - name: Configure AWS credentials
         if: ${{ secrets.BACKUP_S3_BUCKET != '' }}
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -160,7 +160,7 @@ jobs:
 
       - name: Alert on drill failure
         if: failure()
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             await github.rest.issues.create({

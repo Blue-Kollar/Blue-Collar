@@ -35,7 +35,7 @@ jobs:
       issues: write          # allow ZAP action to file issues for findings
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # ------------------------------------------------------------------
       # Start a local stack when STAGING_URL is not set (CI without staging)
@@ -67,7 +67,7 @@ jobs:
       # ------------------------------------------------------------------
       - name: ZAP baseline scan
         if: ${{ inputs.scan_type != 'full' }}
-        uses: zaproxy/action-baseline@v0.14.0
+        uses: zaproxy/action-baseline@v0.15.0
         with:
           target: ${{ env.STAGING_URL }}
           rules_file_name: ${{ env.ZAP_RULES }}
@@ -82,7 +82,7 @@ jobs:
       # ------------------------------------------------------------------
       - name: ZAP full scan
         if: ${{ inputs.scan_type == 'full' }}
-        uses: zaproxy/action-full-scan@v0.12.0
+        uses: zaproxy/action-full-scan@v0.13.0
         with:
           target: ${{ env.STAGING_URL }}
           rules_file_name: ${{ env.ZAP_RULES }}
@@ -95,7 +95,7 @@ jobs:
       # ------------------------------------------------------------------
       - name: Upload ZAP reports
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: zap-report-${{ github.run_id }}
           path: |
