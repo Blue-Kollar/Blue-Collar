@@ -20,7 +20,44 @@ function toMinutes(time: string): number {
   return h * 60 + m
 }
 
-/** Detect overlapping slots within the same day */
+/**
+ * Parse a fixed UTC offset string (e.g. "+02:00", "-05:30") into minutes.
+ * `undefined`/`'UTC'`/anything we can't parse (e.g. an IANA zone name,
+ * which would require a tz database we don't have here) is treated as a
+ * zero offset — i.e. already UTC. Callers must normalize IANA zone names to
+ * a fixed offset *before* calling this, since a fixed offset does not
+ * account for DST transitions on its own (see `toUtcMinutes` below and
+ * `availability.service.test.ts` for the DST-boundary scenario this guards
+ * against).
+ */
+function parseOffsetMinutes(timezone: string | undefined): number {
+  if (!timezone || timezone === 'UTC') return 0
+  const match = /^([+-])(\d{2}):(\d{2})$/.exec(timezone)
+  if (!match) return 0
+  const sign = match[1] === '-' ? -1 : 1
+  return sign * (Number(match[2]) * 60 + Number(match[3]))
+}
+
+/**
+ * Convert a wall-clock "HH:MM" in `timezone` to minutes-since-midnight
+ * **UTC**, normalized into `[0, 1440)`.
+ *
+ * This is the fix for the local-time/UTC mixing bug: previously
+ * `detectConflicts` compared raw `HH:MM` values directly, which is only
+ * correct when every slot shares the same timezone. Two slots stored with
+ * different fixed offsets (e.g. one submitted at "09:00 +00:00" during
+ * standard time, another at "09:00 +01:00" after a DST shift) would
+ * silently compare as if they were the same instant-of-day, hiding real
+ * overlaps or reporting phantom ones. All storage/comparison now happens
+ * in UTC; call sites are still free to accept/display local times, but must
+ * convert at the boundary.
+ */
+function toUtcMinutes(time: string, timezone: string | undefined): number {
+  const utc = toMinutes(time) - parseOffsetMinutes(timezone)
+  return ((utc % 1440) + 1440) % 1440
+}
+
+/** Detect overlapping slots within the same day, compared in UTC. */
 function detectConflicts(slots: AvailabilitySlot[]): string | null {
   const byDay = new Map<number, AvailabilitySlot[]>()
   for (const slot of slots) {
@@ -28,9 +65,13 @@ function detectConflicts(slots: AvailabilitySlot[]): string | null {
     byDay.get(slot.dayOfWeek)!.push(slot)
   }
   for (const [day, daySlots] of byDay) {
-    const sorted = [...daySlots].sort((a, b) => toMinutes(a.startTime) - toMinutes(b.startTime))
+    const sorted = [...daySlots].sort(
+      (a, b) => toUtcMinutes(a.startTime, a.timezone) - toUtcMinutes(b.startTime, b.timezone),
+    )
     for (let i = 0; i < sorted.length - 1; i++) {
-      if (toMinutes(sorted[i].endTime) > toMinutes(sorted[i + 1].startTime)) {
+      const currentEnd = toUtcMinutes(sorted[i].endTime, sorted[i].timezone)
+      const nextStart = toUtcMinutes(sorted[i + 1].startTime, sorted[i + 1].timezone)
+      if (currentEnd > nextStart) {
         return `Conflicting slots on day ${day}: ${sorted[i].startTime}-${sorted[i].endTime} overlaps ${sorted[i + 1].startTime}-${sorted[i + 1].endTime}`
       }
     }

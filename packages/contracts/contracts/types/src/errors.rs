@@ -1,7 +1,34 @@
 //! Shared error definitions for BlueCollar contracts.
 //!
 //! Consolidates common error codes across all contracts to ensure consistency
-//! and maintainability.
+//! and maintainability. This is the **single** error enum for the workspace —
+//! no contract crate should declare its own `#[contracterror]` enum. An audit
+//! of every crate under `packages/contracts/contracts` (issue #1354)
+//! confirmed all contracts (registry, job_registry, escrow, payment, market,
+//! reputation, dispute, insurance_pool, fee_distribution) already compose
+//! errors from this module rather than defining local duplicates, so no
+//! per-contract error enums exist to migrate away from.
+//!
+//! ## Known near-duplicate variants (pre-existing, kept for ABI stability)
+//!
+//! A handful of variants overlap in meaning because they were added by
+//! different contracts before this module existed as the single source of
+//! truth. Their discriminants are part of the deployed contract ABI, so they
+//! are documented here rather than removed/renumbered:
+//!
+//! - [`ContractError::NotAuthorized`] is the **canonical** "caller is not
+//!   permitted to perform this action" error. Prefer it in new code.
+//! - [`ContractError::Unauthorized`] and [`ContractError::UnauthorizedCaller`]
+//!   are legacy synonyms kept only because existing deployed contracts /
+//!   client SDK bindings reference their numeric codes (6 and 7). Do not use
+//!   them in new entrypoints.
+//! - [`ContractError::AmountMustBePositive`] is canonical;
+//!   [`ContractError::AmountMustBePositiveAlt`] is a legacy synonym kept for
+//!   the same ABI-stability reason.
+//!
+//! New contracts/entrypoints must use the canonical variant. Do not add
+//! further synonyms — if an existing variant does not fit, add a new,
+//! precisely-named one instead.
 
 use soroban_sdk::contracterror;
 

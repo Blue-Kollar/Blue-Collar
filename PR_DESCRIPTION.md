@@ -5,10 +5,10 @@ This PR addresses all four tracked issues from the Blue-Collar smart contracts r
 ## Issues Closed
 
 This PR closes the following issues:
-- **Closes #1440**: Standardize event emission format across all contracts
-- **Closes #1439**: Add fuzz testing coverage for payment contract amount edge cases
-- **Closes #1438**: Extract shared type definitions into contracts/types consistently
-- **Closes #1437**: Remove dead code paths in registry contract post-migration
+- closes #1440
+- closes #1439
+- closes #1438
+- closes #1437
 
 ## Summary of Changes
 

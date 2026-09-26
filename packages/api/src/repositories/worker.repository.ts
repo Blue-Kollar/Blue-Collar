@@ -190,7 +190,7 @@ export class WorkerRepository extends BaseRepository<Worker, Prisma.WorkerCreate
 
     // Apply geo filtering in memory if provided (PostGIS would be ideal but not configured)
     if (lat !== undefined && lng !== undefined) {
-      workers = workers.filter(w => {
+      filteredWorkers = workers.filter(w => {
         if (!w.location?.lat || !w.location?.lng) return false
         const dist = this.haversine(lat, lng, w.location.lat, w.location.lng)
         return dist <= radius
@@ -229,24 +229,25 @@ export class WorkerRepository extends BaseRepository<Worker, Prisma.WorkerCreate
       }
     })
 
-    // Sort
-    enriched.sort((a, b) => {
-      switch (sortBy) {
-        case 'rating':
-          return b.avgRating - a.avgRating
-        case 'distance':
-          if (a.distanceKm === undefined) return 1
-          if (b.distanceKm === undefined) return -1
-          return a.distanceKm - b.distanceKm
-        case 'reviews':
-          return b.reviewCount - a.reviewCount
-        case 'newest':
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        case 'relevance':
-        default:
-          return (b.relevanceScore || 0) - (a.relevanceScore || 0)
-      }
-    })
+    // Apply sorting that requires computed fields
+    let sortedEnriched = enriched
+    if (requiresPostProcessing) {
+      sortedEnriched.sort((a, b) => {
+        switch (sortBy) {
+          case 'rating':
+            return b.avgRating - a.avgRating
+          case 'distance':
+            if (a.distanceKm === undefined) return 1
+            if (b.distanceKm === undefined) return -1
+            return a.distanceKm - b.distanceKm
+          case 'reviews':
+            return b.reviewCount - a.reviewCount
+          case 'relevance':
+          default:
+            return (b.relevanceScore || 0) - (a.relevanceScore || 0)
+        }
+      })
+    }
 
     const hasMore = enriched.length > take
     const data = enriched.slice(0, take)

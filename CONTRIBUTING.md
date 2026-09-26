@@ -234,7 +234,65 @@ cargo test
 # App
 cd packages/app
 pnpm test
+
+# SDK tests (with coverage)
+cd packages/sdk
+pnpm test:coverage
+
+# Monitoring tests (with coverage)
+cd packages/monitoring
+pnpm test:coverage
 ```
+
+---
+
+## Regression Test Suite
+
+The regression suite guards against regressions of previously-fixed critical bugs. Before opening
+a PR that touches payment, escrow, serializer, circuit-breaker, notification, or pagination code,
+run the full regression suite and confirm it stays green.
+
+### Location
+
+| File | Package | Issues covered |
+|---|---|---|
+| `packages/api/src/__tests__/regression.critical.test.ts` | `@bluecollar/api` | #517 (payment idempotency), #749 (refresh token reuse), #1215 (missing catchAsync), #1217 (N+1 escrow), #1218 (Prisma schema audit) |
+| `packages/api/src/__tests__/regression.new-bugs.test.ts` | `@bluecollar/api` | ISSUE-1 (serializer helpers), ISSUE-2 (circuit breaker), ISSUE-3 (notificationPrefs relocation), ISSUE-4 (pagination contract) |
+
+### Running the regression suite
+
+```bash
+# Run both regression files together
+cd packages/api
+pnpm vitest run src/__tests__/regression.critical.test.ts src/__tests__/regression.new-bugs.test.ts
+
+# Or run all API tests (includes regression files automatically)
+pnpm test
+```
+
+The regression tests are included in the standard `pnpm test` run — no extra step is required in
+CI. They run first because the file names sort before other test files alphabetically.
+
+### Tag convention
+
+Every `describe` block in a regression file is prefixed with `[regression]` and references the
+originating issue number or CHANGELOG entry in the JSDoc above the block. When adding a new
+regression guard:
+
+1. Find the CHANGELOG entry or `docs/changes/ISSUE-*.md` that documents the original bug.
+2. Add a `describe('[regression] <short description> (<issue ref>)')` block.
+3. Write the minimal test that would have caught the bug in its pre-fix state.
+4. Add a JSDoc comment citing the issue number (`@regression`, issue link, and pre-fix failure path).
+
+### Coverage thresholds
+
+| Package | Tool | Threshold |
+|---|---|---|
+| `packages/api` | vitest | Enforced by CI; no explicit numeric floor, but regression files must pass. |
+| `packages/sdk` | vitest/v8 | 85% lines, functions, statements; 80% branches |
+| `packages/monitoring` | vitest/v8 | 85% lines, functions, branches, statements |
+
+Run `pnpm test:coverage` in the respective package to view the current coverage report.
 
 ---
 
