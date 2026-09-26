@@ -21,3 +21,6 @@ bluecollar_insurance_pool = { path = "../insurance_pool" }
 
 [dev-dependencies]
 soroban-sdk = { workspace = true, features = ["testutils"] }
+
+[lints]
+workspace = true

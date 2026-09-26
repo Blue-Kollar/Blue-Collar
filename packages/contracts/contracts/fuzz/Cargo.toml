@@ -61,3 +61,6 @@ bluecollar-payment = { path = "../payment" }
 [features]
 # Enables the libFuzzer bins and the Soroban test host they need.
 fuzzing = ["dep:libfuzzer-sys", "dep:arbitrary", "soroban-sdk/testutils"]
+
+[lints]
+workspace = true
