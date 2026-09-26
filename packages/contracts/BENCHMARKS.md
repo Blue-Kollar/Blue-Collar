@@ -19,6 +19,12 @@ cargo test -p bluecollar-market benchmarks -- --nocapture
 
 # Run only registry benchmarks
 cargo test -p bluecollar-registry benchmarks -- --nocapture
+
+# Run only job-registry benchmarks
+cargo test -p bluecollar-job-registry benchmarks -- --nocapture
+
+# Or run the job-registry + market storage profile in one go (issue #1433)
+./scripts/profile-storage.sh
 ```
 
 Output lines are prefixed with `[BENCH]` for easy grepping:
@@ -33,20 +39,35 @@ Output lines are prefixed with `[BENCH]` for easy grepping:
 
 ## Baseline Numbers
 
-Baselines recorded on the `main` branch. Soroban host version: **v21.x**.
+Baselines recorded on the `main` branch. Soroban host version: **v26.1.3**
+(`soroban-env-host 26.1.3` / `soroban-sdk 26.1.0`).
 
-> âš ï¸ These are **estimated representative values** for the initial tracked baseline. Replace with actual numbers after running `cargo test benchmarks -- --nocapture` on the target commit and pasting the output below.
+> Market and Job-Registry numbers below are **measured** (the `[BENCH]` output
+> pasted verbatim). The Registry table still holds the original estimated
+> placeholders — `contracts/registry/src/benchmarks.rs` is not yet declared
+> from `registry/src/lib.rs`, so it does not compile or run.
 
 ### Market Contract
 
 | Operation | CPU Instructions | Memory Bytes | Notes |
 |-----------|-----------------|--------------|-------|
-| `tip` | ~3,000,000 | ~180,000 | Includes fee split + 2 token transfers |
-| `create_escrow` | ~2,500,000 | ~160,000 | Locks funds in contract |
-| `release_escrow` | ~3,200,000 | ~190,000 | Includes fee split + token transfer out |
-| `cancel_escrow` | ~2,200,000 | ~150,000 | Refund after expiry |
-| `create_multisig_escrow (2-of-2)` | ~2,800,000 | ~200,000 | Extra signer Vec storage |
-| `approve_multisig_release (1-of-1, transfers)` | ~3,500,000 | ~210,000 | Final approval triggers transfer |
+| `tip` | 470,737 | 137,500 | Includes fee split + 2 token transfers |
+| `create_escrow` | 322,320 | 122,336 | Locks funds in contract |
+| `release_escrow` | 528,179 | 166,318 | Includes fee split + token transfer out |
+| `cancel_escrow` | 333,511 | 122,772 | Refund after expiry |
+| `create_multisig_escrow (2-of-2)` | 331,577 | 128,816 | Extra signer Vec storage |
+| `approve_multisig_release (1-of-1, transfers)` | 356,550 | 137,812 | Final approval triggers transfer |
+| `request_multisig_arbitration (fee=0)` | 169,946 | 85,912 | Storage-only path; 199,052/91,771 before issue #1433 |
+
+### Job Registry Contract
+
+| Operation | CPU Instructions | Memory Bytes | Notes |
+|-----------|-----------------|--------------|-------|
+| `post_job` (empty index) | 172,623 | 73,059 | 177,368/73,451 before issue #1433 |
+| `post_job` (50 jobs indexed) | 478,598 | 242,042 | Index rewrite dominates; 485,341/242,434 before |
+| `assign_worker` | 123,408 | 51,692 | 127,871/52,084 before issue #1433 |
+| `complete_job` | 125,223 | 52,816 | 129,686/53,208 before issue #1433 |
+| `cancel_job` | 121,678 | 50,972 | 126,141/51,364 before issue #1433 |
 
 ### Registry Contract
 

@@ -17,6 +17,9 @@ mod storage;
 #[cfg(test)]
 mod test;
 
+#[cfg(test)]
+mod benchmarks;
+
 use logic::{
     do_assign_worker, do_cancel_job, do_complete_job, do_dispute_job, do_initialize, do_post_job,
     require_not_paused, require_role, role_to_id, ROLE_ADMIN, ROLE_PAUSER, ROLE_UPGRADER,
