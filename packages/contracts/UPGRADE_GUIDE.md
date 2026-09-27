@@ -4,12 +4,12 @@ This guide covers upgrading the deployed BlueCollar Soroban contracts (Registry 
 
 ## Prerequisites
 
-- [Rust](https://rustup.rs/) with `wasm32-unknown-unknown` target
+- [Rust](https://rustup.rs/) with `wasm32v1-none` target
 - [Stellar CLI](https://developers.stellar.org/docs/tools/developer-tools/cli/stellar-cli) installed
 - A funded account with the `ROLE_UPGRADER` role on the contract you are upgrading
 
 ```bash
-rustup target add wasm32-unknown-unknown
+rustup target add wasm32v1-none
 cargo install --locked stellar-cli
 ```
 
@@ -30,8 +30,8 @@ make build-market
 ```
 
 Output files:
-- `target/wasm32-unknown-unknown/release/bluecollar_registry.wasm`
-- `target/wasm32-unknown-unknown/release/bluecollar_market.wasm`
+- `target/wasm32v1-none/release/bluecollar_registry.wasm`
+- `target/wasm32v1-none/release/bluecollar_market.wasm`
 
 ### Step 2 — Install the WASM on-chain
 
@@ -40,14 +40,14 @@ Output files:
 ```bash
 # Registry
 stellar contract install \
-  --wasm target/wasm32-unknown-unknown/release/bluecollar_registry.wasm \
+  --wasm target/wasm32v1-none/release/bluecollar_registry.wasm \
   --source <YOUR_SECRET_KEY> \
   --network testnet
 # → outputs: <NEW_WASM_HASH>
 
 # Market
 stellar contract install \
-  --wasm target/wasm32-unknown-unknown/release/bluecollar_market.wasm \
+  --wasm target/wasm32v1-none/release/bluecollar_market.wasm \
   --source <YOUR_SECRET_KEY> \
   --network testnet
 # → outputs: <NEW_WASM_HASH>
@@ -94,12 +94,30 @@ The `admin` argument must match the signing key (`--source`), as `require_auth()
 
 ---
 
+## Version Verification
+
+Before upgrading, verify the contract exposes version information:
+
+```bash
+# Check the event schema version (incremented when events change)
+stellar contract invoke \
+  --id <CONTRACT_ID> \
+  --source <ANY_ACCOUNT_SECRET_KEY> \
+  --network testnet \
+  -- version
+# → Returns 1 for baseline event schema version
+```
+
+The `version()` function returns the **event schema version**, which tracks the structure of
+emitted events. It is distinct from **storage schema version** (see below), which tracks
+the persistent data layout.
+
 ## Schema Migration
 
 If the upgrade changes the storage layout, run `migrate` after the WASM is applied.
 
 ```bash
-# Check current schema version
+# Check current storage schema version
 stellar contract invoke \
   --id <CONTRACT_ID> \
   --source <ADMIN_SECRET_KEY> \
@@ -117,6 +135,12 @@ stellar contract invoke \
 ```
 
 `migrate` is idempotent-safe: it panics with `"Wrong schema version"` if called twice or out of order.
+
+### Version Semantics
+
+- **Event schema version** (`version()`): Bumped when events are added, removed, or renamed. Public API versioning.
+- **Storage schema version** (`get_schema_version()`): Bumped when persistent storage layout changes. Requires `migrate()`.
+- **WASM version** (deployment tracking): Incremented with each binary deployment.
 
 ---
 

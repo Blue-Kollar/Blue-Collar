@@ -1,59 +1,26 @@
-import { Router, type Request, type Response } from 'express'
-import { db } from '../db.js'
+import { Router } from 'express'
+import { authenticate, authorize } from '../middleware/auth.js'
+import { publicReadRateLimiter } from '../config/rateLimiter.js'
 import {
   listReviews,
   createReview,
   flagReview,
   getModerationQueue,
   moderateReview,
+  deleteReview,
 } from '../controllers/reviews.js'
-import { authenticate, authorize } from '../middleware/auth.js'
-import { catchAsync } from '../utils/catchAsync.js'
 
 const router = Router({ mergeParams: true })
 
-export async function listWorkerReviews(req: Request, res: Response) {
-  const workerId = req.params.workerId ?? req.params.id
-  const [reviews, aggregate] = await Promise.all([
-    db.review.findMany({
-      where: { workerId },
-      include: { author: { select: { id: true, firstName: true, lastName: true, avatar: true } } },
-      orderBy: { createdAt: 'desc' },
-    }),
-    db.review.aggregate({
-      where: { workerId },
-      _avg: { rating: true },
-      _count: { rating: true },
-    }),
-  ])
-
-  return res.json({
-    data: reviews,
-    avgRating: aggregate._avg.rating ?? 0,
-    reviewCount: aggregate._count.rating,
-    status: 'success',
-    code: 200,
-  })
-}
-
-export async function deleteReview(req: Request, res: Response) {
-  const review = await db.review.findUnique({ where: { id: req.params.id } })
-  if (!review) return res.status(404).json({ status: 'error', message: 'Not found', code: 404 })
-  if (review.authorId !== req.user!.id) {
-    return res.status(403).json({ status: 'error', message: 'Forbidden', code: 403 })
-  }
-
-  await db.review.delete({ where: { id: req.params.id } })
-  return res.status(204).send()
-}
-
-router.get('/', listReviews)
+router.get('/', publicReadRateLimiter, listReviews)
 router.post('/', authenticate, createReview)
 router.delete('/:id', authenticate, deleteReview)
-router.patch('/:id/flag', authenticate, catchAsync(flagReview))
+
+/** PATCH /api/workers/:workerId/reviews/:id/flag — flag a review for moderation. */
+router.patch('/:id/flag', authenticate, flagReview)
 
 // Admin moderation
-router.get('/moderation/queue', authenticate, authorize('admin'), catchAsync(getModerationQueue))
-router.patch('/:id/moderate', authenticate, authorize('admin'), catchAsync(moderateReview))
+router.get('/moderation/queue', authenticate, authorize('admin'), getModerationQueue)
+router.patch('/:id/moderate', authenticate, authorize('admin'), moderateReview)
 
 export default router

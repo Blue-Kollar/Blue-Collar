@@ -7,9 +7,11 @@ import type { Request, Response, NextFunction } from 'express'
 /**
  * Define schema transformations between API versions
  */
+type JsonObject = Record<string, unknown>
+
 interface SchemaTransformer {
-  v1ToV2?: (data: any) => any
-  v2ToV1?: (data: any) => any
+  v1ToV2?: (data: JsonObject) => JsonObject
+  v2ToV1?: (data: JsonObject) => JsonObject
 }
 
 /**
@@ -17,22 +19,22 @@ interface SchemaTransformer {
  */
 const transformers: Record<string, SchemaTransformer> = {
   worker: {
-    v1ToV2: (worker: any) => ({
+    v1ToV2: (worker: JsonObject) => ({
       ...worker,
       verificationStatus: worker.verificationStatus || 'unverified',
     }),
-    v2ToV1: (worker: any) => {
-      const { verificationStatus, ...rest } = worker
+    v2ToV1: (worker: JsonObject) => {
+      const { verificationStatus: _verificationStatus, ...rest } = worker
       return rest
     },
   },
   user: {
-    v1ToV2: (user: any) => ({
+    v1ToV2: (user: JsonObject) => ({
       ...user,
       twoFactorEnabled: user.twoFactorEnabled ?? false,
     }),
-    v2ToV1: (user: any) => {
-      const { twoFactorEnabled, ...rest } = user
+    v2ToV1: (user: JsonObject) => {
+      const { twoFactorEnabled: _twoFactorEnabled, ...rest } = user
       return rest
     },
   },
@@ -42,11 +44,11 @@ const transformers: Record<string, SchemaTransformer> = {
  * Transform response data based on target API version
  */
 export function transformResponseData(
-  data: any,
+  data: unknown,
   resourceType: string,
   targetVersion: string,
   sourceVersion: string = 'v1'
-): any {
+): unknown {
   if (!data) return data
   if (targetVersion === sourceVersion) return data
 
@@ -56,13 +58,13 @@ export function transformResponseData(
   if (sourceVersion === 'v1' && targetVersion === 'v2') {
     return Array.isArray(data)
       ? data.map(item => transformer.v1ToV2?.(item) ?? item)
-      : transformer.v1ToV2?.(data) ?? data
+      : transformer.v1ToV2?.(data as JsonObject) ?? data
   }
 
   if (sourceVersion === 'v2' && targetVersion === 'v1') {
     return Array.isArray(data)
       ? data.map(item => transformer.v2ToV1?.(item) ?? item)
-      : transformer.v2ToV1?.(data) ?? data
+      : transformer.v2ToV1?.(data as JsonObject) ?? data
   }
 
   return data
@@ -90,7 +92,7 @@ export function getCompatibleFields(version: string, resourceType: string): stri
 /**
  * Filter response to only include compatible fields
  */
-export function filterCompatibleFields(data: any, version: string, resourceType: string): any {
+export function filterCompatibleFields(data: unknown, version: string, resourceType: string): unknown {
   const fields = getCompatibleFields(version, resourceType)
   if (!fields.length) return data
 
@@ -98,11 +100,11 @@ export function filterCompatibleFields(data: any, version: string, resourceType:
     return data.map(item => filterFields(item, fields))
   }
 
-  return filterFields(data, fields)
+  return filterFields(data as JsonObject, fields)
 }
 
-function filterFields(obj: Record<string, any>, fields: string[]): Record<string, any> {
-  const result: Record<string, any> = {}
+function filterFields(obj: JsonObject, fields: string[]): JsonObject {
+  const result: JsonObject = {}
   for (const field of fields) {
     if (field in obj) {
       result[field] = obj[field]
@@ -117,14 +119,15 @@ function filterFields(obj: Record<string, any>, fields: string[]): Record<string
 export function responseSchemaVersioning(req: Request, res: Response, next: NextFunction) {
   const originalJson = res.json.bind(res)
 
-  res.json = function(data: any) {
+  res.json = function(data: unknown) {
     const targetVersion = req.apiVersion || 'v1'
 
     // If response has a data field, transform it
     if (data && typeof data === 'object' && 'data' in data) {
       const resourceType = inferResourceType(req.path)
       if (resourceType) {
-        data.data = transformResponseData(data.data, resourceType, targetVersion, 'v1')
+        const envelope = data as { data: unknown }
+        envelope.data = transformResponseData(envelope.data, resourceType, targetVersion, 'v1')
       }
     }
 
@@ -149,7 +152,7 @@ function inferResourceType(path: string): string | null {
  * Returns 400 if the payload contains fields that are not valid for the given version.
  */
 export function validateRequestSchema(
-  data: any,
+  data: unknown,
   version: string,
   resourceType: string
 ): { valid: boolean; errors?: string[] } {
@@ -158,7 +161,7 @@ export function validateRequestSchema(
     return { valid: true }
   }
 
-  const dataFields = Object.keys(data || {})
+  const dataFields = Object.keys((data ?? {}) as JsonObject)
   const invalidFields = dataFields.filter(field => !compatibleFields.includes(field))
 
   if (invalidFields.length > 0) {
@@ -204,7 +207,7 @@ export function getSchemaDifferences(
   resourceType: string,
   v1Fields: string[],
   v2Fields: string[]
-): Record<string, any> {
+): Record<string, string[]> {
   return {
     added: v2Fields.filter(f => !v1Fields.includes(f)),
     removed: v1Fields.filter(f => !v2Fields.includes(f)),

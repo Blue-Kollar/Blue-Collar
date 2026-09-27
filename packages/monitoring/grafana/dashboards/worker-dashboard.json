@@ -1,0 +1,37 @@
+{
+  "title": "Worker Dashboard",
+  "uid": "worker-dashboard",
+  "version": 1,
+  "panels": [
+    {
+      "title": "Active Workers",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "worker_active",
+          "legendFormat": "{{worker_type}}"
+        }
+      ]
+    },
+    {
+      "title": "Job Processing Duration",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(worker_job_duration_seconds_bucket[5m])) by (le, job_type))",
+          "legendFormat": "{{job_type}}"
+        }
+      ]
+    },
+    {
+      "title": "Queue Size",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "queue_size",
+          "legendFormat": "{{queue_name}}"
+        }
+      ]
+    }
+  ]
+}

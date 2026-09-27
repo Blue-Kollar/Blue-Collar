@@ -1,45 +1,48 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Bell, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useLocale } from "next-intl";
 import { cn } from "@/lib/utils";
-import type { NotificationType } from "@/types";
+import {
+  getNotificationPreferences,
+  updateNotificationPreferences,
+  type NotificationPreferences,
+} from "@/lib/api";
 
-const PREFS_KEY = "bc_notification_prefs";
+const DEFAULT_PREFS: NotificationPreferences = {
+  newWorkerNearby: true,
+  statusChange: true,
+  reviewReply: true,
+  announcements: true,
+};
 
-const NOTIFICATION_TYPES: { type: NotificationType; label: string; description: string }[] = [
-  { type: "tip", label: "Tips", description: "When someone sends you a Stellar tip" },
-  { type: "review", label: "Reviews", description: "When a new review is posted on your profile" },
-  { type: "contact", label: "Contact requests", description: "When someone sends you a contact request" },
-  { type: "system", label: "System", description: "Platform updates and announcements" },
+const NOTIFICATION_TYPES: { type: keyof NotificationPreferences; label: string; description: string }[] = [
+  { type: "newWorkerNearby", label: "New worker nearby", description: "When a new worker joins in your area" },
+  { type: "statusChange", label: "Status changes", description: "When a worker you follow changes status" },
+  { type: "reviewReply", label: "Review replies", description: "When someone replies to your review" },
+  { type: "announcements", label: "Announcements", description: "Platform updates and announcements" },
 ];
-
-function loadPrefs(): Record<NotificationType, boolean> {
-  if (typeof window === "undefined")
-    return { tip: true, review: true, contact: true, system: true };
-  try {
-    return JSON.parse(localStorage.getItem(PREFS_KEY) ?? "null") ?? {
-      tip: true, review: true, contact: true, system: true,
-    };
-  } catch {
-    return { tip: true, review: true, contact: true, system: true };
-  }
-}
 
 export default function NotificationPreferencesPage() {
   const locale = useLocale();
-  const [prefs, setPrefs] = useState<Record<NotificationType, boolean>>(loadPrefs);
+  const [prefs, setPrefs] = useState<NotificationPreferences>(DEFAULT_PREFS);
   const [saved, setSaved] = useState(false);
 
-  const toggle = (type: NotificationType) => {
+  useEffect(() => {
+    getNotificationPreferences()
+      .then((res) => setPrefs({ ...DEFAULT_PREFS, ...res.data }))
+      .catch(() => {});
+  }, []);
+
+  const toggle = (type: keyof NotificationPreferences) => {
     setPrefs((p) => ({ ...p, [type]: !p[type] }));
     setSaved(false);
   };
 
-  const save = () => {
-    localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
+  const save = async () => {
+    await updateNotificationPreferences(prefs);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };

@@ -13,6 +13,25 @@ export async function sendVerificationEmail(to: string, name: string, token: str
   await transporter.sendMail({ from: FROM, to, subject: 'Verify your BlueCollar email', html })
 }
 
+/**
+ * Nudges a user who registered but never verified their email. Distinct from
+ * sendVerificationEmail's initial send: this variant includes an unsubscribe
+ * link so recipients can opt out of further reminders.
+ */
+export async function sendVerificationReminderEmail(
+  to: string,
+  name: string,
+  token: string,
+  unsubscribeToken: string,
+) {
+  const html = render('verification-reminder.html', {
+    name,
+    verificationLink: `${APP_URL}/api/auth/verify-account?token=${token}`,
+    unsubscribeLink: `${APP_URL}/api/notifications/unsubscribe?token=${unsubscribeToken}`,
+  })
+  await transporter.sendMail({ from: FROM, to, subject: 'Reminder: verify your BlueCollar email', html })
+}
+
 export async function sendPasswordResetEmail(to: string, name: string, token: string) {
   const html = render('reset-password.html', {
     name,
@@ -26,15 +45,49 @@ export async function sendWelcomeEmail(to: string, name: string) {
   await transporter.sendMail({ from: FROM, to, subject: 'Welcome to BlueCollar 🎉', html })
 }
 
-export async function sendContactRequestEmail(to: string, workerName: string, fromUserName: string) {
-  const html = `
-    <p>Hi,</p>
-    <p><strong>${fromUserName}</strong> has sent you a contact request for your <strong>${workerName}</strong> listing.</p>
-    <p><a href="${APP_URL}/dashboard">View contact requests</a></p>
-    <p>Best regards,<br>BlueCollar Team</p>
-  `
+// ── Generic notification ────────────────────────────────────────────────────
+//
+// sendContactRequestEmail, sendModerationEmail, sendInsuranceRenewalReminder,
+// and sendVerificationStatusEmail previously each built their own one-off
+// inline HTML string with the same "Hi {{name}}, <message> <cta>" shape.
+// They now all render the shared notification.html template through this
+// helper, so there's one place to update copy/branding instead of four.
+async function sendNotificationEmail(options: {
+  to: string
+  subject: string
+  name: string
+  message: string
+  extraHtml?: string
+  ctaText?: string
+  ctaLink?: string
+}): Promise<void> {
+  const html = render('notification.html', {
+    subject: options.subject,
+    name: options.name,
+    message: options.message,
+    extraHtml: options.extraHtml ?? '',
+    ctaText: options.ctaText ?? 'View dashboard',
+    ctaLink: options.ctaLink ?? `${APP_URL}/dashboard`,
+  })
+  const info = await transporter.sendMail({ from: FROM, to: options.to, subject: options.subject, html })
 
-  await transporter.sendMail({ from: FROM, to, subject: 'New contact request for your worker listing', html })
+  // `options`/`message` are transport-implementation details (JSON dev-stub transport)
+  // not part of nodemailer's public Transporter/SentMessageInfo types.
+  const transporterOptions = (transporter as unknown as { options?: { jsonTransport?: boolean } }).options
+  if (transporterOptions?.jsonTransport) {
+    const devInfo = info as unknown as { message: string }
+    logger.debug({ message: JSON.parse(devInfo.message) }, '[mailer] Notification email (dev stub)')
+  }
+}
+
+export async function sendContactRequestEmail(to: string, workerName: string, fromUserName: string) {
+  await sendNotificationEmail({
+    to,
+    subject: 'New contact request for your worker listing',
+    name: 'there',
+    message: `${fromUserName} has sent you a contact request for your ${workerName} listing.`,
+    ctaText: 'View contact requests',
+  })
 }
 
 export async function sendModerationEmail(
@@ -43,25 +96,21 @@ export async function sendModerationEmail(
   status: 'approved' | 'rejected',
 ): Promise<void> {
   const action = status === 'approved' ? 'approved' : 'rejected'
-  const info = await transporter.sendMail({
-    from: `"BlueCollar" <${process.env.MAIL_USER ?? 'noreply@bluecollar.app'}>`,
+  await sendNotificationEmail({
     to,
     subject: `Your review has been ${action}`,
-    html: `<p>Hi <strong>${firstName}</strong>, your review has been <strong>${action}</strong> by our moderation team.</p>`,
+    name: firstName,
+    message: `Your review has been ${action} by our moderation team.`,
   })
-  if ((transporter as any).options?.jsonTransport) {
-    logger.debug({ message: JSON.parse((info as any).message) }, '[mailer] Moderation email (dev stub)')
-  }
 }
 
 export async function sendInsuranceRenewalReminder(to: string, workerName: string, expiresAt: Date) {
-  await transporter.sendMail({
-    from: FROM,
+  await sendNotificationEmail({
     to,
     subject: `Insurance renewal required: ${workerName}`,
-    html: `<p>The insurance document for <strong>${workerName}</strong> expires on <strong>${expiresAt.toDateString()}</strong>.</p>
-<p>Please upload a renewed document to keep the worker's profile active.</p>
-<p><a href="${APP_URL}/dashboard">Go to dashboard</a></p>`,
+    name: 'there',
+    message: `The insurance document for ${workerName} expires on ${expiresAt.toDateString()}. Please upload a renewed document to keep the worker's profile active.`,
+    ctaText: 'Go to dashboard',
   })
 }
 
@@ -74,14 +123,12 @@ export async function sendVerificationStatusEmail(
 ) {
   const action = status === 'approved' ? 'approved ✅' : 'rejected ❌'
   const noteHtml = reviewNote ? `<p><strong>Note:</strong> ${reviewNote}</p>` : ''
-  await transporter.sendMail({
-    from: FROM,
+  await sendNotificationEmail({
     to,
     subject: `Worker verification ${status}: ${workerName}`,
-    html: `<p>Hi <strong>${firstName}</strong>,</p>
-<p>The verification request for <strong>${workerName}</strong> has been <strong>${action}</strong>.</p>
-${noteHtml}
-<p><a href="${APP_URL}/dashboard">View your dashboard</a></p>
-<p>Best regards,<br>BlueCollar Team</p>`,
+    name: firstName,
+    message: `The verification request for ${workerName} has been ${action}.`,
+    extraHtml: noteHtml,
+    ctaText: 'View your dashboard',
   })
 }

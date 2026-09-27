@@ -1,0 +1,44 @@
+name: Commit Lint
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+
+permissions:
+  contents: read
+
+jobs:
+  commits:
+    name: Lint commit messages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: wagoid/commitlint-github-action@v6
+        with:
+          configFile: commitlint.config.js
+
+  pr-title:
+    name: Lint PR title
+    runs-on: ubuntu-latest
+    steps:
+      # Squash merges use the PR title as the commit subject on main, so it
+      # never passes through the commit-msg hook or the job above.
+      # Check out the base ref so the config comes from trusted code, not the PR.
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.base_ref }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install commitlint
+        run: npm install --no-save @commitlint/cli@^18.4.0 @commitlint/config-conventional@^18.4.0
+
+      - name: Lint PR title
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: printf '%s' "$PR_TITLE" | npx --no -- commitlint

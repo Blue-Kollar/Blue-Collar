@@ -1,11 +1,12 @@
-import { Validator } from 'simple-body-validator'
-
-/**
- * Validation schemas for admin endpoints.
- */
+import { z } from 'zod'
 
 // DELETE /admin/workers (bulk delete)
-export const bulkDeleteRules = (v: Validator) => {
-  v.field('ids').required().array().minLength(1)
-  v.field('ids.*').string()
-}
+export const bulkDeleteRules = z.object({
+  ids: z.array(z.string().min(1)).min(1),
+})
+
+// PATCH /admin/workers (bulk toggle active)
+export const bulkToggleRules = z.object({
+  ids: z.array(z.string().min(1)).min(1),
+  active: z.boolean(),
+})

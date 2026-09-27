@@ -31,7 +31,7 @@ Install the following tools before you begin. Exact minimum versions are listed 
 | Docker + Compose | 24 / 2.24 | [docs.docker.com](https://docs.docker.com/get-docker/) |
 | Rust + Cargo | 1.79 | `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \| sh` |
 | Stellar CLI | 21 | `cargo install --locked stellar-cli` (takes 15–30 min) |
-| WASM target | — | `rustup target add wasm32-unknown-unknown` |
+| WASM target | — | `rustup target add wasm32v1-none` |
 
 Verify your setup:
 
@@ -113,7 +113,7 @@ pnpm docker:up
 # Run database migrations
 cd packages/api && pnpm migrate && cd ../..
 
-# Seed the database with default categories
+# Seed the database with demo-ready data (categories, curators, workers)
 cd packages/api && pnpm seed && cd ../..
 
 # Stop and remove containers (data volumes are preserved)
@@ -156,8 +156,10 @@ docker compose up -d db redis
 cd packages/api
 pnpm prisma:generate   # generates Prisma client from schema
 pnpm migrate           # runs prisma migrate dev
-pnpm seed              # seeds default categories
+pnpm seed              # seeds categories + admin + curators + 20 workers
 ```
+
+See [Seeding the database](#seeding-the-database) for all available seed commands.
 
 **3. Start the API**
 
@@ -188,16 +190,16 @@ You only need this section if you are working on the smart contracts.
 
 ```bash
 cd packages/contracts
-cargo build --release --target wasm32-unknown-unknown
+cargo build --release --target wasm32v1-none
 ```
 
 This produces WASM binaries for all workspace members:
 
 | Contract | WASM output |
 |---|---|
-| Registry | `target/wasm32-unknown-unknown/release/bluecollar_registry.wasm` |
-| Market | `target/wasm32-unknown-unknown/release/bluecollar_market.wasm` |
-| Dispute | `target/wasm32-unknown-unknown/release/bluecollar_dispute.wasm` |
+| Registry | `target/wasm32v1-none/release/bluecollar_registry.wasm` |
+| Market | `target/wasm32v1-none/release/bluecollar_market.wasm` |
+| Dispute | `target/wasm32v1-none/release/bluecollar_dispute.wasm` |
 | Fuzz (lib-only) | — |
 
 > `fee_distribution` and `insurance_pool` contracts exist but are not yet in the workspace. Build them individually from their directories.
@@ -222,7 +224,7 @@ cargo clippy --workspace -- -D warnings
 
 ```bash
 stellar contract deploy \
-  --wasm target/wasm32-unknown-unknown/release/bluecollar_registry.wasm \
+  --wasm target/wasm32v1-none/release/bluecollar_registry.wasm \
   --source <your-secret-key> \
   --network testnet
 ```
@@ -378,21 +380,21 @@ pnpm install
 ```
 error[E0463]: can't find crate for `core`
   |
-  = note: the `wasm32-unknown-unknown` target may not be installed
+  = note: the `wasm32v1-none` target may not be installed
 ```
 
 Install the WASM target:
 
 ```bash
-rustup target add wasm32-unknown-unknown
+rustup target add wasm32v1-none
 ```
 
-### `cargo build --target wasm32-unknown-unknown` fails on Windows
+### `cargo build --target wasm32v1-none` fails on Windows
 
-On Windows, the WASM target requires the `wasm32-unknown-unknown` toolchain. Ensure you installed it:
+On Windows, the WASM target requires the `wasm32v1-none` toolchain. Ensure you installed it:
 
 ```bash
-rustup target add wasm32-unknown-unknown
+rustup target add wasm32v1-none
 ```
 
 If you see linker errors (`LNK`), install [LLVM](https://releases.llvm.org/) or use [WSL](https://learn.microsoft.com/en-us/windows/wsl/) to build contracts.
@@ -520,3 +522,71 @@ PRs are squash-merged. The CI pipeline runs tests, build, and lint automatically
 ---
 
 For questions, join the [Telegram community](https://t.me/bluecollar) or open a [GitHub Discussion](https://github.com/Fidelis900/Blue-Collar/discussions).
+
+
+---
+
+## Seeding the database
+
+### What gets seeded
+
+Running `pnpm seed` creates:
+
+| Entity | Count | Details |
+|--------|-------|---------|
+| Categories | 10 | Plumber, Electrician, Carpenter, Welder, Mason, Painter, Roofer, HVAC, Landscaper, General Contractor |
+| Admin user | 1 | `admin@bluecollar.dev` |
+| Curator users | 3 | `curator1–3@bluecollar.dev` |
+| Workers | 20 | 2 per category, assigned round-robin to curators |
+
+### Available commands
+
+```bash
+cd packages/api
+
+# Basic seed — idempotent, safe to re-run
+pnpm seed
+
+# Full seed including sample reviews
+pnpm seed:reviews
+
+# Wipe everything and re-seed (dev only — not allowed in production)
+pnpm seed:reset
+
+# Staging seed — realistic fake data using faker.js (~15 workers, 30+ reviews)
+NODE_ENV=staging pnpm seed:staging
+```
+
+### Default credentials (development only)
+
+| Role | Email | Password |
+|------|-------|----------|
+| Admin | `admin@bluecollar.dev` | `Admin1234!` |
+| Curator | `curator1@bluecollar.dev` | `Curator1234!` |
+| Curator | `curator2@bluecollar.dev` | `Curator1234!` |
+| Curator | `curator3@bluecollar.dev` | `Curator1234!` |
+
+> **Production note:** dev passwords are only used when `NODE_ENV !== 'production'`.  
+> In production or CI, set `SEED_ADMIN_PASSWORD`, `SEED_CURATOR1_PASSWORD`, etc. via environment variables — the script will throw if they are missing.
+
+### Environment variables
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `SEED_ADMIN_EMAIL` | `admin@bluecollar.dev` | Admin account email |
+| `SEED_ADMIN_PASSWORD` | `Admin1234!` (dev only) | Admin password |
+| `SEED_CURATOR1_EMAIL` | `curator1@bluecollar.dev` | Curator 1 email |
+| `SEED_CURATOR1_PASSWORD` | `Curator1234!` (dev only) | Curator 1 password |
+| `SEED_CURATOR2_EMAIL` | `curator2@bluecollar.dev` | Curator 2 email |
+| `SEED_CURATOR2_PASSWORD` | `Curator1234!` (dev only) | Curator 2 password |
+| `SEED_CURATOR3_EMAIL` | `curator3@bluecollar.dev` | Curator 3 email |
+| `SEED_CURATOR3_PASSWORD` | `Curator1234!` (dev only) | Curator 3 password |
+
+### Idempotency
+
+The seed is safe to run multiple times:
+
+- Categories are inserted with `skipDuplicates: true`.
+- Users are upserted by email — re-running leaves passwords unchanged.
+- Workers are skipped if a row with the same `email` already exists.
+- Reviews are skipped if an identical `(workerId, authorId)` pair exists.

@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { userSerializer } from '../serializers/user.serializer.js'
 import { categorySerializer } from '../serializers/category.serializer.js'
 import { workerSerializer } from '../serializers/worker.serializer.js'
+import { jobSerializer, jobSummarySerializer } from '../serializers/job.serializer.js'
 import { serializeError } from '../serializers/error.serializer.js'
 import { AppError, ErrorCode } from '../utils/AppError.js'
 
@@ -61,6 +62,53 @@ describe('WorkerSerializer', () => {
     expect(result.category).toMatchObject({ id: 'c1', name: 'Plumber' })
     expect(result.curator).not.toHaveProperty('password')
     expect(result.curator?.email).toBe('a@b.com')
+  })
+})
+
+const mockJob: any = {
+  id: 'j1', title: 'Fix sink', description: 'Leaky pipe under the sink',
+  budget: 150, skills: ['plumbing'], urgency: 'normal',
+  escrowAmount: null, escrowTxId: null,
+  categoryId: 'c1', locationId: null, postedById: 'u1',
+  status: 'open', expiresAt: null, renewedAt: null,
+  createdAt: new Date(), updatedAt: new Date(),
+  category: mockCategory, postedBy: mockUser,
+}
+
+describe('JobSerializer', () => {
+  it('embeds category and postedBy, keeps full field set', () => {
+    const result = jobSerializer.serialize(mockJob)
+    expect(result).toMatchObject({ id: 'j1', title: 'Fix sink', description: 'Leaky pipe under the sink' })
+    expect(result.category).toMatchObject({ id: 'c1', name: 'Plumber' })
+    expect(result.postedBy).not.toHaveProperty('password')
+    expect(result.postedBy?.email).toBe('a@b.com')
+  })
+
+  it('omits relation keys when not loaded', () => {
+    const { category, postedBy, ...jobWithoutRelations } = mockJob
+    const result = jobSerializer.serialize(jobWithoutRelations)
+    expect(result).not.toHaveProperty('category')
+    expect(result).not.toHaveProperty('postedBy')
+  })
+})
+
+describe('JobSummarySerializer', () => {
+  it('narrows to the summary field set derived from JobSerializer', () => {
+    const result = jobSummarySerializer.serialize(mockJob)
+    expect(result).toEqual({
+      id: 'j1', title: 'Fix sink', budget: 150, urgency: 'normal',
+      status: 'open', categoryId: 'c1', locationId: null,
+      expiresAt: null, createdAt: mockJob.createdAt,
+      category: { id: 'c1', name: 'Plumber', description: null, icon: null, createdAt: mockCategory.createdAt, updatedAt: mockCategory.updatedAt },
+    })
+    expect(result).not.toHaveProperty('description')
+    expect(result).not.toHaveProperty('postedBy')
+  })
+
+  it('serializes a collection of summaries', () => {
+    const results = jobSummarySerializer.collection([mockJob, mockJob])
+    expect(results).toHaveLength(2)
+    results.forEach((r) => expect(r).not.toHaveProperty('description'))
   })
 })
 

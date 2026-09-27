@@ -7,6 +7,8 @@
  */
 
 import { db } from '../db.js'
+import * as workerService from './worker.service.js'
+import { WorkerResource } from '../resources/index.js'
 
 const VALID_LANG_CONFIGS = new Set([
   'simple', 'english', 'french', 'german', 'spanish',
@@ -186,14 +188,14 @@ WHERE ${whereSQL}
   let results = rows
   if (lat !== undefined && lng !== undefined) {
     results = rows.filter(row => {
-      const loc = row['location'] as any
+      const loc = row['location'] as { lat: number; lng: number } | null | undefined
       if (!loc?.lat || !loc?.lng) return false
       const dist = haversine(lat, lng, loc.lat, loc.lng)
-      ;(row as any)['distanceKm'] = dist
+      row['distanceKm'] = dist
       return dist <= radius
     })
     if (sortBy === 'distance') {
-      results.sort((a, b) => ((a as any)['distanceKm'] ?? Infinity) - ((b as any)['distanceKm'] ?? Infinity))
+      results.sort((a, b) => ((a['distanceKm'] as number | undefined) ?? Infinity) - ((b['distanceKm'] as number | undefined) ?? Infinity))
     }
   }
 
@@ -226,6 +228,79 @@ WHERE ${whereSQL}
       page: pageNum,
       limit: limitNum,
       pages: Math.ceil(total / limitNum),
+    },
+  }
+}
+
+export interface AdvancedSearchFilters {
+  query?: string
+  lat?: number
+  lng?: number
+  radius?: number
+  categories?: string[]
+  minRating?: number
+  maxRating?: number
+  dayOfWeek?: number
+  startTime?: string
+  endTime?: string
+  isVerified?: boolean
+  sortBy?: string
+  page?: number
+  limit?: number
+}
+
+export interface AdvancedSearchResult {
+  data: ReturnType<typeof WorkerResource>[]
+  meta: { total: number; page: number; limit: number; hasMore: boolean; pages: number }
+}
+
+/**
+ * Advanced worker search: combines geo/rating/availability/category filters,
+ * paginates, serializes results, and logs search analytics when a text query
+ * was supplied. Consolidates what used to be inline logic in the search route
+ * handler so the controller only has to parse the request and send the response.
+ */
+export async function performAdvancedSearch(
+  filters: AdvancedSearchFilters,
+  ipAddress: string,
+): Promise<AdvancedSearchResult> {
+  const page = Math.max(filters.page ?? 1, 1)
+  const limit = Math.min(Math.max(filters.limit ?? 20, 1), 100)
+
+  const result = await workerService.advancedSearch({
+    query: filters.query,
+    lat: filters.lat,
+    lng: filters.lng,
+    radius: filters.radius,
+    categories: filters.categories,
+    minRating: filters.minRating,
+    maxRating: filters.maxRating,
+    dayOfWeek: filters.dayOfWeek,
+    startTime: filters.startTime,
+    endTime: filters.endTime,
+    isVerified: filters.isVerified,
+    sortBy: filters.sortBy as 'relevance' | 'rating' | 'distance' | 'newest' | 'reviews' | undefined,
+    skip: (page - 1) * limit,
+    take: limit,
+  })
+
+  if (filters.query) {
+    await workerService.trackSearchAnalytics(
+      filters.query,
+      result.data.length,
+      !!(filters.lat || filters.categories || filters.minRating !== undefined),
+      ipAddress,
+    )
+  }
+
+  return {
+    data: result.data.map((w) => WorkerResource(w)),
+    meta: {
+      total: result.total,
+      page,
+      limit,
+      hasMore: result.hasMore,
+      pages: Math.ceil(result.total / limit),
     },
   }
 }
