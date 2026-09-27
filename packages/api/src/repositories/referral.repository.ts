@@ -1,6 +1,6 @@
 import type { Prisma, Referral, User } from '@prisma/client'
 import type { IRepository } from './base.repository.js'
-import { db } from '../db.js'
+import { db } from '@/db.js'
 
 // ── Interface ─────────────────────────────────────────────────────────────────
 

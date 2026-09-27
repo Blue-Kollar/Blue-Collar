@@ -6,7 +6,7 @@
  *
  * This tests the integration point between SecureStorage and ApiClient.
  */
-import { SecureStorage } from '../../auth/SecureStorage'
+import { SecureStorage } from '@/auth/SecureStorage'
 
 jest.mock('expo-secure-store', () => {
   const store = new Map<string, string>()

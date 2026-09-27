@@ -3,8 +3,8 @@ import { z } from 'zod'
 import {
   registerRules, loginRules, forgotPasswordRules,
   resetPasswordRules, verifyAccountRules, resendVerificationRules,
-} from '../validations/auth.js'
-import { createWorkerRules, updateWorkerRules } from '../validations/worker.js'
+} from '@/validations/auth.js'
+import { createWorkerRules, updateWorkerRules } from '@/validations/worker.js'
 import {
   registry, BearerAuth, ErrorSchema, SuccessSchema, CategorySchema,
   WorkerSchema, UserSchema, TokenResponseSchema, PaginatedWorkersSchema,

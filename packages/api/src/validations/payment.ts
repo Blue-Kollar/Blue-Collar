@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { walletAddressSchema, stellarAmountSchema } from '../middleware/validate.js'
+import { walletAddressSchema, stellarAmountSchema } from '@/middleware/validate.js'
 
 // POST /payments/tip
 export const tipRules = z.object({

@@ -5,7 +5,7 @@
  * that `packages/monitoring` (or any logger-based sink) can subscribe to.
  */
 
-import { logger } from '../config/logger.js';
+import { logger } from '@/config/logger.js';
 
 export type BreakerState = 'closed' | 'open' | 'half-open';
 

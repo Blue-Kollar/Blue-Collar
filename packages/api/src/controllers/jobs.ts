@@ -1,10 +1,10 @@
 import type { Request, Response } from 'express'
-import { catchAsync } from '../utils/catchAsync.js'
-import { AppError, ErrorCode } from '../utils/AppError.js'
-import { ErrorMessages } from '../constants/errors.js'
-import * as jobService from '../services/job.service.js'
-import { validate } from '../middleware/validate.js'
-import { parsePaginationParams } from '../utils/pagination.js'
+import { catchAsync } from '@/utils/catchAsync.js'
+import { AppError, ErrorCode } from '@/utils/AppError.js'
+import { ErrorMessages } from '@/constants/errors.js'
+import * as jobService from '@/services/job.service.js'
+import { validate } from '@/middleware/validate.js'
+import { parsePaginationParams } from '@/utils/pagination.js'
 import {
   createJobSchema,
   updateJobSchema,
@@ -13,7 +13,7 @@ import {
   sendMessageSchema,
   listJobsQuerySchema,
   type ListJobsQuery,
-} from '../validations/job.js'
+} from '@/validations/job.js'
 
 // ── Exported validators for use in router ─────────────────────────────────────
 export const validateCreateJob = validate(createJobSchema)

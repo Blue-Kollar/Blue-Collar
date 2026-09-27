@@ -11,10 +11,10 @@
  */
 import type { Request, Response } from 'express'
 import type { Role } from '@prisma/client'
-import { db } from '../db.js'
-import { paginate } from '../utils/paginate.js'
-import { AppError, ErrorCode } from '../utils/AppError.js'
-import { catchAsync } from '../utils/catchAsync.js'
+import { db } from '@/db.js'
+import { paginate } from '@/utils/paginate.js'
+import { AppError, ErrorCode } from '@/utils/AppError.js'
+import { catchAsync } from '@/utils/catchAsync.js'
 
 export const listUsers = catchAsync(async (req: Request, res: Response) => {
   const { page = '1', limit = '20', search, role, status } = req.query as Record<string, string | undefined>

@@ -4,10 +4,10 @@ import fs from 'node:fs'
 import { randomBytes } from 'node:crypto'
 import type { Request, Response, NextFunction } from 'express'
 import type { MediaAsset } from '@prisma/client'
-import { AppError } from '../utils/AppError.js'
-import { uploadFile, getSignedDownloadUrl } from '../services/storage.service.js'
-import { processImage } from '../utils/imageProcessor.js'
-import { db } from '../db.js'
+import { AppError } from '@/utils/AppError.js'
+import { uploadFile, getSignedDownloadUrl } from '@/services/storage.service.js'
+import { processImage } from '@/utils/imageProcessor.js'
+import { db } from '@/db.js'
 
 declare global {
   namespace Express {

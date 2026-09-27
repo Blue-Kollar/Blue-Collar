@@ -10,7 +10,7 @@
  */
 
 import type { Worker } from 'bullmq'
-import { logger } from '../config/logger.js'
+import { logger } from '@/config/logger.js'
 
 export interface GracefulShutdownOptions {
   /** Max time (ms) to wait for in-flight jobs to finish before forcing exit. */

@@ -1,7 +1,7 @@
 import { Router } from 'express'
-import { createDispute, listDisputes, getDispute, resolveDispute } from '../controllers/disputes.js'
-import { authenticate, authorize } from '../middleware/auth.js'
-import { disputesWriteRateLimiter } from '../middleware/rateLimit.js'
+import { createDispute, listDisputes, getDispute, resolveDispute } from '@/controllers/disputes.js'
+import { authenticate, authorize } from '@/middleware/auth.js'
+import { disputesWriteRateLimiter } from '@/middleware/rateLimit.js'
 
 const router = Router()
 

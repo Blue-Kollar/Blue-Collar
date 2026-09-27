@@ -13,4 +13,4 @@ export {
   getRevenueMetrics,
   getDisputeMetrics,
   type DateRangeFilter,
-} from '../../repositories/analytics.repository.js'
+} from '@/repositories/analytics.repository.js'

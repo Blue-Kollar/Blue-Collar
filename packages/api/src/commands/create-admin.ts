@@ -1,6 +1,6 @@
 import { parseArgs } from 'node:util'
 import argon2 from 'argon2'
-import { db } from '../db.js'
+import { db } from '@/db.js'
 
 const { values } = parseArgs({
   options: {

@@ -10,11 +10,11 @@
  * singleton so existing route wiring requires no changes.
  */
 import type { Request, Response } from 'express'
-import { catchAsync } from '../utils/catchAsync.js'
-import { AppError, ErrorCode } from '../utils/AppError.js'
-import { paymentService as defaultPaymentService, PaymentService } from '../services/payment.service.js'
-import { HttpStatus } from '../constants/index.js'
-import { ErrorMessages } from '../constants/errors.js'
+import { catchAsync } from '@/utils/catchAsync.js'
+import { AppError, ErrorCode } from '@/utils/AppError.js'
+import { paymentService as defaultPaymentService, PaymentService } from '@/services/payment.service.js'
+import { HttpStatus } from '@/constants/index.js'
+import { ErrorMessages } from '@/constants/errors.js'
 
 // ── Controller factory (enables dependency injection) ─────────────────────────
 

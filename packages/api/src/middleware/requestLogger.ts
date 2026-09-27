@@ -132,7 +132,7 @@ export const requestLogger = pinoHttp({
  * automatically correlated with the originating HTTP request:
  *
  * ```ts
- * import { childLogger } from '../middleware/requestLogger.js'
+ * import { childLogger } from '@/middleware/requestLogger.js'
  *
  * function handleRequest(req: Request) {
  *   const log = childLogger(req)
@@ -141,7 +141,7 @@ export const requestLogger = pinoHttp({
  * }
  * ```
  */
-import { logger } from '../config/logger.js'
+import { logger } from '@/config/logger.js'
 
 export function childLogger(req: Request) {
   return logger.child({

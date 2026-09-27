@@ -13,7 +13,7 @@
  */
 
 import { JobRunner } from './job-runner.js'
-import { logger } from '../config/logger.js'
+import { logger } from '@/config/logger.js'
 
 const POLL_INTERVAL_MS = 30_000
 

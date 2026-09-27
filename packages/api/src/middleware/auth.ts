@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from 'express'
-import { verifyToken } from '../utils/tokenValidator.js'
-import { hasRole } from '../utils/roleChecker.js'
+import { verifyToken } from '@/utils/tokenValidator.js'
+import { hasRole } from '@/utils/roleChecker.js'
 
 // JWT structure: three base64url segments separated by dots
 const JWT_PATTERN = /^[A-Za-z0-9\-_]+\.[A-Za-z0-9\-_]+\.[A-Za-z0-9\-_]+$/

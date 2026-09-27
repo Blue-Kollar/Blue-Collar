@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { registry, BearerAuth, SuccessSchema } from '../registry.js'
+import { registry, BearerAuth, SuccessSchema } from '@/openapi/registry.js'
 
 // app.ts mounts routes/bookings.ts at unversioned /api/bookings only. The
 // app.use('/api/v1/bookings', bookingRoutes) call references an undefined

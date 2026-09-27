@@ -1,4 +1,4 @@
-import { db } from "../db.js";
+import { db } from "@/db.js";
 
 /**
  * Notification-preferences domain logic. Previously lived in the generic

@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { registry, BearerAuth, SuccessSchema } from '../registry.js'
+import { registry, BearerAuth, SuccessSchema } from '@/openapi/registry.js'
 
 const PortfolioItemSchema = registry.register('PortfolioItem', z.object({
   id: z.string(),

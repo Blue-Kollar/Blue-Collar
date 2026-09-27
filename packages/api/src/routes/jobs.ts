@@ -6,10 +6,10 @@ import {
   myPostedJobs, myApplications, recommendedJobs,
   validateCreateJob, validateUpdateJob, validateApply,
   validateAppStatus, validateSendMessage, validateListQuery,
-} from '../controllers/jobs.js'
-import { authenticate } from '../middleware/auth.js'
-import { publicReadRateLimiter } from '../config/rateLimiter.js'
-import { jobsWriteRateLimiter } from '../middleware/rateLimit.js'
+} from '@/controllers/jobs.js'
+import { authenticate } from '@/middleware/auth.js'
+import { publicReadRateLimiter } from '@/config/rateLimiter.js'
+import { jobsWriteRateLimiter } from '@/middleware/rateLimit.js'
 
 const router = Router()
 

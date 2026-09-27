@@ -1,6 +1,6 @@
 import { View, Text, FlatList, StyleSheet, ActivityIndicator } from "react-native";
-import { useStaleWhileRevalidate } from "../../cache";
-import { workersApi } from "../../lib/api";
+import { useStaleWhileRevalidate } from "@/cache";
+import { workersApi } from "@/lib/api";
 
 export default function DiscoveryScreen() {
   const { data: workers, isLoading, isFromCache, isRefreshing, isError, error } =

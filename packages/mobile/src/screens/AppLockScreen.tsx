@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native'
-import { BiometricAuth } from '../auth/BiometricAuth'
-import { SecureStorage } from '../auth/SecureStorage'
+import { BiometricAuth } from '@/auth/BiometricAuth'
+import { SecureStorage } from '@/auth/SecureStorage'
 
 interface AppLockScreenProps {
   onUnlock: () => void

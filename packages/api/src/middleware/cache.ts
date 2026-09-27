@@ -14,7 +14,7 @@ import {
   cacheDel,
   CacheTTL,
   CacheKeys,
-} from '../services/cache.service.js'
+} from '@/services/cache.service.js'
 
 export { CacheTTL, CacheKeys }
 

@@ -2,14 +2,14 @@
  * Booking routes — Issue #776
  */
 import { Router } from 'express'
-import { authenticateJWT } from '../middleware/auth.js'
-import { bookingRateLimit } from '../middleware/rateLimit.js'
+import { authenticateJWT } from '@/middleware/auth.js'
+import { bookingRateLimit } from '@/middleware/rateLimit.js'
 import {
   createBooking,
   confirmBooking,
   cancelBooking,
   getMyBookings,
-} from '../controllers/bookings.js'
+} from '@/controllers/bookings.js'
 
 const router = Router()
 

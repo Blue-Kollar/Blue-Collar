@@ -5,7 +5,7 @@
  * Polls every POLL_INTERVAL_MS (default 30s). Uses database cursor to track
  * last processed ledger/transaction so restarts are safe and no events are missed.
  */
-import { logger } from '../config/logger.js'
+import { logger } from '@/config/logger.js'
 import { publishEvent } from './webhook.service.js'
 import * as indexerService from './indexer.service.js'
 import { stellarRpcClient } from './stellar-rpc.client.js'

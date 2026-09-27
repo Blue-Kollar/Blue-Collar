@@ -1,10 +1,10 @@
 import type { Request, Response } from 'express'
-import { db } from '../db.js'
-import { sendModerationEmail } from '../mailer/index.js'
-import * as reviewService from '../services/review.service.js'
-import { AppError, ErrorCode } from '../utils/AppError.js'
-import { catchAsync } from '../utils/catchAsync.js'
-import { createPaginationHelper } from '../utils/pagination.js'
+import { db } from '@/db.js'
+import { sendModerationEmail } from '@/mailer/index.js'
+import * as reviewService from '@/services/review.service.js'
+import { AppError, ErrorCode } from '@/utils/AppError.js'
+import { catchAsync } from '@/utils/catchAsync.js'
+import { createPaginationHelper } from '@/utils/pagination.js'
 
 // ── Worker-scoped review handlers (used by routes/workers.ts) ─────────────────
 // These live here so that routes/workers.ts does NOT need to import from

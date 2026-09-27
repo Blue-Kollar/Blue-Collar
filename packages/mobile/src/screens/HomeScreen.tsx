@@ -14,9 +14,9 @@ import {
   ActivityIndicator,
   FlatList,
 } from 'react-native'
-import { useAuth } from '../../context/AuthContext'
-import { workersApi, contactRequestsApi } from '../../lib/api'
-import { useStaleWhileRevalidate } from '../../cache'
+import { useAuth } from '@/context/AuthContext'
+import { workersApi, contactRequestsApi } from '@/lib/api'
+import { useStaleWhileRevalidate } from '@/cache'
 
 export interface HomeScreenProps {
   onNavigateToDiscovery?: () => void

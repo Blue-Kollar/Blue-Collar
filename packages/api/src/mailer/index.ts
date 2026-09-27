@@ -1,5 +1,5 @@
 import { transporter } from './transport.js'
-import { logger } from '../config/logger.js'
+import { logger } from '@/config/logger.js'
 import { render } from './templateEngine.js'
 
 const APP_URL = process.env.APP_URL ?? 'http://localhost:3000'

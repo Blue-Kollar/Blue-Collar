@@ -1,6 +1,6 @@
-import { AppError, ErrorCode } from '../utils/AppError.js'
-import { getTraceId } from '../monitoring/tracing.js'
-import { ErrorMessages, HttpStatus } from '../constants/index.js'
+import { AppError, ErrorCode } from '@/utils/AppError.js'
+import { getTraceId } from '@/monitoring/tracing.js'
+import { ErrorMessages, HttpStatus } from '@/constants/index.js'
 
 export interface ErrorResponse {
   status: 'error'
