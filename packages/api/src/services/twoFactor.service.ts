@@ -3,7 +3,7 @@ import QRCode from 'qrcode'
 import crypto from 'node:crypto'
 import argon2 from 'argon2'
 import { db } from '../db.js'
-import { AppError } from '../services/AppError.js'
+import { AppError } from '../utils/AppError.js'
 
 const ISSUER = 'BlueCollar'
 const BACKUP_CODE_COUNT = 8

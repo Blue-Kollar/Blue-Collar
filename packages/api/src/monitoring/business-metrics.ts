@@ -17,6 +17,7 @@ import {
 } from '../middleware/metrics.js'
 import { db } from '../db.js'
 import { logger } from '../config/logger.js'
+import { getErrorMessage } from '../utils/getErrorMessage.js'
 
 class BusinessMetricsRecorder {
   /**
@@ -28,8 +29,8 @@ class BusinessMetricsRecorder {
         where: { isActive: true },
       })
       setActiveWorkers(activeCount)
-    } catch (err: any) {
-      logger.error('Failed to sync worker metrics:', err.message)
+    } catch (err) {
+      logger.error(`Failed to sync worker metrics: ${getErrorMessage(err)}`)
     }
   }
 
@@ -60,8 +61,8 @@ class BusinessMetricsRecorder {
         })
         setUsersVerified(verifiedByRole, stat.role)
       }
-    } catch (err: any) {
-      logger.error('Failed to sync user metrics:', err.message)
+    } catch (err) {
+      logger.error(`Failed to sync user metrics: ${getErrorMessage(err)}`)
     }
   }
 
@@ -71,8 +72,8 @@ class BusinessMetricsRecorder {
   recordWorkerCreated(category: string) {
     try {
       recordWorkerRegistration(category, 'success')
-    } catch (err: any) {
-      logger.error('Failed to record worker registration:', err.message)
+    } catch (err) {
+      logger.error(`Failed to record worker registration: ${getErrorMessage(err)}`)
     }
   }
 
@@ -82,8 +83,8 @@ class BusinessMetricsRecorder {
   recordPayment(amount: number, currency: string = 'XLM', usdValue: number = 0) {
     try {
       recordTip(amount, currency, usdValue)
-    } catch (err: any) {
-      logger.error('Failed to record payment metric:', err.message)
+    } catch (err) {
+      logger.error(`Failed to record payment metric: ${getErrorMessage(err)}`)
     }
   }
 
@@ -93,8 +94,8 @@ class BusinessMetricsRecorder {
   recordReviewCreated(rating: number, category: string = 'all') {
     try {
       recordReview(rating, category)
-    } catch (err: any) {
-      logger.error('Failed to record review metric:', err.message)
+    } catch (err) {
+      logger.error(`Failed to record review metric: ${getErrorMessage(err)}`)
     }
   }
 
@@ -104,8 +105,8 @@ class BusinessMetricsRecorder {
   recordContractRegistrationAttempt(success: boolean) {
     try {
       recordContractRegistration(success ? 'success' : 'failure')
-    } catch (err: any) {
-      logger.error('Failed to record contract registration metric:', err.message)
+    } catch (err) {
+      logger.error(`Failed to record contract registration metric: ${getErrorMessage(err)}`)
     }
   }
 
@@ -115,8 +116,8 @@ class BusinessMetricsRecorder {
   recordContractTx(type: string, success: boolean, gasUsed?: number) {
     try {
       recordContractTransaction(type, success ? 'success' : 'failure', gasUsed)
-    } catch (err: any) {
-      logger.error('Failed to record contract transaction metric:', err.message)
+    } catch (err) {
+      logger.error(`Failed to record contract transaction metric: ${getErrorMessage(err)}`)
     }
   }
 

@@ -1,0 +1,21 @@
+{{- if .Values.api.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "blue-collar.fullname" . }}-api
+  labels:
+    app.kubernetes.io/name: {{ include "blue-collar.name" . }}-api
+    helm.sh/chart: {{ include "blue-collar.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  type: ClusterIP
+  ports:
+  - port: {{ .Values.api.containerPort }}
+    targetPort: http
+    protocol: TCP
+    name: http
+  selector:
+    app.kubernetes.io/name: {{ include "blue-collar.name" . }}-api
+    app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}

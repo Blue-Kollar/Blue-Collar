@@ -3,24 +3,67 @@
   "version": "1.0.0",
   "description": "BlueCollar - Decentralised protocol built on Stellar that connects local skilled workers with users through community-curated listings",
   "private": true,
+  "packageManager": "pnpm@10.32.1",
   "workspaces": [
     "packages/*"
   ],
   "scripts": {
+    "prepare": "husky",
+    "commitlint": "commitlint --from HEAD~1",
     "dev": "concurrently \"pnpm --filter @bluecollar/api dev\" \"pnpm --filter @bluecollar/app dev\"",
     "build": "pnpm --filter @bluecollar/api build && pnpm --filter @bluecollar/app build",
     "test": "pnpm --filter @bluecollar/api test && pnpm --filter @bluecollar/app test",
-    "lint": "pnpm --filter @bluecollar/api lint && pnpm --filter @bluecollar/app lint",
+    "test:integration:db": "pnpm --filter @bluecollar/api test:integration:db",
+    "type-check": "pnpm --filter @bluecollar/types type-check && pnpm --filter @bluecollar/api tsc --noEmit && pnpm --filter @bluecollar/app type-check",
+    "lint": "pnpm --filter @bluecollar/types lint && pnpm --filter @bluecollar/sdk lint && pnpm --filter @bluecollar/api lint && pnpm --filter @bluecollar/app lint",
     "format": "prettier --write \"packages/**/*.{ts,tsx,js,json,md}\"",
+    "format:check": "prettier --check \"packages/**/*.{ts,tsx,js,json,md}\"",
+    "audit": "pnpm audit --audit-level=high",
+    "audit:fix": "pnpm audit --fix",
+    "security:scan": "pnpm audit --audit-level=high && pnpm --filter @bluecollar/contracts security:scan",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down"
   },
   "devDependencies": {
+    "@commitlint/cli": "^18.4.0",
+    "@commitlint/config-conventional": "^18.4.0",
     "concurrently": "^9.1.2",
+    "husky": "^9.0.0",
+    "lint-staged": "17.4.1",
     "prettier": "^3.5.3"
+  },
+  "lint-staged": {
+    "packages/api/src/**/*.ts": [
+      "pnpm --filter @bluecollar/api exec eslint --fix --max-warnings=0",
+      "prettier --write"
+    ],
+    "packages/app/src/**/*.{ts,tsx}": [
+      "prettier --write"
+    ],
+    "packages/sdk/src/**/*.ts": [
+      "pnpm --filter @bluecollar/sdk exec eslint --fix --max-warnings=0",
+      "prettier --write"
+    ],
+    "packages/types/src/**/*.ts": [
+      "pnpm --filter @bluecollar/types exec eslint --fix --max-warnings=0",
+      "prettier --write"
+    ],
+    "packages/monitoring/src/**/*.ts": [
+      "prettier --write"
+    ],
+    "**/*.{js,json,md}": [
+      "prettier --write"
+    ]
   },
   "license": "MIT",
   "dependencies": {
     "@tailwindcss/oxide-linux-x64-gnu": "4.2.4"
+  },
+  "pnpm": {
+    "overrides": {
+      "tar": ">=7.5.19",
+      "vite": ">=6.4.3",
+      "protobufjs": ">=8.0.2"
+    }
   }
 }

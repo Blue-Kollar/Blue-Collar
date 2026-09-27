@@ -8,8 +8,23 @@ members = [
     "contracts/insurance_pool",
     "contracts/fuzz",
     "contracts/integration",
+    # Issue #1017 — reputation contract (security-audited)
+    "contracts/reputation",
+    # Issue #1018 — job-registry contract (modular: storage/logic/lib)
+    "contracts/job_registry",
+    # Issue #1019 — payment contract (comprehensive test coverage)
+    "contracts/payment",
+    # Issue #1020 — escrow contract (modular: storage/logic/lib)
+    "contracts/escrow",
 ]
 resolver = "2"
+
+# ── Shared dependency versions ────────────────────────────────────────────────
+# Pin soroban-sdk once here so every crate uses the same version automatically.
+# To upgrade: change the version below and run `cargo update` — no per-crate
+# edits needed.
+[workspace.dependencies]
+soroban-sdk = { version = "26.1.0", features = ["alloc"] }
 
 [profile.release]
 opt-level = "z"
@@ -18,3 +33,22 @@ debug = 0
 strip = "symbols"
 panic = "abort"
 codegen-units = 1
+
+# Lint policy for all contract crates (issue #1254).
+# Each crate opts in via `[lints] workspace = true` in its own Cargo.toml.
+[workspace.lints.clippy]
+# Enable the pedantic group as a warning (not deny) so issues surface without
+# blocking compilation. Crate authors should fix or explicitly allow each one.
+pedantic = "warn"
+# ----- Blanket exceptions for Soroban contract patterns -----
+# Soroban entry-point functions receive `Env` by value (SDK requirement).
+needless_pass_by_value = "allow"
+# Contract query functions are called by the host; `#[must_use]` is irrelevant.
+must_use_candidate = "allow"
+# SDK-generated discriminant casts are safe and intentional.
+cast_possible_truncation = "allow"
+cast_sign_loss = "allow"
+# Documenting every `Err` variant is aspirational but not enforced in MVP.
+missing_errors_doc = "allow"
+# Module-level doc missing on private helper modules is acceptable.
+module_name_repetitions = "allow"

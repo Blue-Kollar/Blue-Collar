@@ -1,40 +1,53 @@
 import type { Request, Response } from 'express'
 import * as categoryService from '../services/category.service.js'
-import { handleError } from '../utils/handleError.js'
+import { catchAsync } from '../utils/catchAsync.js'
+import { AppError, ErrorCode } from '../utils/AppError.js'
 import { CategoryResource, CategoryCollection } from '../resources/index.js'
 import { ErrorMessages, HttpStatus } from '../constants/index.js'
+import { sendSuccess } from '../utils/response.js'
+import { createPaginationHelper } from '../utils/pagination.js'
+
+export const listCategories = catchAsync(async (req: Request, res: Response) => {
+  const { skip, take, buildMeta } = createPaginationHelper(req.query, {
+    maxLimit: 100,
+    defaultLimit: 20,
+  })
+
+  const [categories, total] = await categoryService.listCategoriesWithPagination(skip, take)
+  return sendSuccess(res, {
+    ...CategoryCollection(categories),
+    meta: buildMeta(total),
+  })
+})
+
+export const getCategory = catchAsync(async (req: Request, res: Response) => {
+  const category = await categoryService.getCategory(req.params.id as string)
+  if (!category) {
+    throw new AppError(ErrorMessages.CATEGORY_NOT_FOUND, HttpStatus.NOT_FOUND, true, ErrorCode.NOT_FOUND)
+  }
+  return sendSuccess(res, CategoryResource(category))
+})
 
 /**
- * GET /api/categories
- * List all available worker categories.
- *
- * @param _req - Unused.
- * @param res - JSON `{ data: Category[], status, code: 200 }`.
+ * POST /api/categories — admin only.
  */
-export async function listCategories(_req: Request, res: Response) {
-  try {
-    const categories = await categoryService.listCategories()
-    return res.json({ data: CategoryCollection(categories as any), status: 'success', code: 200 })
-  } catch (err) {
-    return handleError(res, err)
-  }
-}
+export const createCategory = catchAsync(async (req: Request, res: Response) => {
+  const category = await categoryService.createCategory(req.body)
+  return res.status(201).json({ data: CategoryResource(category), status: 'success', code: 201 })
+})
 
 /**
- * GET /api/categories/:id
- * Get a single category by id.
- *
- * @param req - Route param `id`.
- * @param res - JSON `{ data: Category, status, code: 200 }` or 404.
+ * PUT /api/categories/:id — admin only.
  */
-export async function getCategory(req: Request, res: Response) {
-  try {
-    const category = await categoryService.getCategory(req.params.id as string)
-    if (!category) {
-      return res.status(HttpStatus.NOT_FOUND).json({ status: 'error', message: ErrorMessages.CATEGORY_NOT_FOUND, code: HttpStatus.NOT_FOUND })
-    }
-    return res.json({ data: CategoryResource(category as any), status: 'success', code: 200 })
-  } catch (err) {
-    return handleError(res, err)
-  }
-}
+export const updateCategory = catchAsync(async (req: Request, res: Response) => {
+  const category = await categoryService.updateCategory(req.params.id as string, req.body)
+  return res.json({ data: CategoryResource(category), status: 'success', code: 200 })
+})
+
+/**
+ * DELETE /api/categories/:id — admin only.
+ */
+export const deleteCategory = catchAsync(async (req: Request, res: Response) => {
+  await categoryService.deleteCategory(req.params.id as string)
+  return res.status(204).send()
+})

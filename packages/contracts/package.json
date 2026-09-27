@@ -1,0 +1,22 @@
+{
+  "name": "@bluecollar/contracts",
+  "version": "1.0.0",
+  "description": "Stellar Soroban smart contracts for BlueCollar protocol",
+  "private": true,
+  "scripts": {
+    "build": "make build",
+    "test": "make test",
+    "audit": "make audit",
+    "security:scan": "make security-scan",
+    "coverage": "make coverage",
+    "fuzz": "make fuzz",
+    "clean": "make clean"
+  },
+  "keywords": [
+    "stellar",
+    "soroban",
+    "smart-contracts",
+    "rust"
+  ],
+  "license": "MIT"
+}

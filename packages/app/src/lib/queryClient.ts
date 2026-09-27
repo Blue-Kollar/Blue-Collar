@@ -23,10 +23,12 @@ export const queryKeys = {
   workers: {
     all: () => ["workers"] as const,
     list: (params?: Record<string, unknown>) => ["workers", "list", params] as const,
+    mine: (params?: Record<string, unknown>) => ["workers", "mine", params] as const,
     detail: (id: string) => ["workers", "detail", id] as const,
     analytics: (id: string) => ["workers", "analytics", id] as const,
     reviews: (id: string, params?: Record<string, unknown>) => ["workers", "reviews", id, params] as const,
     trends: (id: string, days: number) => ["workers", "trends", id, days] as const,
+    dashboard: (id: string, params?: Record<string, unknown>) => ["workers", "dashboard", id, params] as const,
   },
   categories: {
     all: () => ["categories"] as const,
@@ -57,5 +59,14 @@ export const queryKeys = {
   },
   bookmarks: {
     list: (params?: Record<string, unknown>) => ["bookmarks", params] as const,
+  },
+  admin: {
+    users: (params?: Record<string, unknown>) => ["admin", "users", params] as const,
+    disputes: (params?: Record<string, unknown>) => ["admin", "disputes", params] as const,
+    moderationQueue: () => ["admin", "moderation-queue"] as const,
+    auditLogs: (params?: Record<string, unknown>) => ["admin", "audit", params] as const,
+  },
+  settings: {
+    emailNotificationPrefs: () => ["settings", "email-notification-prefs"] as const,
   },
 };

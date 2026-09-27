@@ -63,12 +63,13 @@ export interface AuthUser {
 
 // ─── Pagination ───────────────────────────────────────────────────────────────
 
-export interface Meta {
-  total: number;
-  page: number;
-  limit: number;
-  pages: number;
-}
+/**
+ * Issue #1237 — Meta, ApiResponse, PaginatedResult, and PaginatedResponse
+ * are now the canonical types in @bluecollar/sdk so both packages/api and
+ * packages/app share a single definition.  Re-exported here so all existing
+ * imports from "@/types" continue to work without modification.
+ */
+export type { Meta, ApiResponse, PaginatedResult, PaginatedResponse } from '@bluecollar/sdk'
 
 export interface RatingDistributionEntry {
   rating: number;
@@ -77,18 +78,8 @@ export interface RatingDistributionEntry {
 }
 
 // ─── API response wrappers ────────────────────────────────────────────────────
-
-/** Standard API envelope returned by all endpoints. */
-export interface ApiResponse<T> {
-  data: T;
-  meta?: Meta;
-  status: string;
-  code: number;
-  message?: string;
-}
-
-/** Paginated list response. */
-export type PaginatedResponse<T> = ApiResponse<T[]> & { meta: Meta };
+// Moved to @bluecollar/sdk — re-exported via the Pagination section above.
+// (ApiResponse, PaginatedResult, PaginatedResponse, Meta)
 
 // ─── Form types ───────────────────────────────────────────────────────────────
 
@@ -123,6 +114,33 @@ export interface WorkerAnalytics {
   reviewCount: number;
   updatedAt: string | null;
 }
+// Re-export shared types from @bluecollar/types
+export type {
+  Category,
+  PortfolioImage,
+  Worker,
+  Review,
+  User,
+  AuthUser,
+  Meta,
+  RatingDistributionEntry,
+  ApiResponse,
+  PaginatedResponse,
+  LoginForm,
+  RegisterForm,
+  WorkerForm,
+  AuditLogEntry,
+  Job,
+  JobApplication,
+  Conversation,
+  Message,
+  AppNotification,
+  NotificationType,
+  TipDTO,
+  WorkerAnalytics
+} from '@bluecollar/types'
+
+// ─── Analytics types (app-only views) ────────────────────────────────────────
 
 export interface WorkerSummary {
   id: string;
@@ -208,6 +226,43 @@ export interface ViewTrend {
   views: number;
 }
 
+export interface WorkerDashboardSeriesPoint {
+  date: string;
+  views: number;
+  uniqueViews: number;
+  tips: number;
+  tipCount: number;
+  avgRating: number | null;
+  reviewCount: number;
+  earnings: number;
+}
+
+export interface WorkerPersonalDashboard {
+  worker: { id: string; name: string; category: string; walletAddress?: string | null };
+  range: { startDate: string; endDate: string };
+  summary: {
+    totalViews: number;
+    uniqueViews: number;
+    tipsReceived: number;
+    tipCount: number;
+    avgRating: number;
+    reviewCount: number;
+    earnings: number;
+    contacts: number;
+  };
+  deltas: {
+    totalViews: number;
+    uniqueViews: number;
+    tipsReceived: number;
+    avgRating: number;
+    earnings: number;
+  };
+  charts: {
+    series: WorkerDashboardSeriesPoint[];
+    ratingDistribution: Array<{ rating: number; count: number }>;
+  };
+}
+
 export interface TopWorker {
   rank: number;
   workerId: string;
@@ -217,45 +272,6 @@ export interface TopWorker {
   totalTips: number;
   bookmarkCount: number;
   avgRating: number;
-}
-
-// ─── Jobs ─────────────────────────────────────────────────────────────────────
-
-export type JobStatus = "open" | "closed" | "expired" | "filled";
-export type JobUrgency = "low" | "normal" | "urgent";
-export type ApplicationStatus = "pending" | "accepted" | "rejected" | "withdrawn";
-
-export interface Job {
-  id: string;
-  title: string;
-  description: string;
-  budget?: number | null;
-  skills: string[];
-  urgency: JobUrgency;
-  escrowAmount?: number | null;
-  escrowTxId?: string | null;
-  status: JobStatus;
-  expiresAt?: string | null;
-  renewedAt?: string | null;
-  createdAt: string;
-  updatedAt: string;
-  category: Category;
-  location?: { id: string; city: string; state?: string | null; country: string } | null;
-  postedBy: { id: string; firstName: string; lastName: string; avatar?: string | null };
-  _count?: { applications: number; messages: number };
-}
-
-export interface JobApplication {
-  id: string;
-  jobId: string;
-  workerId: string;
-  coverLetter?: string | null;
-  proposedRate?: number | null;
-  status: ApplicationStatus;
-  createdAt: string;
-  updatedAt: string;
-  job?: { id: string; title: string; postedById: string };
-  worker?: { id: string; name: string; avatar?: string | null; email?: string | null; category?: Category };
 }
 
 export interface JobMessage {
@@ -268,63 +284,35 @@ export interface JobMessage {
   recipient: { id: string; firstName: string; lastName: string; avatar?: string | null };
 }
 
-// ── Notifications ───────────────────────────────────────────────────────────
+// ─── Invoices ─────────────────────────────────────────────────────────────────
 
-export type NotificationType = "tip" | "review" | "contact" | "system" | "message";
+export type InvoiceStatus = "draft" | "issued" | "paid" | "overdue" | "void";
 
-export interface AppNotification {
+export interface InvoiceLineItem {
   id: string;
-  userId: string;
-  type: NotificationType;
-  title: string;
-  message?: string | null;
-  href?: string | null;
-  read: boolean;
-  createdAt: string;
+  description: string;
+  quantity: number;
+  /** Price per unit, in the invoice's currency. */
+  unitAmount: number;
 }
 
-// ── Conversations ───────────────────────────────────────────────────────────
-
-export interface Conversation {
+export interface InvoiceParty {
   id: string;
-  subject?: string | null;
-  createdAt: string;
-  updatedAt: string;
-  participants: ConversationParticipant[];
-  messages?: Message[];
-  unreadCount?: number;
+  name: string;
 }
 
-export interface ConversationParticipant {
+export interface Invoice {
   id: string;
-  conversationId: string;
-  userId: string;
-  lastReadAt?: string | null;
-  joinedAt: string;
-  user: { id: string; firstName: string; lastName: string; avatar?: string | null };
-}
-
-export interface Message {
-  id: string;
-  conversationId: string;
-  senderId: string;
-  body: string;
-  attachmentUrl?: string | null;
-  attachmentType?: string | null;
-  readAt?: string | null;
-  createdAt: string;
-  sender: { id: string; firstName: string; lastName: string; avatar?: string | null };
-}
-
-// ── Audit Log ──────────────────────────────────────────────────────────────
-
-export interface AuditLogEntry {
-  id: string;
-  userId?: string | null;
-  action: string;
-  resource?: string | null;
-  resourceId?: string | null;
-  meta?: Record<string, unknown> | null;
-  createdAt: string;
-  user?: { id: string; firstName: string; lastName: string; email: string } | null;
+  number: string;
+  status: InvoiceStatus;
+  issuedAt: string;
+  dueAt?: string | null;
+  currency: string;
+  worker: InvoiceParty;
+  client: InvoiceParty;
+  lineItems: InvoiceLineItem[];
+  /** Platform fee in the invoice's currency. */
+  platformFee: number;
+  notes?: string | null;
+  transactionHash?: string | null;
 }

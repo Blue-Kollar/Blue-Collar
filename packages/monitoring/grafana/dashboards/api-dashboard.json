@@ -1,0 +1,47 @@
+{
+  "title": "API Service Dashboard",
+  "uid": "api-dashboard",
+  "version": 1,
+  "panels": [
+    {
+      "title": "Request Rate",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "rate(http_requests_total[5m])",
+          "legendFormat": "{{method}} {{route}}"
+        }
+      ]
+    },
+    {
+      "title": "Error Rate",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "rate(http_request_errors_total[5m])",
+          "legendFormat": "{{method}} {{route}}"
+        }
+      ]
+    },
+    {
+      "title": "Request Duration (p95)",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, method, route))",
+          "legendFormat": "{{method}} {{route}}"
+        }
+      ]
+    },
+    {
+      "title": "Active Requests",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "http_active_requests",
+          "legendFormat": "Active Requests"
+        }
+      ]
+    }
+  ]
+}

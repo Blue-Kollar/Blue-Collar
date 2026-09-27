@@ -9,36 +9,38 @@
  *   const info = await sdk.horizon.getAccountInfo(publicKey)
  */
 
-export { HorizonClient, SdkError } from './horizon.client.js'
-export { RegistryClient } from './registry.client.js'
-export type * from './types.js'
+// Core clients
+export { HorizonClient, SdkError } from './horizon.client.js';
+export { RegistryClient } from './registry.client.js';
 
-import { HorizonClient } from './horizon.client.js'
-import { RegistryClient } from './registry.client.js'
-import type { SdkConfig } from './types.js'
+// Shared Stellar constants — single source of truth (#1295)
+export * from './constants.js';
 
-const HORIZON_URLS: Record<SdkConfig['network'], string> = {
-  testnet: 'https://horizon-testnet.stellar.org',
-  mainnet: 'https://horizon.stellar.org',
-}
+// Types
+export type * from './types.js';
+
+import { HorizonClient } from './horizon.client.js';
+import { RegistryClient } from './registry.client.js';
+import type { SdkConfig } from './types.js';
+import { HORIZON_URLS } from './constants.js';
 
 /**
  * Create a configured SDK instance. Call once per process or once per request
  * depending on your runtime (Node.js vs Edge).
  */
 export function createSdk(config: Partial<SdkConfig> & Pick<SdkConfig, 'network'>) {
-  const horizonUrl = config.horizonUrl ?? HORIZON_URLS[config.network]
+  const horizonUrl = config.horizonUrl ?? HORIZON_URLS[config.network];
 
-  const horizon = new HorizonClient({ horizonUrl })
+  const horizon = new HorizonClient({ horizonUrl });
 
   const registry = config.registryContractId
     ? new RegistryClient({
         registryContractId: config.registryContractId,
         network: config.network,
       })
-    : null
+    : null;
 
-  return { horizon, registry, config: { ...config, horizonUrl } }
+  return { horizon, registry, config: { ...config, horizonUrl } };
 }
 
-export type BlueCollarSdk = ReturnType<typeof createSdk>
+export type BlueCollarSdk = ReturnType<typeof createSdk>;

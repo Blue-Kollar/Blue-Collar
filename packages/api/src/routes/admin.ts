@@ -2,6 +2,7 @@ import { Router } from 'express'
 import {
   listWorkers, listUsers, getStats, bulkToggleWorkers, bulkDeleteWorkers,
   suspendUser, unsuspendUser, banUser, changeRole, moderateWorker, listAuditLogs,
+  bulkSuspendUsers, bulkUnsuspendUsers,
 } from '../controllers/admin.js'
 import { importWorkersFromCsvController } from '../controllers/csv-import.js'
 import { exportWorkers, exportUsers } from '../controllers/export.js'
@@ -38,6 +39,8 @@ router.patch('/users/:id/suspend', suspendUser)
 router.patch('/users/:id/unsuspend', unsuspendUser)
 router.patch('/users/:id/ban', banUser)
 router.patch('/users/:id/role', changeRole)
+router.patch('/users/bulk-suspend', bulkSuspendUsers)
+router.patch('/users/bulk-unsuspend', bulkUnsuspendUsers)
 router.patch('/workers/:id/moderate', moderateWorker)
 router.get('/audit', listAuditLogs)
 

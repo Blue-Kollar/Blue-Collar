@@ -1,7 +1,7 @@
 import type { User, Prisma } from '@prisma/client'
 import type { IRepository } from './base.repository.js'
+import { BaseRepository } from './base.repository.js'
 import { db } from '../db.js'
-import { QueryBuilder } from './queryBuilder.js'
 
 // ── Interface ─────────────────────────────────────────────────────────────────
 
@@ -14,31 +14,15 @@ export interface IUserRepository extends IRepository<User, Prisma.UserCreateInpu
 }
 
 // ── Prisma implementation ─────────────────────────────────────────────────────
+//
+// CRUD (find/create/update/delete/count) is inherited from BaseRepository,
+// which also fixes a prior inconsistency here: findById used to skip the
+// deletedAt filter that findAll applied, so a soft-deleted user could still
+// be looked up by id. BaseRepository applies the filter uniformly.
 
-export class UserRepository implements IUserRepository {
-  async findById(id: string): Promise<User | null> {
-    return db.user.findUnique({ where: { id } })
-  }
-
-  async findAll(opts: { skip?: number; take?: number } = {}): Promise<User[]> {
-    const query = QueryBuilder.pagination(opts)
-    return db.user.findMany({ ...query, orderBy: QueryBuilder.defaultSort() })
-  }
-
-  async create(data: Prisma.UserCreateInput): Promise<User> {
-    return db.user.create({ data })
-  }
-
-  async update(id: string, data: Prisma.UserUpdateInput): Promise<User> {
-    return db.user.update({ where: { id }, data })
-  }
-
-  async delete(id: string): Promise<User> {
-    return db.user.delete({ where: { id } })
-  }
-
-  async count(where?: Prisma.UserWhereInput): Promise<number> {
-    return db.user.count({ where })
+export class UserRepository extends BaseRepository<User, Prisma.UserCreateInput, Prisma.UserUpdateInput, Prisma.UserWhereInput> implements IUserRepository {
+  constructor() {
+    super(db.user, { softDelete: true })
   }
 
   async findByEmail(email: string): Promise<User | null> {
