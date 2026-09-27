@@ -42,3 +42,11 @@ export function createSdk(config: Partial<SdkConfig> & Pick<SdkConfig, 'network'
 }
 
 export type BlueCollarSdk = ReturnType<typeof createSdk>
+
+export {
+  STROOPS_PER_XLM,
+  MAX_DECIMAL_PLACES,
+  formatWalletAddress,
+  formatXLM,
+  isValidStellarAddress,
+} from './utils/stellar';
