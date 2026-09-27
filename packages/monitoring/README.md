@@ -51,3 +51,7 @@ pnpm dev
 ## Dashboard
 
 For a visual dashboard, integrate with monitoring tools like Grafana or Datadog.
+
+## Architecture & Package Boundaries
+
+- **[ADR 0001: Monorepo Package Boundaries](../../docs/adr/0001-monorepo-package-boundaries.md)** — documents monorepo boundary rules. `packages/monitoring` is a standalone observer service that reads from Stellar / Soroban contracts.

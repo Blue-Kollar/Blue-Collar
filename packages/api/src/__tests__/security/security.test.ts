@@ -65,7 +65,7 @@ vi.mock('../config/redis.js', () => ({
 
 vi.mock('../monitoring/tracing.js', () => ({ initTracing: vi.fn() }))
 
-import app from '../app.js'
+import app from '../../app.js'
 import * as authService from '../services/auth.service.js'
 
 // ── Attack payloads ───────────────────────────────────────────────────────────
@@ -357,5 +357,69 @@ describe('Security – Rate Limiting', () => {
       )
     )
     responses.forEach((r) => expect(r.status).not.toBe(500))
+  })
+})
+
+// ── Security Headers Compliance ──────────────────────────────────────────────
+
+describe('Security – Security Headers Compliance', () => {
+  it('sets Referrer-Policy: no-referrer', async () => {
+    const res = await request(app).get('/api/v1/workers')
+    expect(res.headers['referrer-policy']).toBe('no-referrer')
+  })
+
+  it('sets X-DNS-Prefetch-Control: off', async () => {
+    const res = await request(app).get('/api/v1/workers')
+    expect(res.headers['x-dns-prefetch-control']).toBe('off')
+  })
+
+  it('sets X-Content-Type-Options: nosniff', async () => {
+    const res = await request(app).get('/api/v1/workers')
+    expect(res.headers['x-content-type-options']).toBe('nosniff')
+  })
+
+  it('X-Powered-By is not exposed', async () => {
+    const res = await request(app).get('/api/v1/workers')
+    expect(res.headers['x-powered-by']).toBeUndefined()
+  })
+
+  it('CSP default-src is set to none (API does not serve HTML)', async () => {
+    const res = await request(app).get('/api/v1/workers')
+    expect(res.headers['content-security-policy']).toContain("default-src 'none'")
+  })
+})
+
+// ── Body Size Limits ────────────────────────────────────────────────────────
+
+describe('Security – Body Size Limits', () => {
+  it('rejects oversized request body (>100KB) with 413', async () => {
+    const largePayload = { data: 'x'.repeat(200_000) }
+    const res = await request(app)
+      .post('/api/v1/auth/register')
+      .send(largePayload)
+    expect([400, 413]).toContain(res.status)
+  })
+
+  it('accepts normal-sized request body', async () => {
+    const res = await request(app)
+      .post('/api/v1/auth/register')
+      .send({ email: 'test@test.com', password: 'Password123!', firstName: 'A', lastName: 'B' })
+    expect(res.status).not.toBe(413)
+  })
+
+  it('rejects deeply nested JSON (>20 levels)', async () => {
+    let nested: Record<string, unknown> = { value: 'deep' }
+    for (let i = 0; i < 25; i++) nested = { child: nested }
+    const res = await request(app).post('/api/v1/auth/register').send(nested)
+    expect(res.status).not.toBe(500)
+  })
+})
+
+// ── Authorization Coverage ───────────────────────────────────────────────────
+
+describe('Security – Authorization Coverage', () => {
+  it('worker analytics view requires auth', async () => {
+    const res = await request(app).post('/api/v1/workers/123/analytics/view')
+    expect([401, 404]).toContain(res.status)
   })
 })

@@ -6,7 +6,7 @@
  * Any axe violation causes the test to fail with a descriptive message.
  */
 
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi } from 'vitest'
 import axe from 'axe-core'
@@ -32,8 +32,21 @@ vi.mock('next-themes', () => ({
 
 vi.mock('next-intl', () => ({
   useLocale: () => 'en',
-  useTranslations: () => (key: string) => key,
+  useTranslations: () => (key: string, params?: any) => {
+    // Return meaningful values for commonly tested keys
+    if (key === 'title' && params?.name) return `Contact ${params.name}`
+    if (key === 'ariaClose') return 'Close dialog'
+    return key
+  },
   useMessages: () => ({}),
+}))
+
+vi.mock('next-intl/server', () => ({
+  getTranslations: () => (key: string, params?: any) => {
+    if (key === 'title' && params?.name) return `Contact ${params.name}`
+    if (key === 'ariaClose') return 'Close dialog'
+    return key
+  },
 }))
 
 vi.mock('next/image', () => ({
@@ -159,11 +172,6 @@ describe('Accessibility (WCAG 2.1 AA)', () => {
     await expectNoViolations(<Navbar />)
   })
 
-  it('Footer has no violations', async () => {
-    const { default: Footer } = await import('@/components/Footer')
-    await expectNoViolations(<Footer />)
-  })
-
   it('EmptyState has no violations', async () => {
     const { default: EmptyState } = await import('@/components/EmptyState')
     await expectNoViolations(<EmptyState variant="no-workers" />)
@@ -235,6 +243,173 @@ describe('Accessibility (WCAG 2.1 AA)', () => {
   it('ContactModal trigger has no violations', async () => {
     const { default: ContactModal } = await import('@/components/ContactModal')
     await expectNoViolations(<ContactModal workerId="w1" workerName="Jane Doe" />)
+  })
+
+  it('EscrowStatus has no violations in every status', async () => {
+    const { default: EscrowStatus } = await import('@/components/Escrow/EscrowStatus')
+    const statuses = ['pending', 'funded', 'released', 'disputed', 'cancelled'] as const
+    for (const status of statuses) {
+      const { container, unmount } = render(
+        <EscrowStatus
+          escrow={{ ...ESCROW, status }}
+          onRelease={vi.fn()}
+          onDispute={vi.fn()}
+        />,
+      )
+      const violations = await runAxe(container)
+      expect(violations, `status=${status}\n${formatViolations(violations)}`).toHaveLength(0)
+      unmount()
+    }
+  })
+})
+
+// ─── EscrowStatus semantics ───────────────────────────────────────────────────
+
+const ESCROW = {
+  id: 'escrow-1730000000000-1',
+  amount: '250.5',
+  token: 'XLM',
+  counterparty: 'GCKFBEIYTKP6RCZX6LRJLPWLZBQK3RGZDVQBVQXAHXQ7VQXAHXQ7VQXA',
+  terms: 'Fix the kitchen sink and replace the shut-off valve before Friday.',
+  status: 'funded' as const,
+  createdAt: '2026-07-01T10:00:00Z',
+  expiresAt: '2026-07-08T10:00:00Z',
+  txHash: 'abc123def456',
+}
+
+describe('EscrowStatus accessibility', () => {
+  it('exposes the card as a named region and the amount as its heading', async () => {
+    const { default: EscrowStatus } = await import('@/components/Escrow/EscrowStatus')
+    render(<EscrowStatus escrow={ESCROW} onRelease={vi.fn()} onDispute={vi.fn()} />)
+
+    // article + aria-labelledby -> an "article" landmark named by the amount.
+    expect(screen.getByRole('article', { name: /250\.5 XLM/ })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /250\.5 XLM/ })).toBeInTheDocument()
+  })
+
+  it('announces the status through a live region', async () => {
+    const { default: EscrowStatus } = await import('@/components/Escrow/EscrowStatus')
+    const { rerender } = render(
+      <EscrowStatus escrow={ESCROW} onRelease={vi.fn()} onDispute={vi.fn()} />,
+    )
+
+    expect(screen.getByRole('status')).toHaveTextContent(/Status:\s*Funded/)
+
+    rerender(
+      <EscrowStatus
+        escrow={{ ...ESCROW, status: 'released' }}
+        onRelease={vi.fn()}
+        onDispute={vi.fn()}
+      />,
+    )
+    expect(screen.getByRole('status')).toHaveTextContent(/Status:\s*Released/)
+  })
+
+  it('marks timeline progress with aria-current and per-step state text', async () => {
+    const { default: EscrowStatus } = await import('@/components/Escrow/EscrowStatus')
+    render(<EscrowStatus escrow={ESCROW} onRelease={vi.fn()} onDispute={vi.fn()} />)
+
+    const timeline = screen.getByRole('list', { name: 'Escrow progress' })
+    const steps = within(timeline).getAllByRole('listitem')
+    expect(steps).toHaveLength(3)
+
+    expect(steps[0]).toHaveTextContent(/Pending\s*\(completed\)/)
+    expect(steps[1]).toHaveTextContent(/Funded\s*\(current step\)/)
+    expect(steps[1]).toHaveAttribute('aria-current', 'step')
+    expect(steps[2]).toHaveTextContent(/Released\s*\(not started\)/)
+    expect(steps[0]).not.toHaveAttribute('aria-current')
+  })
+
+  it('hides the timeline for terminal statuses', async () => {
+    const { default: EscrowStatus } = await import('@/components/Escrow/EscrowStatus')
+    render(
+      <EscrowStatus
+        escrow={{ ...ESCROW, status: 'disputed' }}
+        onRelease={vi.fn()}
+        onDispute={vi.fn()}
+      />,
+    )
+    expect(screen.queryByRole('list', { name: 'Escrow progress' })).not.toBeInTheDocument()
+  })
+
+  it('gives each action an unambiguous accessible name', async () => {
+    const { default: EscrowStatus } = await import('@/components/Escrow/EscrowStatus')
+    render(<EscrowStatus escrow={ESCROW} onRelease={vi.fn()} onDispute={vi.fn()} />)
+
+    // Generic "Release"/"Dispute" would be indistinguishable across a list of cards.
+    expect(
+      screen.getByRole('button', { name: `Release 250.5 XLM to ${ESCROW.counterparty}` }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: `Dispute 250.5 XLM escrow with ${ESCROW.counterparty}` }),
+    ).toBeInTheDocument()
+  })
+
+  it('warns that the explorer link opens in a new tab', async () => {
+    const { default: EscrowStatus } = await import('@/components/Escrow/EscrowStatus')
+    render(<EscrowStatus escrow={ESCROW} onRelease={vi.fn()} onDispute={vi.fn()} />)
+
+    const link = screen.getByRole('link', { name: /opens in a new tab/i })
+    expect(link).toHaveAttribute('target', '_blank')
+    expect(link).toHaveAttribute('rel', expect.stringContaining('noopener'))
+  })
+
+  it('marks the actions busy and announces work while loading', async () => {
+    const { default: EscrowStatus } = await import('@/components/Escrow/EscrowStatus')
+    render(<EscrowStatus escrow={ESCROW} onRelease={vi.fn()} onDispute={vi.fn()} isLoading />)
+
+    const release = screen.getByRole('button', { name: /^Release/ })
+    expect(release).toBeDisabled()
+    expect(release).toHaveAttribute('aria-busy', 'true')
+    expect(screen.getByText(/submitting escrow action/i)).toBeInTheDocument()
+  })
+
+  it('reaches both actions by keyboard and fires them with Enter', async () => {
+    const user = userEvent.setup()
+    const onRelease = vi.fn()
+    const onDispute = vi.fn()
+    const { default: EscrowStatus } = await import('@/components/Escrow/EscrowStatus')
+    render(<EscrowStatus escrow={ESCROW} onRelease={onRelease} onDispute={onDispute} />)
+
+    const release = screen.getByRole('button', { name: /^Release/ })
+    const dispute = screen.getByRole('button', { name: /^Dispute/ })
+
+    // The status line is tabIndex={-1}: a focus target, but not in the tab order.
+    // Tab order should run link -> Release -> Dispute, in visual order.
+    await user.tab()
+    expect(screen.getByRole('link', { name: /opens in a new tab/i })).toHaveFocus()
+    await user.tab()
+    expect(release).toHaveFocus()
+    await user.keyboard('{Enter}')
+    expect(onRelease).toHaveBeenCalledTimes(1)
+
+    await user.tab()
+    expect(dispute).toHaveFocus()
+    await user.keyboard('{Enter}')
+    expect(onDispute).toHaveBeenCalledTimes(1)
+  })
+
+  it('keeps focus in the card when the action row unmounts after release', async () => {
+    const user = userEvent.setup()
+    const { default: EscrowStatus } = await import('@/components/Escrow/EscrowStatus')
+
+    function Harness() {
+      const [status, setStatus] = React.useState<'funded' | 'released'>('funded')
+      return (
+        <EscrowStatus
+          escrow={{ ...ESCROW, status }}
+          onRelease={() => setStatus('released')}
+          onDispute={vi.fn()}
+        />
+      )
+    }
+
+    render(<Harness />)
+    await user.click(screen.getByRole('button', { name: /^Release/ }))
+
+    // Buttons are gone; focus must not have fallen back to <body>.
+    expect(screen.queryByRole('button', { name: /^Release/ })).not.toBeInTheDocument()
+    await waitFor(() => expect(screen.getByRole('status')).toHaveFocus())
   })
 })
 

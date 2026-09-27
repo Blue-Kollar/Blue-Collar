@@ -22,7 +22,6 @@ Located in `ui/` directory - reusable design system components:
 
 ### Feature Components
 - **WorkerCard**: Displays worker information
-- **WorkerInfiniteList**: Paginated worker listing
 - **WorkerMap**: Map view of workers
 - **SearchAutocomplete**: Search with autocomplete
 - **TransactionHistory**: Payment/transaction history
@@ -41,6 +40,17 @@ Located in `ui/` directory - reusable design system components:
 - **Skeleton**: Loading placeholder
 - **Toast**: Notification messages
 - **ZoomableAvatar**: Interactive avatar component
+- **LoadingState**: Shared loading indicator for client-side data fetching. Use `variant="block"` (default) for a centered full-area spinner, or `variant="inline"` for a compact in-flow spinner (e.g. "load more" rows). Accepts an optional `message`.
+  ```tsx
+  <LoadingState message="Loading workers…" />
+  <LoadingState variant="inline" message="Loading more…" />
+  ```
+- **ErrorState**: Shared error display for failed data fetches, pairing with `LoadingState`. Use `variant="block"` (default) for a centered card with icon/title/message, or `variant="inline"` for a compact banner. Pass `onRetry` to show a retry button/link; omit it to hide retry.
+  ```tsx
+  <ErrorState title="Something went wrong" message={error.message} onRetry={refetch} />
+  <ErrorState variant="inline" message={error.message} onRetry={refetch} />
+  ```
+  Prefer these over ad hoc `Loader2`/`AlertTriangle` + hand-rolled markup for any screen that fetches data client-side.
 
 ## Recent Refactoring
 

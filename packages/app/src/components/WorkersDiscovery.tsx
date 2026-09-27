@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import WorkerCard from "@/components/WorkerCard";
 import { WorkerCardSkeleton } from "@/components/Skeleton";
+import ErrorState from "@/components/ErrorState";
 import Pagination from "@/components/Pagination";
 import SearchInput from "@/components/Search/SearchInput";
 import FilterPanel, {
@@ -187,19 +188,12 @@ export default function WorkersDiscovery() {
         )}
 
         {error && (
-          <div className="flex flex-col items-center justify-center rounded-xl border border-red-200 bg-red-50 py-16 text-center">
-            <p className="text-lg font-semibold text-red-700">
-              {t("errorTitle")}
-            </p>
-            <p className="mt-1 text-sm text-red-600">{error}</p>
-            <button
-              type="button"
-              onClick={() => setPage(page)}
-              className="mt-4 rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
-            >
-              {commonT("tryAgain")}
-            </button>
-          </div>
+          <ErrorState
+            title={t("errorTitle")}
+            message={error}
+            onRetry={() => setPage(page)}
+            retryLabel={commonT("tryAgain")}
+          />
         )}
 
         {loading && (

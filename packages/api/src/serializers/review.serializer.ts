@@ -11,7 +11,7 @@ export class ReviewSerializer extends BaseSerializer<ReviewWithAuthor, Serialize
     const { author, ...rest } = review
     return {
       ...rest,
-      ...(author ? { author: userSerializer.serialize(author) } : {}),
+      ...this.embed('author', author, userSerializer),
     }
   }
 }

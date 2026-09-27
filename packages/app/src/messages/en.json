@@ -35,7 +35,12 @@
     "connecting": "Connecting…",
     "disconnectWallet": "Disconnect Wallet",
     "testnet": "testnet",
-    "mainnet": "mainnet"
+    "mainnet": "mainnet",
+    "primaryNavigation": "Main navigation",
+    "mobileMenu": "Main menu",
+    "changeLanguage": "Change language, current language {language}",
+    "accountMenu": "Account menu for {name}",
+    "walletMenu": "Wallet menu"
   },
   "hero": {
     "title": "Find Skilled Workers Near You",
@@ -114,6 +119,7 @@
   },
   "tip": {
     "title": "Send a Tip",
+    "sendTip": "Send Tip",
     "description": "Reward {name} for excellent service",
     "recipient": "Recipient",
     "amount": "Amount",
@@ -139,7 +145,9 @@
     "transactionFailed": "Transaction failed",
     "tryAgain": "Try again",
     "signing": "Signing…",
-    "ariaClose": "Close dialog"
+    "ariaClose": "Close dialog",
+    "cancel": "Cancel",
+    "close": "Close"
   },
   "search": {
     "placeholder": "Search workers by name or skill...",

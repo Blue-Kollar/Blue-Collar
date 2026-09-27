@@ -1,5 +1,5 @@
 import * as deviceRepo from '../repositories/device.repository.js'
-import { AppError } from './AppError.js'
+import { AppError } from '../utils/AppError.js'
 
 export async function registerDevice(userId: string, deviceName: string, userAgent: string | undefined, ipAddress: string) {
   return deviceRepo.createDevice(userId, deviceName, userAgent, ipAddress)

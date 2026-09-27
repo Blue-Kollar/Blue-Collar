@@ -4,7 +4,7 @@ import { useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { X, Loader2, CheckCircle2, MessageSquare } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { sendContactRequest } from "@/lib/api";
+import { useSendContactRequest } from "@/hooks/queries";
 
 interface Props {
   workerId: string;
@@ -17,6 +17,7 @@ export default function ContactModal({ workerId, workerName }: Props) {
   const [message, setMessage] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
+  const sendContactRequest = useSendContactRequest(workerId);
 
   const reset = () => {
     setMessage("");
@@ -39,7 +40,7 @@ export default function ContactModal({ workerId, workerName }: Props) {
     setStatus("loading");
     setError(null);
     try {
-      await sendContactRequest(workerId, trimmed);
+      await sendContactRequest.mutateAsync(trimmed);
       setStatus("success");
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : t("errorGeneric");
@@ -51,8 +52,8 @@ export default function ContactModal({ workerId, workerName }: Props) {
   return (
     <Dialog.Root open={open} onOpenChange={handleOpenChange}>
       <Dialog.Trigger asChild>
-        <button className="flex items-center gap-2 rounded-lg border border-blue-600 px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors">
-          <MessageSquare size={15} />
+        <button className="flex items-center gap-2 rounded-lg border border-blue-600 px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors" aria-label={t("title", { name: workerName })}>
+          <MessageSquare size={15} aria-hidden="true" />
           {t("title", { name: workerName }).split(" ")[0]}
         </button>
       </Dialog.Trigger>

@@ -21,6 +21,7 @@ Many skilled workers lack a platform to help them get noticed. Meanwhile, countl
 - [Overview](#overview)
 - [Architecture](#architecture)
 - [Monorepo Structure](#monorepo-structure)
+- [Architecture Decision Records](docs/adr/0001-monorepo-package-boundaries.md)
 - [Packages](#packages)
   - [API](#api-packagesapi)
   - [Contracts](#contracts-packagescontracts)
@@ -28,6 +29,7 @@ Many skilled workers lack a platform to help them get noticed. Meanwhile, countl
 - [API Reference](#api-reference)
 - [Smart Contracts](#smart-contracts)
 - [Getting Started](#getting-started)
+- [Local Developer Setup Guide](docs/architecture/setup.md)
 - [Environment Variables](#environment-variables)
 - [Production Deployment](#production-deployment)
 - [Status Page](#status-page)
@@ -35,8 +37,9 @@ Many skilled workers lack a platform to help them get noticed. Meanwhile, countl
 - [Community](#community)
 - [Contributing](#contributing)
 - [License](#license)
+- [Monorepo Package Boundaries (ADR)](docs/adr/0001-monorepo-package-boundaries.md)
 - [Quick Start Guide](packages/api/QUICK_START_GUIDE.md)
-- [API Documentation](packages/api/DOCUMENTATION.json)
+- [API Reference](packages/api/API_REFERENCE.md)
 - [API cURL Examples](packages/api/CURL_EXAMPLES.md)
 - [Security Policy](packages/api/SECURITY.md)
 - [Environment Variables](docs/ENVIRONMENT_VARIABLES.md)
@@ -44,6 +47,7 @@ Many skilled workers lack a platform to help them get noticed. Meanwhile, countl
 - [Contract Reference](docs/CONTRACTS.md)
 - [Contract Integration Guide](docs/CONTRACT_INTEGRATION.md)
 - [Contributing Guide](CONTRIBUTING.md)
+- [Error Handling & Logging Conventions](docs/ERROR_HANDLING_AND_LOGGING.md)
 - [Code of Conduct](CODE_OF_CONDUCT.md)
 - [Frontend Contributing Guide](packages/app/CONTRIBUTING.md)
 - [i18n & Translation Guide](docs/i18n-translations.md)
@@ -133,14 +137,26 @@ bluecollar/
 │   │   │       └── src/lib.rs
 │   │   └── Cargo.toml
 │   │
-│   └── app/                  # Next.js frontend
+│   ├── app/                  # Next.js frontend
+│   │   ├── src/
+│   │   └── package.json
+│   │
+│   └── mobile/               # React Native mobile app (Expo)
 │       ├── src/
+│       │   ├── auth/         # SecureStorage & BiometricAuth
+│       │   ├── screens/      # App screens
+│       │   └── context/      # React context providers
+│       ├── docs/
 │       └── package.json
 │
 ├── package.json              # Root workspace config
 ├── pnpm-workspace.yaml
 └── README.md
 ```
+
+For the rationale behind this split — what each package is for, which packages are
+allowed to depend on which, and a dependency graph — see
+[docs/adr/0001-monorepo-package-boundaries.md](docs/adr/0001-monorepo-package-boundaries.md).
 
 ---
 
@@ -187,6 +203,26 @@ For complete function signatures, storage maps, event catalogues, and authorizat
 ### App (`packages/app`)
 
 Next.js 14 frontend. Connects to the BlueCollar API and integrates with Stellar wallets (Freighter) for on-chain interactions.
+
+---
+
+### Mobile (`packages/mobile`)
+
+React Native mobile app built with **Expo**. Features secure authentication with hardware-backed token storage and biometric unlock.
+
+**Key modules:**
+
+| Module | Purpose |
+|--------|---------|
+| `auth/SecureStorage.ts` | Hardware-backed token storage (Keychain/Keystore) |
+| `auth/BiometricAuth.ts` | Biometric authentication (Face ID, Touch ID, Fingerprint) |
+| `context/AuthContext.tsx` | Authentication state management |
+| `screens/BiometricSettingsScreen.tsx` | Biometric unlock settings |
+| `screens/AppLockScreen.tsx` | Biometric unlock prompt |
+
+**Tech stack:** React Native · Expo · expo-secure-store · expo-local-authentication
+
+**Documentation:** See [packages/mobile/docs/AUTHENTICATION.md](./packages/mobile/docs/AUTHENTICATION.md)
 
 ---
 
@@ -252,7 +288,7 @@ Base URL: `http://localhost:3000/api`
 > X-HTTP-Method: PUT
 > ```
 >
-> See [DOCUMENTATION.json](packages/api/DOCUMENTATION.json) for detailed explanation of the method-override pattern, including client implementation examples and common mistakes to avoid.
+> See [API_REFERENCE.md](packages/api/API_REFERENCE.md#the-x-http-method-override-pattern) for a detailed explanation of the method-override pattern, including client implementation examples.
 
 ### Admin
 
@@ -266,11 +302,11 @@ For the full contract reference including signatures, storage maps, events, and 
 
 ### Prerequisites
 
-- [Rust](https://rustup.rs/) with `wasm32-unknown-unknown` target
+- [Rust](https://rustup.rs/) with `wasm32v1-none` target
 - [Stellar CLI](https://developers.stellar.org/docs/tools/developer-tools/cli/stellar-cli)
 
 ```bash
-rustup target add wasm32-unknown-unknown
+rustup target add wasm32v1-none
 cargo install --locked stellar-cli
 ```
 
@@ -278,14 +314,14 @@ cargo install --locked stellar-cli
 
 ```bash
 cd packages/contracts
-cargo build --release --target wasm32-unknown-unknown
+cargo build --release --target wasm32v1-none
 ```
 
 ### Deploy to Testnet
 
 ```bash
 stellar contract deploy \
-  --wasm target/wasm32-unknown-unknown/release/bluecollar_registry.wasm \
+  --wasm target/wasm32v1-none/release/bluecollar_registry.wasm \
   --source <your-secret-key> \
   --network testnet
 ```
@@ -298,7 +334,7 @@ To upgrade a deployed contract without redeploying (preserving its contract ID a
 
 ```bash
 stellar contract install \
-  --wasm target/wasm32-unknown-unknown/release/bluecollar_registry.wasm \
+  --wasm target/wasm32v1-none/release/bluecollar_registry.wasm \
   --source <your-secret-key> \
   --network testnet
 # outputs: <new_wasm_hash>
@@ -371,6 +407,11 @@ pnpm docker:down
 ---
 
 ## Getting Started
+
+> This section is a quick-start for `api` + `app` only. For the authoritative guide covering
+> every package — `api`, `app`, `contracts`, `sdk`, `mobile`, `monitoring`, `types` —
+> plus environment variables, database, and local Soroban/Stellar network setup, see the
+> **[Local Developer Setup Guide](docs/architecture/setup.md)**.
 
 ### Prerequisites
 

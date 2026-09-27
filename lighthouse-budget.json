@@ -1,0 +1,48 @@
+[
+  {
+    "path": "/",
+    "timings": [
+      { "metric": "first-contentful-paint", "budget": 2500 },
+      { "metric": "largest-contentful-paint", "budget": 3500 },
+      { "metric": "cumulative-layout-shift", "budget": 0.1 },
+      { "metric": "total-blocking-time", "budget": 300 },
+      { "metric": "interaction-to-next-paint", "budget": 200 }
+    ],
+    "resourceSizes": [
+      { "resourceType": "total", "budget": 500 },
+      { "resourceType": "script", "budget": 300 },
+      { "resourceType": "stylesheet", "budget": 50 },
+      { "resourceType": "image", "budget": 200 }
+    ],
+    "resourceCounts": [
+      { "resourceType": "total", "budget": 50 },
+      { "resourceType": "script", "budget": 15 },
+      { "resourceType": "image", "budget": 20 }
+    ]
+  },
+  {
+    "path": "/en/workers",
+    "timings": [
+      { "metric": "first-contentful-paint", "budget": 3000 },
+      { "metric": "largest-contentful-paint", "budget": 4000 },
+      { "metric": "cumulative-layout-shift", "budget": 0.1 },
+      { "metric": "total-blocking-time", "budget": 300 },
+      { "metric": "interaction-to-next-paint", "budget": 200 }
+    ],
+    "resourceSizes": [
+      { "resourceType": "total", "budget": 600 },
+      { "resourceType": "script", "budget": 350 }
+    ],
+    "resourceCounts": [
+      { "resourceType": "total", "budget": 60 }
+    ]
+  },
+  {
+    "path": "/en/workers/:id",
+    "timings": [
+      { "metric": "largest-contentful-paint", "budget": 3500 },
+      { "metric": "cumulative-layout-shift", "budget": 0.1 },
+      { "metric": "total-blocking-time", "budget": 300 }
+    ]
+  }
+]

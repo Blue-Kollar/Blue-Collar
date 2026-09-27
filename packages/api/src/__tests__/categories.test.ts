@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { AppError } from "../services/AppError.js";
+import { AppError } from "../utils/AppError.js";
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
 

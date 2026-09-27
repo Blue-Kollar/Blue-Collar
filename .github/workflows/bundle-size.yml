@@ -1,0 +1,53 @@
+name: Bundle Size
+
+on:
+  pull_request:
+    paths:
+      - "packages/app/**"
+  push:
+    branches: [main]
+    paths:
+      - "packages/app/**"
+
+jobs:
+  build:
+    name: Check Bundle Size
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: pnpm/action-setup@v4
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build app (with Webpack Bundle Analyzer)
+        run: pnpm --filter @bluecollar/app build
+        env:
+          CI: true
+
+      - name: Report bundle stats
+        run: |
+          echo "## Bundle Size Report" >> $GITHUB_STEP_SUMMARY
+          du -sh packages/app/.next/static/chunks/ 2>/dev/null | awk '{print "**Total JS chunks:** " $1}' >> $GITHUB_STEP_SUMMARY
+          du -sh packages/app/.next/ 2>/dev/null | awk '{print "**Total .next:** " $1}' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Largest chunks" >> $GITHUB_STEP_SUMMARY
+          find packages/app/.next/static/chunks/ -name "*.js" -exec du -sh {} \; 2>/dev/null | sort -rh | head -10 >> $GITHUB_STEP_SUMMARY

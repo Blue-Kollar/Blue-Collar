@@ -1,4 +1,4 @@
-import { AppError } from '../utils/AppError.js'
+import { AppError, ErrorCode } from '../utils/AppError.js'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -63,7 +63,7 @@ export interface MultiSigEscrowResult {
 
 export function calculateFee(amount: number, fee_bps: number): number {
   if (fee_bps < 0 || fee_bps > 10_000) {
-    throw new AppError('fee_bps must be between 0 and 10000', 400)
+    throw new AppError('fee_bps must be between 0 and 10000', 400, true, ErrorCode.VALIDATION_ERROR)
   }
   return Math.floor((amount * fee_bps) / 10_000)
 }
@@ -77,20 +77,20 @@ export function getFeeBps(): number {
 
 export function updateFeeBps(callerRole: string, fee_bps: number): void {
   if (callerRole !== 'admin') {
-    throw new AppError('Only admins can update the fee', 403)
+    throw new AppError('Only admins can update the fee', 403, true, ErrorCode.FORBIDDEN)
   }
   if (fee_bps < 0 || fee_bps > 10_000) {
-    throw new AppError('fee_bps must be between 0 and 10000', 400)
+    throw new AppError('fee_bps must be between 0 and 10000', 400, true, ErrorCode.VALIDATION_ERROR)
   }
   _feeBps = fee_bps
 }
 
 export function tip({ from, to, amount }: TipParams): TipResult {
   if (amount <= 0) {
-    throw new AppError('Tip amount must be greater than 0', 400)
+    throw new AppError('Tip amount must be greater than 0', 400, true, ErrorCode.VALIDATION_ERROR)
   }
   if (from === to) {
-    throw new AppError('Sender and recipient must be different', 400)
+    throw new AppError('Sender and recipient must be different', 400, true, ErrorCode.VALIDATION_ERROR)
   }
   const fee = calculateFee(amount, _feeBps)
   return { from, to, grossAmount: amount, fee, netAmount: amount - fee }
@@ -98,10 +98,10 @@ export function tip({ from, to, amount }: TipParams): TipResult {
 
 export function createEscrow({ from, to, amount, expiryDate }: EscrowParams): EscrowResult {
   if (expiryDate <= new Date()) {
-    throw new AppError('Escrow expiry must be in the future', 400)
+    throw new AppError('Escrow expiry must be in the future', 400, true, ErrorCode.VALIDATION_ERROR)
   }
   if (amount <= 0) {
-    throw new AppError('Escrow amount must be greater than 0', 400)
+    throw new AppError('Escrow amount must be greater than 0', 400, true, ErrorCode.VALIDATION_ERROR)
   }
   return { from, to, amount, expiryDate, status: 'pending' }
 }
@@ -109,16 +109,16 @@ export function createEscrow({ from, to, amount, expiryDate }: EscrowParams): Es
 export function createMultiSigEscrow(params: MultiSigEscrowParams): MultiSigEscrowResult {
   const { from, to, amount, expiryDate, signers, threshold } = params
   if (expiryDate <= new Date()) {
-    throw new AppError('Escrow expiry must be in the future', 400)
+    throw new AppError('Escrow expiry must be in the future', 400, true, ErrorCode.VALIDATION_ERROR)
   }
   if (amount <= 0) {
-    throw new AppError('Escrow amount must be greater than 0', 400)
+    throw new AppError('Escrow amount must be greater than 0', 400, true, ErrorCode.VALIDATION_ERROR)
   }
   if (signers.length === 0) {
-    throw new AppError('At least one signer is required', 400)
+    throw new AppError('At least one signer is required', 400, true, ErrorCode.VALIDATION_ERROR)
   }
   if (threshold < 1 || threshold > signers.length) {
-    throw new AppError('threshold must be between 1 and signers.length', 400)
+    throw new AppError('threshold must be between 1 and signers.length', 400, true, ErrorCode.VALIDATION_ERROR)
   }
   return { from, to, amount, expiryDate, signers, threshold, approvals: [], status: 'pending' }
 }
@@ -145,10 +145,10 @@ export class PaymentService {
 
   setFeeBps(callerRole: string, fee_bps: number): void {
     if (callerRole !== 'admin') {
-      throw new AppError('Only admins can update the fee', 403)
+      throw new AppError('Only admins can update the fee', 403, true, ErrorCode.FORBIDDEN)
     }
     if (fee_bps < 0 || fee_bps > 10_000) {
-      throw new AppError('fee_bps must be between 0 and 10000', 400)
+      throw new AppError('fee_bps must be between 0 and 10000', 400, true, ErrorCode.VALIDATION_ERROR)
     }
     this.feeBps = fee_bps
   }
@@ -166,10 +166,10 @@ export class PaymentService {
   tip(params: TipParams): TipResult {
     const { from, to, amount } = params
     if (amount <= 0) {
-      throw new AppError('Tip amount must be greater than 0', 400)
+      throw new AppError('Tip amount must be greater than 0', 400, true, ErrorCode.VALIDATION_ERROR)
     }
     if (from === to) {
-      throw new AppError('Sender and recipient must be different', 400)
+      throw new AppError('Sender and recipient must be different', 400, true, ErrorCode.VALIDATION_ERROR)
     }
     const fee = this.calculateFee(amount)
     return { from, to, grossAmount: amount, fee, netAmount: amount - fee }
@@ -185,10 +185,10 @@ export class PaymentService {
   createEscrow(params: EscrowParams): EscrowResult {
     const { from, to, amount, expiryDate } = params
     if (expiryDate <= new Date()) {
-      throw new AppError('Escrow expiry must be in the future', 400)
+      throw new AppError('Escrow expiry must be in the future', 400, true, ErrorCode.VALIDATION_ERROR)
     }
     if (amount <= 0) {
-      throw new AppError('Escrow amount must be greater than 0', 400)
+      throw new AppError('Escrow amount must be greater than 0', 400, true, ErrorCode.VALIDATION_ERROR)
     }
     return { from, to, amount, expiryDate, status: 'pending' }
   }

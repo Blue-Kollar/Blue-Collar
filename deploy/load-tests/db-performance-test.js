@@ -39,13 +39,14 @@ export default function () {
 
     const ok = check(res, {
       'paginated workers → 200': (r) => r.status === 200,
-      'paginated workers → <800ms': (r) => r.timings.duration < 800,
+      'paginated workers → <500ms': (r) => r.timings.duration < 500,
       'paginated workers → has pagination': (r) => {
         try {
           const body = r.json();
-          return body.data !== undefined;
+          return body.data !== undefined && body.meta !== undefined;
         } catch { return false; }
       },
+      'paginated workers → no N+1 (response time < 300ms)': (r) => r.timings.duration < 300,
     });
     dbErrorRate.add(!ok);
 
@@ -55,16 +56,35 @@ export default function () {
     const catRes = http.get(`${BASE_URL}/categories`);
     check(catRes, {
       'categories → 200': (r) => r.status === 200,
-      'categories → <200ms': (r) => r.timings.duration < 200,
+      'categories → <100ms': (r) => r.timings.duration < 100,
     });
 
     sleep(0.3);
 
-    // Search query (full-text search)
-    const searchRes = http.get(`${BASE_URL}/workers?search=plumber`);
+    // Search query with filters (full-text search + category filter)
+    const searchRes = http.get(`${BASE_URL}/workers?search=plumber&limit=20`);
     check(searchRes, {
       'search → 200': (r) => r.status === 200,
-      'search → <1000ms': (r) => r.timings.duration < 1000,
+      'search → <800ms': (r) => r.timings.duration < 800,
+      'search → no N+1 (< 500ms)': (r) => r.timings.duration < 500,
+    });
+
+    sleep(0.3);
+
+    // Rating-filtered search (triggers aggregation query)
+    const ratingRes = http.get(`${BASE_URL}/workers?minRating=4`);
+    check(ratingRes, {
+      'rating filter → 200': (r) => r.status === 200,
+      'rating filter → <800ms': (r) => r.timings.duration < 800,
+    });
+
+    sleep(0.3);
+
+    // Paginated worker list with availability filter
+    const availRes = http.get(`${BASE_URL}/workers?dayOfWeek=1&page=1&limit=10`);
+    check(availRes, {
+      'availability filter → 200': (r) => r.status === 200,
+      'availability filter → <800ms': (r) => r.timings.duration < 800,
     });
   });
 

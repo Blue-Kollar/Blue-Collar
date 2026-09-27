@@ -1,4 +1,4 @@
-import { isNotificationEnabled, seedDefaultPreferences } from "../helpers/notificationPrefs";
+import { isNotificationEnabled, seedDefaultPreferences } from "../services/notificationPreferences.service";
 
 jest.mock("@prisma/client", () => {
   const mockFind = jest.fn();

@@ -35,7 +35,12 @@
     "connecting": "Conectando…",
     "disconnectWallet": "Desconectar billetera",
     "testnet": "testnet",
-    "mainnet": "mainnet"
+    "mainnet": "mainnet",
+    "primaryNavigation": "Navegación principal",
+    "mobileMenu": "Menú principal",
+    "changeLanguage": "Cambiar idioma, idioma actual {language}",
+    "accountMenu": "Menú de cuenta de {name}",
+    "walletMenu": "Menú de billetera"
   },
   "hero": {
     "title": "Encuentra trabajadores calificados cerca de ti",
@@ -114,6 +119,7 @@
   },
   "tip": {
     "title": "Enviar propina",
+    "sendTip": "Enviar propina",
     "description": "Recompensa a {name} por un servicio excelente",
     "recipient": "Destinatario",
     "amount": "Cantidad",
@@ -139,7 +145,9 @@
     "transactionFailed": "Transacción fallida",
     "tryAgain": "Intentar de nuevo",
     "signing": "Firmando…",
-    "ariaClose": "Cerrar diálogo"
+    "ariaClose": "Cerrar diálogo",
+    "cancel": "Cancelar",
+    "close": "Cerrar"
   },
   "search": {
     "placeholder": "Buscar trabajadores por nombre o habilidad...",

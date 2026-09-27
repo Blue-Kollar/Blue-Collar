@@ -3,9 +3,11 @@
 REST API for the BlueCollar platform — connecting skilled workers with users via a decentralised Stellar-backed protocol.
 
 - [Quick Start Guide](./QUICK_START_GUIDE.md)
-- [Full API Documentation](./DOCUMENTATION.json)
+- [API Reference](./API_REFERENCE.md) — OpenAPI spec, Swagger UI, method-override pattern
+- [Authentication](./AUTHENTICATION.md) — login, refresh tokens, 2FA, OAuth, device sessions
 - [cURL Examples](./CURL_EXAMPLES.md)
 - [Security Policy](./SECURITY.md)
+- [ADR 0001: Monorepo Package Boundaries](../../docs/adr/0001-monorepo-package-boundaries.md)
 
 ---
 

@@ -1,7 +1,14 @@
+/**
+ * Helpful votes controller — Issue #review
+ *
+ * Issue #1215: standardize error handling — wraps handler in `catchAsync` so
+ * any rejection propagates to the global `errorHandler` middleware.
+ */
 import type { Request, Response } from 'express'
 import { db } from '../db.js'
+import { catchAsync } from '../utils/catchAsync.js'
 
-export async function toggleHelpful(req: Request, res: Response) {
+export const toggleHelpful = catchAsync(async (req: Request, res: Response) => {
   const { reviewId } = req.params
   const userId = req.user!.id
 
@@ -18,4 +25,4 @@ export async function toggleHelpful(req: Request, res: Response) {
   await db.reviewHelpful.create({ data: { reviewId, userId } })
   const count = await db.reviewHelpful.count({ where: { reviewId } })
   return res.json({ data: { helpful: true, count }, status: 'success', code: 201 })
-}
+})

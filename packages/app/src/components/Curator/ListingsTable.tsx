@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Pencil, Trash2, ToggleLeft, ToggleRight, ExternalLink, Loader2 } from "lucide-react";
 import { cn, formatDate } from "@/lib/utils";
+import LoadingState from "@/components/LoadingState";
 
 export interface CuratorWorker {
   id: string;
@@ -53,11 +54,7 @@ function OnChainBadge({ status, ttlDaysLeft }: { status?: string; ttlDaysLeft?: 
 
 export function ListingsTable({ workers, loading, onToggle, onDelete, toggling }: Props) {
   if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 size={28} className="animate-spin text-gray-400" />
-      </div>
-    );
+    return <LoadingState className="py-20" />;
   }
 
   if (workers.length === 0) {

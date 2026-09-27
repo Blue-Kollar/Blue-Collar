@@ -1,6 +1,7 @@
 "use client";
 
 import { ExternalLink } from "lucide-react";
+import { EXPLORER_CONTRACT_BASE } from "@/config/stellar";
 
 interface OnChainBadgeProps {
   contractId: string | null | undefined;
@@ -12,7 +13,7 @@ export default function OnChainBadge({ contractId }: OnChainBadgeProps) {
 
   return (
     <a
-      href={`https://stellar.expert/explorer/testnet/contract/${contractId}`}
+      href={`${EXPLORER_CONTRACT_BASE}/${contractId}`}
       target="_blank"
       rel="noopener noreferrer"
       className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 hover:bg-green-200 transition-colors"
