@@ -306,3 +306,21 @@ See [docs/i18n-translations.md](./docs/i18n-translations.md) for contributing tr
 - Validating translation completeness
 
 Translation PRs should use the `i18n:` commit type and reference the language being added.
+
+---
+
+## Dead-file detection
+
+Entire files can outlive their usefulness (old prototypes, superseded
+scripts) with zero incoming imports anywhere in the monorepo. We use
+[knip](https://knip.dev/) to detect them.
+
+### Running the check
+
+From the repo root:
+
+```bash
+npm run check:dead-files
+npm run check:dead-files
+npm run check:dead-files:fix
+grep -rn "path/to/file" --include="*.ts" --include="*.tsx" --include="*.js" .

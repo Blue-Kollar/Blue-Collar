@@ -22,13 +22,16 @@
     "audit:fix": "pnpm audit --fix",
     "security:scan": "pnpm audit --audit-level=high && pnpm --filter @bluecollar/contracts security:scan",
     "docker:up": "docker compose up -d",
-    "docker:down": "docker compose down"
+    "docker:down": "docker compose down",
+    "check:dead-files": "knip",
+    "check:dead-files:fix": "knip --fix"
   },
   "devDependencies": {
     "@commitlint/cli": "^18.4.0",
     "@commitlint/config-conventional": "^18.4.0",
     "concurrently": "^9.1.2",
     "husky": "^9.0.0",
+    "knip": "^5.0.0",
     "lint-staged": "17.4.1",
     "prettier": "^3.5.3"
   },
