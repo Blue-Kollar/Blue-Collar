@@ -20,7 +20,12 @@ pub fn zero_hash(env: &Env) -> BytesN<32> {
 }
 
 /// Deploy a Stellar asset contract and mint `amount` to `to`.
-pub fn deploy_token<'a>(env: &Env, admin: &Address, to: &Address, amount: i128) -> token::Client<'a> {
+pub fn deploy_token<'a>(
+    env: &Env,
+    admin: &Address,
+    to: &Address,
+    amount: i128,
+) -> token::Client<'a> {
     let sac = env.register_stellar_asset_contract_v2(admin.clone());
     token::StellarAssetClient::new(env, &sac.address()).mint(to, &amount);
     token::Client::new(env, &sac.address())

@@ -102,12 +102,25 @@ pub fn load_job(env: &Env, id: &Symbol) -> Option<Job> {
     env.storage().persistent().get(&DataKey::Job(id.clone()))
 }
 
+/// Return `true` if a job record exists for `id`.
+///
+/// Prefer this over `load_job(...).is_some()` for existence checks: it only
+/// probes the ledger entry and never deserialises the 10-field [`Job`]
+/// (issue #1433).
+pub fn has_job(env: &Env, id: &Symbol) -> bool {
+    env.storage().persistent().has(&DataKey::Job(id.clone()))
+}
+
 /// Write a single job record.
 pub fn save_job(env: &Env, job: &Job) {
+    let key = DataKey::Job(job.id.clone());
+    env.storage().persistent().set(&key, job);
+    // The entry was just written, so it certainly exists: extend its TTL
+    // directly rather than paying for the `has` probe inside `extend_ttl`
+    // (issue #1433 — one fewer ledger-entry read per job write).
     env.storage()
         .persistent()
-        .set(&DataKey::Job(job.id.clone()), job);
-    extend_job_ttl(env, &job.id);
+        .extend_ttl(&key, TTL_THRESHOLD, TTL_EXTEND_TO);
 }
 
 /// Extend the TTL on a job entry. A missing entry is a no-op.

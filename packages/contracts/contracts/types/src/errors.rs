@@ -158,4 +158,14 @@ pub enum ContractError {
     UnknownCategory = 77,
     MismatchedInputLengths = 78,
     CooldownNotElapsed = 79,
+
+    // =========================================================================
+    // Checked arithmetic errors
+    // =========================================================================
+    /// A checked arithmetic operation overflowed or underflowed.
+    ///
+    /// Raised by `fee_distribution` (issue #1434) wherever a `saturating_*`
+    /// or raw operator previously clamped or panicked silently, so that fee
+    /// bookkeeping failures surface as a typed error instead of losing value.
+    ArithmeticOverflow = 80,
 }

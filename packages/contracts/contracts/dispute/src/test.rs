@@ -1164,3 +1164,433 @@ mod state_transitions {
         assert!(dispute.settled_at > 0);
     }
 }
+
+// =============================================================================
+// Settle resolution unit tests (#1435)
+//
+// Direct calls into the extracted internal helpers `validate_evidence`,
+// `tally_votes` and `execute_payout` with mock inputs — no public entrypoint
+// involved except where a fixture helper needs one to build state.
+// =============================================================================
+
+mod resolution_units {
+    use super::*;
+
+    /// Build a mock dispute record from the fixture's parties without
+    /// running it through the lifecycle entrypoints.
+    fn mock_dispute(
+        f: &AuthFixture,
+        id: &Symbol,
+        status: DisputeStatus,
+        outcome: DisputeOutcome,
+        split_bps: u32,
+        amount: i128,
+    ) -> Dispute {
+        Dispute {
+            id: id.clone(),
+            disputer: f.disputer.clone(),
+            respondent: f.respondent.clone(),
+            token: f.token.clone(),
+            amount,
+            status,
+            outcome,
+            split_bps,
+            arbitrator: Some(f.arbitrator.clone()),
+            filed_at: 0,
+            settled_at: 0,
+            disputer_evidence: Some(String::from_str(&f.env, "mock-evidence")),
+            respondent_evidence: None,
+        }
+    }
+
+    /// Persist a mock dispute directly into storage.
+    fn store(f: &AuthFixture, dispute: &Dispute) {
+        f.env.as_contract(&f.contract, || {
+            storage::set_dispute(&f.env, &dispute.id, dispute);
+        });
+    }
+
+    // -------------------------------------------------------------------------
+    // validate_evidence — guards only
+    // -------------------------------------------------------------------------
+
+    mod validate_evidence {
+        use super::*;
+
+        #[test]
+        fn validate_evidence_ok_when_decided() {
+            let f = AuthFixture::new();
+            let id = Symbol::new(&f.env, "ve_decided");
+            let dispute = mock_dispute(
+                &f,
+                &id,
+                DisputeStatus::Decided,
+                DisputeOutcome::Split,
+                5_000,
+                100_000,
+            );
+            store(&f, &dispute);
+
+            let result = f
+                .env
+                .as_contract(&f.contract, || logic::validate_evidence(&f.env, &id));
+            assert_eq!(result, Ok(dispute));
+        }
+
+        #[test]
+        fn validate_evidence_rejects_open() {
+            let f = AuthFixture::new();
+            let id = Symbol::new(&f.env, "ve_open");
+            store(
+                &f,
+                &mock_dispute(
+                    &f,
+                    &id,
+                    DisputeStatus::Open,
+                    DisputeOutcome::RefundDisputer,
+                    0,
+                    100_000,
+                ),
+            );
+
+            let result = f
+                .env
+                .as_contract(&f.contract, || logic::validate_evidence(&f.env, &id));
+            assert_eq!(result, Err(ContractError::NotDecidedYet));
+        }
+
+        #[test]
+        fn validate_evidence_rejects_evidence() {
+            let f = AuthFixture::new();
+            let id = Symbol::new(&f.env, "ve_evidence");
+            store(
+                &f,
+                &mock_dispute(
+                    &f,
+                    &id,
+                    DisputeStatus::Evidence,
+                    DisputeOutcome::ReleaseRespondent,
+                    0,
+                    100_000,
+                ),
+            );
+
+            let result = f
+                .env
+                .as_contract(&f.contract, || logic::validate_evidence(&f.env, &id));
+            assert_eq!(result, Err(ContractError::NotDecidedYet));
+        }
+
+        #[test]
+        fn validate_evidence_rejects_settled() {
+            let f = AuthFixture::new();
+            let id = Symbol::new(&f.env, "ve_settled");
+            store(
+                &f,
+                &mock_dispute(
+                    &f,
+                    &id,
+                    DisputeStatus::Settled,
+                    DisputeOutcome::RefundDisputer,
+                    0,
+                    100_000,
+                ),
+            );
+
+            let result = f
+                .env
+                .as_contract(&f.contract, || logic::validate_evidence(&f.env, &id));
+            assert_eq!(result, Err(ContractError::NotDecidedYet));
+        }
+
+        #[test]
+        fn validate_evidence_unknown_dispute() {
+            let f = AuthFixture::new();
+            let id = Symbol::new(&f.env, "ve_missing");
+
+            let result = f
+                .env
+                .as_contract(&f.contract, || logic::validate_evidence(&f.env, &id));
+            assert_eq!(result, Err(ContractError::DisputeNotFound));
+        }
+
+        #[test]
+        fn validate_evidence_rejects_when_paused() {
+            let f = AuthFixture::new();
+            let id = Symbol::new(&f.env, "ve_paused");
+            store(
+                &f,
+                &mock_dispute(
+                    &f,
+                    &id,
+                    DisputeStatus::Decided,
+                    DisputeOutcome::RefundDisputer,
+                    0,
+                    100_000,
+                ),
+            );
+            f.client().pause(&f.admin);
+
+            let result = f
+                .env
+                .as_contract(&f.contract, || logic::validate_evidence(&f.env, &id));
+            assert_eq!(result, Err(ContractError::ContractIsPaused));
+        }
+
+        #[test]
+        fn validate_evidence_checks_pause_before_lookup() {
+            let f = AuthFixture::new();
+            let id = Symbol::new(&f.env, "ve_paused_missing");
+            f.client().pause(&f.admin);
+
+            // Paused contract: the pause guard fires before the storage lookup,
+            // so an unknown id reports ContractIsPaused, not DisputeNotFound.
+            let result = f
+                .env
+                .as_contract(&f.contract, || logic::validate_evidence(&f.env, &id));
+            assert_eq!(result, Err(ContractError::ContractIsPaused));
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // tally_votes — pure payout arithmetic
+    // -------------------------------------------------------------------------
+
+    mod tally_votes {
+        use super::*;
+
+        fn tally(
+            f: &AuthFixture,
+            outcome: DisputeOutcome,
+            split_bps: u32,
+            amount: i128,
+        ) -> Result<(i128, i128), ContractError> {
+            let dispute = mock_dispute(
+                f,
+                &Symbol::new(&f.env, "tally"),
+                DisputeStatus::Decided,
+                outcome,
+                split_bps,
+                amount,
+            );
+            logic::tally_votes(&dispute)
+        }
+
+        #[test]
+        fn tally_refund_disputer_pays_disputer_in_full() {
+            let f = AuthFixture::new();
+            assert_eq!(
+                tally(&f, DisputeOutcome::RefundDisputer, 7_500, 100_000),
+                Ok((100_000, 0))
+            );
+        }
+
+        #[test]
+        fn tally_release_respondent_pays_respondent_in_full() {
+            let f = AuthFixture::new();
+            assert_eq!(
+                tally(&f, DisputeOutcome::ReleaseRespondent, 7_500, 100_000),
+                Ok((0, 100_000))
+            );
+        }
+
+        #[test]
+        fn tally_split_at_each_boundary_bps() {
+            let f = AuthFixture::new();
+            // (bps, disputer_share, respondent_share) for amount = 100_000.
+            let cases: [(u32, i128, i128); 6] = [
+                (0, 100_000, 0),
+                (1, 99_990, 10),
+                (3_333, 66_670, 33_330),
+                (5_000, 50_000, 50_000),
+                (9_999, 10, 99_990),
+                (10_000, 0, 100_000),
+            ];
+            for (bps, expected_disputer, expected_respondent) in cases {
+                assert_eq!(
+                    tally(&f, DisputeOutcome::Split, bps, 100_000),
+                    Ok((expected_disputer, expected_respondent)),
+                    "split_bps={bps}"
+                );
+            }
+        }
+
+        #[test]
+        fn tally_split_shares_sum_to_amount_without_dust() {
+            let f = AuthFixture::new();
+            let amounts: [i128; 7] = [
+                1,
+                3,
+                9_999,
+                100_000,
+                100_001, // not divisible by 10_000 — floor remainder matters
+                12_345_679,
+                i128::MAX / 10_000, // largest amount whose split cannot overflow
+            ];
+            for amount in amounts {
+                for bps in [0u32, 1, 3_333, 5_000, 9_999, 10_000] {
+                    let (disputer, respondent) = tally(&f, DisputeOutcome::Split, bps, amount)
+                        .unwrap_or_else(|_| panic!("amount={amount} bps={bps}"));
+                    assert_eq!(
+                        disputer + respondent,
+                        amount,
+                        "dust lost: amount={amount} bps={bps}"
+                    );
+                    assert!(disputer >= 0 && respondent >= 0);
+                }
+            }
+        }
+
+        #[test]
+        fn tally_non_split_outcomes_handle_max_amount() {
+            let f = AuthFixture::new();
+            // No multiplication for non-split outcomes — i128::MAX cannot overflow.
+            assert_eq!(
+                tally(&f, DisputeOutcome::RefundDisputer, 0, i128::MAX),
+                Ok((i128::MAX, 0))
+            );
+            assert_eq!(
+                tally(&f, DisputeOutcome::ReleaseRespondent, 0, i128::MAX),
+                Ok((0, i128::MAX))
+            );
+        }
+
+        #[test]
+        fn tally_split_large_amount_no_overflow() {
+            let f = AuthFixture::new();
+            let amount = i128::MAX / 10_000;
+            for bps in [1u32, 3_333, 5_000, 9_999, 10_000] {
+                let (disputer, respondent) = tally(&f, DisputeOutcome::Split, bps, amount)
+                    .unwrap_or_else(|_| panic!("bps={bps}"));
+                assert_eq!(disputer + respondent, amount, "bps={bps}");
+            }
+        }
+
+        #[test]
+        fn tally_split_bps_above_max_errors() {
+            let f = AuthFixture::new();
+            assert_eq!(
+                tally(&f, DisputeOutcome::Split, 10_001, 100_000),
+                Err(ContractError::SplitBpsOutOfRange)
+            );
+        }
+
+        #[test]
+        fn tally_split_overflow_errors_instead_of_panicking() {
+            let f = AuthFixture::new();
+            // i128::MAX * 5_000 overflows — must surface as a ContractError,
+            // not the old `.expect("Split overflow")` panic.
+            assert_eq!(
+                tally(&f, DisputeOutcome::Split, 5_000, i128::MAX),
+                Err(ContractError::SplitBpsOutOfRange)
+            );
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // execute_payout — token transfers only
+    // -------------------------------------------------------------------------
+
+    mod execute_payout {
+        use super::*;
+
+        /// Mock dispute whose token balance sits with the contract, ready to pay out.
+        fn funded_dispute(f: &AuthFixture, outcome: DisputeOutcome, amount: i128) -> Dispute {
+            StellarAssetClient::new(&f.env, &f.token).mint(&f.contract, &amount);
+            mock_dispute(
+                f,
+                &Symbol::new(&f.env, "payout"),
+                DisputeStatus::Settled,
+                outcome,
+                0,
+                amount,
+            )
+        }
+
+        fn payout(
+            f: &AuthFixture,
+            dispute: &Dispute,
+            disputer_share: i128,
+            respondent_share: i128,
+        ) {
+            f.env.as_contract(&f.contract, || {
+                logic::execute_payout(&f.env, dispute, disputer_share, respondent_share);
+            });
+        }
+
+        #[test]
+        fn execute_payout_refund_disputer_moves_full_amount() {
+            let f = AuthFixture::new();
+            let dispute = funded_dispute(&f, DisputeOutcome::RefundDisputer, 100_000);
+            let token = TokenClient::new(&f.env, &f.token);
+            let disputer_before = token.balance(&f.disputer);
+            let respondent_before = token.balance(&f.respondent);
+
+            payout(&f, &dispute, 100_000, 0);
+
+            assert_eq!(token.balance(&f.disputer) - disputer_before, 100_000);
+            assert_eq!(token.balance(&f.respondent), respondent_before);
+            assert_eq!(token.balance(&f.contract), 0);
+        }
+
+        #[test]
+        fn execute_payout_release_respondent_moves_full_amount() {
+            let f = AuthFixture::new();
+            let dispute = funded_dispute(&f, DisputeOutcome::ReleaseRespondent, 100_000);
+            let token = TokenClient::new(&f.env, &f.token);
+            let disputer_before = token.balance(&f.disputer);
+            let respondent_before = token.balance(&f.respondent);
+
+            payout(&f, &dispute, 0, 100_000);
+
+            assert_eq!(token.balance(&f.respondent) - respondent_before, 100_000);
+            assert_eq!(token.balance(&f.disputer), disputer_before);
+            assert_eq!(token.balance(&f.contract), 0);
+        }
+
+        #[test]
+        fn execute_payout_split_moves_both_shares() {
+            let f = AuthFixture::new();
+            let dispute = funded_dispute(&f, DisputeOutcome::Split, 100_000);
+            let token = TokenClient::new(&f.env, &f.token);
+            let disputer_before = token.balance(&f.disputer);
+            let respondent_before = token.balance(&f.respondent);
+
+            payout(&f, &dispute, 40_000, 60_000);
+
+            assert_eq!(token.balance(&f.disputer) - disputer_before, 40_000);
+            assert_eq!(token.balance(&f.respondent) - respondent_before, 60_000);
+            assert_eq!(token.balance(&f.contract), 0);
+        }
+
+        #[test]
+        fn execute_payout_skips_zero_shares() {
+            let f = AuthFixture::new();
+            let dispute = funded_dispute(&f, DisputeOutcome::Split, 100_000);
+            let token = TokenClient::new(&f.env, &f.token);
+            let disputer_before = token.balance(&f.disputer);
+            let respondent_before = token.balance(&f.respondent);
+
+            // Both shares zero — no transfers attempted, funds stay locked.
+            payout(&f, &dispute, 0, 0);
+
+            assert_eq!(token.balance(&f.disputer), disputer_before);
+            assert_eq!(token.balance(&f.respondent), respondent_before);
+            assert_eq!(token.balance(&f.contract), 100_000);
+        }
+
+        #[test]
+        fn execute_payout_skips_single_zero_share() {
+            let f = AuthFixture::new();
+            let dispute = funded_dispute(&f, DisputeOutcome::Split, 100_000);
+            let token = TokenClient::new(&f.env, &f.token);
+            let respondent_before = token.balance(&f.respondent);
+
+            // Respondent share is zero — only the disputer is paid.
+            payout(&f, &dispute, 100_000, 0);
+
+            assert_eq!(token.balance(&f.respondent), respondent_before);
+            assert_eq!(token.balance(&f.contract), 0);
+        }
+    }
+}

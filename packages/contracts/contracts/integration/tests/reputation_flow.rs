@@ -53,7 +53,14 @@ fn completed_job_raises_worker_reputation_and_awards_badge() {
     // Job runs through escrow and completes.
     let job_id = Symbol::new(&env, "job_rep");
     let expiry = env.ledger().timestamp() + 86_400;
-    market.create_escrow(&job_id, &payer, &worker.wallet, &token.address, &20_000, &expiry);
+    market.create_escrow(
+        &job_id,
+        &payer,
+        &worker.wallet,
+        &token.address,
+        &20_000,
+        &expiry,
+    );
     market.release_escrow(&job_id, &payer);
     assert_eq!(token.balance(&worker.wallet), 20_000);
 
@@ -66,7 +73,14 @@ fn completed_job_raises_worker_reputation_and_awards_badge() {
 
     // A second completed job averages into the score.
     let job_id_2 = Symbol::new(&env, "job_rep2");
-    market.create_escrow(&job_id_2, &payer, &worker.wallet, &token.address, &10_000, &expiry);
+    market.create_escrow(
+        &job_id_2,
+        &payer,
+        &worker.wallet,
+        &token.address,
+        &10_000,
+        &expiry,
+    );
     market.release_escrow(&job_id_2, &payer);
     reputation.submit_review(&rep_mgr, &worker_id, &8_800, &zero_hash(&env));
 
@@ -118,7 +132,12 @@ fn dispute_resolved_against_worker_slashes_reputation_and_revokes_badge() {
         &worker,
         &String::from_str(&env, "ipfs://worker-evidence"),
     );
-    dispute.decide(&dispute_id, &arbitrator, &DisputeOutcome::RefundDisputer, &0);
+    dispute.decide(
+        &dispute_id,
+        &arbitrator,
+        &DisputeOutcome::RefundDisputer,
+        &0,
+    );
     dispute.settle(&dispute_id);
     assert_eq!(token.balance(&payer), 100_000);
 

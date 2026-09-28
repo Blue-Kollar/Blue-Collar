@@ -47,14 +47,19 @@ mod benchmarks {
             StellarAssetClient::new(&env, &token_addr).mint(&payer, &100_000_000);
 
             let contract_id = env.register_contract(None, MarketContract);
-            crate::MarketContractClient::new(&env, &contract_id)
-                .initialize(&admin, &100, &admin);
+            crate::MarketContractClient::new(&env, &contract_id).initialize(&admin, &100, &admin);
 
             // Mint some tokens to the contract so it can pay out escrow releases.
-            StellarAssetClient::new(&env, &token_addr)
-                .mint(&contract_id, &100_000_000);
+            StellarAssetClient::new(&env, &token_addr).mint(&contract_id, &100_000_000);
 
-            BenchEnv { env, contract_id, admin, payer, worker, token_addr }
+            BenchEnv {
+                env,
+                contract_id,
+                admin,
+                payer,
+                worker,
+                token_addr,
+            }
         }
 
         fn client(&self) -> crate::MarketContractClient {
@@ -79,14 +84,16 @@ mod benchmarks {
         // Reset budget so only the tip call is measured.
         b.env.budget().reset_unlimited();
 
-        b.client().tip(&b.payer, &b.worker, &b.token_addr, &1_000_000);
+        b.client()
+            .tip(&b.payer, &b.worker, &b.token_addr, &1_000_000);
 
         let cpu = b.env.budget().cpu_instruction_cost();
         let mem = b.env.budget().memory_bytes_cost();
 
         std::println!(
             "[BENCH] market::tip  cpu={} instructions  mem={} bytes",
-            cpu, mem
+            cpu,
+            mem
         );
     }
 
@@ -115,7 +122,8 @@ mod benchmarks {
 
         std::println!(
             "[BENCH] market::create_escrow  cpu={} instructions  mem={} bytes",
-            cpu, mem
+            cpu,
+            mem
         );
     }
 
@@ -148,7 +156,8 @@ mod benchmarks {
 
         std::println!(
             "[BENCH] market::release_escrow  cpu={} instructions  mem={} bytes",
-            cpu, mem
+            cpu,
+            mem
         );
     }
 
@@ -162,14 +171,8 @@ mod benchmarks {
         let id = Symbol::new(&b.env, "esc3");
 
         b.set_time(1000);
-        b.client().create_escrow(
-            &id,
-            &b.payer,
-            &b.worker,
-            &b.token_addr,
-            &1_000_000,
-            &2000,
-        );
+        b.client()
+            .create_escrow(&id, &b.payer, &b.worker, &b.token_addr, &1_000_000, &2000);
 
         b.set_time(3000);
         b.env.budget().reset_unlimited();
@@ -181,7 +184,8 @@ mod benchmarks {
 
         std::println!(
             "[BENCH] market::cancel_escrow  cpu={} instructions  mem={} bytes",
-            cpu, mem
+            cpu,
+            mem
         );
     }
 
@@ -215,7 +219,8 @@ mod benchmarks {
 
         std::println!(
             "[BENCH] market::create_multisig_escrow(2-of-2)  cpu={} instructions  mem={} bytes",
-            cpu, mem
+            cpu,
+            mem
         );
     }
 
@@ -251,6 +256,47 @@ mod benchmarks {
 
         std::println!(
             "[BENCH] market::approve_multisig_release(1-of-1, transfers)  cpu={} instructions  mem={} bytes",
+            cpu, mem
+        );
+    }
+
+    // -------------------------------------------------------------------------
+    // Benchmark: request_multisig_arbitration (issue #1433 storage footprint)
+    //
+    // Fee is 0 so the measurement isolates the storage reads/writes of the
+    // request path rather than the arbitration-fee token transfer.
+    // -------------------------------------------------------------------------
+
+    #[test]
+    fn bench_request_multisig_arbitration() {
+        let b = BenchEnv::new();
+        let id = Symbol::new(&b.env, "ms3");
+        let s1 = Address::generate(&b.env);
+        let signers = soroban_sdk::vec![&b.env, s1.clone()];
+        let arbitrator = Address::generate(&b.env);
+
+        b.client().create_multisig_escrow(
+            &id,
+            &b.payer,
+            &b.worker,
+            &b.token_addr,
+            &1_000_000,
+            &9_999_999,
+            &signers,
+            &1,
+        );
+        b.client().add_arbitrator(&arbitrator);
+
+        b.env.budget().reset_unlimited();
+
+        b.client()
+            .request_multisig_arbitration(&id, &b.payer, &arbitrator, &0);
+
+        let cpu = b.env.budget().cpu_instruction_cost();
+        let mem = b.env.budget().memory_bytes_cost();
+
+        std::println!(
+            "[BENCH] market::request_multisig_arbitration (fee=0)  cpu={} instructions  mem={} bytes",
             cpu, mem
         );
     }
