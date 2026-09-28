@@ -24,7 +24,7 @@ resolver = "2"
 # To upgrade: change the version below and run `cargo update` — no per-crate
 # edits needed.
 [workspace.dependencies]
-soroban-sdk = { version = "26.1.0", features = ["alloc"] }
+soroban-sdk = { version = "26.1.0" }
 
 [profile.release]
 opt-level = "z"

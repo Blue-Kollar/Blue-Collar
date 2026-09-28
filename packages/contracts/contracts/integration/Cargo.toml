@@ -17,6 +17,7 @@ bluecollar-market   = { path = "../market" }
 bluecollar-dispute  = { path = "../dispute" }
 bluecollar-escrow   = { path = "../escrow" }
 bluecollar-reputation = { path = "../reputation" }
+bluecollar-job-registry = { path = "../job_registry" }
 bluecollar_insurance_pool = { path = "../insurance_pool" }
 
 [dev-dependencies]
