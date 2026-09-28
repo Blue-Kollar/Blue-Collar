@@ -1530,6 +1530,37 @@ impl RegistryContract {
         Ok(storage::get_schema_version(&env))
     }
 
+    /// Migrate stored state from `expected_version` to `expected_version + 1`.
+    ///
+    /// Part two of an upgrade: after [`upgrade`](Self::upgrade) (or
+    /// `execute_upgrade`) swaps in new WASM whose storage layout changed, the
+    /// admin runs this to transform or backfill existing ledger entries and to
+    /// record the new schema version.
+    ///
+    /// The caller must hold `ROLE_ADMIN` and `expected_version` must equal the
+    /// current schema version, so a stale, replayed, or out-of-order migration
+    /// is rejected with [`ContractError::WrongSchemaVersion`].
+    pub fn migrate(env: Env, admin: Address, expected_version: u32) -> Result<(), ContractError> {
+        let admin_role = logic::role_symbol(&env, ROLE_ADMIN_CACHED);
+        logic::require_role(&env, &admin_role, &admin)?;
+
+        let current = storage::get_schema_version(&env);
+        if current != expected_version {
+            return Err(ContractError::WrongSchemaVersion);
+        }
+
+        // Version-specific migration logic lives here.
+        // v1 -> v2: no structural change in this release; future migrations
+        // backfill or rewrite stored entries between these two lines.
+
+        let new_version = expected_version.checked_add(1).expect("version overflow");
+        storage::set_schema_version(&env, new_version);
+
+        env.events()
+            .publish((symbol_short!("Migrated"),), (expected_version, new_version));
+        Ok(())
+    }
+
     // -------------------------------------------------------------------------
     // Upgrade
     // -------------------------------------------------------------------------

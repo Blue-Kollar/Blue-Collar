@@ -172,7 +172,66 @@ pub fn split_fee(amount: i128, fee_bps: u32) -> (i128, i128) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use soroban_sdk::{testutils::Address as _, Address, Env, Vec};
+    use soroban_sdk::{
+        contract, contractimpl, testutils::Address as _, Address, Env, Vec,
+    };
+
+    // -------------------------------------------------------------------------
+    // Auth probe
+    //
+    // `require_role` / `require_admin` / `require_party` /
+    // `require_owner_or_role` all call `Address::require_auth`, which must run
+    // inside a contract invocation frame (calling them directly from test code
+    // fails with "no contract running"). This probe contract provides the
+    // frame; `mock_all_auths` lets the auth itself pass so these tests
+    // exercise the membership/authorization *logic* underneath.
+    // -------------------------------------------------------------------------
+
+    #[contract]
+    pub struct AuthProbe;
+
+    #[contractimpl]
+    impl AuthProbe {
+        pub fn check_role(
+            _env: Env,
+            caller: Address,
+            members: Vec<Address>,
+        ) -> Result<(), ContractError> {
+            require_role(&caller, &members)
+        }
+
+        pub fn check_admin(
+            _env: Env,
+            caller: Address,
+            admin: Address,
+        ) -> Result<(), ContractError> {
+            require_admin(&caller, &admin)
+        }
+
+        pub fn check_party(
+            _env: Env,
+            caller: Address,
+            party_a: Address,
+            party_b: Address,
+        ) -> Result<(), ContractError> {
+            require_party(&caller, &party_a, &party_b)
+        }
+
+        pub fn check_owner_or_role(
+            _env: Env,
+            caller: Address,
+            primary: Address,
+            admins: Vec<Address>,
+        ) -> Result<(), ContractError> {
+            require_owner_or_role(&caller, &primary, &admins)
+        }
+    }
+
+    /// Register the probe contract with auths mocked and return its client.
+    fn probe(env: &Env) -> AuthProbeClient {
+        env.mock_all_auths();
+        AuthProbeClient::new(env, &env.register(AuthProbe, ()))
+    }
 
     // -------------------------------------------------------------------------
     // require_role
@@ -181,59 +240,59 @@ mod tests {
     #[test]
     fn require_role_authorized() {
         let env = Env::default();
-        env.mock_all_auths();
+        let client = probe(&env);
 
         let caller = Address::generate(&env);
         let other = Address::generate(&env);
 
         let mut members: Vec<Address> = Vec::new(&env);
-        members.push_back(other.clone());
+        members.push_back(other);
         members.push_back(caller.clone());
 
-        assert!(require_role(&caller, &members).is_ok());
+        client.check_role(&caller, &members);
     }
 
     #[test]
     fn require_role_unauthorized_empty_members() {
         let env = Env::default();
-        env.mock_all_auths();
+        let client = probe(&env);
 
         let caller = Address::generate(&env);
         let members: Vec<Address> = Vec::new(&env);
 
         assert_eq!(
-            require_role(&caller, &members).unwrap_err(),
-            ContractError::MissingRole
+            client.try_check_role(&caller, &members),
+            Err(Ok(ContractError::MissingRole))
         );
     }
 
     #[test]
     fn require_role_unauthorized_not_in_members() {
         let env = Env::default();
-        env.mock_all_auths();
+        let client = probe(&env);
 
         let caller = Address::generate(&env);
         let other = Address::generate(&env);
 
         let mut members: Vec<Address> = Vec::new(&env);
-        members.push_back(other.clone());
+        members.push_back(other);
 
         assert_eq!(
-            require_role(&caller, &members).unwrap_err(),
-            ContractError::MissingRole
+            client.try_check_role(&caller, &members),
+            Err(Ok(ContractError::MissingRole))
         );
     }
 
     #[test]
     fn require_role_single_member_matches() {
         let env = Env::default();
-        env.mock_all_auths();
+        let client = probe(&env);
 
         let caller = Address::generate(&env);
         let mut members: Vec<Address> = Vec::new(&env);
         members.push_back(caller.clone());
 
-        assert!(require_role(&caller, &members).is_ok());
+        client.check_role(&caller, &members);
     }
 
     // -------------------------------------------------------------------------
@@ -260,23 +319,21 @@ mod tests {
     #[test]
     fn require_admin_caller_is_admin() {
         let env = Env::default();
-        env.mock_all_auths();
-
+        let client = probe(&env);
         let admin = Address::generate(&env);
-        assert!(require_admin(&admin, &admin).is_ok());
+        client.check_admin(&admin, &admin);
     }
 
     #[test]
     fn require_admin_caller_is_not_admin() {
         let env = Env::default();
-        env.mock_all_auths();
-
+        let client = probe(&env);
         let admin = Address::generate(&env);
         let other = Address::generate(&env);
 
         assert_eq!(
-            require_admin(&other, &admin).unwrap_err(),
-            ContractError::NotAuthorized
+            client.try_check_admin(&other, &admin),
+            Err(Ok(ContractError::NotAuthorized))
         );
     }
 
@@ -287,31 +344,31 @@ mod tests {
     #[test]
     fn require_party_matches_party_a() {
         let env = Env::default();
-        env.mock_all_auths();
+        let client = probe(&env);
         let a = Address::generate(&env);
         let b = Address::generate(&env);
-        assert!(require_party(&a, &a, &b).is_ok());
+        client.check_party(&a, &a, &b);
     }
 
     #[test]
     fn require_party_matches_party_b() {
         let env = Env::default();
-        env.mock_all_auths();
+        let client = probe(&env);
         let a = Address::generate(&env);
         let b = Address::generate(&env);
-        assert!(require_party(&b, &a, &b).is_ok());
+        client.check_party(&b, &a, &b);
     }
 
     #[test]
     fn require_party_rejects_stranger() {
         let env = Env::default();
-        env.mock_all_auths();
+        let client = probe(&env);
         let a = Address::generate(&env);
         let b = Address::generate(&env);
         let stranger = Address::generate(&env);
         assert_eq!(
-            require_party(&stranger, &a, &b).unwrap_err(),
-            ContractError::NotAParty
+            client.try_check_party(&stranger, &a, &b),
+            Err(Ok(ContractError::NotAParty))
         );
     }
 
@@ -322,33 +379,33 @@ mod tests {
     #[test]
     fn require_owner_or_role_owner_ok() {
         let env = Env::default();
-        env.mock_all_auths();
+        let client = probe(&env);
         let owner = Address::generate(&env);
         let admins: Vec<Address> = Vec::new(&env);
-        assert!(require_owner_or_role(&owner, &owner, &admins).is_ok());
+        client.check_owner_or_role(&owner, &owner, &admins);
     }
 
     #[test]
     fn require_owner_or_role_admin_ok() {
         let env = Env::default();
-        env.mock_all_auths();
+        let client = probe(&env);
         let owner = Address::generate(&env);
         let admin = Address::generate(&env);
         let mut admins: Vec<Address> = Vec::new(&env);
         admins.push_back(admin.clone());
-        assert!(require_owner_or_role(&admin, &owner, &admins).is_ok());
+        client.check_owner_or_role(&admin, &owner, &admins);
     }
 
     #[test]
     fn require_owner_or_role_rejects_stranger() {
         let env = Env::default();
-        env.mock_all_auths();
+        let client = probe(&env);
         let owner = Address::generate(&env);
         let stranger = Address::generate(&env);
         let admins: Vec<Address> = Vec::new(&env);
         assert_eq!(
-            require_owner_or_role(&stranger, &owner, &admins).unwrap_err(),
-            ContractError::NotAuthorized
+            client.try_check_owner_or_role(&stranger, &owner, &admins),
+            Err(Ok(ContractError::NotAuthorized))
         );
     }
 

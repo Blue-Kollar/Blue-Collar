@@ -199,6 +199,44 @@ impl JobRegistryContract {
         Ok(VERSION)
     }
 
+    /// Return the current storage schema version (defaults to 1 for
+    /// deployments that predate the `SchemaVersion` key).
+    pub fn get_schema_version(env: Env) -> Result<u32, ContractError> {
+        Ok(storage::get_schema_version(&env))
+    }
+
+    /// Migrate stored state from `expected_version` to `expected_version + 1`.
+    ///
+    /// Part two of an upgrade: after [`upgrade`](Self::upgrade) swaps in new
+    /// WASM whose storage layout changed, the admin runs this to transform or
+    /// backfill existing ledger entries (jobs, job lists, role memberships)
+    /// and to record the new schema version.
+    ///
+    /// The caller must hold `ROLE_ADMIN` and `expected_version` must equal the
+    /// current schema version, so a stale, replayed, or out-of-order migration
+    /// is rejected with [`ContractError::WrongSchemaVersion`].
+    pub fn migrate(env: Env, admin: Address, expected_version: u32) -> Result<(), ContractError> {
+        require_role(&env, &Symbol::new(&env, ROLE_ADMIN), &admin)?;
+
+        let current = storage::get_schema_version(&env);
+        if current != expected_version {
+            return Err(ContractError::WrongSchemaVersion);
+        }
+
+        // Version-specific migration logic lives here.
+        // v1 -> v2: no structural change in this release; future migrations
+        // backfill or rewrite stored jobs and indexes between these two lines.
+
+        let new_version = expected_version
+            .checked_add(1)
+            .ok_or(ContractError::WrongSchemaVersion)?;
+        storage::set_schema_version(&env, new_version);
+
+        env.events()
+            .publish((symbol_short!("Migrated"),), (expected_version, new_version));
+        Ok(())
+    }
+
     // -------------------------------------------------------------------------
     // Upgrade
     // -------------------------------------------------------------------------
