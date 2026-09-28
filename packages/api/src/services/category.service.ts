@@ -1,8 +1,8 @@
 import type { Category } from '@prisma/client'
-import { categoryRepository as defaultCategoryRepository } from '../repositories/category.repository.js'
-import { db as defaultDb } from '../db.js'
-import { AppError } from '../utils/AppError.js'
-import type { CategoryServiceDeps } from '../container/types.js'
+import { categoryRepository as defaultCategoryRepository } from '@/repositories/category.repository.js'
+import { db as defaultDb } from '@/db.js'
+import { AppError } from '@/utils/AppError.js'
+import type { CategoryServiceDeps } from '@/container/types.js'
 import type { PrismaClient } from '@prisma/client'
 
 // ── Service instance type ─────────────────────────────────────────────────────
@@ -106,7 +106,7 @@ export function createCategoryService(deps: CategoryServiceDeps & { db?: PrismaC
 // ── Default service instance (backward-compatible module-level API) ───────────
 //
 // Controllers import these functions directly:
-//   import * as categoryService from '../services/category.service.js'
+//   import * as categoryService from '@/services/category.service.js'
 //
 // These re-exports delegate to a default instance wired with production deps,
 // keeping all existing controller code and module-mock-based tests working.

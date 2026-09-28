@@ -1,5 +1,44 @@
 title = "Blue-Collar Gitleaks config"
 
+# ── Custom rules ──────────────────────────────────────────────────────────────
+# Rules defined here extend the built-in gitleaks rule set.
+
+# Issue #1475: Stellar secret seed format detection
+#
+# Stellar secret seeds (private keys) start with the letter 'S' followed by
+# exactly 55 base-32 (A-Z 2-7) characters, giving a 56-character string.
+# This is the StrKey encoding of a 256-bit Ed25519 private key as defined in
+# the Stellar Protocol (SEP-0023).
+#
+# Format examples (dummy, NOT real keys):
+#   SCZANGBA5RLKJZ65NOVCKVS2VICLZDL2ZTQF74JCQZERJYES4DLYKVB
+#   SA7QKCXYJKQMXM9PJXCKL45BSWL6GSMQKXW3NLHHACVHYCKSBSXMFWU
+#
+# The pattern uses a word-boundary-equivalent (start-of-string or
+# non-alphanumeric prefix) to avoid matching substrings of longer tokens.
+[[rules]]
+id          = "stellar-secret-seed"
+description = "Stellar Ed25519 secret seed (StrKey-encoded private key starting with 'S')"
+regex       = '''(?:^|[^A-Z2-7])S([A-Z2-7]{55})(?:[^A-Z2-7]|$)'''
+tags        = ["stellar", "private-key", "secret-seed"]
+severity    = "CRITICAL"
+entropy     = 3.5
+
+  [rules.allowlist]
+  description = "Placeholder Stellar seeds used only in docs and tests"
+  regexes = [
+    # Canonical dummy seed used in Stellar documentation and test examples
+    '''SAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA''',
+    # Increment pattern used in SDK unit-test fixtures
+    '''SBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB''',
+  ]
+  paths = [
+    "packages/contracts/contracts/.*\\.rs",
+    "docs/STELLAR_TESTNET_TUTORIAL\\.md",
+    "docs/stellar-wallet-integration\\.md",
+    "deploy/load-tests/.*",
+  ]
+
 # Gitleaks 8.18 accepts a single global `[allowlist]` table, so every exemption
 # is merged here. Each entry is a regex, not a glob.
 [allowlist]

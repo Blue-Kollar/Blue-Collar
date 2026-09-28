@@ -19,19 +19,20 @@
  *   const { admin, curator, worker, payer } = makeTestAccountSet()
  */
 
-import { vi } from 'vitest'
+import { vi } from 'vitest';
 
 // ─── Constants ─────────────────────────────────────────────────────────────────
+// Re-exported from @bluecollar/sdk so there is a single source of truth (#1295).
+// Tests that previously imported these from @bluecollar/test-utils will continue
+// to work because the names and values are identical.
 
-export const TESTNET_FRIENDBOT_URL = 'https://friendbot-testnet.stellar.org/bump_sequence'
-export const TESTNET_HORIZON_URL = 'https://horizon-testnet.stellar.org'
-export const MAINNET_HORIZON_URL = 'https://horizon.stellar.org'
+export { TESTNET_FRIENDBOT_URL, TESTNET_HORIZON_URL, MAINNET_HORIZON_URL } from '@bluecollar/sdk';
 
 /** Default initial XLM balance for newly funded test accounts (in stroops string form). */
-export const DEFAULT_TEST_BALANCE = '10000.0000000'
+export const DEFAULT_TEST_BALANCE = '10000.0000000';
 
 /** Approximate ledger timestamp offset (seconds) used for escrow expiry helpers. */
-export const ONE_DAY_LEDGERS = 86_400
+export const ONE_DAY_LEDGERS = 86_400;
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -42,56 +43,74 @@ export const ONE_DAY_LEDGERS = 86_400
  */
 export interface TestAccount {
   /** Stellar G-address (public key) */
-  publicKey: string
+  publicKey: string;
   /** Stellar S-address (secret seed) — only for tests, never use in production */
-  secretKey: string
+  secretKey: string;
   /** Human-readable label for debugging */
-  label: string
+  label: string;
   /** Simulated XLM balance (stroops string) */
-  balance: string
+  balance: string;
   /**
    * Whether the account is authorized to call contract admin/role-gated
    * functions. `undefined` means "unspecified" (state not relevant to the test).
    */
-  authorized?: boolean
+  authorized?: boolean;
 }
 
 /** A full set of accounts commonly used in contract integration tests. */
 export interface TestAccountSet {
-  admin: TestAccount
-  curator: TestAccount
-  worker: TestAccount
-  payer: TestAccount
-  feeRecipient: TestAccount
+  admin: TestAccount;
+  curator: TestAccount;
+  worker: TestAccount;
+  payer: TestAccount;
+  feeRecipient: TestAccount;
 }
 
 /** Options for creating a single test account. */
 export interface MakeTestAccountOptions {
-  label?: string
-  balance?: string
+  label?: string;
+  balance?: string;
   /** Provide a specific public key instead of generating one */
-  publicKey?: string
+  publicKey?: string;
 }
 
 // ─── Deterministic test addresses ────────────────────────────────────────────
 // These are stable across test runs so snapshots and logged output are predictable.
 
 const DETERMINISTIC_KEYS: Array<[string, string]> = [
-  ['GADMIN111111111111111111111111111111111111111111111111ADMIN', 'SADMIN11111111111111111111111111111111111111111111111111'],
-  ['GCURATOR11111111111111111111111111111111111111111111CURATOR', 'SCURATOR1111111111111111111111111111111111111111111111111'],
-  ['GWORKER11111111111111111111111111111111111111111111WORKER11', 'SWORKER11111111111111111111111111111111111111111111111111'],
-  ['GPAYER111111111111111111111111111111111111111111111PAYER111', 'SPAYER111111111111111111111111111111111111111111111111111'],
-  ['GFEERECIP1111111111111111111111111111111111111111FEERECIP1', 'SFEERECIP111111111111111111111111111111111111111111111111'],
-  ['GOTHER111111111111111111111111111111111111111111111OTHER111', 'SOTHER111111111111111111111111111111111111111111111111111'],
-]
+  [
+    'GADMIN111111111111111111111111111111111111111111111111ADMIN',
+    'SADMIN11111111111111111111111111111111111111111111111111',
+  ],
+  [
+    'GCURATOR11111111111111111111111111111111111111111111CURATOR',
+    'SCURATOR1111111111111111111111111111111111111111111111111',
+  ],
+  [
+    'GWORKER11111111111111111111111111111111111111111111WORKER11',
+    'SWORKER11111111111111111111111111111111111111111111111111',
+  ],
+  [
+    'GPAYER111111111111111111111111111111111111111111111PAYER111',
+    'SPAYER111111111111111111111111111111111111111111111111111',
+  ],
+  [
+    'GFEERECIP1111111111111111111111111111111111111111FEERECIP1',
+    'SFEERECIP111111111111111111111111111111111111111111111111',
+  ],
+  [
+    'GOTHER111111111111111111111111111111111111111111111OTHER111',
+    'SOTHER111111111111111111111111111111111111111111111111111',
+  ],
+];
 
-let _keyIndex = 0
+let _keyIndex = 0;
 
 /** Returns the next deterministic key pair. Resets when exhausted. */
 function nextDeterministicKey(): [string, string] {
-  const pair = DETERMINISTIC_KEYS[_keyIndex % DETERMINISTIC_KEYS.length]
-  _keyIndex++
-  return pair
+  const pair = DETERMINISTIC_KEYS[_keyIndex % DETERMINISTIC_KEYS.length];
+  _keyIndex++;
+  return pair;
 }
 
 /**
@@ -104,7 +123,7 @@ function nextDeterministicKey(): [string, string] {
  * ```
  */
 export function resetTestKeyCounter(): void {
-  _keyIndex = 0
+  _keyIndex = 0;
 }
 
 // ─── Account factories ────────────────────────────────────────────────────────
@@ -118,15 +137,15 @@ export function resetTestKeyCounter(): void {
  * ```
  */
 export function makeTestAccount(options: MakeTestAccountOptions = {}): TestAccount {
-  const { label = 'test-account', balance = DEFAULT_TEST_BALANCE, publicKey } = options
-  const [detKey, detSecret] = nextDeterministicKey()
+  const { label = 'test-account', balance = DEFAULT_TEST_BALANCE, publicKey } = options;
+  const [detKey, detSecret] = nextDeterministicKey();
 
   return {
     publicKey: publicKey ?? detKey,
     secretKey: detSecret,
     label,
     balance,
-  }
+  };
 }
 
 // ─── Common account-state fixtures (issue #1276) ──────────────────────────────
@@ -140,12 +159,12 @@ export function makeTestAccount(options: MakeTestAccountOptions = {}): TestAccou
 
 export interface AccountStateOptions extends MakeTestAccountOptions {
   /** When provided, sets the account's authorization flag explicitly. */
-  authorized?: boolean
+  authorized?: boolean;
 }
 
 function withAuthorization(account: TestAccount, authorized: boolean | undefined): TestAccount {
-  if (authorized === undefined) return account
-  return { ...account, authorized }
+  if (authorized === undefined) return account;
+  return { ...account, authorized };
 }
 
 /**
@@ -158,11 +177,11 @@ function withAuthorization(account: TestAccount, authorized: boolean | undefined
  * expect(fresh.balance).toBe('0.0000000')
  */
 export function freshAccount(options: AccountStateOptions = {}): TestAccount {
-  const { authorized, ...rest } = options
+  const { authorized, ...rest } = options;
   return withAuthorization(
     makeTestAccount({ label: rest.label ?? 'fresh', balance: '0.0000000', ...rest }),
     authorized,
-  )
+  );
 }
 
 /**
@@ -170,11 +189,11 @@ export function freshAccount(options: AccountStateOptions = {}): TestAccount {
  * This is the workhorse "happy path" account used by most contract tests.
  */
 export function fundedAccount(options: AccountStateOptions = {}): TestAccount {
-  const { authorized, ...rest } = options
+  const { authorized, ...rest } = options;
   return withAuthorization(
     makeTestAccount({ label: rest.label ?? 'funded', ...rest }),
     authorized ?? true,
-  )
+  );
 }
 
 /**
@@ -182,27 +201,30 @@ export function fundedAccount(options: AccountStateOptions = {}): TestAccount {
  * "insufficient funds" / "account not funded" contract branches.
  */
 export function zeroBalanceAccount(options: AccountStateOptions = {}): TestAccount {
-  const { authorized, ...rest } = options
+  const { authorized, ...rest } = options;
   return withAuthorization(
     makeTestAccount({ label: rest.label ?? 'zero-balance', balance: '0.0000000', ...rest }),
     authorized,
-  )
+  );
 }
 
 /**
  * An authorized account (role-gated contract calls allowed).
  */
 export function authorizedAccount(options: AccountStateOptions = {}): TestAccount {
-  const { ...rest } = options
-  return withAuthorization(makeTestAccount({ label: rest.label ?? 'authorized', ...rest }), true)
+  const { ...rest } = options;
+  return withAuthorization(makeTestAccount({ label: rest.label ?? 'authorized', ...rest }), true);
 }
 
 /**
  * An explicitly unauthorized account (role-gated contract calls rejected).
  */
 export function unauthorizedAccount(options: AccountStateOptions = {}): TestAccount {
-  const { ...rest } = options
-  return withAuthorization(makeTestAccount({ label: rest.label ?? 'unauthorized', ...rest }), false)
+  const { ...rest } = options;
+  return withAuthorization(
+    makeTestAccount({ label: rest.label ?? 'unauthorized', ...rest }),
+    false,
+  );
 }
 
 /**
@@ -213,16 +235,17 @@ export function unauthorizedAccount(options: AccountStateOptions = {}): TestAcco
  * const { sender, recipient } = makeSenderRecipient()
  * registry.transfer(sender, recipient, amount)
  */
-export function makeSenderRecipient(
-  balances?: { sender?: string; recipient?: string },
-): { sender: TestAccount; recipient: TestAccount } {
+export function makeSenderRecipient(balances?: { sender?: string; recipient?: string }): {
+  sender: TestAccount;
+  recipient: TestAccount;
+} {
   return {
     sender: fundedAccount({ label: 'sender', balance: balances?.sender ?? DEFAULT_TEST_BALANCE }),
     recipient: fundedAccount({
       label: 'recipient',
       balance: balances?.recipient ?? DEFAULT_TEST_BALANCE,
     }),
-  }
+  };
 }
 
 /**
@@ -230,17 +253,17 @@ export function makeSenderRecipient(
  * table-driven tests that iterate over every state.
  */
 export interface AccountStates {
-  fresh: TestAccount
-  funded: TestAccount
-  zeroBalance: TestAccount
-  authorized: TestAccount
-  unauthorized: TestAccount
-  sender: TestAccount
-  recipient: TestAccount
+  fresh: TestAccount;
+  funded: TestAccount;
+  zeroBalance: TestAccount;
+  authorized: TestAccount;
+  unauthorized: TestAccount;
+  sender: TestAccount;
+  recipient: TestAccount;
 }
 
 export function makeAccountStates(): AccountStates {
-  const { sender, recipient } = makeSenderRecipient()
+  const { sender, recipient } = makeSenderRecipient();
   return {
     fresh: freshAccount(),
     funded: fundedAccount(),
@@ -249,7 +272,7 @@ export function makeAccountStates(): AccountStates {
     unauthorized: unauthorizedAccount(),
     sender,
     recipient,
-  }
+  };
 }
 
 /**
@@ -262,14 +285,22 @@ export function makeAccountStates(): AccountStates {
  * // accounts.admin.publicKey → 'GADMIN111...'
  * ```
  */
-export function makeTestAccountSet(balances?: Partial<Record<keyof TestAccountSet, string>>): TestAccountSet {
+export function makeTestAccountSet(
+  balances?: Partial<Record<keyof TestAccountSet, string>>,
+): TestAccountSet {
   return {
     admin: makeTestAccount({ label: 'admin', balance: balances?.admin ?? DEFAULT_TEST_BALANCE }),
-    curator: makeTestAccount({ label: 'curator', balance: balances?.curator ?? DEFAULT_TEST_BALANCE }),
+    curator: makeTestAccount({
+      label: 'curator',
+      balance: balances?.curator ?? DEFAULT_TEST_BALANCE,
+    }),
     worker: makeTestAccount({ label: 'worker', balance: balances?.worker ?? '0.0000000' }),
     payer: makeTestAccount({ label: 'payer', balance: balances?.payer ?? DEFAULT_TEST_BALANCE }),
-    feeRecipient: makeTestAccount({ label: 'feeRecipient', balance: balances?.feeRecipient ?? '0.0000000' }),
-  }
+    feeRecipient: makeTestAccount({
+      label: 'feeRecipient',
+      balance: balances?.feeRecipient ?? '0.0000000',
+    }),
+  };
 }
 
 // ─── Friendbot / funding helpers ──────────────────────────────────────────────
@@ -283,7 +314,7 @@ export function makeTestAccountSet(balances?: Partial<Record<keyof TestAccountSe
  * ```
  */
 export function buildMockFundedResponse(txHash = 'mock_funding_tx_hash'): Response {
-  return new Response(JSON.stringify({ hash: txHash }), { status: 200 })
+  return new Response(JSON.stringify({ hash: txHash }), { status: 200 });
 }
 
 /**
@@ -301,7 +332,7 @@ export function buildMockAccountResponse(account: TestAccount, sequence = '10000
       sequence,
     }),
     { status: 200 },
-  )
+  );
 }
 
 /**
@@ -316,10 +347,8 @@ export function buildMockAccountResponse(account: TestAccount, sequence = '10000
  * expect(fundMock).toHaveBeenCalledWith(account.publicKey)
  * ```
  */
-export function mockFundTestnetAccount(
-  txHash = 'mock_funding_tx_hash',
-): ReturnType<typeof vi.fn> {
-  return vi.fn().mockResolvedValue({ txHash })
+export function mockFundTestnetAccount(txHash = 'mock_funding_tx_hash'): ReturnType<typeof vi.fn> {
+  return vi.fn().mockResolvedValue({ txHash });
 }
 
 // ─── Escrow / contract-call helpers ───────────────────────────────────────────
@@ -328,15 +357,15 @@ export function mockFundTestnetAccount(
  * Generate a deterministic escrow ID for testing.
  * Uses a counter so multiple escrows in one test have unique IDs.
  */
-let _escrowCounter = 0
+let _escrowCounter = 0;
 
 export function makeEscrowId(prefix = 'esc'): string {
-  return `${prefix}_${String(_escrowCounter++).padStart(3, '0')}`
+  return `${prefix}_${String(_escrowCounter++).padStart(3, '0')}`;
 }
 
 /** Reset the escrow ID counter (call in `beforeEach`). */
 export function resetEscrowCounter(): void {
-  _escrowCounter = 0
+  _escrowCounter = 0;
 }
 
 /**
@@ -346,22 +375,22 @@ export function resetEscrowCounter(): void {
  * @param offsetSeconds - seconds in the future (default: 24 hours)
  */
 export function futureExpiry(offsetSeconds = ONE_DAY_LEDGERS): number {
-  return Math.floor(Date.now() / 1000) + offsetSeconds
+  return Math.floor(Date.now() / 1000) + offsetSeconds;
 }
 
 // ─── Worker fixture factory ────────────────────────────────────────────────────
 
 export interface TestWorkerFixture {
-  id: string
-  ownerAddress: string
-  name: string
-  category: string
+  id: string;
+  ownerAddress: string;
+  name: string;
+  category: string;
   /** WASM hash placeholder (32 zero bytes, hex-encoded) */
-  wasmHash: string
+  wasmHash: string;
 }
 
-const WORKER_CATEGORIES = ['plumber', 'electrician', 'carpenter', 'welder', 'painter'] as const
-let _workerCounter = 0
+const WORKER_CATEGORIES = ['plumber', 'electrician', 'carpenter', 'welder', 'painter'] as const;
+let _workerCounter = 0;
 
 /**
  * Generate a deterministic worker fixture for contract/SDK tests.
@@ -375,8 +404,8 @@ let _workerCounter = 0
 export function makeTestWorkerFixture(
   overrides: Partial<TestWorkerFixture> = {},
 ): TestWorkerFixture {
-  const idx = _workerCounter++
-  const category = WORKER_CATEGORIES[idx % WORKER_CATEGORIES.length]
+  const idx = _workerCounter++;
+  const category = WORKER_CATEGORIES[idx % WORKER_CATEGORIES.length];
   return {
     id: `worker_${String(idx).padStart(3, '0')}`,
     ownerAddress: DETERMINISTIC_KEYS[idx % DETERMINISTIC_KEYS.length][0],
@@ -384,12 +413,12 @@ export function makeTestWorkerFixture(
     category,
     wasmHash: '0'.repeat(64),
     ...overrides,
-  }
+  };
 }
 
 /** Reset worker fixture counter (call in `beforeEach`). */
 export function resetWorkerCounter(): void {
-  _workerCounter = 0
+  _workerCounter = 0;
 }
 
 /**
@@ -401,7 +430,7 @@ export function resetWorkerCounter(): void {
  * ```
  */
 export function resetAllCounters(): void {
-  resetTestKeyCounter()
-  resetEscrowCounter()
-  resetWorkerCounter()
+  resetTestKeyCounter();
+  resetEscrowCounter();
+  resetWorkerCounter();
 }

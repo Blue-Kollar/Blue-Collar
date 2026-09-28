@@ -14,24 +14,26 @@ import {
   searchWorkersHandler,
   getReputation,
   syncReputation,
-} from '../controllers/workers.js'
-import { toggleBookmark } from '../controllers/bookmarks.js'
-import { createWorkerReview, deleteReview, listWorkerReviews } from './reviews.js'
-import { getAvailability, upsertAvailability, addAvailabilitySlot, deleteAvailabilitySlot } from '../controllers/availability.js'
-import { registerOnChain } from '../controllers/stellar.js'
-import { createContactRequest, getContactRequests, updateContactRequestStatus } from '../controllers/contact-request.js'
-import { getWorkerVerifications } from '../controllers/verifications.js'
-import { getAnalytics, trackView, getViewTrends, getWorkerPersonalDashboard, exportWorkerPersonalCsv } from '../controllers/analytics.js'
-import { authenticate, authorize } from '../middleware/auth.js'
-import { validate } from '../middleware/validate.js'
-import { withAuth, withAuthAndValidation } from '../middleware/composition.js'
-import { upload, handleMulterError } from '../middleware/upload.js'
-import { createWorkerRules } from '../validations/index.js'
-import { cacheMiddleware, invalidateCachePattern, CacheTTL } from '../middleware/cache.js'
-import { contactRateLimit, generalRateLimit } from '../middleware/userRateLimit.js'
-import { db } from '../db.js'
+} from '@/controllers/workers.js'
+import { toggleBookmark } from '@/controllers/bookmarks.js'
+import { createWorkerReview, deleteReview, listWorkerReviews } from '@/controllers/reviews.js'
+import { getAvailability, upsertAvailability, addAvailabilitySlot, deleteAvailabilitySlot } from '@/controllers/availability.js'
+import { registerOnChain } from '@/controllers/stellar.js'
+import { createContactRequest, getContactRequests, updateContactRequestStatus } from '@/controllers/contact-request.js'
+import { getWorkerVerifications } from '@/controllers/verifications.js'
+import { getAnalytics, trackView, getViewTrends, getWorkerPersonalDashboard, exportWorkerPersonalCsv } from '@/controllers/analytics.js'
+import { authenticate, authorize } from '@/middleware/auth.js'
+import { validate } from '@/middleware/validate.js'
+import { withAuth, withAuthAndValidation } from '@/middleware/composition.js'
+import { upload, handleMulterError } from '@/middleware/upload.js'
+import { createWorkerRules, listWorkersQuerySchema, searchWorkersQuerySchema, advancedSearchRules } from '@/validations/index.js'
+import { cacheMiddleware, invalidateCachePattern, TTL } from '@/middleware/cache.js'
+import { createWorkerRules } from '@/validations/index.js'
+import { cacheMiddleware, invalidateCachePattern, CacheTTL } from '@/middleware/cache.js'
+import { contactRateLimit, generalRateLimit } from '@/middleware/userRateLimit.js'
+import { db } from '@/db.js'
 
-import { idempotency } from '../middleware/idempotency.js'
+import { idempotency } from '@/middleware/idempotency.js'
 
 const router = Router()
 
@@ -55,6 +57,9 @@ async function showWorkerWithRatings(req: Request, res: Response) {
   })
 }
 
+router.get('/', generalRateLimit, validate(listWorkersQuerySchema, 'query'), cacheMiddleware(TTL.SHORT), listWorkers)
+router.get('/search', generalRateLimit, validate(searchWorkersQuerySchema, 'query'), cacheMiddleware(TTL.SHORT), searchWorkersHandler)
+router.get('/search/advanced', generalRateLimit, validate(advancedSearchRules, 'query'), cacheMiddleware(TTL.SHORT), advancedSearch)
 router.get('/', generalRateLimit, cacheMiddleware(CacheTTL.SHORT), listWorkers)
 router.get('/search', generalRateLimit, cacheMiddleware(CacheTTL.SHORT), searchWorkersHandler)
 router.get('/search/advanced', generalRateLimit, cacheMiddleware(CacheTTL.SHORT), advancedSearch)

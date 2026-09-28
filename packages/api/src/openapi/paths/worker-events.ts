@@ -1,4 +1,4 @@
-import { registry } from '../registry.js'
+import { registry } from '@/openapi/registry.js'
 
 registry.registerPath({
   method: 'get', path: '/api/workers/events', tags: ['Realtime'],

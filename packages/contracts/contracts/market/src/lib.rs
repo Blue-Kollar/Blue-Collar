@@ -481,7 +481,7 @@ impl MarketContract {
         if fee > 0 {
             client.transfer(&from, &config.fee_recipient, &fee);
             env.events()
-                .publish((symbol_short!("FeeTaken"),), (fee, config.fee_recipient));
+                .publish((symbol_short!("FeeTaken"), config.fee_recipient), fee);
         }
 
         env.events()
@@ -569,8 +569,8 @@ impl MarketContract {
         if fee > 0 {
             client.transfer(&contract_addr, &config.fee_recipient, &fee);
             env.events().publish(
-                (symbol_short!("FeeTaken"),),
-                (fee, config.fee_recipient.clone()),
+                (symbol_short!("FeeTaken"), config.fee_recipient.clone()),
+                fee,
             );
         }
 
@@ -882,7 +882,7 @@ impl MarketContract {
         caller.require_auth();
         Self::require_not_paused(&env)?;
 
-        let mut escrow: MultiSigEscrow = env
+        let escrow: MultiSigEscrow = env
             .storage()
             .persistent()
             .get(&DataKey::MultiSigEscrow(escrow_id.clone()))
@@ -919,10 +919,11 @@ impl MarketContract {
             client.transfer(&caller, &arbitrator, &fee);
         }
 
-        escrow.cancelled = false; // ensure still active
-        env.storage()
-            .persistent()
-            .set(&DataKey::MultiSigEscrow(escrow_id.clone()), &escrow);
+        // `escrow.cancelled` is already known `false` from the guard above, so
+        // rewriting the (10-field, two-`Vec`) record here was a pure no-op
+        // ledger write. Skipped to cut one redundant entry write per request
+        // (issue #1433). Re-writing an existing entry preserves its TTL, so
+        // dropping the write has no expiry side effect.
 
         let arbitration = Arbitration {
             escrow_id: escrow_id.clone(),
@@ -1251,6 +1252,9 @@ impl MarketContract {
 // live in `test.rs`; the `mod tests` block below holds the original inline tests.
 #[cfg(test)]
 mod test;
+
+#[cfg(test)]
+mod benchmarks;
 
 #[cfg(test)]
 mod tests {

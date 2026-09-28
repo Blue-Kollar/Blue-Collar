@@ -5,8 +5,8 @@
  * any rejection propagates to the global `errorHandler` middleware.
  */
 import type { Request, Response } from 'express'
-import { db } from '../db.js'
-import { catchAsync } from '../utils/catchAsync.js'
+import { db } from '@/db.js'
+import { catchAsync } from '@/utils/catchAsync.js'
 
 export const toggleHelpful = catchAsync(async (req: Request, res: Response) => {
   const { reviewId } = req.params

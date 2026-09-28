@@ -138,3 +138,198 @@ The following helpers were identified as duplicates before consolidation:
 | `createTestUser` / `userFactory` | `helpers/factories.ts`, `factories/user.factory.ts`, app `Dashboard.test.tsx` |
 | `createTestWorkerData` / `workerFactory` | `helpers/factories.ts`, `factories/worker.factory.ts` |
 | `generateTestToken` / `makeJwt` | `helpers/factories.ts`, `auth.test.ts`, `workers.test.ts`, +8 more |
+
+## Stellar SDK Mocks
+
+> Added in issue #1265. Import from `@bluecollar/test-utils/stellar-mocks` or
+> from the package root.
+
+```ts
+import {
+  makeMockHorizonFetch,
+  makeFreighterMock,
+  makeSorobanRpcMock,
+  makeMockStellarClient,
+  accountFixture,
+  transactionFixture,
+  balanceFixture,
+  MOCK_STELLAR_ADDRESS,
+  MOCK_WORKER_ADDRESS,
+  MOCK_FEE_RECIPIENT_ADDRESS,
+  MOCK_TX_HASH,
+  MOCK_SEQUENCE,
+  MOCK_BALANCE,
+} from '@bluecollar/test-utils/stellar-mocks'
+```
+
+### Well-known address constants
+
+| Constant | Use |
+|---|---|
+| `MOCK_STELLAR_ADDRESS` | Generic payer / user address |
+| `MOCK_WORKER_ADDRESS` | Worker / recipient address |
+| `MOCK_FEE_RECIPIENT_ADDRESS` | Fee-distribution recipient address |
+| `MOCK_TX_HASH` | Stable 64-hex-char transaction hash |
+| `MOCK_SEQUENCE` | Stable account sequence (`bigint`) |
+| `MOCK_BALANCE` | Stable XLM balance (`number`, `100`) |
+
+### Fixture helpers
+
+#### `accountFixture(overrides?)`
+
+Returns a default `getAccountInfo` response matching the shared constants.
+
+```ts
+import { accountFixture, MOCK_STELLAR_ADDRESS } from '@bluecollar/test-utils/stellar-mocks'
+
+const info = accountFixture()
+// { publicKey: MOCK_STELLAR_ADDRESS, balance: 100, sequence: 1234567n }
+
+const custom = accountFixture({ balance: 9999, publicKey: 'GCUSTOM' })
+```
+
+#### `transactionFixture(overrides?)`
+
+Returns a default `broadcastTransaction` response.
+
+```ts
+import { transactionFixture, MOCK_TX_HASH } from '@bluecollar/test-utils/stellar-mocks'
+
+const tx = transactionFixture()
+// { txHash: MOCK_TX_HASH, txId: 'id_abcdef12' }
+
+const custom = transactionFixture({ txHash: 'deadbeef' + '0'.repeat(56) })
+// txId is auto-derived as 'id_deadbeef' unless also overridden
+```
+
+#### `balanceFixture(overrides?)`
+
+Returns a default `pollTransactionStatus` response.
+
+```ts
+import { balanceFixture } from '@bluecollar/test-utils/stellar-mocks'
+
+const ok = balanceFixture()
+// { status: 'confirmed', resultCode: 'ok' }
+
+const failed = balanceFixture({ status: 'failed', resultCode: 'op_underfunded' })
+```
+
+### `makeMockStellarClient(options?)`
+
+Creates a fully-typed, vi.fn()-backed mock of `StellarClient`. Use it for unit
+tests that need to inject a fake client without touching the network.
+
+```ts
+import {
+  makeMockStellarClient,
+  accountFixture,
+  MOCK_STELLAR_ADDRESS,
+} from '@bluecollar/test-utils/stellar-mocks'
+
+// Replace the default exported singleton:
+vi.mock('../clients/stellar.client.js', () => ({
+  stellarClient: makeMockStellarClient(),
+  StellarClient: vi.fn().mockImplementation(() => makeMockStellarClient()),
+}))
+
+// Or inject directly:
+it('returns account balance', async () => {
+  const client = makeMockStellarClient({
+    accountInfo: accountFixture({ balance: 500 }),
+  })
+  const result = await client.getAccountInfo(MOCK_STELLAR_ADDRESS)
+  expect(result.balance).toBe(500)
+  expect(client.getAccountInfo).toHaveBeenCalledWith(MOCK_STELLAR_ADDRESS)
+})
+
+// Simulate failures:
+it('handles account not found', async () => {
+  const client = makeMockStellarClient({ accountInfoFails: true })
+  await expect(client.getAccountInfo('GABCD')).rejects.toThrow('Account not found')
+})
+```
+
+Available `MockStellarClientOptions` fields:
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `accountInfo` | `AccountInfoFixture` | `accountFixture()` | Resolved value of `getAccountInfo` |
+| `accountInfoFails` | `boolean` | `false` | Makes `getAccountInfo` reject |
+| `broadcastResult` | `TransactionFixture` | `transactionFixture()` | Resolved value of `broadcastTransaction` |
+| `broadcastFails` | `boolean` | `false` | Makes `broadcastTransaction` reject |
+| `txStatus` | `BalanceFixture` | `balanceFixture()` | Resolved value of `pollTransactionStatus` |
+| `pollFails` | `boolean` | `false` | Makes `pollTransactionStatus` reject |
+| `fundResult` | `{ txHash, message }` | `{ txHash: MOCK_TX_HASH, message: 'Account funded successfully' }` | Resolved value of `fundTestnetAccount` |
+| `fundFails` | `boolean` | `false` | Makes `fundTestnetAccount` reject |
+| `accountTransactions` | `Array<{ hash, created_at }>` | `[]` | Resolved value of `getAccountTransactions` |
+| `accountTransactionsFails` | `boolean` | `false` | Makes `getAccountTransactions` reject |
+
+### `makeMockHorizonFetch(options?)`
+
+Returns a `vi.fn()` suitable for `vi.stubGlobal('fetch', ...)` that intercepts
+Horizon REST calls and returns configurable test fixtures.
+
+```ts
+import {
+  makeMockHorizonFetch,
+  MOCK_TX_HASH,
+} from '@bluecollar/test-utils/stellar-mocks'
+
+// Stub the global fetch before the test:
+vi.stubGlobal('fetch', makeMockHorizonFetch())
+
+// Simulate account not found:
+vi.stubGlobal('fetch', makeMockHorizonFetch({ accountNotFound: true }))
+
+// Simulate broadcast failure:
+vi.stubGlobal('fetch', makeMockHorizonFetch({ broadcastFails: true }))
+
+// Simulate a pending transaction:
+vi.stubGlobal('fetch', makeMockHorizonFetch({ txPending: true }))
+
+// Custom response values:
+vi.stubGlobal('fetch', makeMockHorizonFetch({
+  balance: '250.0000000',
+  sequence: '9999',
+  txHash: MOCK_TX_HASH,
+}))
+```
+
+### `makeFreighterMock(options?)`
+
+Returns a mock object matching the `@stellar/freighter-api` module shape.
+
+```ts
+import {
+  makeFreighterMock,
+  MOCK_STELLAR_ADDRESS,
+} from '@bluecollar/test-utils/stellar-mocks'
+
+// Mock the Freighter browser extension:
+vi.mock('@stellar/freighter-api', () =>
+  makeFreighterMock({ isConnected: true, address: MOCK_STELLAR_ADDRESS })
+)
+
+it('reads the wallet address', async () => {
+  const mock = makeFreighterMock({ isConnected: true, address: MOCK_STELLAR_ADDRESS })
+  const { address } = await mock.getAddress()
+  expect(address).toBe(MOCK_STELLAR_ADDRESS)
+})
+```
+
+### `makeSorobanRpcMock(options?)`
+
+Creates a minimal mock of the Soroban RPC / stellar-sdk `Server` object.
+
+```ts
+import { makeSorobanRpcMock } from '@bluecollar/test-utils/stellar-mocks'
+
+vi.mock('@stellar/stellar-sdk', () => makeSorobanRpcMock({
+  simulateResult: { success: true },
+}))
+
+// Simulate a contract invocation failure:
+vi.mock('@stellar/stellar-sdk', () => makeSorobanRpcMock({ simulateFails: true }))
+```
+

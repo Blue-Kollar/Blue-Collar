@@ -16,6 +16,24 @@ import {
   createReviewSchema,
   updateProfileSchema,
   changePasswordSchema,
+  // Imperative helpers
+  isValidEmail,
+  validateEmail,
+  isValidPassword,
+  validatePassword,
+  isRequired,
+  validateRequired,
+  validateMinLength,
+  validateMaxLength,
+  isValidStellarAddress,
+  validateStellarAddress,
+  isValidPhone,
+  validatePhone,
+  validateAmount,
+  validateMatch,
+  validateUserProfile,
+  validateEscrowForm,
+  validateContactMessage,
 } from './validations.js'
 
 // ── loginSchema ───────────────────────────────────────────────────────────────
@@ -182,5 +200,208 @@ describe('createReviewSchema', () => {
   })
   it('rejects non-integer rating', () => {
     expect(() => createReviewSchema.parse({ rating: 3.5 })).toThrow()
+  })
+})
+
+// ─── Imperative validation helpers ───────────────────────────────────────────
+
+describe('isValidEmail / validateEmail', () => {
+  it('accepts well-formed email addresses', () => {
+    expect(isValidEmail('user@example.com')).toBe(true)
+    expect(isValidEmail('first.last@domain.co.uk')).toBe(true)
+    expect(isValidEmail('user+tag@domain.org')).toBe(true)
+  })
+
+  it('rejects malformed email addresses', () => {
+    expect(isValidEmail('invalid')).toBe(false)
+    expect(isValidEmail('@example.com')).toBe(false)
+    expect(isValidEmail('user@')).toBe(false)
+    expect(isValidEmail('')).toBe(false)
+  })
+
+  it('validateEmail returns the correct error message', () => {
+    expect(validateEmail('')).toBe('Email is required')
+    expect(validateEmail('', false)).toBeUndefined()
+    expect(validateEmail('invalid-email')).toBe('Enter a valid email')
+    expect(validateEmail('test@example.com')).toBeUndefined()
+  })
+})
+
+describe('isValidPassword / validatePassword', () => {
+  it('accepts passwords meeting the minimum length', () => {
+    expect(isValidPassword('12345678')).toBe(true)
+    expect(isValidPassword('short', 5)).toBe(true)
+  })
+
+  it('rejects passwords that are too short', () => {
+    expect(isValidPassword('short')).toBe(false)
+  })
+
+  it('validatePassword returns the correct error message', () => {
+    expect(validatePassword('')).toBe('Password is required')
+    expect(validatePassword('', 8, false)).toBeUndefined()
+    expect(validatePassword('short', 8)).toBe('Password must be at least 8 characters')
+    expect(validatePassword('validpassword123')).toBeUndefined()
+  })
+})
+
+describe('isRequired / validateRequired', () => {
+  it('treats non-empty values as present', () => {
+    expect(isRequired('hello')).toBe(true)
+    expect(isRequired([1])).toBe(true)
+    expect(isRequired(0)).toBe(true)
+    expect(isRequired(false)).toBe(true)
+  })
+
+  it('treats empty / null / undefined as absent', () => {
+    expect(isRequired('')).toBe(false)
+    expect(isRequired('  ')).toBe(false)
+    expect(isRequired(null)).toBe(false)
+    expect(isRequired(undefined)).toBe(false)
+    expect(isRequired([])).toBe(false)
+  })
+
+  it('validateRequired returns the correct error message', () => {
+    expect(validateRequired('', 'Name')).toBe('Name is required')
+    expect(validateRequired('Alice', 'Name')).toBeUndefined()
+  })
+})
+
+describe('validateMinLength / validateMaxLength', () => {
+  it('enforces minimum string length', () => {
+    expect(validateMinLength('ab', 3, 'Code')).toBe('Code must be at least 3 characters')
+    expect(validateMinLength('abc', 3, 'Code')).toBeUndefined()
+  })
+
+  it('enforces maximum string length', () => {
+    expect(validateMaxLength('toolongstring', 5, 'Code')).toBe('Code must be 5 characters or less')
+    expect(validateMaxLength('ok', 5, 'Code')).toBeUndefined()
+  })
+})
+
+describe('isValidStellarAddress / validateStellarAddress', () => {
+  const valid = 'G' + 'A'.repeat(55)
+
+  it('accepts valid Stellar public keys', () => {
+    expect(isValidStellarAddress(valid)).toBe(true)
+  })
+
+  it('rejects keys that do not start with G', () => {
+    expect(isValidStellarAddress('S' + 'A'.repeat(55))).toBe(false)
+  })
+
+  it('rejects keys of the wrong length', () => {
+    expect(isValidStellarAddress('G' + 'A'.repeat(50))).toBe(false)
+  })
+
+  it('rejects plain invalid strings', () => {
+    expect(isValidStellarAddress('invalid')).toBe(false)
+  })
+
+  it('validateStellarAddress returns the correct error message', () => {
+    expect(validateStellarAddress('', true)).toBe('Stellar address is required')
+    expect(validateStellarAddress('', false)).toBeUndefined()
+    expect(validateStellarAddress('invalid')).toBe(
+      'Must be a valid Stellar public key (starts with G)',
+    )
+    expect(validateStellarAddress(valid)).toBeUndefined()
+  })
+})
+
+describe('isValidPhone / validatePhone', () => {
+  it('accepts valid phone formats', () => {
+    expect(isValidPhone('+1234567890')).toBe(true)
+    expect(isValidPhone('(555) 123-4567')).toBe(true)
+  })
+
+  it('rejects too-short phone strings', () => {
+    expect(isValidPhone('123')).toBe(false)
+  })
+
+  it('validatePhone returns the correct error message', () => {
+    expect(validatePhone('', true)).toBe('Phone number is required')
+    expect(validatePhone('', false)).toBeUndefined()
+    expect(validatePhone('abc')).toBe('Enter a valid phone number')
+    expect(validatePhone('+1234567890')).toBeUndefined()
+  })
+})
+
+describe('validateAmount', () => {
+  it('rejects empty / undefined values', () => {
+    expect(validateAmount('')).toBe('Amount is required')
+    expect(validateAmount(undefined)).toBe('Amount is required')
+  })
+
+  it('rejects non-numeric strings', () => {
+    expect(validateAmount('notanumber')).toBe('Amount must be a valid number')
+  })
+
+  it('rejects zero and negative values (default min = 0)', () => {
+    expect(validateAmount('-5')).toBe('Amount must be greater than 0')
+    expect(validateAmount('0')).toBe('Amount must be greater than 0')
+  })
+
+  it('accepts positive values', () => {
+    expect(validateAmount('10.5')).toBeUndefined()
+    expect(validateAmount(25)).toBeUndefined()
+  })
+})
+
+describe('validateMatch', () => {
+  it('returns undefined when values match', () => {
+    expect(validateMatch('secret', 'secret')).toBeUndefined()
+  })
+
+  it('returns a custom message when values differ', () => {
+    expect(validateMatch('secret', 'other', 'Mismatch')).toBe('Mismatch')
+  })
+})
+
+describe('validateUserProfile', () => {
+  it('returns field errors for invalid data', () => {
+    const errors = validateUserProfile({ firstName: '', lastName: '', email: 'bad' })
+    expect(errors.firstName).toBe('First name is required')
+    expect(errors.lastName).toBe('Last name is required')
+    expect(errors.email).toBe('Enter a valid email')
+  })
+
+  it('returns an empty object for valid data', () => {
+    expect(
+      validateUserProfile({ firstName: 'John', lastName: 'Doe', email: 'john@example.com' }),
+    ).toEqual({})
+  })
+})
+
+describe('validateEscrowForm', () => {
+  it('returns field errors for invalid data', () => {
+    const errors = validateEscrowForm({ amount: '0', counterparty: '', terms: '' })
+    expect(errors.amount).toBe('Amount must be greater than 0')
+    expect(errors.counterparty).toBe('Counterparty address is required')
+    expect(errors.terms).toBe('Terms is required')
+  })
+
+  it('returns an empty object for valid data', () => {
+    expect(
+      validateEscrowForm({ amount: '100', counterparty: 'G123', terms: 'Delivery of goods' }),
+    ).toEqual({})
+  })
+})
+
+describe('validateContactMessage', () => {
+  it('rejects empty messages', () => {
+    expect(validateContactMessage('').isValid).toBe(false)
+    expect(validateContactMessage('').error).toBe('Message cannot be empty')
+  })
+
+  it('rejects messages below the minimum length', () => {
+    expect(validateContactMessage('short').isValid).toBe(false)
+  })
+
+  it('rejects messages exceeding the maximum length', () => {
+    expect(validateContactMessage('a'.repeat(1001)).isValid).toBe(false)
+  })
+
+  it('accepts messages within range', () => {
+    expect(validateContactMessage('A valid message with sufficient length').isValid).toBe(true)
   })
 })

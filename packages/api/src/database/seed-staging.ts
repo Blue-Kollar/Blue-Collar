@@ -15,7 +15,7 @@
 
 import { hash } from 'argon2'
 import { faker } from '@faker-js/faker'
-import { db } from '../db.js'
+import { db } from '@/db.js'
 
 // ── Guard ─────────────────────────────────────────────────────────────────────
 

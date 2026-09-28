@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
-import { SecureStorage } from '../auth/SecureStorage'
-import { BiometricAuth } from '../auth/BiometricAuth'
+import { SecureStorage } from '@/auth/SecureStorage'
+import { BiometricAuth } from '@/auth/BiometricAuth'
 
 interface User {
   id: string

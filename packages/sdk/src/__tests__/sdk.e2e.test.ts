@@ -50,7 +50,7 @@ const TX_HASH = 'abc1234567890abcdef1234567890abcdef1234567890abcdef1234567890ab
 // ═════════════════════════════════════════════════════════════════════════════
 
 describe('createSdk — factory configuration', () => {
-  afterEach(() => vi.restoreAllMocks())
+  afterEach(() => { vi.restoreAllMocks() })
 
   it('creates a testnet SDK with the correct Horizon URL', () => {
     const sdk = createSdk({ network: 'testnet' })
@@ -451,7 +451,7 @@ describe('SdkError', () => {
 // ═════════════════════════════════════════════════════════════════════════════
 
 describe('Full SDK path — createSdk → account info → build payment', () => {
-  afterEach(() => vi.restoreAllMocks())
+  afterEach(() => { vi.restoreAllMocks() })
 
   it('chains getAccountInfo into buildUnsignedPaymentTx correctly', async () => {
     const sdk = createSdk({ network: 'testnet' })

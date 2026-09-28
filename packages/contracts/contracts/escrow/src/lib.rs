@@ -249,9 +249,7 @@ impl EscrowContract {
         // Version 1 → 2: no structural change needed for v1→v2 in this release.
         // Future migrations add field-backfill logic here.
 
-        let new_version = expected_version
-            .checked_add(1)
-            .expect("version overflow");
+        let new_version = expected_version.checked_add(1).expect("version overflow");
         env.storage()
             .persistent()
             .set(&storage::DataKey::SchemaVersion, &new_version);

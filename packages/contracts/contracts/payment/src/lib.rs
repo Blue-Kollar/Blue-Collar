@@ -386,7 +386,7 @@ impl PaymentContract {
             token.transfer(&from, &config.fee_recipient, &fee);
         }
         env.events()
-            .publish((symbol_short!("Pay"), from), (to, token_addr, amount, fee));
+            .publish((symbol_short!("Pay"), from, to), (token_addr, amount, fee));
         Ok(())
     }
 

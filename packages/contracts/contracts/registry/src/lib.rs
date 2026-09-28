@@ -1530,29 +1530,6 @@ impl RegistryContract {
         Ok(storage::get_schema_version(&env))
     }
 
-    /// Run version-specific storage migration logic.
-    pub fn migrate(
-        env: Env,
-        admin: Address,
-        expected_version: u32,
-    ) -> Result<(), ContractError> {
-        logic::require_role(&env, &Symbol::new(&env, ROLE_ADMIN), &admin)?;
-        let current = storage::get_schema_version(&env);
-        if current != expected_version {
-            return Err(ContractError::WrongSchemaVersion);
-        }
-        if expected_version == 1 {
-            // placeholder for v1â†’v2 migration logic
-        }
-        let new_version = expected_version.checked_add(1).expect("Version overflow");
-        storage::set_schema_version(&env, new_version);
-        env.events().publish(
-            (symbol_short!("Migrated"),),
-            (expected_version, new_version),
-        );
-        Ok(())
-    }
-
     // -------------------------------------------------------------------------
     // Upgrade
     // -------------------------------------------------------------------------

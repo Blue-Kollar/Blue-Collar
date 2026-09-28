@@ -1,4 +1,4 @@
-import { AppError, ErrorCode } from '../utils/AppError.js'
+import { AppError, ErrorCode } from '@/utils/AppError.js'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 

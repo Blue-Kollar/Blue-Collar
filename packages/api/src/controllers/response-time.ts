@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express'
-import * as responseTimeService from '../services/response-time.service.js'
-import { catchAsync } from '../utils/catchAsync.js'
-import { AppError, ErrorCode } from '../utils/AppError.js'
+import * as responseTimeService from '@/services/response-time.service.js'
+import { catchAsync } from '@/utils/catchAsync.js'
+import { AppError, ErrorCode } from '@/utils/AppError.js'
 
 export const respondToContact = catchAsync(async (req: Request, res: Response) => {
   const { status } = req.body

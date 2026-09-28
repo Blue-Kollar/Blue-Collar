@@ -12,9 +12,9 @@
  */
 
 import type { Request, Response, NextFunction } from 'express'
-import { redis } from '../config/redis.js'
-import { logger } from '../config/logger.js'
-import { RATE_LIMIT_ALLOWLIST, type RateLimitConfig } from '../config/rateLimits.js'
+import { redis } from '@/config/redis.js'
+import { logger } from '@/config/logger.js'
+import { RATE_LIMIT_ALLOWLIST, type RateLimitConfig } from '@/config/rateLimits.js'
 
 // ── Sliding window implementation ─────────────────────────────────────────────
 
@@ -71,8 +71,8 @@ async function getViolationCount(identifier: string, windowSec: number): Promise
  * Create a rate limiting middleware from a `RateLimitConfig`.
  *
  * @example
- * import { createRateLimiter } from '../middleware/rateLimit.js'
- * import { AUTH_STRICT } from '../config/rateLimits.js'
+ * import { createRateLimiter } from '@/middleware/rateLimit.js'
+ * import { AUTH_STRICT } from '@/config/rateLimits.js'
  *
  * router.post('/login', createRateLimiter(AUTH_STRICT), authController.login)
  */
@@ -156,7 +156,10 @@ import {
   CONTACT,
   GENERAL_API,
   BOOKINGS,
-} from '../config/rateLimits.js'
+  JOBS_WRITE,
+  DISPUTES_WRITE,
+  PAYMENTS_WRITE,
+} from '@/config/rateLimits.js'
 
 /** Strict auth limiter — login, register, forgot-password */
 export const strictAuthRateLimiter = createRateLimiter(AUTH_STRICT)
@@ -178,3 +181,12 @@ export const generalRateLimit = createRateLimiter(GENERAL_API)
 
 /** Booking request limiter */
 export const bookingRateLimit = createRateLimiter(BOOKINGS)
+
+/** Job mutation limiter — create/update/delete/apply/renew */
+export const jobsWriteRateLimiter = createRateLimiter(JOBS_WRITE)
+
+/** Dispute mutation limiter — create/resolve */
+export const disputesWriteRateLimiter = createRateLimiter(DISPUTES_WRITE)
+
+/** Payment mutation limiter — tips/escrow/fee updates */
+export const paymentsWriteRateLimiter = createRateLimiter(PAYMENTS_WRITE)

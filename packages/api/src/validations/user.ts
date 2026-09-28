@@ -1,3 +1,6 @@
+import { z } from 'zod'
+import { nameField, phoneField } from './shared.js'
+
 /**
  * User validation schemas for the API.
  * Core schemas are imported from @bluecollar/types to stay in sync with the App.

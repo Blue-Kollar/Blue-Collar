@@ -6,9 +6,9 @@
  * rating/availability filters, and search analytics logging.
  */
 
-import { db } from '../db.js'
+import { db } from '@/db.js'
 import * as workerService from './worker.service.js'
-import { WorkerResource } from '../resources/index.js'
+import { WorkerResource } from '@/resources/index.js'
 
 const VALID_LANG_CONFIGS = new Set([
   'simple', 'english', 'french', 'german', 'spanish',

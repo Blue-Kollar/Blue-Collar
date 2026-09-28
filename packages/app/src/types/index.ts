@@ -1,3 +1,119 @@
+// ─── Core domain types ────────────────────────────────────────────────────────
+
+export interface Category {
+  id: string;
+  name: string;
+  icon?: string | null;
+}
+
+export interface PortfolioImage {
+  id: string;
+  url: string;
+  caption?: string | null;
+  order?: number;
+}
+
+export interface Worker {
+  id: string;
+  name: string;
+  bio?: string | null;
+  avatar?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  location?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  isVerified: boolean;
+  locationId?: string | null;
+  walletAddress?: string | null;
+  category: Category;
+  averageRating?: number | null;
+  reviewCount?: number;
+  portfolioImages?: PortfolioImage[];
+}
+
+export interface Review {
+  id: string;
+  rating: number;
+  comment?: string | null;
+  workerId: string;
+  authorId: string;
+  createdAt: string;
+  author: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    avatar?: string | null;
+  };
+}
+
+// ─── Auth types ───────────────────────────────────────────────────────────────
+
+/** Authenticated user shape returned from /auth/me and stored in AuthContext. */
+export interface AuthUser {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: "user" | "curator" | "admin";
+  verified: boolean;
+  avatar?: string | null;
+  onboardingCompleted?: boolean;
+}
+
+// ─── Pagination ───────────────────────────────────────────────────────────────
+
+/**
+ * Issue #1237 — Meta, ApiResponse, PaginatedResult, and PaginatedResponse
+ * are now the canonical types in @bluecollar/sdk so both packages/api and
+ * packages/app share a single definition.  Re-exported here so all existing
+ * imports from "@/types" continue to work without modification.
+ */
+export type { Meta, ApiResponse, PaginatedResult, PaginatedResponse } from '@bluecollar/sdk'
+
+export interface RatingDistributionEntry {
+  rating: number;
+  count: number;
+  percentage: number;
+}
+
+// ─── API response wrappers ────────────────────────────────────────────────────
+// Moved to @bluecollar/sdk — re-exported via the Pagination section above.
+// (ApiResponse, PaginatedResult, PaginatedResponse, Meta)
+
+// ─── Form types ───────────────────────────────────────────────────────────────
+
+export interface LoginForm {
+  email: string;
+  password: string;
+}
+
+export interface RegisterForm {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+}
+
+// ── Analytics types ──────────────────────────────────────────────────────────
+
+export interface WorkerAnalytics {
+  workerId: string;
+  workerName: string;
+  category: string;
+  totalViews: number;
+  uniqueViews: number;
+  viewsLast30Days: number;
+  totalTips: number;
+  tipCount: number;
+  bookmarkCount: number;
+  contactCount: number;
+  contactsLast30Days: number;
+  responseRate: number;
+  avgRating: number;
+  reviewCount: number;
+  updatedAt: string | null;
+}
 // Re-export shared types from @bluecollar/types
 export type {
   Category,

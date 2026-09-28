@@ -5,8 +5,8 @@
  * any rejection propagates to the global `errorHandler` middleware.
  */
 import type { Request, Response } from 'express'
-import { db } from '../db.js'
-import { catchAsync } from '../utils/catchAsync.js'
+import { db } from '@/db.js'
+import { catchAsync } from '@/utils/catchAsync.js'
 
 export const getStats = catchAsync(async (_req: Request, res: Response) => {
   const [totalUsers, totalWorkers, activeWorkers, totalJobs, verifiedWorkers] = await Promise.all([

@@ -1,9 +1,10 @@
 import type { Request, Response } from 'express'
-import { catchAsync } from '../utils/catchAsync.js'
-import { AppError, ErrorCode } from '../utils/AppError.js'
-import { ErrorMessages } from '../constants/errors.js'
-import * as jobService from '../services/job.service.js'
-import { validate } from '../middleware/validate.js'
+import { catchAsync } from '@/utils/catchAsync.js'
+import { AppError, ErrorCode } from '@/utils/AppError.js'
+import { ErrorMessages } from '@/constants/errors.js'
+import * as jobService from '@/services/job.service.js'
+import { validate } from '@/middleware/validate.js'
+import { parsePaginationParams } from '@/utils/pagination.js'
 import {
   createJobSchema,
   updateJobSchema,
@@ -12,7 +13,7 @@ import {
   sendMessageSchema,
   listJobsQuerySchema,
   type ListJobsQuery,
-} from '../validations/job.js'
+} from '@/validations/job.js'
 
 // ── Exported validators for use in router ─────────────────────────────────────
 export const validateCreateJob = validate(createJobSchema)
@@ -34,11 +35,15 @@ export function createJobsController(service: JobsService = jobService) {
     // ── Jobs CRUD ───────────────────────────────────────────────────────────────
     listJobs: catchAsync(async (req: Request, res: Response) => {
       const { categoryId, status, search, skills, urgency, minBudget, maxBudget, page, limit } = req.query as unknown as ListJobsQuery
+      // Cursor is accepted for forward-compatibility with the standard pagination
+      // contract (see utils/pagination.ts) but this endpoint still paginates by
+      // page/limit under the hood — full cursor-based migration is tracked separately.
+      const { page: parsedPage, limit: parsedLimit } = parsePaginationParams({ page, limit })
       const result = await service.listJobs({
         categoryId, status, search, urgency, minBudget, maxBudget,
         skills: skills ? String(skills).split(',').map((s: string) => s.trim()).filter(Boolean) : undefined,
-        page: Number(page ?? 1),
-        limit: Number(limit ?? 20),
+        page: parsedPage,
+        limit: parsedLimit,
       })
       return res.json({ ...result, status: 'success', code: 200 })
     }),
@@ -78,7 +83,8 @@ export function createJobsController(service: JobsService = jobService) {
     // ── My jobs / applications ──────────────────────────────────────────────────
     myPostedJobs: catchAsync(async (req: Request, res: Response) => {
       const { page, limit } = req.query as Record<string, string | undefined>
-      const result = await service.myPostedJobs(req.user!.id, Number(page ?? 1), Number(limit ?? 20))
+      const parsed = parsePaginationParams({ page, limit })
+      const result = await service.myPostedJobs(req.user!.id, parsed.page, parsed.limit)
       return res.json({ ...result, status: 'success', code: 200 })
     }),
 
@@ -88,7 +94,8 @@ export function createJobsController(service: JobsService = jobService) {
       if (!workerId) {
         throw new AppError(ErrorMessages.WORKER_ID_REQUIRED, 400, true, ErrorCode.VALIDATION_ERROR)
       }
-      const result = await service.myApplications(String(workerId), Number(page ?? 1), Number(limit ?? 20))
+      const parsed = parsePaginationParams({ page, limit })
+      const result = await service.myApplications(String(workerId), parsed.page, parsed.limit)
       return res.json({ ...result, status: 'success', code: 200 })
     }),
 

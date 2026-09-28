@@ -2,6 +2,116 @@
 
 This guide covers testing approaches across all parts of the BlueCollar codebase: the API, Soroban smart contracts, the Next.js frontend, and the CI/CD pipeline.
 
+## Test File Naming & Location Conventions
+
+All packages in the monorepo follow a consistent naming and location convention for tests. Following these conventions ensures test runners discover files correctly and contributors can quickly identify test type from the filename.
+
+### Naming Convention
+
+| Test type | Suffix | Example |
+|-----------|--------|---------|
+| Unit test | `*.test.ts` / `*.test.tsx` | `auth.test.ts`, `LoginForm.test.tsx` |
+| Integration test | `*.integration.test.ts` | `workers.integration.test.ts` |
+| E2E test (API) | `*.e2e.test.ts` | `auth.e2e.test.ts` |
+| E2E test (App — Playwright) | `*.spec.ts` | `auth.spec.ts`, `workers.spec.ts` |
+| Contract/Pact test | `*.pact.test.ts` | `consumer.workers.pact.test.ts` |
+
+**Key rules:**
+- Never use `.spec.ts` for Vitest-based unit or integration tests.
+- Always use `*.e2e.test.ts` for API end-to-end tests (Vitest).
+- Always use `*.spec.ts` for Playwright browser E2E tests (App package).
+
+### Location Convention
+
+```
+packages/
+├── api/
+│   ├── src/
+│   │   ├── middleware/        # Colocated unit tests (next to source)
+│   │   │   ├── auth.ts
+│   │   │   └── auth.test.ts
+│   │   ├── services/          # Colocated unit tests
+│   │   │   ├── auth.service.ts
+│   │   │   └── auth.service.test.ts
+│   │   ├── controllers/       # Colocated unit tests
+│   │   ├── utils/             # Colocated unit tests
+│   │   ├── validations/       # Colocated unit tests
+│   │   └── __tests__/
+│   │       ├── setup.ts       # Global test setup (runs before all suites)
+│   │       ├── factories/     # Test data factories (faker-based)
+│   │       ├── helpers/       # Shared test helpers
+│   │       ├── types.ts       # Shared test types
+│   │       ├── unit/          # Unit tests (for modules without colocated tests)
+│   │       ├── integration/   # Integration tests (mocked DB, full HTTP stack)
+│   │       ├── e2e/           # E2E tests (require live database)
+│   │       ├── contract/      # Contract/Pact tests
+│   │       ├── security/      # Security regression tests
+│   │       └── *.test.ts      # Top-level unit/integration tests
+│   └── vitest.config.ts
+├── app/
+│   ├── src/
+│   │   ├── components/        # Colocated component tests
+│   │   │   ├── LoginForm.tsx
+│   │   │   └── LoginForm.test.tsx
+│   │   └── __tests__/         # Shared test setup and fixtures
+│   ├── e2e/                   # Playwright E2E tests (*.spec.ts)
+│   └── vitest.config.ts
+├── sdk/
+│   ├── src/__tests__/         # All tests in __tests__ directory
+│   └── vitest.config.ts
+├── test-utils/
+│   ├── src/                   # Source + colocated tests
+│   └── tests/                 # Additional test files
+└── monitoring/
+    └── tests/                 # Tests separate from src
+```
+
+### How Test Runners Discover Files
+
+**API (`vitest.config.ts`):**
+```typescript
+include: ['src/**/*.test.ts', 'src/**/__tests__/**/*.test.ts'],
+exclude: ['src/**/*.e2e.test.ts'],
+```
+- Includes all `*.test.ts` files anywhere under `src/`
+- Excludes `*.e2e.test.ts` (run separately with a live database)
+- E2E tests: `pnpm exec vitest run src/__tests__/e2e/`
+
+**App (`vitest.config.ts`):**
+```typescript
+include: ['src/**/*.{test,spec}.{ts,tsx}'],
+```
+- Includes both `*.test.*` and `*.spec.*` for compatibility
+
+**Playwright (App E2E):**
+```typescript
+// playwright.config.ts
+testMatch: 'e2e/**/*.spec.ts',
+```
+
+### Test Fixtures & Helpers
+
+| Location | Purpose |
+|----------|---------|
+| `packages/api/src/__tests__/factories/` | Faker-based data factories (`user.factory.ts`, `worker.factory.ts`, `category.factory.ts`) |
+| `packages/api/src/__tests__/helpers/factories.ts` | Shared test helpers re-exporting `@bluecollar/test-utils` |
+| `packages/api/src/__tests__/types.ts` | Shared test types (`User`, `Worker`, `Category`) |
+| `packages/test-utils/src/` | Cross-package shared utilities (mock helpers, factories, contract fixtures) |
+| `packages/test-utils/src/express/` | Express mock helpers (`makeRequest`, `makeResponse`, `makeJwt`) |
+| `packages/test-utils/src/factories/` | Shared data factories (`userFactory`, `workerFactory`) |
+
+### How to Name a New Test
+
+1. **Determine the test type** (unit, integration, E2E).
+2. **Choose the location** based on the table above.
+3. **Use the correct suffix:**
+   - Unit test next to source: `myModule.test.ts`
+   - Integration test: `myFeature.integration.test.ts`
+   - E2E test (API): `myFlow.e2e.test.ts`
+   - E2E test (App): `myFlow.spec.ts`
+4. **Place it** in the correct directory (colocated or `__tests__/` subdirectory).
+5. **Import helpers** from `@bluecollar/test-utils` where possible.
+
 ## API Unit Testing
 
 The API uses [Vitest](https://vitest.dev) in a Node.js environment. Tests live in `packages/api/src/__tests__/`.
@@ -153,6 +263,100 @@ it('calls next() for a valid JWT', () => {
 
   expect(next).toHaveBeenCalledOnce()
   expect(req.user).toMatchObject({ id: 'user-1', role: 'curator' })
+})
+```
+
+## Database Integration Testing (Real PostgreSQL)
+
+Database integration tests exercise actual Prisma operations against a live PostgreSQL database. They validate that the application's persistence layer works correctly with the real database engine — no mocking.
+
+### Setup
+
+1. Start a test database (Docker recommended):
+
+```bash
+docker compose -f docker-compose.test.yml up -d
+```
+
+2. Set the test database URL:
+
+```bash
+export TEST_DATABASE_URL=postgresql://bluecollar_test:bluecollar_test@localhost:5433/bluecollar_test
+```
+
+Or add it to `packages/api/.env`:
+
+```env
+TEST_DATABASE_URL=postgresql://bluecollar_test:bluecollar_test@localhost:5433/bluecollar_test
+```
+
+3. Run the database integration tests:
+
+```bash
+cd packages/api
+pnpm test:integration:db
+```
+
+4. Stop and clean up the test database:
+
+```bash
+docker compose -f docker-compose.test.yml down -v
+```
+
+### What These Tests Cover
+
+- **User CRUD** — create, retrieve, update, soft-delete, hard-delete
+- **Category CRUD** — create, list, unique constraints, delete
+- **Worker CRUD** — foreign key relationships (Worker → User, Worker → Category)
+- **Unique constraints** — email uniqueness, category name uniqueness
+- **Required fields** — validation of NOT NULL constraints
+- **Default values** — role defaults to "user", verified defaults to false
+- **Query filters** — filtering by isActive, categoryId, ordering, pagination
+- **Transactions** — commit on success, rollback on failure
+- **Timestamps** — auto-generated createdAt/updatedAt, auto-update on edit
+- **Optional fields** — nullable columns accept null and set values
+
+### Configuration
+
+`packages/api/vitest.db-integration.config.ts`:
+
+```typescript
+export default defineConfig({
+  test: {
+    include: ['src/__tests__/db-integration/**/*.test.ts'],
+    setupFiles: ['src/__tests__/db-integration/setup.ts'],
+    testTimeout: 30_000,
+    hookTimeout: 30_000,
+  },
+})
+```
+
+### Test Setup (`db-integration/setup.ts`)
+
+The setup file:
+- Validates `TEST_DATABASE_URL` or `DATABASE_URL` is a valid PostgreSQL URL
+- Runs `prisma migrate deploy` to ensure schema is current
+- Cleans all tables before each test (FK-safe order)
+- Disconnects Prisma after all tests
+
+### Writing New Database Integration Tests
+
+```typescript
+import { describe, it, expect } from 'vitest'
+import { db } from './setup.js'
+
+describe('MyFeature persistence', () => {
+  it('creates and retrieves a record', async () => {
+    const created = await db.myModel.create({
+      data: { name: 'Test', value: 42 },
+    })
+
+    expect(created.id).toBeDefined()
+
+    const found = await db.myModel.findUnique({ where: { id: created.id } })
+    expect(found).not.toBeNull()
+    expect(found!.name).toBe('Test')
+  })
 })
 ```
 

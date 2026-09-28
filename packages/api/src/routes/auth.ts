@@ -11,7 +11,7 @@ import {
   googleAuthCallback,
   unsubscribeReminders,
   refresh,
-} from '../controllers/auth.js'
+} from '@/controllers/auth.js'
 import {
   setup2FA,
   enable2FA,
@@ -19,11 +19,11 @@ import {
   verifyBackupCode,
   disable2FA,
   regenerateBackupCodes,
-} from '../controllers/twoFactor.js'
-import { authenticate } from '../middleware/auth.js'
-import { validate } from '../middleware/validate.js'
-import { moderateAuthRateLimiter, strictAuthRateLimiter } from '../config/rateLimiter.js'
-import passport from '../config/passport.js'
+} from '@/controllers/twoFactor.js'
+import { authenticate } from '@/middleware/auth.js'
+import { validate } from '@/middleware/validate.js'
+import { moderateAuthRateLimiter, strictAuthRateLimiter } from '@/config/rateLimiter.js'
+import passport from '@/config/passport.js'
 import {
   registerRules,
   loginRules,
@@ -31,9 +31,9 @@ import {
   resetPasswordRules,
   verifyAccountRules,
   resendVerificationRules,
-} from '../validations/index.js'
+} from '@/validations/index.js'
 
-import { idempotency } from '../middleware/idempotency.js'
+import { idempotency } from '@/middleware/idempotency.js'
 
 const router = Router()
 

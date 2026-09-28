@@ -1,6 +1,13 @@
 /**
- * Pagination utilities for list endpoints.
- * Supports both limit/offset and cursor-based pagination.
+ * Standard pagination contract for list endpoints.
+ *
+ * Query params are page/limit for backwards compatibility with existing
+ * clients, with an optional opaque `cursor` accepted alongside them for
+ * endpoints migrating to cursor-based pagination (recommended for
+ * high-write tables, where offset pagination skips/duplicates rows as new
+ * records are inserted). `parsePaginationParams` accepts either shape;
+ * `buildPaginationMeta` always returns both `page`/`limit` totals and a
+ * `nextCursor` so clients can adopt cursor-based paging incrementally.
  */
 
 export interface PaginationParams {
@@ -14,6 +21,28 @@ export interface PaginationMeta {
   page: number
   limit: number
   pages: number
+  nextCursor: string | null
+  hasMore: boolean
+}
+
+/**
+ * Encode a stable, opaque cursor from a record's `id` and `createdAt`.
+ * Base64-encoded so it's safely transportable in a query string and never
+ * meant to be parsed by clients — only round-tripped back via `decodeCursor`.
+ */
+export function encodeCursor(record: { id: string; createdAt: Date | string }): string {
+  const createdAt = record.createdAt instanceof Date ? record.createdAt.toISOString() : record.createdAt
+  return Buffer.from(JSON.stringify({ id: record.id, createdAt }), 'utf8').toString('base64url')
+}
+
+export function decodeCursor(cursor: string): { id: string; createdAt: string } | null {
+  try {
+    const decoded = JSON.parse(Buffer.from(cursor, 'base64url').toString('utf8'))
+    if (typeof decoded?.id === 'string' && typeof decoded?.createdAt === 'string') return decoded
+    return null
+  } catch {
+    return null
+  }
 }
 
 /**
@@ -45,14 +74,26 @@ export function calculateSkipTake(page: number, limit: number): { skip: number; 
 }
 
 /**
- * Build pagination metadata response.
+ * Build pagination metadata response. `lastRecord` is the last row of the
+ * current page (if any) and is used to derive `nextCursor` — pass it so
+ * endpoints migrating to cursor-based pagination get a `nextCursor` for
+ * free without changing their page/limit response shape.
  */
-export function buildPaginationMeta(total: number, page: number, limit: number): PaginationMeta {
+export function buildPaginationMeta(
+  total: number,
+  page: number,
+  limit: number,
+  lastRecord?: { id: string; createdAt: Date | string } | null,
+): PaginationMeta {
+  const pages = Math.ceil(total / limit)
+  const hasMore = page < pages
   return {
     total,
     page,
     limit,
-    pages: Math.ceil(total / limit),
+    pages,
+    hasMore,
+    nextCursor: hasMore && lastRecord ? encodeCursor(lastRecord) : null,
   }
 }
 
@@ -65,12 +106,15 @@ export function createPaginationHelper(
 ) {
   const { page, limit } = parsePaginationParams(queryParams, options)
   const { skip, take } = calculateSkipTake(page, limit)
+  const cursor = queryParams.cursor ? decodeCursor(queryParams.cursor) : null
 
   return {
     page,
     limit,
     skip,
     take,
-    buildMeta: (total: number) => buildPaginationMeta(total, page, limit),
+    cursor,
+    buildMeta: (total: number, lastRecord?: { id: string; createdAt: Date | string } | null) =>
+      buildPaginationMeta(total, page, limit, lastRecord),
   }
 }

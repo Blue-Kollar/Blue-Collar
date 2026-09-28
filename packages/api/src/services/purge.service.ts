@@ -9,8 +9,8 @@
  */
 import path from 'node:path'
 import fs from 'node:fs/promises'
-import { db } from '../db.js'
-import { logger } from '../config/logger.js'
+import { db } from '@/db.js'
+import { logger } from '@/config/logger.js'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 

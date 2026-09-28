@@ -1,7 +1,7 @@
-import { bookmarkRepository as defaultBookmarkRepository } from '../repositories/bookmark.repository.js'
-import { AppError } from '../utils/AppError.js'
+import { bookmarkRepository as defaultBookmarkRepository } from '@/repositories/bookmark.repository.js'
+import { AppError } from '@/utils/AppError.js'
 import { updateBookmarkCount } from './analytics.service.js'
-import type { BookmarkServiceDeps } from '../container/types.js'
+import type { BookmarkServiceDeps } from '@/container/types.js'
 
 // ── Factory ───────────────────────────────────────────────────────────────────
 

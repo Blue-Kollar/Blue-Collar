@@ -1,7 +1,7 @@
 import type { Request, Response, NextFunction } from 'express'
 import { rateLimit } from 'express-rate-limit'
 import { RedisStore } from 'rate-limit-redis'
-import { redis } from '../config/redis.js'
+import { redis } from '@/config/redis.js'
 import { VERSION_CONFIG } from './version.js'
 
 /**

@@ -3,7 +3,10 @@
 //! Extracted from duplicate helpers in individual contract test modules
 //! (issue #1252). Import via `bluecollar_types::test_utils`.
 
-use soroban_sdk::{Address, BytesN, Env};
+use soroban_sdk::{
+    testutils::Ledger as _,
+    Address, BytesN, Env,
+};
 
 /// Advance the ledger timestamp to `ts`.
 pub fn set_time(env: &Env, ts: u64) {

@@ -13,7 +13,7 @@ import {
   Wrench,
   type LucideIcon,
 } from "lucide-react";
-import { getCategoryConfig } from "../config/categoryConfig";
+import { getCategoryConfig } from "@/config/categoryConfig";
 
 const ICON_MAP: Record<string, LucideIcon> = {
   Droplets,

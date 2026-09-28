@@ -1,4 +1,4 @@
-import { logger as pinoLogger } from '../config/logger.js'
+import { logger as pinoLogger } from '@/config/logger.js'
 
 /**
  * Standardized logger for service layer

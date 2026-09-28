@@ -6,7 +6,7 @@
  */
 
 import { Queue, type JobsOptions } from 'bullmq'
-import { redis } from '../config/redis.js'
+import { redis } from '@/config/redis.js'
 
 // ── Shared BullMQ connection ──────────────────────────────────────────────────
 

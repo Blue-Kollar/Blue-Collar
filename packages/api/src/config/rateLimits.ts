@@ -95,6 +95,35 @@ export const BOOKINGS: RateLimitConfig = {
   burstAllowance: 2,
 }
 
+// ── Mutation endpoints (jobs, disputes, payments) ─────────────────────────────
+
+/** Job create/update/delete/apply — prevents retry storms and spam postings */
+export const JOBS_WRITE: RateLimitConfig = {
+  windowSec: num(e.RL_JOBS_WRITE_WINDOW, 300),
+  anonLimit:  num(e.RL_JOBS_WRITE_ANON,  0),   // unauthenticated not allowed
+  authLimit:  num(e.RL_JOBS_WRITE_AUTH,  20),
+  adminLimit: 0,
+  burstAllowance: 5,
+}
+
+/** Dispute create/resolve — abuse-sensitive, low volume expected */
+export const DISPUTES_WRITE: RateLimitConfig = {
+  windowSec: num(e.RL_DISPUTES_WRITE_WINDOW, 3_600),
+  anonLimit:  num(e.RL_DISPUTES_WRITE_ANON,  0),
+  authLimit:  num(e.RL_DISPUTES_WRITE_AUTH,  10),
+  adminLimit: 0,
+  burstAllowance: 2,
+}
+
+/** Payment mutation endpoints (tips, escrow, fee updates) */
+export const PAYMENTS_WRITE: RateLimitConfig = {
+  windowSec: num(e.RL_PAYMENTS_WRITE_WINDOW, 300),
+  anonLimit:  num(e.RL_PAYMENTS_WRITE_ANON,  0),
+  authLimit:  num(e.RL_PAYMENTS_WRITE_AUTH,  15),
+  adminLimit: 0,
+  burstAllowance: 3,
+}
+
 // ── Admin allowlist ───────────────────────────────────────────────────────────
 
 /**

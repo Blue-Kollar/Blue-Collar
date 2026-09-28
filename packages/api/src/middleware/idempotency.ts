@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from 'express'
 import type { Prisma } from '@prisma/client'
-import { db } from '../db.js'
+import { db } from '@/db.js'
 
 const TTL_MS = 24 * 60 * 60 * 1000 // 24 hours
 

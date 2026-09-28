@@ -6,10 +6,11 @@
  */
 
 import { Worker, Queue, type Job } from 'bullmq'
-import { redis } from '../config/redis.js'
-import { logger } from '../config/logger.js'
-import type { CleanupJobData, SchedulerJobData } from '../queue/index.js'
-import { cleanupQueue, ttlQueue } from '../queue/index.js'
+import { redis } from '@/config/redis.js'
+import { logger } from '@/config/logger.js'
+import type { CleanupJobData, SchedulerJobData } from '@/queue/index.js'
+import { cleanupQueue, ttlQueue } from '@/queue/index.js'
+import { registerGracefulShutdown } from '@/utils/gracefulShutdown.js'
 
 const connection = { host: redis.options.host ?? 'localhost', port: redis.options.port ?? 6379 }
 
@@ -110,3 +111,5 @@ cleanupWorker.on('failed', (job, err) => {
 schedulerWorker.on('failed', (job, err) => {
   logger.error({ jobId: job?.id, err }, 'Scheduler job failed')
 })
+
+registerGracefulShutdown([cleanupWorker, schedulerWorker], 'scheduler-worker')

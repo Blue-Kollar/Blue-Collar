@@ -1,5 +1,5 @@
-import { db } from '../db.js'
-import { AppError } from '../utils/AppError.js'
+import { db } from '@/db.js'
+import { AppError } from '@/utils/AppError.js'
 import { Gauge, Counter, Histogram } from 'prom-client'
 
 // ── Prometheus metrics ────────────────────────────────────────────────────────

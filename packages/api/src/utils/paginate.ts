@@ -1,5 +1,5 @@
 import type { Prisma } from '@prisma/client'
-import { db } from '../db.js'
+import { db } from '@/db.js'
 
 export type PaginationMeta = {
   total: number

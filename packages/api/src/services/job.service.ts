@@ -1,8 +1,9 @@
 import type { Prisma } from '@prisma/client'
-import { jobRepository as defaultJobRepository } from '../repositories/job.repository.js'
-import { AppError } from '../utils/AppError.js'
-import { dispatchNotification } from '../services/notification.service.js'
-import type { JobServiceDeps } from '../container/types.js'
+import { jobRepository as defaultJobRepository } from '@/repositories/job.repository.js'
+import { AppError } from '@/utils/AppError.js'
+import { dispatchNotification } from '@/services/notification.service.js'
+import { buildPaginationMeta } from '@/utils/pagination.js'
+import type { JobServiceDeps } from '@/container/types.js'
 
 // ── Factory ───────────────────────────────────────────────────────────────────
 
@@ -65,7 +66,8 @@ export function createJobService(deps: JobServiceDeps) {
         repo.findJobs(where, { skip: (page - 1) * limit, take: limit }),
         repo.count(where),
       ])
-      return { data, meta: { total, page, limit, pages: Math.ceil(total / limit) } }
+      const lastRecord = data.length > 0 ? data[data.length - 1] : null
+      return { data, meta: buildPaginationMeta(total, page, limit, lastRecord) }
     },
 
     async getJob(id: string) {
@@ -172,14 +174,16 @@ export function createJobService(deps: JobServiceDeps) {
         repo.findJobs(where, { skip: (page - 1) * limit, take: limit }),
         repo.count(where),
       ])
-      return { data, meta: { total, page, limit, pages: Math.ceil(total / limit) } }
+      const lastRecord = data.length > 0 ? data[data.length - 1] : null
+      return { data, meta: buildPaginationMeta(total, page, limit, lastRecord) }
     },
 
     // ── Worker's own applications ─────────────────────────────────────────────
 
     async myApplications(workerId: string, page = 1, limit = 20) {
       const { data, total } = await repo.findApplicationsByWorker(workerId, { skip: (page - 1) * limit, take: limit })
-      return { data, meta: { total, page, limit, pages: Math.ceil(total / limit) } }
+      const lastRecord = data.length > 0 ? data[data.length - 1] : null
+      return { data, meta: buildPaginationMeta(total, page, limit, lastRecord) }
     },
 
     // ── Applications ──────────────────────────────────────────────────────────

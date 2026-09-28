@@ -1,6 +1,7 @@
 import type { Worker, Prisma } from '@prisma/client'
 import type { IRepository } from './base.repository.js'
-import { db } from '../db.js'
+import { BaseRepository } from './base.repository.js'
+import { db } from '@/db.js'
 import { QueryBuilder } from './queryBuilder.js'
 
 // ── Interface ─────────────────────────────────────────────────────────────────
@@ -48,22 +49,13 @@ interface ReviewAgg {
 
 const workerInclude = { category: true, curator: true } as const
 
-export class WorkerRepository implements IWorkerRepository {
-  async findById(id: string): Promise<Worker | null> {
-    return db.worker.findUnique({ where: { id } })
+export class WorkerRepository extends BaseRepository<Worker, Prisma.WorkerCreateInput, Prisma.WorkerUpdateInput, Prisma.WorkerWhereInput> implements IWorkerRepository {
+  constructor() {
+    super(db.worker, { softDelete: true })
   }
 
   async findWithRelations(id: string) {
     return db.worker.findUnique({ where: { id }, include: workerInclude })
-  }
-
-  async findAll(opts: { skip?: number; take?: number } = {}): Promise<Worker[]> {
-    const query = QueryBuilder.pagination(opts)
-    return db.worker.findMany({
-      ...query,
-      where: { deletedAt: null },
-      orderBy: QueryBuilder.defaultSort(),
-    })
   }
 
   async findActive(opts: { skip?: number; take?: number } = {}): Promise<Worker[]> {
@@ -98,22 +90,17 @@ export class WorkerRepository implements IWorkerRepository {
     })
   }
 
-  async create(data: Prisma.WorkerCreateInput): Promise<Worker> {
+  /** Overrides BaseRepository.create to eagerly load category/curator relations. */
+  override async create(data: Prisma.WorkerCreateInput): Promise<Worker> {
     return db.worker.create({ data, include: workerInclude })
   }
 
-  async update(id: string, data: Prisma.WorkerUpdateInput): Promise<Worker> {
-    return db.worker.update({ where: { id }, data, include: workerInclude })
+  /** Overrides BaseRepository.update to eagerly load category/curator relations. */
+  override async update(id: string, data: Prisma.WorkerUpdateInput): Promise<Worker> {
+    return db.worker.update({ where: { id }, data: { ...data, updatedAt: new Date() }, include: workerInclude })
   }
 
-  /** Soft-delete: sets deletedAt to now() instead of issuing a hard DELETE. */
-  async delete(id: string): Promise<Worker> {
-    return db.worker.update({ where: { id }, data: { deletedAt: new Date() } })
-  }
-
-  async count(where?: Prisma.WorkerWhereInput): Promise<number> {
-    return db.worker.count({ where })
-  }
+  // delete() and count() are inherited from BaseRepository (soft-delete applies).
 
   async toggleActive(id: string): Promise<Worker> {
     const worker = await db.worker.findUniqueOrThrow({ where: { id } })
@@ -203,7 +190,7 @@ export class WorkerRepository implements IWorkerRepository {
 
     // Apply geo filtering in memory if provided (PostGIS would be ideal but not configured)
     if (lat !== undefined && lng !== undefined) {
-      workers = workers.filter(w => {
+      filteredWorkers = workers.filter(w => {
         if (!w.location?.lat || !w.location?.lng) return false
         const dist = this.haversine(lat, lng, w.location.lat, w.location.lng)
         return dist <= radius
@@ -242,24 +229,25 @@ export class WorkerRepository implements IWorkerRepository {
       }
     })
 
-    // Sort
-    enriched.sort((a, b) => {
-      switch (sortBy) {
-        case 'rating':
-          return b.avgRating - a.avgRating
-        case 'distance':
-          if (a.distanceKm === undefined) return 1
-          if (b.distanceKm === undefined) return -1
-          return a.distanceKm - b.distanceKm
-        case 'reviews':
-          return b.reviewCount - a.reviewCount
-        case 'newest':
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        case 'relevance':
-        default:
-          return (b.relevanceScore || 0) - (a.relevanceScore || 0)
-      }
-    })
+    // Apply sorting that requires computed fields
+    let sortedEnriched = enriched
+    if (requiresPostProcessing) {
+      sortedEnriched.sort((a, b) => {
+        switch (sortBy) {
+          case 'rating':
+            return b.avgRating - a.avgRating
+          case 'distance':
+            if (a.distanceKm === undefined) return 1
+            if (b.distanceKm === undefined) return -1
+            return a.distanceKm - b.distanceKm
+          case 'reviews':
+            return b.reviewCount - a.reviewCount
+          case 'relevance':
+          default:
+            return (b.relevanceScore || 0) - (a.relevanceScore || 0)
+        }
+      })
+    }
 
     const hasMore = enriched.length > take
     const data = enriched.slice(0, take)
