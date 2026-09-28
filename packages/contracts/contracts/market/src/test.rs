@@ -2,8 +2,11 @@
 extern crate std;
 
 use super::*;
+use bluecollar_shared::test_fixtures::{
+    deploy_token_and_mint, set_time, setup_env as shared_setup_env,
+};
 use soroban_sdk::{
-    testutils::{Address as _, Ledger},
+    testutils::Address as _,
     token::{Client as TokenClient, StellarAssetClient},
     Address, Env, Symbol,
 };
@@ -13,19 +16,15 @@ use soroban_sdk::{
 // ---------------------------------------------------------------------------
 
 fn setup() -> (Env, Address, Address, Address, Address, Address) {
-    let env = Env::default();
-    env.mock_all_auths();
-
+    let env = shared_setup_env();
     let admin = Address::generate(&env);
     let fee_recipient = Address::generate(&env);
     let from = Address::generate(&env);
     let to = Address::generate(&env);
-
-    let token_id = env.register_stellar_asset_contract_v2(admin.clone());
-    let token_addr = token_id.address();
-    StellarAssetClient::new(&env, &token_addr).mint(&from, &10_000);
-
-    (env, admin, fee_recipient, from, to, token_addr)
+    // 10_000 matches the pre-#1446 fixture; balance assertions below and the
+    // insufficient-balance tip test depend on this exact amount.
+    let token = deploy_token_and_mint(&env, &admin, &from, 10_000);
+    (env, admin, fee_recipient, from, to, token)
 }
 
 fn deploy(env: &Env) -> Address {
@@ -37,12 +36,6 @@ fn init(env: &Env, contract: &Address, admin: &Address, fee_bps: u32, fee_recipi
     client.initialize(admin, &fee_bps, fee_recipient);
     // Grant fee manager role to admin for update_fee tests
     client.grant_role(admin, &Symbol::new(env, ROLE_FEE_MANAGER), admin);
-}
-
-fn set_time(env: &Env, ts: u64) {
-    let mut info = env.ledger().get();
-    info.timestamp = ts;
-    env.ledger().set(info);
 }
 
 // ---------------------------------------------------------------------------
@@ -1027,5 +1020,97 @@ mod multi_asset_tests {
         // fee = 2000 * 100 / 10_000 = 20
         assert_eq!(TokenClient::new(&env, &tok).balance(&worker), 1_980);
         assert_eq!(TokenClient::new(&env, &tok).balance(&treasury), 20);
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Resource budgets for hot entrypoints (issue #1447)
+// ---------------------------------------------------------------------------
+
+mod gas_budgets {
+    use super::*;
+
+    /// Observed actual: ~245k instructions / 4 writes.
+    /// Budget: ~6x headroom on instructions (mainnet limit 600M — 0.25%),
+    /// 2x on writes (mainnet limit 50 — 16%).
+    const CREATE_ESCROW_MAX_INSTRUCTIONS: i64 = 1_500_000;
+    const CREATE_ESCROW_MAX_WRITES: u32 = 8;
+
+    /// Observed actual: ~216k instructions / 3 writes.
+    /// Budget: ~5.5x headroom on instructions (0.2% of mainnet limit),
+    /// 2x on writes (mainnet limit 50 — 12%).
+    const TIP_MAX_INSTRUCTIONS: i64 = 1_200_000;
+    const TIP_MAX_WRITES: u32 = 6;
+
+    /// Assert the last top-level invocation stayed inside both budgets.
+    ///
+    /// `env.cost_estimate().resources()` meters only the *last* top-level
+    /// contract invocation, so callers must invoke exactly one measured
+    /// entrypoint between setup and this assertion.
+    fn assert_within_budget(env: &Env, label: &str, max_instructions: i64, max_writes: u32) {
+        let res = env.cost_estimate().resources();
+        std::println!(
+            "{label} actual: instructions={} writes={}",
+            res.instructions,
+            res.write_entries
+        );
+        assert!(
+            res.instructions <= max_instructions,
+            "{label} exceeded its CPU-instruction budget: \
+             {actual} instructions > {budget} instructions budget. \
+             A hot entrypoint has grown past its agreed resource budget \
+             (issue #1447). Recompute and document a new budget before \
+             merging.",
+            label = label,
+            actual = res.instructions,
+            budget = max_instructions,
+        );
+        assert!(
+            res.write_entries <= max_writes,
+            "{label} exceeded its ledger-write budget: \
+             {actual} writes > {budget} writes budget. \
+             A hot entrypoint has grown past its agreed resource budget \
+             (issue #1447). Recompute and document a new budget before \
+             merging.",
+            label = label,
+            actual = res.write_entries,
+            budget = max_writes,
+        );
+    }
+
+    #[test]
+    fn market_create_escrow_stays_within_resource_budget() {
+        let (env, admin, fee_recipient, from, to, token_addr) = setup();
+        let contract = deploy(&env);
+        init(&env, &contract, &admin, 0, &fee_recipient);
+        let client = MarketContractClient::new(&env, &contract);
+
+        // Single measured top-level invocation after all setup calls.
+        client.create_escrow(
+            &Symbol::new(&env, "esc_budget"),
+            &from,
+            &to,
+            &token_addr,
+            &1_000,
+            &9_999,
+        );
+        assert_within_budget(
+            &env,
+            "market::create_escrow",
+            CREATE_ESCROW_MAX_INSTRUCTIONS,
+            CREATE_ESCROW_MAX_WRITES,
+        );
+    }
+
+    #[test]
+    fn market_tip_stays_within_resource_budget() {
+        let (env, admin, fee_recipient, from, to, token_addr) = setup();
+        let contract = deploy(&env);
+        init(&env, &contract, &admin, 0, &fee_recipient);
+        let client = MarketContractClient::new(&env, &contract);
+
+        // Single measured top-level invocation after all setup calls.
+        client.tip(&from, &to, &token_addr, &100);
+        assert_within_budget(&env, "market::tip", TIP_MAX_INSTRUCTIONS, TIP_MAX_WRITES);
     }
 }

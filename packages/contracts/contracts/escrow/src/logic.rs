@@ -196,8 +196,10 @@ pub fn do_create(
 /// Only the depositor or an admin may release.
 pub fn do_release(env: &Env, caller: &Address, id: Symbol) -> Result<(), ContractError> {
     // --- Checks ---
+    // NB: `helpers::require_owner_or_role` performs `caller.require_auth()`
+    // internally — do not add an explicit `require_auth` here, a second
+    // auth call in the same frame fails with Error(Auth, ExistingValue).
     require_not_paused(env)?;
-    caller.require_auth();
 
     let mut record = load_escrow(env, &id).ok_or(ContractError::EscrowNotFound)?;
     require_active(&record)?;
@@ -271,8 +273,10 @@ pub fn do_cancel(env: &Env, caller: &Address, id: Symbol) -> Result<(), Contract
 /// File a dispute on an active escrow. Either party may call.
 pub fn do_dispute(env: &Env, caller: &Address, id: Symbol) -> Result<(), ContractError> {
     // --- Checks ---
+    // NB: `helpers::require_party` performs `caller.require_auth()`
+    // internally — do not add an explicit `require_auth` here, a second
+    // auth call in the same frame fails with Error(Auth, ExistingValue).
     require_not_paused(env)?;
-    caller.require_auth();
 
     let mut record = load_escrow(env, &id).ok_or(ContractError::EscrowNotFound)?;
     helpers::require_party(caller, &record.depositor, &record.beneficiary)?;

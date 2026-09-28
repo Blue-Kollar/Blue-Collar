@@ -2,9 +2,10 @@
 extern crate std;
 
 use super::*;
+use bluecollar_shared::test_fixtures::deploy_token_and_mint;
 use soroban_sdk::{
     testutils::{Address as _, Ledger as _},
-    token::{Client as TokenClient, StellarAssetClient},
+    token::Client as TokenClient,
     Address, BytesN, Env, String, Symbol, Vec,
 };
 
@@ -44,9 +45,7 @@ impl AuthFixture {
         let stranger = Address::generate(&env);
         let member = Address::generate(&env);
 
-        let token_id = env.register_stellar_asset_contract_v2(admin.clone());
-        let token = token_id.address();
-        StellarAssetClient::new(&env, &token).mint(&member, &1_000_000);
+        let token = deploy_token_and_mint(&env, &admin, &member, 1_000_000);
 
         let contract = env.register(InsurancePoolContract, ());
         let client = InsurancePoolContractClient::new(&env, &contract);
@@ -878,11 +877,7 @@ mod claim_errors {
 
         // Give the pool contract real funds in a token that has no PoolStats
         // record, so the transfer succeeds and the stats lookup is reached.
-        let other = f
-            .env
-            .register_stellar_asset_contract_v2(f.admin.clone())
-            .address();
-        StellarAssetClient::new(&f.env, &other).mint(&f.contract, &50_000);
+        let other = deploy_token_and_mint(&f.env, &f.admin, &f.contract, 50_000);
 
         assert_eq!(
             f.client()
@@ -1116,11 +1111,7 @@ mod lifecycle {
     #[test]
     fn contribute_with_untracked_token_creates_default_pool_stats() {
         let f = AuthFixture::new();
-        let other = f
-            .env
-            .register_stellar_asset_contract_v2(f.admin.clone())
-            .address();
-        StellarAssetClient::new(&f.env, &other).mint(&f.member, &500_000);
+        let other = deploy_token_and_mint(&f.env, &f.admin, &f.member, 500_000);
         TokenClient::new(&f.env, &other).approve(&f.member, &f.contract, &25_000, &50_000);
 
         f.client().contribute(&f.member, &other, &25_000);

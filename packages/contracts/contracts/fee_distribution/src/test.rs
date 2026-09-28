@@ -2,10 +2,9 @@
 extern crate std;
 
 use super::*;
+use bluecollar_shared::test_fixtures::deploy_token_and_mint;
 use soroban_sdk::{
-    testutils::Address as _,
-    token::{Client as TokenClient, StellarAssetClient},
-    Address, BytesN, Env, Symbol, Vec,
+    testutils::Address as _, token::Client as TokenClient, Address, BytesN, Env, Symbol, Vec,
 };
 
 struct AuthFixture {
@@ -34,9 +33,7 @@ impl AuthFixture {
         let recipient_a = Address::generate(&env);
         let recipient_b = Address::generate(&env);
 
-        let token_id = env.register_stellar_asset_contract_v2(admin.clone());
-        let token = token_id.address();
-        StellarAssetClient::new(&env, &token).mint(&admin, &1_000_000);
+        let token = deploy_token_and_mint(&env, &admin, &admin, 1_000_000);
 
         let contract = env.register_contract(None, FeeDistributionContract);
         let client = FeeDistributionContractClient::new(&env, &contract);
