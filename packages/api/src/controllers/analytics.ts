@@ -1,8 +1,8 @@
 import type { Request, Response } from 'express'
-import * as analyticsService from '../services/analytics.service.js'
-import * as metricsService from '../services/metrics.service.js'
-import * as analyticsRepo from '../repositories/analytics.repository.js'
-import { catchAsync } from '../utils/catchAsync.js'
+import * as analyticsService from '@/services/analytics.service.js'
+import * as metricsService from '@/services/metrics.service.js'
+import * as analyticsRepo from '@/repositories/analytics.repository.js'
+import { catchAsync } from '@/utils/catchAsync.js'
 
 function routeId(req: Request): string {
   return String(req.params.id)

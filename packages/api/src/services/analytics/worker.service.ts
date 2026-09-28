@@ -10,9 +10,9 @@
  *   - Access-control guard (assertCanAccessWorkerAnalytics)
  *   - Date-range parsing helper (parseAnalyticsDateRange)
  */
-import { db } from '../../db.js'
-import { AppError } from '../../utils/AppError.js'
-import { getErrorMessage } from '../../utils/getErrorMessage.js'
+import { db } from '@/db.js'
+import { AppError } from '@/utils/AppError.js'
+import { getErrorMessage } from '@/utils/getErrorMessage.js'
 import {
   type DateRange,
   type TimeSeriesPoint,

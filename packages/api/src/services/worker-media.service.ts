@@ -1,6 +1,6 @@
-import { db } from '../db.js'
-import type { CreateWorkerBody, UpdateWorkerBody } from '../interfaces/index.js'
-import { processImage, deleteImages } from '../utils/imageProcessor.js'
+import { db } from '@/db.js'
+import type { CreateWorkerBody, UpdateWorkerBody } from '@/interfaces/index.js'
+import { processImage, deleteImages } from '@/utils/imageProcessor.js'
 import { createWorker, updateWorker, deleteWorker } from './worker-crud.service.js'
 
 /** Build the image-variant fields (thumb/medium/full/avatar) from an uploaded file, if any. */

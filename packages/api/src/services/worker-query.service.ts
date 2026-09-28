@@ -1,8 +1,8 @@
 import type { Prisma } from '@prisma/client'
-import { db } from '../db.js'
-import { formatWorker } from '../models/worker.model.js'
-import { workerRepository } from '../repositories/worker.repository.js'
-import { WorkerCollection } from '../resources/index.js'
+import { db } from '@/db.js'
+import { formatWorker } from '@/models/worker.model.js'
+import { workerRepository } from '@/repositories/worker.repository.js'
+import { WorkerCollection } from '@/resources/index.js'
 
 const workerInclude = { category: true, curator: true } as const
 

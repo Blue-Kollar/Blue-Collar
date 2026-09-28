@@ -28,6 +28,11 @@ model Location {
   users   User[]
   workers Worker[]
   jobs    Job[]
+
+  @@index([city])
+  @@index([state])
+  @@index([country])
+  @@index([lat, lng])
 }
 
 model User {

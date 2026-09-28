@@ -3,7 +3,7 @@
  */
 
 import type { Request, Response, NextFunction } from 'express'
-import { isApiKeyAllowedForVersion, isJwtRequiredForVersion } from '../utils/versioning.js'
+import { isApiKeyAllowedForVersion, isJwtRequiredForVersion } from '@/utils/versioning.js'
 
 /**
  * Authenticate based on version-specific policies.

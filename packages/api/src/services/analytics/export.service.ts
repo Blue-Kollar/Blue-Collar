@@ -7,7 +7,7 @@
  *   - exportPlatformAnalyticsCsv — full platform worker list as a CSV
  *   - exportPersonalWorkerAnalyticsCsv — daily series + summary for one worker
  */
-import { db } from '../../db.js'
+import { db } from '@/db.js'
 import { type DateRange, csvEscape } from './shared.js'
 import { getWorkerPersonalDashboard } from './worker.service.js'
 

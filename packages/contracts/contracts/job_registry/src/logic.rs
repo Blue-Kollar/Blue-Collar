@@ -9,8 +9,8 @@ use bluecollar_types::{helpers, ContractError};
 use soroban_sdk::{symbol_short, Address, BytesN, Env, Symbol, Vec};
 
 use crate::storage::{
-    self, add_poster_job, load_job, load_job_list, load_role_members, save_job, save_job_list,
-    save_role_members, Job, JobStatus,
+    self, add_poster_job, has_job, load_job, load_job_list, load_role_members, save_job,
+    save_job_list, save_role_members, Job, JobStatus,
 };
 
 // =============================================================================
@@ -101,7 +101,8 @@ pub fn do_post_job(
     // --- Checks ---
     require_not_paused(env)?;
     poster.require_auth();
-    if load_job(env, &id).is_some() {
+    // Existence probe only — never deserialise the full record here.
+    if has_job(env, &id) {
         return Err(ContractError::JobAlreadyExists);
     }
     if budget < 0 {

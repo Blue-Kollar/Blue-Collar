@@ -1,7 +1,7 @@
 import type { InteractionType } from '@prisma/client'
-import { db } from '../db.js'
-import { redis } from '../config/redis.js'
-import { formatWorker } from '../models/worker.model.js'
+import { db } from '@/db.js'
+import { redis } from '@/config/redis.js'
+import { formatWorker } from '@/models/worker.model.js'
 
 const CACHE_TTL = 60 * 30 // 30 minutes
 const INTERACTION_WEIGHTS: Record<string, number> = { view: 1, bookmark: 3, tip: 5, contact: 4 }

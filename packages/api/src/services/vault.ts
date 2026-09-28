@@ -1,5 +1,5 @@
 import * as NodeVault from 'node-vault';
-import { logger } from '../config/logger.js'
+import { logger } from '@/config/logger.js'
 
 const vault = new NodeVault({
   endpoint: process.env.VAULT_ADDR || 'http://localhost:8200',

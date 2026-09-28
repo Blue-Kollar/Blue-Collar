@@ -1,6 +1,6 @@
 import { Router } from 'express'
-import * as indexerController from '../controllers/indexer.js'
-import { publicReadRateLimiter } from '../config/rateLimiter.js'
+import * as indexerController from '@/controllers/indexer.js'
+import { publicReadRateLimiter } from '@/config/rateLimiter.js'
 
 const router = Router()
 

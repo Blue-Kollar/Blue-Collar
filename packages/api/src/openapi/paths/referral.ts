@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { registry, BearerAuth, ErrorSchema, SuccessSchema } from '../registry.js'
+import { registry, BearerAuth, ErrorSchema, SuccessSchema } from '@/openapi/registry.js'
 
 registry.registerPath({
   method: 'get', path: '/api/v1/referrals/my/code', tags: ['Referrals'],

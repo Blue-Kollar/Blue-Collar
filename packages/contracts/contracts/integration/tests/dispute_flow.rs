@@ -46,8 +46,15 @@ fn dispute_split_decision_splits_locked_funds() {
     assert_eq!(token.balance(&payer), 90_000);
     assert_eq!(token.balance(&dispute.address), 10_000);
 
-    dispute.submit_evidence(&id, &worker, &String::from_str(&env, "ipfs://worker-evidence"));
-    assert_eq!(dispute.get_dispute(&id).unwrap().status, DisputeStatus::Evidence);
+    dispute.submit_evidence(
+        &id,
+        &worker,
+        &String::from_str(&env, "ipfs://worker-evidence"),
+    );
+    assert_eq!(
+        dispute.get_dispute(&id).unwrap().status,
+        DisputeStatus::Evidence
+    );
 
     // 60% to the worker, remainder back to the payer.
     dispute.decide(&id, &arbitrator, &DisputeOutcome::Split, &6_000);
@@ -84,7 +91,14 @@ fn market_escrow_payout_follows_arbitrator_decision() {
     // Job funds locked in market escrow.
     let escrow_id = Symbol::new(&env, "job_esc");
     let expiry = env.ledger().timestamp() + 86_400;
-    market.create_escrow(&escrow_id, &payer, &worker, &token.address, &40_000, &expiry);
+    market.create_escrow(
+        &escrow_id,
+        &payer,
+        &worker,
+        &token.address,
+        &40_000,
+        &expiry,
+    );
     assert_eq!(token.balance(&payer), 60_000);
 
     // Payer raises the dispute on the active escrow and pays the arbitration fee.
@@ -108,7 +122,12 @@ fn market_escrow_payout_follows_arbitrator_decision() {
         &worker,
         &String::from_str(&env, "ipfs://worker-evidence"),
     );
-    dispute.decide(&dispute_id, &arbitrator, &DisputeOutcome::ReleaseRespondent, &0);
+    dispute.decide(
+        &dispute_id,
+        &arbitrator,
+        &DisputeOutcome::ReleaseRespondent,
+        &0,
+    );
     dispute.settle(&dispute_id);
 
     // Bond follows the ruling: worker takes it.

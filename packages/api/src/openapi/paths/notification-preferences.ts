@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { registry, BearerAuth } from '../registry.js'
+import { registry, BearerAuth } from '@/openapi/registry.js'
 
 const NotificationPreferencesSchema = registry.register('NotificationPreferences', z.object({
   newWorkerNearby: z.boolean(),

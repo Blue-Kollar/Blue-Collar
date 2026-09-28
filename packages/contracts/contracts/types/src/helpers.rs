@@ -82,6 +82,55 @@ pub fn require_admin(caller: &Address, admin: &Address) -> Result<(), ContractEr
     }
 }
 
+/// Assert that `caller` is one of the two named parties (e.g. depositor or
+/// beneficiary on an escrow, buyer or seller on a job).
+///
+/// Calls `caller.require_auth()` before checking equality, so the Soroban
+/// host will reject the invocation if the transaction is not properly
+/// authorised. This centralises the "is caller a party to this record"
+/// pattern previously reimplemented independently in escrow, job_registry,
+/// and dispute.
+///
+/// # Errors
+///
+/// Returns [`ContractError::NotAParty`] when `caller` matches neither
+/// `party_a` nor `party_b`.
+pub fn require_party(
+    caller: &Address,
+    party_a: &Address,
+    party_b: &Address,
+) -> Result<(), ContractError> {
+    caller.require_auth();
+    if *caller == *party_a || *caller == *party_b {
+        Ok(())
+    } else {
+        Err(ContractError::NotAParty)
+    }
+}
+
+/// Assert that `caller` is either `primary` (e.g. the record owner/depositor)
+/// or a member of `admins` (e.g. the admin role list).
+///
+/// This centralises the "owner-or-admin" authorization pattern used for
+/// operations like releasing/cancelling an escrow, closing a job, etc.
+///
+/// # Errors
+///
+/// Returns [`ContractError::NotAuthorized`] when `caller` is neither
+/// `primary` nor present in `admins`.
+pub fn require_owner_or_role(
+    caller: &Address,
+    primary: &Address,
+    admins: &Vec<Address>,
+) -> Result<(), ContractError> {
+    caller.require_auth();
+    if *caller == *primary || admins.iter().any(|m| m == *caller) {
+        Ok(())
+    } else {
+        Err(ContractError::NotAuthorized)
+    }
+}
+
 // =============================================================================
 // Fee calculation
 // =============================================================================
@@ -227,6 +276,78 @@ mod tests {
 
         assert_eq!(
             require_admin(&other, &admin).unwrap_err(),
+            ContractError::NotAuthorized
+        );
+    }
+
+    // -------------------------------------------------------------------------
+    // require_party
+    // -------------------------------------------------------------------------
+
+    #[test]
+    fn require_party_matches_party_a() {
+        let env = Env::default();
+        env.mock_all_auths();
+        let a = Address::generate(&env);
+        let b = Address::generate(&env);
+        assert!(require_party(&a, &a, &b).is_ok());
+    }
+
+    #[test]
+    fn require_party_matches_party_b() {
+        let env = Env::default();
+        env.mock_all_auths();
+        let a = Address::generate(&env);
+        let b = Address::generate(&env);
+        assert!(require_party(&b, &a, &b).is_ok());
+    }
+
+    #[test]
+    fn require_party_rejects_stranger() {
+        let env = Env::default();
+        env.mock_all_auths();
+        let a = Address::generate(&env);
+        let b = Address::generate(&env);
+        let stranger = Address::generate(&env);
+        assert_eq!(
+            require_party(&stranger, &a, &b).unwrap_err(),
+            ContractError::NotAParty
+        );
+    }
+
+    // -------------------------------------------------------------------------
+    // require_owner_or_role
+    // -------------------------------------------------------------------------
+
+    #[test]
+    fn require_owner_or_role_owner_ok() {
+        let env = Env::default();
+        env.mock_all_auths();
+        let owner = Address::generate(&env);
+        let admins: Vec<Address> = Vec::new(&env);
+        assert!(require_owner_or_role(&owner, &owner, &admins).is_ok());
+    }
+
+    #[test]
+    fn require_owner_or_role_admin_ok() {
+        let env = Env::default();
+        env.mock_all_auths();
+        let owner = Address::generate(&env);
+        let admin = Address::generate(&env);
+        let mut admins: Vec<Address> = Vec::new(&env);
+        admins.push_back(admin.clone());
+        assert!(require_owner_or_role(&admin, &owner, &admins).is_ok());
+    }
+
+    #[test]
+    fn require_owner_or_role_rejects_stranger() {
+        let env = Env::default();
+        env.mock_all_auths();
+        let owner = Address::generate(&env);
+        let stranger = Address::generate(&env);
+        let admins: Vec<Address> = Vec::new(&env);
+        assert_eq!(
+            require_owner_or_role(&stranger, &owner, &admins).unwrap_err(),
             ContractError::NotAuthorized
         );
     }

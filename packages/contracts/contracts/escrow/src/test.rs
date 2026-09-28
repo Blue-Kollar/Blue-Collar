@@ -773,3 +773,74 @@ fn test_upgrade_requires_upgrader_role() {
         Err(Ok(ContractError::MissingRole))
     );
 }
+
+// ---------------------------------------------------------------------------
+// Ordering: state must not advance when the token transfer fails mid-flow
+// (issue #1352 — Interactions must precede Effects for token transfers).
+// ---------------------------------------------------------------------------
+
+/// Simulate a transfer failure by corrupting the stored escrow so the
+/// recorded `amount` exceeds what the contract actually holds, then assert
+/// that `release_escrow` panics (the transfer fails) *and* that the escrow
+/// record left in storage is untouched — proving the state write never ran.
+#[test]
+fn test_release_state_unchanged_when_transfer_fails() {
+    let (env, admin, depositor, beneficiary, token, contract_id) = setup_env();
+    let client = deploy_and_init(&env, &admin, &contract_id);
+    set_time(&env, 1_000);
+
+    let id = Symbol::new(&env, "esc_fail");
+    client.create_escrow(&depositor, &beneficiary, &token, &id, &5_000, &9_000);
+    let before = client.get_escrow(&id);
+    assert_eq!(before.state, EscrowState::Active);
+
+    // Corrupt the persisted amount so it exceeds the contract's real token
+    // balance (only 5_000 was ever transferred in). This forces the token
+    // client's `transfer` call inside `do_release` to fail mid-flow, without
+    // needing a mock/malicious token implementation.
+    env.as_contract(&contract_id, || {
+        let mut record = storage::load_escrow(&env, &id).unwrap();
+        record.amount = 1_000_000;
+        storage::save_escrow(&env, &record);
+    });
+
+    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        client.release_escrow(&depositor, &id);
+    }));
+    assert!(
+        result.is_err(),
+        "release_escrow should panic when the underlying transfer fails"
+    );
+
+    // Because the transfer (Interaction) runs before the state write
+    // (Effect), the failed transfer must leave the escrow exactly as it was
+    // corrupted to (i.e. no state advance to `Released` occurred).
+    let after = client.get_escrow(&id);
+    assert_eq!(after.state, EscrowState::Active);
+    assert_eq!(after.amount, 1_000_000);
+}
+
+/// Same guarantee for `cancel_escrow`.
+#[test]
+fn test_cancel_state_unchanged_when_transfer_fails() {
+    let (env, admin, depositor, beneficiary, token, contract_id) = setup_env();
+    let client = deploy_and_init(&env, &admin, &contract_id);
+    set_time(&env, 1_000);
+
+    let id = Symbol::new(&env, "esc_fail_cancel");
+    client.create_escrow(&depositor, &beneficiary, &token, &id, &5_000, &9_000);
+
+    env.as_contract(&contract_id, || {
+        let mut record = storage::load_escrow(&env, &id).unwrap();
+        record.amount = 1_000_000;
+        storage::save_escrow(&env, &record);
+    });
+
+    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        client.cancel_escrow(&admin, &id);
+    }));
+    assert!(result.is_err());
+
+    let after = client.get_escrow(&id);
+    assert_eq!(after.state, EscrowState::Active);
+}

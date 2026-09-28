@@ -5,7 +5,7 @@
  * Polls every POLL_INTERVAL_MS (default 30s). Uses database cursor to track
  * last processed ledger/transaction so restarts are safe and no events are missed.
  */
-import { logger } from '../config/logger.js'
+import { logger } from '@/config/logger.js'
 import { publishEvent } from './webhook.service.js'
 import * as indexerService from './indexer.service.js'
 import { stellarRpcClient } from './stellar-rpc.client.js'
@@ -17,18 +17,25 @@ const POLL_INTERVAL_MS = 30_000
 let pollTimer: ReturnType<typeof setTimeout> | null = null
 
 /** Map Horizon contract event topics to internal event names */
-function resolveEventName(contractId: string, topic: string): string | null {
+function resolveEventName(contractId: string, topic: string | string[]): string | null {
+  const topicStr = Array.isArray(topic) ? topic[0] : topic
   if (contractId === REGISTRY_CONTRACT_ID) {
-    if (topic === 'register') return 'worker.registered'
-    if (topic === 'toggle') return 'worker.toggled'
+    if (topicStr === 'register') return 'worker.registered'
+    if (topicStr === 'toggle') return 'worker.toggled'
   }
   if (contractId === MARKET_CONTRACT_ID) {
-    if (topic === 'tip') return 'tip.sent'
+    if (topicStr === 'tip') return 'tip.sent'
+    if (topicStr === 'feetaken') return 'fee.taken'
+  }
+  if (contractId === REGISTRY_CONTRACT_ID || contractId === MARKET_CONTRACT_ID) {
+    // Handle payment events with expanded topics
+    if (topicStr === 'pay') return 'payment.completed'
   }
   return null
 }
 
-async function fetchContractEvents(contractId: string): Promise<void> {
+/** @internal — exported for use by the jobs/horizon-poller.job.ts module */
+export async function fetchContractEvents(contractId: string): Promise<void> {
   if (!contractId) return
 
   try {

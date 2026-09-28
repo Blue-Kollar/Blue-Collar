@@ -21,7 +21,7 @@
  */
 
 import { hash } from 'argon2'
-import { db } from '../db.js'
+import { db } from '@/db.js'
 
 // ── Guards ────────────────────────────────────────────────────────────────────
 

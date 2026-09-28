@@ -1,6 +1,7 @@
 import type { Bookmark, Category, Prisma, Worker } from '@prisma/client'
 import type { IRepository } from './base.repository.js'
-import { db } from '../db.js'
+import { BaseRepository } from './base.repository.js'
+import { db } from '@/db.js'
 
 // ── Interface ─────────────────────────────────────────────────────────────────
 
@@ -13,30 +14,12 @@ export interface IBookmarkRepository extends IRepository<Bookmark, Prisma.Bookma
 }
 
 // ── Prisma implementation ─────────────────────────────────────────────────────
+// CRUD boilerplate lives in BaseRepository; bookmarks are hard-deleted
+// (no deletedAt column) so softDelete stays off.
 
-export class BookmarkRepository implements IBookmarkRepository {
-  async findById(id: string): Promise<Bookmark | null> {
-    return db.bookmark.findUnique({ where: { id } })
-  }
-
-  async findAll(opts: { skip?: number; take?: number } = {}): Promise<Bookmark[]> {
-    return db.bookmark.findMany({ skip: opts.skip, take: opts.take, orderBy: { createdAt: 'desc' } })
-  }
-
-  async create(data: Prisma.BookmarkCreateInput): Promise<Bookmark> {
-    return db.bookmark.create({ data })
-  }
-
-  async update(id: string, data: Prisma.BookmarkUpdateInput): Promise<Bookmark> {
-    return db.bookmark.update({ where: { id }, data })
-  }
-
-  async delete(id: string): Promise<Bookmark> {
-    return db.bookmark.delete({ where: { id } })
-  }
-
-  async count(where?: Prisma.BookmarkWhereInput): Promise<number> {
-    return db.bookmark.count({ where })
+export class BookmarkRepository extends BaseRepository<Bookmark, Prisma.BookmarkCreateInput, Prisma.BookmarkUpdateInput, Prisma.BookmarkWhereInput> implements IBookmarkRepository {
+  constructor() {
+    super(db.bookmark)
   }
 
   async findByUserAndWorker(userId: string, workerId: string): Promise<Bookmark | null> {

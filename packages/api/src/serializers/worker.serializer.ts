@@ -27,8 +27,8 @@ export class WorkerSerializer extends BaseSerializer<WorkerWithRelations, Serial
         medium: rest.imageMedium ?? null,
         full:   rest.imageFull   ?? null,
       },
-      ...(category ? { category: categorySerializer.serialize(category) } : {}),
-      ...(curator  ? { curator:  userSerializer.serialize(curator) }       : {}),
+      ...this.embed('category', category, categorySerializer),
+      ...this.embed('curator', curator, userSerializer),
     }
   }
 }

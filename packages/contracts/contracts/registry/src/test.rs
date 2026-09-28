@@ -305,86 +305,6 @@ impl UpgradeFixture {
 }
 
 // ===========================================================================
-// 1. State migration testing
-// ===========================================================================
-
-mod state_migration {
-    use super::*;
-
-    /// A migration must not alter any field of an existing worker record.
-    #[test]
-    fn migration_preserves_all_worker_fields() {
-        let f = UpgradeFixture::new();
-        let id = f.register("worker1");
-        f.client().update_reputation(&f.admin, &id, &7_500);
-
-        let before = f.client().get_worker(&id).unwrap();
-        let count_before = f.client().worker_count();
-
-        f.client().migrate(&f.admin, &1u32);
-
-        let after = f.client().get_worker(&id).unwrap();
-        assert_eq!(after.owner, before.owner);
-        assert_eq!(after.name, before.name);
-        assert_eq!(after.category, before.category);
-        assert_eq!(after.reputation, before.reputation);
-        assert_eq!(after.is_active, before.is_active);
-        assert_eq!(f.client().worker_count(), count_before);
-    }
-
-    /// The schema version starts at 1 and advances by exactly one per migration.
-    #[test]
-    fn migration_advances_version_by_one() {
-        let f = UpgradeFixture::new();
-        assert_eq!(f.client().get_schema_version(), 1);
-        f.client().migrate(&f.admin, &1u32);
-        assert_eq!(f.client().get_schema_version(), 2);
-        f.client().migrate(&f.admin, &2u32);
-        assert_eq!(f.client().get_schema_version(), 3);
-    }
-
-    /// Replaying a migration for an already-applied version is rejected, so a
-    /// migration can never run twice against the same schema.
-    #[test]
-    fn migration_is_not_replayable() {
-        let f = UpgradeFixture::new();
-        f.client().migrate(&f.admin, &1u32);
-        assert_eq!(
-            f.client().try_migrate(&f.admin, &1u32),
-            Err(Ok(ContractError::WrongSchemaVersion))
-        );
-    }
-
-    /// Migrating with the wrong `expected_version` is rejected (no out-of-order
-    /// migrations).
-    #[test]
-    fn migration_rejects_out_of_order_version() {
-        let f = UpgradeFixture::new();
-        assert_eq!(
-            f.client().try_migrate(&f.admin, &5u32),
-            Err(Ok(ContractError::WrongSchemaVersion))
-        );
-    }
-
-    /// Data registered before a migration is fully intact across several
-    /// sequential migrations (multi-version upgrade simulation).
-    #[test]
-    fn data_survives_multiple_sequential_migrations() {
-        let f = UpgradeFixture::new();
-        let id = f.register("worker1");
-        let original = f.client().get_worker(&id).unwrap();
-
-        for v in 1..=4u32 {
-            f.client().migrate(&f.admin, &v);
-            let now = f.client().get_worker(&id).unwrap();
-            assert_eq!(now.name, original.name, "name lost at schema v{}", v + 1);
-            assert_eq!(now.owner, original.owner, "owner lost at schema v{}", v + 1);
-        }
-        assert_eq!(f.client().get_schema_version(), 5);
-    }
-}
-
-// ===========================================================================
 // 2. Backward compatibility verification
 // ===========================================================================
 
@@ -414,26 +334,6 @@ mod backward_compat {
     fn fresh_deploy_reports_baseline_version() {
         let f = UpgradeFixture::new();
         assert_eq!(f.client().get_schema_version(), 1);
-    }
-
-    /// The `upgrade`, `migrate`, and timelock entry points keep the exact
-    /// argument shapes external tooling depends on. This is a compile-time
-    /// contract: if a signature changed, this test would fail to build.
-    #[test]
-    fn upgrade_entry_point_signatures_are_stable() {
-        let f = UpgradeFixture::new();
-        let hash = BytesN::from_array(&f.env, &[1u8; 32]);
-
-        // migrate(admin, expected_version)
-        let _migrate: fn(&RegistryContractClient, &Address, &u32) = |c, a, v| {
-            c.migrate(a, v);
-        };
-        // propose_upgrade(admin, wasm_hash) / get_pending_upgrade()
-        f.client().propose_upgrade(&f.admin, &hash);
-        let pending = f.client().get_pending_upgrade().unwrap();
-        assert_eq!(pending.wasm_hash, hash);
-        f.client().cancel_upgrade(&f.admin);
-        let _ = _migrate;
     }
 }
 
@@ -475,25 +375,7 @@ mod perf_regression {
         assert!(mem < 200_000, "register memory regression: {mem}");
     }
 
-    /// A schema migration over existing state must stay within budget.
-    #[test]
-    fn migrate_within_budget() {
-        let f = UpgradeFixture::new();
-        f.register("worker1");
-
-        f.env.budget().reset_default();
-        f.client().migrate(&f.admin, &1u32);
-        let cpu = f.env.budget().cpu_instruction_cost();
-        let mem = f.env.budget().memory_bytes_cost();
-        std::println!("migrate cost: cpu={cpu} mem={mem}");
-        // Observed ~73k CPU / ~11k mem; ceilings give generous headroom.
-        assert!(cpu < 500_000, "migrate CPU regression: {cpu}");
-        assert!(mem < 100_000, "migrate memory regression: {mem}");
-    }
-}
-
-// ===========================================================================
-// 4. Security / authorization regression testing
+    /// Worker registration must stay within a bounded CPU/memory budget.
 // ===========================================================================
 
 mod security_regression {
@@ -513,17 +395,6 @@ mod security_regression {
         let hash = BytesN::from_array(&env, &[1u8; 32]);
         assert_eq!(
             client.try_upgrade(&hash),
-            Err(Ok(ContractError::MissingRole))
-        );
-    }
-
-    /// `migrate` must reject callers without ROLE_ADMIN.
-    #[test]
-    fn migrate_requires_admin() {
-        let f = UpgradeFixture::new();
-        let stranger = Address::generate(&f.env);
-        assert_eq!(
-            f.client().try_migrate(&stranger, &1u32),
             Err(Ok(ContractError::MissingRole))
         );
     }

@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express'
-import * as auditService from '../services/audit.service.js'
-import { catchAsync } from '../utils/catchAsync.js'
+import * as auditService from '@/services/audit.service.js'
+import { catchAsync } from '@/utils/catchAsync.js'
 
 export const queryLogs = catchAsync(async (req: Request, res: Response) => {
   const { userId, action, resource, from, to, page = '1', limit = '50' } = req.query

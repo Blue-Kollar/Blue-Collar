@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { View, Text, Switch, StyleSheet, Alert } from 'react-native'
-import { BiometricAuth, BiometricType } from '../auth/BiometricAuth'
+import { BiometricAuth, BiometricType } from '@/auth/BiometricAuth'
 
 export function BiometricSettingsScreen() {
   const [isEnabled, setIsEnabled] = useState(false)

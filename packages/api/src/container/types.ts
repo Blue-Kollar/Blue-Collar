@@ -8,23 +8,25 @@
  * See docs/DI_PATTERN.md for the full pattern guide.
  */
 
-import type { IAvailabilityRepository } from '../repositories/availability.repository.js'
-import type { IBookmarkRepository } from '../repositories/bookmark.repository.js'
-import type { IBookingRepository } from '../repositories/booking.repository.js'
-import type { ICategoryRepository } from '../repositories/category.repository.js'
-import type { IContactRequestRepository } from '../repositories/contact-request.repository.js'
-import type { IDisputeRepository } from '../repositories/dispute.repository.js'
-import type { IEscrowRepository } from '../repositories/escrow.repository.js'
-import type { IInsuranceRepository } from '../repositories/insurance.repository.js'
-import type { IJobRepository } from '../repositories/job.repository.js'
-import type { IMessagingRepository } from '../repositories/messaging.repository.js'
-import type { INotificationRepository } from '../repositories/notification.repository.js'
-import type { IReferralRepository } from '../repositories/referral.repository.js'
-import type { IReviewRepository } from '../repositories/review.repository.js'
-import type { IUserRepository } from '../repositories/user.repository.js'
-import type { IVerificationRepository } from '../repositories/verification.repository.js'
-import type { IWalletRepository } from '../repositories/wallet.repository.js'
-import type { StellarClient } from '../clients/stellar.client.js'
+import type { IAvailabilityRepository } from '@/repositories/availability.repository.js'
+import type { IBookmarkRepository } from '@/repositories/bookmark.repository.js'
+import type { ICategoryRepository } from '@/repositories/category.repository.js'
+import type { IContactRequestRepository } from '@/repositories/contact-request.repository.js'
+import type { IDisputeRepository } from '@/repositories/dispute.repository.js'
+import type { IEscrowRepository } from '@/repositories/escrow.repository.js'
+import type { IInsuranceRepository } from '@/repositories/insurance.repository.js'
+import type { IMessagingRepository } from '@/repositories/messaging.repository.js'
+import type { INotificationRepository } from '@/repositories/notification.repository.js'
+import type { IReferralRepository } from '@/repositories/referral.repository.js'
+import type { IReviewRepository } from '@/repositories/review.repository.js'
+import type { IVerificationRepository } from '@/repositories/verification.repository.js'
+import type { IWalletRepository } from '@/repositories/wallet.repository.js'
+import type { StellarClient } from '@/clients/stellar.client.js'
+// Repositories consumed by more than one service (userRepository is shared by
+// auth.service, auth-2fa.service, and user.service) are typed via the
+// centralized interfaces/ module rather than imported directly from their
+// Prisma-backed implementation, so service constructors depend on contracts.
+import type { IUserRepository, IJobRepository, IBookingRepository } from '@/interfaces/repository.interface.js'
 
 // ── Service dependency bags ───────────────────────────────────────────────────
 
@@ -34,7 +36,7 @@ import type { StellarClient } from '../clients/stellar.client.js'
  * @example
  * ```ts
  * // Production (uses real Prisma repo)
- * import { categoryRepository } from '../repositories/category.repository.js'
+ * import { categoryRepository } from '@/repositories/category.repository.js'
  * const svc = createCategoryService({ categoryRepository })
  *
  * // Test (uses in-memory mock)

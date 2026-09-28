@@ -2,11 +2,11 @@ import express from 'express'
 import methodOverride from 'method-override'
 import passport from './config/passport.js'
 import { redis, cacheMetrics } from './config/redis.js'
-import { db } from './db.js'
 import { disconnectDb } from './db.js'
 import { logger } from './config/logger.js'
 import { requestLogger } from './middleware/requestLogger.js'
-import { getErrorMessage } from './utils/getErrorMessage.js'
+import { requestId } from './middleware/requestId.js'
+import { buildReadinessReport } from './utils/readiness.js'
 import { registerEventHandlers } from './events/index.js'
 import { applySecurity, depthLimiter } from './middleware/security.js'
 import authRoutes from './routes/auth.js'
@@ -74,6 +74,7 @@ applySecurity(app)
 app.use(express.json({ limit: '100kb' }))
 app.use(express.urlencoded({ extended: true, limit: '100kb' }))
 app.use(sanitize)
+app.use(requestId)          // generate/propagate X-Request-ID before logging
 app.use(sanitizeParams)
 app.use(depthLimiter)
 app.use(metricsMiddleware)
@@ -247,66 +248,18 @@ app.get('/health', (_req, res) => {
 })
 
 // /readyz: readiness probe (service is ready to handle traffic)
-// Checks DB and Redis connectivity before declaring ready
+// Checks DB, Redis, job queue, and Horizon RPC connectivity before declaring
+// ready. Use this endpoint — not /healthz — for traffic-routing decisions,
+// since a downstream outage should pull the instance out of rotation.
 app.get('/readyz', async (_req, res) => {
-  const checks: Record<string, { status: 'ok' | 'error'; latencyMs?: number; error?: string }> = {}
-
-  // Database check
-  const dbStart = Date.now()
-  try {
-    await db.$queryRaw`SELECT 1`
-    checks.database = { status: 'ok', latencyMs: Date.now() - dbStart }
-  } catch (err) {
-    checks.database = { status: 'error', latencyMs: Date.now() - dbStart, error: getErrorMessage(err) }
-  }
-
-  // Redis check
-  const redisStart = Date.now()
-  try {
-    await redis.ping()
-    checks.redis = { status: 'ok', latencyMs: Date.now() - redisStart }
-  } catch (err) {
-    checks.redis = { status: 'error', latencyMs: Date.now() - redisStart, error: getErrorMessage(err) }
-  }
-
-  const allOk = Object.values(checks).every((c) => c.status === 'ok')
-  res.status(allOk ? 200 : 503).json({
-    status: allOk ? 'ok' : 'degraded',
-    service: 'bluecollar-api',
-    checks,
-    timestamp: new Date().toISOString(),
-  })
+  const report = await buildReadinessReport()
+  res.status(report.status === 'ok' ? 200 : 503).json(report)
 })
 
 // /ready: legacy readiness probe (kept for backward compatibility)
 app.get('/ready', async (_req, res) => {
-  const checks: Record<string, { status: 'ok' | 'error'; latencyMs?: number; error?: string }> = {}
-
-  // Database check
-  const dbStart = Date.now()
-  try {
-    await db.$queryRaw`SELECT 1`
-    checks.database = { status: 'ok', latencyMs: Date.now() - dbStart }
-  } catch (err) {
-    checks.database = { status: 'error', latencyMs: Date.now() - dbStart, error: getErrorMessage(err) }
-  }
-
-  // Redis check
-  const redisStart = Date.now()
-  try {
-    await redis.ping()
-    checks.redis = { status: 'ok', latencyMs: Date.now() - redisStart }
-  } catch (err) {
-    checks.redis = { status: 'error', latencyMs: Date.now() - redisStart, error: getErrorMessage(err) }
-  }
-
-  const allOk = Object.values(checks).every((c) => c.status === 'ok')
-  res.status(allOk ? 200 : 503).json({
-    status: allOk ? 'ok' : 'degraded',
-    service: 'bluecollar-api',
-    checks,
-    timestamp: new Date().toISOString(),
-  })
+  const report = await buildReadinessReport()
+  res.status(report.status === 'ok' ? 200 : 503).json(report)
 })
 
 app.get('/metrics/cache', (_req, res) => {

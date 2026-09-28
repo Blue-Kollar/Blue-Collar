@@ -70,6 +70,99 @@ pub enum DataKey {
 }
 
 // =============================================================================
+// Distribution math
+// =============================================================================
+
+/// Sum of all recipient percentages in basis points.
+///
+/// Uses checked arithmetic so an oversized configuration fails with
+/// [`ContractError::ArithmeticOverflow`] instead of silently clamping the
+/// running total.
+///
+/// # Errors
+/// - [`ContractError::ArithmeticOverflow`] if the total exceeds `u32::MAX`.
+pub fn total_percentage_bps(recipients: &Vec<FeeRecipient>) -> Result<u32, ContractError> {
+    let mut total: u32 = 0;
+    for recipient in recipients.iter() {
+        total = total
+            .checked_add(recipient.percentage_bps)
+            .ok_or(ContractError::ArithmeticOverflow)?;
+    }
+    Ok(total)
+}
+
+/// Floor share of `available` owed to a party weighted at `percentage_bps`.
+///
+/// # Errors
+/// - [`ContractError::ArithmeticOverflow`] if `available` is negative or the
+///   intermediate `available * bps` product does not fit in `u128`.
+fn share_of(available: i128, percentage_bps: u32) -> Result<i128, ContractError> {
+    let available = u128::try_from(available).map_err(|_| ContractError::ArithmeticOverflow)?;
+    let numerator = available
+        .checked_mul(u128::from(percentage_bps))
+        .ok_or(ContractError::ArithmeticOverflow)?;
+    let floored = numerator
+        .checked_div(u128::from(MAX_FEE_BPS))
+        .ok_or(ContractError::ArithmeticOverflow)?;
+    i128::try_from(floored).map_err(|_| ContractError::ArithmeticOverflow)
+}
+
+/// Plan the exact per-recipient payouts for `available`.
+///
+/// ## Dust / remainder policy
+/// Each recipient is first awarded `floor(available * bps / 10_000)`. Because
+/// the basis points must total exactly [`MAX_FEE_BPS`], those floor amounts can
+/// never exceed `available`. The leftover remainder (the dust created by the
+/// per-recipient truncation) is credited to the **first** recipient, so the
+/// planned shares always sum to `available` exactly: no dust is stranded in the
+/// collection and no stroop is paid out twice.
+///
+/// # Parameters
+/// - `env`         — environment used to allocate the returned `Vec`.
+/// - `available`   — undistributed balance to split (`total - distributed`).
+/// - `recipients`  — configured recipients; must total [`MAX_FEE_BPS`].
+///
+/// # Errors
+/// - [`ContractError::InvalidFeeSplit`] if the basis points do not total
+///   exactly [`MAX_FEE_BPS`] (including the empty list).
+/// - [`ContractError::ArithmeticOverflow`] on overflow/underflow, or if
+///   `available` is negative.
+pub fn plan_distribution(
+    env: &Env,
+    available: i128,
+    recipients: &Vec<FeeRecipient>,
+) -> Result<Vec<i128>, ContractError> {
+    if total_percentage_bps(recipients)? != MAX_FEE_BPS {
+        return Err(ContractError::InvalidFeeSplit);
+    }
+
+    let mut shares: Vec<i128> = Vec::new(env);
+    let mut planned: i128 = 0;
+    for recipient in recipients.iter() {
+        let share = share_of(available, recipient.percentage_bps)?;
+        planned = planned
+            .checked_add(share)
+            .ok_or(ContractError::ArithmeticOverflow)?;
+        shares.push_back(share);
+    }
+
+    // Invariant: `planned <= available`, so this never underflows for a valid
+    // split; if stored state is corrupt we surface a typed error rather than
+    // silently losing or duplicating value.
+    let remainder = available
+        .checked_sub(planned)
+        .ok_or(ContractError::ArithmeticOverflow)?;
+    if remainder > 0 {
+        let first = shares.get(0).unwrap_or(0);
+        let bumped = first
+            .checked_add(remainder)
+            .ok_or(ContractError::ArithmeticOverflow)?;
+        shares.set(0, bumped);
+    }
+    Ok(shares)
+}
+
+// =============================================================================
 // Contract
 // =============================================================================
 
@@ -238,11 +331,7 @@ impl FeeDistributionContract {
         Self::require_not_paused(&env)?;
 
         // Validate total percentage equals 10000 (100%)
-        let mut total_bps: u32 = 0;
-        for recipient in recipients.iter() {
-            total_bps = total_bps.saturating_add(recipient.percentage_bps);
-        }
-        if total_bps != MAX_FEE_BPS {
+        if total_percentage_bps(&recipients)? != MAX_FEE_BPS {
             return Err(ContractError::InvalidFeeSplit);
         }
 
@@ -250,7 +339,7 @@ impl FeeDistributionContract {
             .persistent()
             .set(&DataKey::FeeRecipients, &recipients);
         env.events()
-            .publish((symbol_short!("FeeRcp"), recipients.len() as u32), ());
+            .publish((symbol_short!("FeeRcp"), recipients.len()), ());
         Ok(())
     }
 
@@ -294,7 +383,10 @@ impl FeeDistributionContract {
                 distributed_amount: 0,
             });
 
-        collection.total_amount = collection.total_amount.saturating_add(amount);
+        collection.total_amount = collection
+            .total_amount
+            .checked_add(amount)
+            .ok_or(ContractError::ArithmeticOverflow)?;
         env.storage()
             .persistent()
             .set(&DataKey::FeeCollection(token.clone()), &collection);
@@ -325,28 +417,42 @@ impl FeeDistributionContract {
                 distributed_amount: 0,
             });
 
-        let available = collection.total_amount - collection.distributed_amount;
+        let available = collection
+            .total_amount
+            .checked_sub(collection.distributed_amount)
+            .ok_or(ContractError::ArithmeticOverflow)?;
         if available <= 0 {
             return Err(ContractError::NoFeesToDistribute);
         }
 
+        // Exact split plan: floor shares plus the truncation remainder credited
+        // to the first recipient, so `Σ shares == available`.
+        let shares = plan_distribution(&env, available, &recipients)?;
+
         let token_client = token::Client::new(&env, &token);
+        let contract = env.current_contract_address();
 
-        for recipient in recipients.iter() {
-            let share = (available as u128)
-                .saturating_mul(recipient.percentage_bps as u128)
-                .saturating_div(MAX_FEE_BPS as u128) as i128;
-
+        let mut distributed: i128 = 0;
+        for (recipient, share) in recipients.iter().zip(shares.iter()) {
             if share > 0 {
-                token_client.transfer(&env.current_contract_address(), &recipient.address, &share);
+                token_client.transfer(&contract, &recipient.address, &share);
                 env.events().publish(
                     (symbol_short!("FeeDistr"), recipient.address.clone(), share),
                     (),
                 );
             }
+            distributed = distributed
+                .checked_add(share)
+                .ok_or(ContractError::ArithmeticOverflow)?;
         }
 
-        collection.distributed_amount = collection.total_amount;
+        // Track what was actually handed out rather than assuming the full
+        // collection moved; with the dust policy above this equals
+        // `total_amount`, and it can never exceed it.
+        collection.distributed_amount = collection
+            .distributed_amount
+            .checked_add(distributed)
+            .ok_or(ContractError::ArithmeticOverflow)?;
         env.storage()
             .persistent()
             .set(&DataKey::FeeCollection(token.clone()), &collection);

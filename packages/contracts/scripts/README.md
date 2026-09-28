@@ -1,6 +1,6 @@
-# BlueCollar Contract Deployment Scripts
+# BlueCollar Contract Scripts
 
-This directory contains **manual deployment scripts** for the BlueCollar Soroban smart contracts. They are not invoked by CI â€” they are run by an operator when deploying or upgrading a contract on testnet or mainnet.
+This directory contains **manual scripts** for the BlueCollar Soroban smart contracts. They are not invoked by CI.
 
 ## Scripts
 
@@ -8,6 +8,7 @@ This directory contains **manual deployment scripts** for the BlueCollar Soroban
 |--------|---------|
 | `deploy-registry.sh` | Build and deploy the Registry contract |
 | `deploy-market.sh` | Build and deploy the Market contract |
+| `profile-storage.sh` | Measure the CPU/memory cost of the key `job_registry` and `market` entrypoints (storage/fee profiling) |
 
 ---
 
@@ -125,6 +126,37 @@ Builds the Market contract WASM, deploys it to Stellar, initialises it with an a
 ==> Initializing market contract...
 ==> Done. Market contract deployed at CXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 ```
+
+---
+
+## `profile-storage.sh`
+
+Runs the in-crate Soroban budget benchmarks for `job_registry` and `market`
+and prints one `[BENCH]` line per entrypoint with its CPU instruction cost and
+memory byte cost. Use it to quantify a storage-layout change: run it before and
+after the change and diff the output.
+
+### Usage
+
+```bash
+cd packages/contracts
+./scripts/profile-storage.sh
+```
+
+### Output
+
+```
+== job_registry ==
+[BENCH] job_registry::post_job (empty index)  cpu=172623 instructions  mem=73059 bytes
+...
+== market ==
+[BENCH] market::request_multisig_arbitration (fee=0)  cpu=169946 instructions  mem=85912 bytes
+...
+```
+
+See [`docs/changes/ISSUE-1433-storage-key-optimization.md`](../../docs/changes/ISSUE-1433-storage-key-optimization.md)
+for a recorded before/after comparison, and `BENCHMARKS.md` for the baseline
+tables.
 
 ---
 

@@ -1,9 +1,9 @@
 import { Router } from 'express'
-import * as walletController from '../controllers/wallet.js'
-import { authenticate as requireAuth } from '../middleware/auth.js'
-import { validate } from '../middleware/validate.js'
-import { publicReadRateLimiter, publicWriteRateLimiter } from '../config/rateLimiter.js'
-import { linkWalletRules, buildTxRules, broadcastRules, fundTestnetRules } from '../validations/index.js'
+import * as walletController from '@/controllers/wallet.js'
+import { authenticate as requireAuth } from '@/middleware/auth.js'
+import { validate } from '@/middleware/validate.js'
+import { publicReadRateLimiter, publicWriteRateLimiter } from '@/config/rateLimiter.js'
+import { linkWalletRules, buildTxRules, broadcastRules, fundTestnetRules } from '@/validations/index.js'
 
 const router = Router()
 

@@ -9,7 +9,6 @@ use soroban_sdk::{contracttype, Address, Env, String, Symbol, Vec};
 
 pub use bluecollar_types::storage::{TTL_EXTEND_TO, TTL_THRESHOLD};
 
-
 /// Dispute lifecycle phase.
 #[contracttype]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

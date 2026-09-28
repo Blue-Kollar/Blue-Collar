@@ -3,8 +3,8 @@ import { z } from 'zod'
 import {
   registerRules, loginRules, forgotPasswordRules,
   resetPasswordRules, verifyAccountRules, resendVerificationRules,
-} from '../validations/auth.js'
-import { createWorkerRules, updateWorkerRules } from '../validations/worker.js'
+} from '@/validations/auth.js'
+import { createWorkerRules, updateWorkerRules } from '@/validations/worker.js'
 import {
   registry, BearerAuth, ErrorSchema, SuccessSchema, CategorySchema,
   WorkerSchema, UserSchema, TokenResponseSchema, PaginatedWorkersSchema,
@@ -636,19 +636,33 @@ const JobSchema = registry.register('Job', z.object({
   updatedAt: z.string(),
 }))
 
+// Standard pagination contract (see utils/pagination.ts): page/limit remain
+// the primary query params for backwards compatibility, with an optional
+// opaque `cursor` accepted alongside them for clients migrating to
+// cursor-based pagination.
 const jobQuerySchema = z.object({
   page: z.string().optional(),
   limit: z.string().optional(),
+  cursor: z.string().optional(),
   category: z.string().optional(),
   status: z.string().optional(),
   search: z.string().optional(),
+})
+
+const paginationMetaSchema = z.object({
+  total: z.number(),
+  page: z.number(),
+  limit: z.number(),
+  pages: z.number(),
+  nextCursor: z.string().nullable(),
+  hasMore: z.boolean(),
 })
 
 registry.registerPath({
   method: 'get', path: '/api/v1/jobs', tags: ['Jobs'],
   summary: 'List jobs (paginated)',
   request: { query: jobQuerySchema },
-  responses: { 200: { description: 'Job list', content: { 'application/json': { schema: z.object({ status: z.literal('success'), data: z.array(JobSchema), meta: z.object({ total: z.number(), page: z.number(), limit: z.number() }) }) } } },
+  responses: { 200: { description: 'Job list', content: { 'application/json': { schema: z.object({ status: z.literal('success'), data: z.array(JobSchema), meta: paginationMetaSchema }) } } },
   },
 })
 

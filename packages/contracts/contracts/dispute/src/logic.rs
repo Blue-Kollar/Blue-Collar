@@ -240,17 +240,68 @@ pub fn decide(
 
 // =============================================================================
 // Dispute lifecycle — Step 4: Settle
+//
+// Split into three independently-testable internal units (#1435):
+//   `validate_evidence` — guards only (no writes),
+//   `tally_votes`       — pure payout arithmetic (no transfers),
+//   `execute_payout`    — token transfers only (no state writes),
+// with `settle` as the thin Checks → Effects → Interactions orchestrator.
 // =============================================================================
 
-pub fn settle(env: &Env, dispute_id: Symbol) -> Result<(), ContractError> {
+/// Guards for settlement: contract not paused, dispute exists, and the
+/// arbitrator's decision has been recorded. Read-only — performs no writes.
+/// Returns the loaded dispute so the caller can commit effects next.
+pub fn validate_evidence(env: &Env, dispute_id: &Symbol) -> Result<Dispute, ContractError> {
     require_not_paused(env)?;
-
-    let mut dispute =
-        storage::get_dispute(env, &dispute_id).ok_or(ContractError::DisputeNotFound)?;
+    let dispute = storage::get_dispute(env, dispute_id).ok_or(ContractError::DisputeNotFound)?;
     if dispute.status != DisputeStatus::Decided {
         return Err(ContractError::NotDecidedYet);
     }
+    Ok(dispute)
+}
 
+/// Translate the recorded decision into exact per-party payout amounts.
+///
+/// Returns `(disputer_share, respondent_share)`. The two shares always sum to
+/// `dispute.amount` exactly — the remainder of the floor division goes to the
+/// disputer, so no dust is lost. Pure: no storage access, no token movement.
+pub fn tally_votes(dispute: &Dispute) -> Result<(i128, i128), ContractError> {
+    match dispute.outcome {
+        DisputeOutcome::RefundDisputer => Ok((dispute.amount, 0)),
+        DisputeOutcome::ReleaseRespondent => Ok((0, dispute.amount)),
+        DisputeOutcome::Split => {
+            if dispute.split_bps > 10_000 {
+                return Err(ContractError::SplitBpsOutOfRange);
+            }
+            let respondent_share = dispute
+                .amount
+                .checked_mul(i128::from(dispute.split_bps))
+                .and_then(|v| v.checked_div(10_000))
+                .ok_or(ContractError::SplitBpsOutOfRange)?;
+            let disputer_share = dispute.amount - respondent_share;
+            Ok((disputer_share, respondent_share))
+        }
+    }
+}
+
+/// Move each party's share out of the contract. Zero shares are skipped.
+/// Interactions only — performs no state writes.
+pub fn execute_payout(env: &Env, dispute: &Dispute, disputer_share: i128, respondent_share: i128) {
+    let contract = env.current_contract_address();
+    let client = token::Client::new(env, &dispute.token);
+    if respondent_share > 0 {
+        client.transfer(&contract, &dispute.respondent, &respondent_share);
+    }
+    if disputer_share > 0 {
+        client.transfer(&contract, &dispute.disputer, &disputer_share);
+    }
+}
+
+pub fn settle(env: &Env, dispute_id: Symbol) -> Result<(), ContractError> {
+    // --- Checks ---
+    let mut dispute = validate_evidence(env, &dispute_id)?;
+
+    // --- Effects ---
     // Effects before interaction: commit `Settled` *before* moving tokens.
     // `dispute.token` is the caller-supplied token from `file_dispute`, so a
     // malicious token contract's `transfer` could otherwise re-enter
@@ -260,31 +311,11 @@ pub fn settle(env: &Env, dispute_id: Symbol) -> Result<(), ContractError> {
     dispute.settled_at = env.ledger().timestamp();
     storage::set_dispute(env, &dispute_id, &dispute);
 
-    let contract = env.current_contract_address();
-    let client = token::Client::new(env, &dispute.token);
-
-    match dispute.outcome {
-        DisputeOutcome::RefundDisputer => {
-            client.transfer(&contract, &dispute.disputer, &dispute.amount);
-        }
-        DisputeOutcome::ReleaseRespondent => {
-            client.transfer(&contract, &dispute.respondent, &dispute.amount);
-        }
-        DisputeOutcome::Split => {
-            let respondent_share = dispute
-                .amount
-                .checked_mul(dispute.split_bps as i128)
-                .and_then(|v| v.checked_div(10_000))
-                .expect("Split overflow");
-            let disputer_share = dispute.amount - respondent_share;
-            if respondent_share > 0 {
-                client.transfer(&contract, &dispute.respondent, &respondent_share);
-            }
-            if disputer_share > 0 {
-                client.transfer(&contract, &dispute.disputer, &disputer_share);
-            }
-        }
-    }
+    // --- Interactions ---
+    // `tally_votes` is pure arithmetic; it runs after the state commit and
+    // before the token calls so `execute_payout` only ever sees exact shares.
+    let (disputer_share, respondent_share) = tally_votes(&dispute)?;
+    execute_payout(env, &dispute, disputer_share, respondent_share);
 
     env.events().publish(
         (symbol_short!("DspSettle"), dispute_id),

@@ -5,10 +5,11 @@
  */
 
 import { Worker, type Job } from 'bullmq'
-import { redis } from '../config/redis.js'
-import { logger } from '../config/logger.js'
-import { mailer } from '../mailer/index.js'
-import type { EmailJobData } from '../queue/index.js'
+import { redis } from '@/config/redis.js'
+import { logger } from '@/config/logger.js'
+import { mailer } from '@/mailer/index.js'
+import type { EmailJobData } from '@/queue/index.js'
+import { registerGracefulShutdown } from '@/utils/gracefulShutdown.js'
 
 const connection = { host: redis.options.host ?? 'localhost', port: redis.options.port ?? 6379 }
 
@@ -45,3 +46,5 @@ emailWorker.on('failed', (job, err) => {
 emailWorker.on('error', (err) => {
   logger.error({ err }, 'Email worker error')
 })
+
+registerGracefulShutdown(emailWorker, 'email-worker')

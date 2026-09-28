@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from 'express'
-import { log } from '../services/audit.service.js'
+import { log } from '@/services/audit.service.js'
 
 // Map HTTP method + route pattern to an audit action
 const ACTION_MAP: Array<{ method: string; pattern: RegExp; action: string; resource: string }> = [

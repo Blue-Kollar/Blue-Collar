@@ -38,7 +38,12 @@ fn job_lost_at_arbitration_pays_out_an_insurance_claim() {
     let pool = deploy_insurance_pool(&env, &admin, &token.address, 500, &claims_mgr);
 
     // Fund the pool.
-    token::Client::new(&env, &token.address).approve(&underwriter, &pool.address, &80_000, &200_000);
+    token::Client::new(&env, &token.address).approve(
+        &underwriter,
+        &pool.address,
+        &80_000,
+        &200_000,
+    );
     pool.contribute(&underwriter, &token.address, &80_000);
     assert_eq!(pool.get_pool_stats(&token.address).total_balance, 80_000);
 
@@ -65,7 +70,12 @@ fn job_lost_at_arbitration_pays_out_an_insurance_claim() {
 
     // Arbitrator rules for the worker: escrowed funds are released away from
     // the payer, who is the party the pool covers.
-    dispute.decide(&dispute_id, &arbitrator, &DisputeOutcome::ReleaseRespondent, &0);
+    dispute.decide(
+        &dispute_id,
+        &arbitrator,
+        &DisputeOutcome::ReleaseRespondent,
+        &0,
+    );
     dispute.settle(&dispute_id);
 
     let release_to_beneficiary =

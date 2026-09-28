@@ -14,10 +14,10 @@ import {
   recordReview,
   recordContractRegistration,
   recordContractTransaction,
-} from '../middleware/metrics.js'
-import { db } from '../db.js'
-import { logger } from '../config/logger.js'
-import { getErrorMessage } from '../utils/getErrorMessage.js'
+} from '@/middleware/metrics.js'
+import { db } from '@/db.js'
+import { logger } from '@/config/logger.js'
+import { getErrorMessage } from '@/utils/getErrorMessage.js'
 
 class BusinessMetricsRecorder {
   /**

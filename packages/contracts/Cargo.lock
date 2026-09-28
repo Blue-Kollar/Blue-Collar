@@ -331,6 +331,7 @@ name = "bluecollar_fee_distribution"
 version = "0.1.0"
 dependencies = [
  "bluecollar-types",
+ "proptest",
  "soroban-sdk",
 ]
 

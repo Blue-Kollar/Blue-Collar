@@ -5,6 +5,10 @@
  * the ErrorCode enum, and the traceId contract. Documentation that silently goes
  * stale is worse than none, so each claim is asserted here against the real code.
  * If this fails, either the code changed and the doc needs updating, or vice versa.
+ *
+ * Also guards the cross-layer naming convention: the doc must explain both the
+ * API-layer ErrorCode and the contract-layer ContractError, and must keep their
+ * sections present so future contributors understand why the names differ.
  */
 
 import { describe, it, expect } from 'vitest'
@@ -69,6 +73,40 @@ describe('error handling conventions doc', () => {
   it('provides before/after examples', () => {
     expect(doc).toMatch(/\*\*Before\*\*/)
     expect(doc).toMatch(/\*\*After\*\*/)
+  })
+
+  // ── Cross-layer naming convention guards ─────────────────────────────────
+  // The doc explains that ErrorCode (API layer) and ContractError (contract layer)
+  // are intentionally named differently. These tests ensure that explanation stays
+  // present and accurate so the convention is never silently removed.
+
+  it('documents the ContractError naming convention section', () => {
+    expect(
+      doc,
+      'Missing "Contract errors" section — the doc must explain the ErrorCode vs ContractError naming rationale',
+    ).toContain('## Contract errors (Rust / Soroban)')
+  })
+
+  it('documents the naming convention rationale table with both error types', () => {
+    expect(doc, 'Doc must reference the ErrorCode enum in the cross-layer table').toContain(
+      '`ErrorCode` enum',
+    )
+    expect(doc, 'Doc must reference the ContractError enum in the cross-layer table').toContain(
+      '`ContractError` enum',
+    )
+  })
+
+  it('documents the rule against introducing a third error enum', () => {
+    expect(doc).toContain('Do not rename either enum or introduce a third error enum')
+  })
+
+  it('documents where ContractError codes are centralised', () => {
+    expect(doc).toContain('packages/contracts/contracts/types/src/errors.rs')
+  })
+
+  it('documents how the API surfaces contract errors', () => {
+    expect(doc).toContain('How the API surfaces contract errors')
+    expect(doc).toContain('Map **at the service boundary**')
   })
 })
 
