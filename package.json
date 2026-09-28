@@ -20,14 +20,20 @@
     "audit:fix": "pnpm audit --fix",
     "security:scan": "pnpm audit --audit-level=high && pnpm --filter @bluecollar/contracts security:scan",
     "docker:up": "docker compose up -d",
-    "docker:down": "docker compose down"
+    "docker:down": "docker compose down",
+    "seed:jobs": "tsx scripts/seed-jobs.ts",
+    "test:load:jobs": "tsx tests/load/job-search.ts"
   },
   "devDependencies": {
     "@commitlint/cli": "^18.4.0",
     "@commitlint/config-conventional": "^18.4.0",
     "concurrently": "^9.1.2",
     "husky": "^9.0.0",
-    "prettier": "^3.5.3"
+    "prettier": "^3.5.3",
+    "autocannon": "^7.15.0",
+    "pg": "^8.11.0",
+    "@types/pg": "^8.11.0",
+    "tsx": "^4.7.0"
   },
   "license": "MIT",
   "dependencies": {
