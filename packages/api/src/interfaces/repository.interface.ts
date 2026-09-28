@@ -13,7 +13,7 @@
  * implementation-agnostic path that services/container.ts import from.
  */
 
-export type { IRepository } from '../repositories/base.repository.js'
-export type { IUserRepository } from '../repositories/user.repository.js'
-export type { IJobRepository } from '../repositories/job.repository.js'
-export type { IBookingRepository, BookingSlot } from '../repositories/booking.repository.js'
+export type { IRepository } from '@/repositories/base.repository.js'
+export type { IUserRepository } from '@/repositories/user.repository.js'
+export type { IJobRepository } from '@/repositories/job.repository.js'
+export type { IBookingRepository, BookingSlot } from '@/repositories/booking.repository.js'

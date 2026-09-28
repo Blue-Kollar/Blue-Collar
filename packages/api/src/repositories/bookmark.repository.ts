@@ -1,7 +1,7 @@
 import type { Bookmark, Category, Prisma, Worker } from '@prisma/client'
 import type { IRepository } from './base.repository.js'
 import { BaseRepository } from './base.repository.js'
-import { db } from '../db.js'
+import { db } from '@/db.js'
 
 // ── Interface ─────────────────────────────────────────────────────────────────
 

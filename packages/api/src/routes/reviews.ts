@@ -1,6 +1,6 @@
 import { Router } from 'express'
-import { authenticate, authorize } from '../middleware/auth.js'
-import { publicReadRateLimiter } from '../config/rateLimiter.js'
+import { authenticate, authorize } from '@/middleware/auth.js'
+import { publicReadRateLimiter } from '@/config/rateLimiter.js'
 import {
   listReviews,
   createReview,
@@ -8,7 +8,7 @@ import {
   getModerationQueue,
   moderateReview,
   deleteReview,
-} from '../controllers/reviews.js'
+} from '@/controllers/reviews.js'
 
 const router = Router({ mergeParams: true })
 

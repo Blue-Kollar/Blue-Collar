@@ -15,7 +15,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native'
-import { contactRequestsApi } from '../../lib/api'
+import { contactRequestsApi } from '@/lib/api'
 
 export interface JobPostingFormValues {
   workerId: string

@@ -12,8 +12,8 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native'
-import { useAuth } from '../../context/AuthContext'
-import { userApi } from '../../lib/api'
+import { useAuth } from '@/context/AuthContext'
+import { userApi } from '@/lib/api'
 
 export default function ProfileScreen() {
   const { user, logout } = useAuth()

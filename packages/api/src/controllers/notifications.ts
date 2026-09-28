@@ -1,8 +1,8 @@
 import type { Request, Response } from 'express'
-import * as notificationService from '../services/notification.service.js'
-import { catchAsync } from '../utils/catchAsync.js'
-import { AppError, ErrorCode } from '../utils/AppError.js'
-import { db } from '../db.js'
+import * as notificationService from '@/services/notification.service.js'
+import { catchAsync } from '@/utils/catchAsync.js'
+import { AppError, ErrorCode } from '@/utils/AppError.js'
+import { db } from '@/db.js'
 
 interface AuthRequest extends Request {
   user?: { id: string }

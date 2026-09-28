@@ -9,10 +9,10 @@ import {
   getProtocolMetricsTimeSeries,
   getAdminDashboard,
   exportAdminCsv,
-} from '../controllers/analytics.js'
-import { recordEvents } from '../controllers/analyticsEvents.js'
-import { authenticate, authorize } from '../middleware/auth.js'
-import { cacheMiddleware, CacheTTL } from '../middleware/cache.js'
+} from '@/controllers/analytics.js'
+import { recordEvents } from '@/controllers/analyticsEvents.js'
+import { authenticate, authorize } from '@/middleware/auth.js'
+import { cacheMiddleware, CacheTTL } from '@/middleware/cache.js'
 
 const router = Router()
 

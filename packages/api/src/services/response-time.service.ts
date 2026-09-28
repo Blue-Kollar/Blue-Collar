@@ -1,5 +1,5 @@
-import { db } from '../db.js'
-import { AppError } from '../utils/AppError.js'
+import { db } from '@/db.js'
+import { AppError } from '@/utils/AppError.js'
 
 /** Record a response to a contact request and stamp respondedAt */
 export async function recordResponse(requestId: string, status: 'accepted' | 'declined') {

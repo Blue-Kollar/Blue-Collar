@@ -5,7 +5,7 @@
  * data and prints the result (or failure) for each. Run with:
  *   tsx src/scripts/preview-email-templates.ts
  */
-import { render } from '../mailer/templateEngine.js'
+import { render } from '@/mailer/templateEngine.js'
 
 const SAMPLE_VARS: Record<string, Record<string, string>> = {
   'verify-email.html': { name: 'Jordan', verificationLink: 'https://bluecollar.app/verify?token=sample' },

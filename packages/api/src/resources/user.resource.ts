@@ -1,5 +1,5 @@
 import type { User } from '@prisma/client'
-import type { SafeUser } from '../models/user.model.js'
+import type { SafeUser } from '@/models/user.model.js'
 
 export function UserResource(user: User): Omit<User, 'password'>
 export function UserResource(user: SafeUser): SafeUser

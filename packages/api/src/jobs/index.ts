@@ -26,7 +26,7 @@
  * ```
  */
 
-import { logger } from '../config/logger.js'
+import { logger } from '@/config/logger.js'
 import { startReminderJob, stopReminderJob } from './reminder.job.js'
 import { startHorizonPollerJob, stopHorizonPollerJob } from './horizon-poller.job.js'
 

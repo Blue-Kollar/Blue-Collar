@@ -1,7 +1,7 @@
 import { Router } from 'express'
-import { uploadInsurance, getWorkerInsurance, updateInsuranceStatus, triggerRenewalReminders } from '../controllers/insurance.js'
-import { authenticate, authorize } from '../middleware/auth.js'
-import { upload, handleMulterError } from '../middleware/upload.js'
+import { uploadInsurance, getWorkerInsurance, updateInsuranceStatus, triggerRenewalReminders } from '@/controllers/insurance.js'
+import { authenticate, authorize } from '@/middleware/auth.js'
+import { upload, handleMulterError } from '@/middleware/upload.js'
 
 const router = Router()
 

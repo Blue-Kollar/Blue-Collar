@@ -1,9 +1,9 @@
 import type { Request, Response } from 'express'
-import { catchAsync } from '../utils/catchAsync.js'
-import { AppError, ErrorCode } from '../utils/AppError.js'
-import { ErrorMessages } from '../constants/errors.js'
-import { db } from '../db.js'
-import { paginate } from '../utils/paginate.js'
+import { catchAsync } from '@/utils/catchAsync.js'
+import { AppError, ErrorCode } from '@/utils/AppError.js'
+import { ErrorMessages } from '@/constants/errors.js'
+import { db } from '@/db.js'
+import { paginate } from '@/utils/paginate.js'
 
 export const listWorkers = catchAsync(async (req: Request, res: Response) => {
   const { page = '1', limit = '20', search, status } = req.query as Record<string, string | undefined>

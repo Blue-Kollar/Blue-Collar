@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express'
-import * as availabilityService from '../services/availability.service.js'
-import { catchAsync } from '../utils/catchAsync.js'
+import * as availabilityService from '@/services/availability.service.js'
+import { catchAsync } from '@/utils/catchAsync.js'
 
 export const getAvailability = catchAsync(async (req: Request, res: Response) => {
   const availability = await availabilityService.getAvailability(req.params.id)

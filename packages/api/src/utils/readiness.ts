@@ -5,10 +5,10 @@
  * (k8s, load balancers) can see exactly which dependency is degraded,
  * rather than a single opaque pass/fail.
  */
-import { redis } from '../config/redis.js'
-import { db } from '../db.js'
-import { config } from '../config/config.js'
-import { emailQueue } from '../queue/index.js'
+import { redis } from '@/config/redis.js'
+import { db } from '@/db.js'
+import { config } from '@/config/config.js'
+import { emailQueue } from '@/queue/index.js'
 import { getErrorMessage } from './getErrorMessage.js'
 
 export interface DependencyStatus {

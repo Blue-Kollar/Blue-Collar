@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { listMyBookmarks } from '../controllers/bookmarks.js'
+import { listMyBookmarks } from '@/controllers/bookmarks.js'
 import {
   updateProfile,
   updateMe,
@@ -8,16 +8,16 @@ import {
   savePushSubscription,
   deletePushSubscription,
   completeOnboarding,
-} from '../controllers/users.js'
-import { authenticate } from '../middleware/auth.js'
-import { validate } from '../middleware/validate.js'
+} from '@/controllers/users.js'
+import { authenticate } from '@/middleware/auth.js'
+import { validate } from '@/middleware/validate.js'
 import {
   updateProfileRules,
   changePasswordRules,
   pushSubscriptionRules,
   deletePushSubscriptionRules,
   completeOnboardingRules,
-} from '../validations/index.js'
+} from '@/validations/index.js'
 
 const router = Router()
 

@@ -1,9 +1,9 @@
 import type { Request, Response } from 'express'
-import { catchAsync } from '../utils/catchAsync.js'
-import { AppError, ErrorCode } from '../utils/AppError.js'
-import { ErrorMessages } from '../constants/errors.js'
-import { db } from '../db.js'
-import { createPaginationHelper } from '../utils/pagination.js'
+import { catchAsync } from '@/utils/catchAsync.js'
+import { AppError, ErrorCode } from '@/utils/AppError.js'
+import { ErrorMessages } from '@/constants/errors.js'
+import { db } from '@/db.js'
+import { createPaginationHelper } from '@/utils/pagination.js'
 
 export const listPortfolio = catchAsync(async (req: Request, res: Response) => {
   const { skip, take, buildMeta } = createPaginationHelper(req.query, {

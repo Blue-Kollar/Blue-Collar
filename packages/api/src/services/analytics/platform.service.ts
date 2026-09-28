@@ -8,7 +8,7 @@
  *   - Top-categories leaderboard
  *   - Recent workers / recent users lists
  */
-import { db } from '../../db.js'
+import { db } from '@/db.js'
 import { daysAgo, calcGrowthPct } from './shared.js'
 
 // ── Monthly growth trend ─────────────────────────────────────────────────────

@@ -2,7 +2,7 @@ import type { NextFunction, Request, Response } from 'express'
 import helmet from 'helmet'
 import cors from 'cors'
 import rateLimit from 'express-rate-limit'
-import { corsConfig } from '../config/cors.js'
+import { corsConfig } from '@/config/cors.js'
 
 export const MAX_BODY_SIZE = '100kb'
 export const MAX_URLENCODED_SIZE = '100kb'

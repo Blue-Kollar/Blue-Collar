@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { registry } from '../registry.js'
+import { registry } from '@/openapi/registry.js'
 
 registry.registerPath({
   method: 'post', path: '/api/vitals', tags: ['System'],

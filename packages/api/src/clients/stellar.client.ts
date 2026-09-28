@@ -7,7 +7,7 @@
  * - Mapping HTTP errors to application errors
  */
 
-import { AppError, ErrorCode } from '../utils/AppError.js';
+import { AppError, ErrorCode } from '@/utils/AppError.js';
 import { TESTNET_HORIZON_URL, TESTNET_FRIENDBOT_URL } from '@bluecollar/sdk';
 import { CircuitBreaker } from './circuitBreaker.js';
 

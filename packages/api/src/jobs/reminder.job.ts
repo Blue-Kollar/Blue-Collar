@@ -10,8 +10,8 @@
  */
 
 import { JobRunner } from './job-runner.js'
-import { runVerificationReminderJob } from '../services/reminder.service.js'
-import { logger } from '../config/logger.js'
+import { runVerificationReminderJob } from '@/services/reminder.service.js'
+import { logger } from '@/config/logger.js'
 
 const HOUR_MS = 60 * 60 * 1000
 

@@ -1,11 +1,11 @@
 import type { Request, Response } from 'express'
-import * as categoryService from '../services/category.service.js'
-import { catchAsync } from '../utils/catchAsync.js'
-import { AppError, ErrorCode } from '../utils/AppError.js'
-import { CategoryResource, CategoryCollection } from '../resources/index.js'
-import { ErrorMessages, HttpStatus } from '../constants/index.js'
-import { sendSuccess } from '../utils/response.js'
-import { createPaginationHelper } from '../utils/pagination.js'
+import * as categoryService from '@/services/category.service.js'
+import { catchAsync } from '@/utils/catchAsync.js'
+import { AppError, ErrorCode } from '@/utils/AppError.js'
+import { CategoryResource, CategoryCollection } from '@/resources/index.js'
+import { ErrorMessages, HttpStatus } from '@/constants/index.js'
+import { sendSuccess } from '@/utils/response.js'
+import { createPaginationHelper } from '@/utils/pagination.js'
 
 export const listCategories = catchAsync(async (req: Request, res: Response) => {
   const { skip, take, buildMeta } = createPaginationHelper(req.query, {

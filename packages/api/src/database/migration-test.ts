@@ -5,7 +5,7 @@
  * Usage: npx tsx src/database/migration-test.ts
  */
 
-import { db } from '../db.js';
+import { db } from '@/db.js';
 
 async function run() {
   console.log('Running migration smoke tests...');

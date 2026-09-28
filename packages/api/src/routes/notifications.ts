@@ -9,8 +9,8 @@ import {
   updatePreferences,
   dispatchMultiChannel,
   getDeliveryLog,
-} from '../controllers/notifications.js'
-import { authenticate } from '../middleware/auth.js'
+} from '@/controllers/notifications.js'
+import { authenticate } from '@/middleware/auth.js'
 
 const router = Router()
 

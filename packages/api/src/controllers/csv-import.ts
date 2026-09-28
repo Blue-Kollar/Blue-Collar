@@ -1,8 +1,8 @@
 import type { Request, Response } from 'express'
-import { importWorkersFromCsv } from '../services/csv-import.service.js'
-import { catchAsync } from '../utils/catchAsync.js'
-import { getErrorMessage } from '../utils/getErrorMessage.js'
-import { AppError, ErrorCode } from '../utils/AppError.js'
+import { importWorkersFromCsv } from '@/services/csv-import.service.js'
+import { catchAsync } from '@/utils/catchAsync.js'
+import { getErrorMessage } from '@/utils/getErrorMessage.js'
+import { AppError, ErrorCode } from '@/utils/AppError.js'
 
 /**
  * POST /api/admin/workers/import

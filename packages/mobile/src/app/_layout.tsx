@@ -1,7 +1,7 @@
 import { Stack } from "expo-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { cacheStore } from "../cache";
-import { OfflineBanner } from "../cache/OfflineBanner";
+import { cacheStore } from "@/cache";
+import { OfflineBanner } from "@/cache/OfflineBanner";
 
 cacheStore.setNetworkState({ isConnected: true, isInternetReachable: null, lastConnected: Date.now() });
 

@@ -6,8 +6,8 @@ import {
   updatePortfolioItem,
   deletePortfolioItem,
   reorderPortfolio,
-} from '../controllers/portfolio.js'
-import { authenticate, authorize } from '../middleware/auth.js'
+} from '@/controllers/portfolio.js'
+import { authenticate, authorize } from '@/middleware/auth.js'
 
 const upload = multer({ dest: 'uploads/portfolio/' })
 const router = Router({ mergeParams: true })
