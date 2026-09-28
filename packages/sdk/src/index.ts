@@ -16,6 +16,15 @@ export { RegistryClient } from './registry.client.js';
 // Shared Stellar constants — single source of truth (#1295)
 export * from './constants.js';
 
+// Shared Stellar utilities — single source of truth (#1488)
+export {
+  STROOPS_PER_XLM,
+  MAX_DECIMAL_PLACES,
+  formatWalletAddress,
+  formatXLM,
+  isValidStellarAddress,
+} from './utils/stellar.js';
+
 // Types
 export type * from './types.js';
 
