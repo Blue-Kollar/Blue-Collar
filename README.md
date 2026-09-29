@@ -543,3 +543,8 @@ All PRs require passing CI checks.
 ## License
 
 MIT © BlueCollar Contributors
+
+## Handsoff notes
+
+<!-- handsoff-issue-1451 -->
+- #1451: [Testing] Add unit tests for `WalletService`/wallet integration logic achieving 90%+ coverage
