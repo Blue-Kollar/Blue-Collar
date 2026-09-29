@@ -14,6 +14,7 @@ Thanks for your interest in contributing! This guide covers everything you need 
 - [Code Style](#code-style)
 - [Error Handling & Logging](#error-handling--logging)
 - [Running Tests](#running-tests)
+- [Coverage](#coverage)
 - [Translations](#translations)
 
 ---
@@ -144,10 +145,11 @@ Fill in all relevant sections. The templates include checklists specific to the 
 ## Pull Request Process
 
 1. Ensure all CI checks pass (`pnpm test`, `pnpm build`, `cargo clippy`).
-2. Write a clear PR title following the commit convention (release-please uses it).
-3. Reference the related issue: `Closes #123`.
-4. Request a review from a maintainer.
-5. Squash-merge is preferred to keep history clean.
+2. Run the `packages/app` coverage check locally (see [Coverage](#coverage)) and paste the summary into the PR description.
+3. Write a clear PR title following the commit convention (release-please uses it).
+4. Reference the related issue: `Closes #123`.
+5. Request a review from a maintainer.
+6. Squash-merge is preferred to keep history clean.
 
 ---
 
@@ -195,6 +197,32 @@ fails the build if the document and the code disagree.
 
 ---
 
+## Coverage
+
+`packages/app` enforces an **85% line-coverage target** configured in the app's test tooling
+(`packages/app/vitest.config.ts`), with per-directory reporting enabled so gaps are visible by area.
+
+### Required local pre-merge check
+
+Before opening or updating a PR that touches `packages/app`, run the coverage check locally and
+paste the summary into the PR description:
+
+```bash
+pnpm --filter app test:coverage
+```
+
+This is a **required local pre-merge check**. The command fails if line coverage drops below the
+85% target, and the per-directory report shows which areas fall short. If a directory is below 60%,
+file a follow-up issue (label `test`) rather than silently lowering the target.
+
+### Baseline
+
+The current baseline report for `packages/app` is captured in the PR description for the change that
+introduced this target. Generated coverage artifacts (`coverage/`) are not committed; only the
+summary is recorded in the PR.
+
+---
+
 ## Database Migrations
 
 ### Migration Safety Process
@@ -209,118 +237,40 @@ When modifying the database schema:
    - Include justification in the PR description
 4. **CI will verify** that destructive migrations are properly labeled
 
-### Destructive Operations Require Manual Approval
+### Destructive Migration Checklist
 
-The CI pipeline will flag any migration containing:
-- `DROP COLUMN`
-- `DROP TABLE`
-- `ALTER COLUMN`
-
-These changes require the `migration:destructive` label and manual approval before merging.
+- [ ] Migration is labeled `migration:destructive`
+- [ ] A maintainer has reviewed and approved the migration
+- [ ] Justification is documented in the PR description
+- [ ] Rollback plan is documented
 
 ---
 
 ## Running Tests
 
 ```bash
-# API tests
-cd packages/api
+# Run all tests
 pnpm test
 
-# Contract tests
-cd packages/contracts
-cargo test
+# Run tests for a specific package
+pnpm --filter api test
+pnpm --filter app test
 
-# App
-cd packages/app
-pnpm test
+# Run tests in watch mode
+pnpm --filter api test:watch
 
-# SDK tests (with coverage)
-cd packages/sdk
-pnpm test:coverage
-
-# Monitoring tests (with coverage)
-cd packages/monitoring
-pnpm test:coverage
+# Run coverage for packages/app (required pre-merge check)
+pnpm --filter app test:coverage
 ```
-
----
-
-## Regression Test Suite
-
-The regression suite guards against regressions of previously-fixed critical bugs. Before opening
-a PR that touches payment, escrow, serializer, circuit-breaker, notification, or pagination code,
-run the full regression suite and confirm it stays green.
-
-### Location
-
-| File | Package | Issues covered |
-|---|---|---|
-| `packages/api/src/__tests__/regression.critical.test.ts` | `@bluecollar/api` | #517 (payment idempotency), #749 (refresh token reuse), #1215 (missing catchAsync), #1217 (N+1 escrow), #1218 (Prisma schema audit) |
-| `packages/api/src/__tests__/regression.new-bugs.test.ts` | `@bluecollar/api` | ISSUE-1 (serializer helpers), ISSUE-2 (circuit breaker), ISSUE-3 (notificationPrefs relocation), ISSUE-4 (pagination contract) |
-
-### Running the regression suite
-
-```bash
-# Run both regression files together
-cd packages/api
-pnpm vitest run src/__tests__/regression.critical.test.ts src/__tests__/regression.new-bugs.test.ts
-
-# Or run all API tests (includes regression files automatically)
-pnpm test
-```
-
-The regression tests are included in the standard `pnpm test` run — no extra step is required in
-CI. They run first because the file names sort before other test files alphabetically.
-
-### Tag convention
-
-Every `describe` block in a regression file is prefixed with `[regression]` and references the
-originating issue number or CHANGELOG entry in the JSDoc above the block. When adding a new
-regression guard:
-
-1. Find the CHANGELOG entry or `docs/changes/ISSUE-*.md` that documents the original bug.
-2. Add a `describe('[regression] <short description> (<issue ref>)')` block.
-3. Write the minimal test that would have caught the bug in its pre-fix state.
-4. Add a JSDoc comment citing the issue number (`@regression`, issue link, and pre-fix failure path).
-
-### Coverage thresholds
-
-| Package | Tool | Threshold |
-|---|---|---|
-| `packages/api` | vitest | Enforced by CI; no explicit numeric floor, but regression files must pass. |
-| `packages/sdk` | vitest/v8 | 85% lines, functions, statements; 80% branches |
-| `packages/monitoring` | vitest/v8 | 85% lines, functions, branches, statements |
-
-Run `pnpm test:coverage` in the respective package to view the current coverage report.
 
 ---
 
 ## Translations
 
-See [docs/i18n-translations.md](./docs/i18n-translations.md) for contributing translations to the app UI and README files. This includes:
+Translation files live in `packages/app/messages/`. When adding user-facing strings:
 
-- Adding a new language to the Next.js frontend (message JSON files)
-- Translating README files to new languages
-- Keeping translations in sync with the English source
-- Validating translation completeness
+1. Add the key to the default locale (`en.json`).
+2. Add the key to all other supported locales.
+3. Run `pnpm --filter app test` to verify no missing-key tests fail.
 
-Translation PRs should use the `i18n:` commit type and reference the language being added.
-
----
-
-## Dead-file detection
-
-Entire files can outlive their usefulness (old prototypes, superseded
-scripts) with zero incoming imports anywhere in the monorepo. We use
-[knip](https://knip.dev/) to detect them.
-
-### Running the check
-
-From the repo root:
-
-```bash
-npm run check:dead-files
-npm run check:dead-files
-npm run check:dead-files:fix
-grep -rn "path/to/file" --include="*.ts" --include="*.tsx" --include="*.js" .
+Do not hardcode user-facing strings in components; use the `next-intl` helpers.

@@ -1,7 +1,7 @@
 /**
  * vitest.config.ts — packages/app
  *
- * Coverage thresholds enforced at 85 %+ (issue #1055).
+ * Coverage thresholds enforced at 85 %+ (issues #1055, #1449).
  *
  * Exceptions:
  *  - branches: 80 % — many conditional branches in React components are
@@ -9,6 +9,12 @@
  *    integration but not as isolated unit-test branches.
  *  - src/app/** excluded — Next.js App Router pages/layouts; these are
  *    covered by Playwright e2e tests, not Vitest unit tests.
+ *
+ * Baseline (issue #1449): the current line-coverage baseline for
+ * `packages/app` is captured by running `pnpm test:coverage` and is reported
+ * in the PR description rather than committed as a generated artifact.
+ * Per-directory reporting is enabled below so low-coverage directories
+ * (currently below 60 %) can be identified and tracked via follow-up issues.
  */
 import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
@@ -29,7 +35,11 @@ export default defineConfig({
     css: false,
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'html'],
+      // `json-summary` emits coverage/coverage-summary.json with per-directory
+      // totals, enabling the baseline report and low-coverage directory audit
+      // required by issue #1449.
+      reporter: ['text', 'html', 'json-summary'],
+      reportsDirectory: './coverage',
       include: ['src/components/**', 'src/hooks/**', 'src/lib/**', 'src/utils/**', 'src/context/**'],
       exclude: [
         'src/app/**',
@@ -38,7 +48,8 @@ export default defineConfig({
         'src/**/*.test.{ts,tsx}',
         'src/**/__tests__/**',
       ],
-      // ── Thresholds (issue #1055) ──────────────────────────────────────────
+      // ── Thresholds (issues #1055, #1449) ──────────────────────────────────
+      // 85 % line-coverage target for packages/app.
       thresholds: {
         lines: 85,
         functions: 85,
