@@ -12,6 +12,7 @@ packages/api_backup/
 
 # Test snapshots
 **/__snapshots__/
+**/test_snapshots/
 *.snap
 
 # Coverage reports

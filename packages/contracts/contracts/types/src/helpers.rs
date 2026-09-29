@@ -172,7 +172,26 @@ pub fn split_fee(amount: i128, fee_bps: u32) -> (i128, i128) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use soroban_sdk::{testutils::Address as _, Address, Env, Vec};
+    use soroban_sdk::{contract, contractimpl, testutils::Address as _, Address, Env, Vec};
+
+    #[contract]
+    struct AuthFrame;
+
+    #[contractimpl]
+    impl AuthFrame {
+        pub fn noop(_env: Env) {}
+    }
+
+    /// Run `f` inside a contract frame. The access-control helpers call
+    /// `caller.require_auth()`, which the host only accepts while a contract
+    /// is executing ("no contract running" otherwise).
+    fn in_contract<F, R>(env: &Env, f: F) -> R
+    where
+        F: FnOnce() -> R,
+    {
+        let contract = env.register(AuthFrame, ());
+        env.as_contract(&contract, f)
+    }
 
     // -------------------------------------------------------------------------
     // require_role
@@ -190,7 +209,7 @@ mod tests {
         members.push_back(other.clone());
         members.push_back(caller.clone());
 
-        assert!(require_role(&caller, &members).is_ok());
+        assert!(in_contract(&env, || require_role(&caller, &members)).is_ok());
     }
 
     #[test]
@@ -202,7 +221,7 @@ mod tests {
         let members: Vec<Address> = Vec::new(&env);
 
         assert_eq!(
-            require_role(&caller, &members).unwrap_err(),
+            in_contract(&env, || require_role(&caller, &members)).unwrap_err(),
             ContractError::MissingRole
         );
     }
@@ -219,7 +238,7 @@ mod tests {
         members.push_back(other.clone());
 
         assert_eq!(
-            require_role(&caller, &members).unwrap_err(),
+            in_contract(&env, || require_role(&caller, &members)).unwrap_err(),
             ContractError::MissingRole
         );
     }
@@ -233,7 +252,7 @@ mod tests {
         let mut members: Vec<Address> = Vec::new(&env);
         members.push_back(caller.clone());
 
-        assert!(require_role(&caller, &members).is_ok());
+        assert!(in_contract(&env, || require_role(&caller, &members)).is_ok());
     }
 
     // -------------------------------------------------------------------------
@@ -263,7 +282,7 @@ mod tests {
         env.mock_all_auths();
 
         let admin = Address::generate(&env);
-        assert!(require_admin(&admin, &admin).is_ok());
+        assert!(in_contract(&env, || require_admin(&admin, &admin)).is_ok());
     }
 
     #[test]
@@ -275,7 +294,7 @@ mod tests {
         let other = Address::generate(&env);
 
         assert_eq!(
-            require_admin(&other, &admin).unwrap_err(),
+            in_contract(&env, || require_admin(&other, &admin)).unwrap_err(),
             ContractError::NotAuthorized
         );
     }
@@ -290,7 +309,7 @@ mod tests {
         env.mock_all_auths();
         let a = Address::generate(&env);
         let b = Address::generate(&env);
-        assert!(require_party(&a, &a, &b).is_ok());
+        assert!(in_contract(&env, || require_party(&a, &a, &b)).is_ok());
     }
 
     #[test]
@@ -299,7 +318,7 @@ mod tests {
         env.mock_all_auths();
         let a = Address::generate(&env);
         let b = Address::generate(&env);
-        assert!(require_party(&b, &a, &b).is_ok());
+        assert!(in_contract(&env, || require_party(&b, &a, &b)).is_ok());
     }
 
     #[test]
@@ -310,7 +329,7 @@ mod tests {
         let b = Address::generate(&env);
         let stranger = Address::generate(&env);
         assert_eq!(
-            require_party(&stranger, &a, &b).unwrap_err(),
+            in_contract(&env, || require_party(&stranger, &a, &b)).unwrap_err(),
             ContractError::NotAParty
         );
     }
@@ -325,7 +344,7 @@ mod tests {
         env.mock_all_auths();
         let owner = Address::generate(&env);
         let admins: Vec<Address> = Vec::new(&env);
-        assert!(require_owner_or_role(&owner, &owner, &admins).is_ok());
+        assert!(in_contract(&env, || require_owner_or_role(&owner, &owner, &admins)).is_ok());
     }
 
     #[test]
@@ -336,7 +355,7 @@ mod tests {
         let admin = Address::generate(&env);
         let mut admins: Vec<Address> = Vec::new(&env);
         admins.push_back(admin.clone());
-        assert!(require_owner_or_role(&admin, &owner, &admins).is_ok());
+        assert!(in_contract(&env, || require_owner_or_role(&admin, &owner, &admins)).is_ok());
     }
 
     #[test]
@@ -347,7 +366,7 @@ mod tests {
         let stranger = Address::generate(&env);
         let admins: Vec<Address> = Vec::new(&env);
         assert_eq!(
-            require_owner_or_role(&stranger, &owner, &admins).unwrap_err(),
+            in_contract(&env, || require_owner_or_role(&stranger, &owner, &admins)).unwrap_err(),
             ContractError::NotAuthorized
         );
     }

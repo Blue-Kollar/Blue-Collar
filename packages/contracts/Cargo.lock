@@ -238,6 +238,7 @@ dependencies = [
 name = "bluecollar-dispute"
 version = "0.1.0"
 dependencies = [
+ "bluecollar-shared",
  "bluecollar-types",
  "soroban-sdk",
 ]
@@ -246,6 +247,7 @@ dependencies = [
 name = "bluecollar-escrow"
 version = "0.1.0"
 dependencies = [
+ "bluecollar-shared",
  "bluecollar-types",
  "soroban-sdk",
 ]
@@ -291,6 +293,7 @@ dependencies = [
 name = "bluecollar-market"
 version = "0.1.0"
 dependencies = [
+ "bluecollar-shared",
  "bluecollar-types",
  "soroban-sdk",
 ]
@@ -299,6 +302,7 @@ dependencies = [
 name = "bluecollar-payment"
 version = "0.1.0"
 dependencies = [
+ "bluecollar-shared",
  "bluecollar-types",
  "soroban-sdk",
 ]
@@ -307,12 +311,21 @@ dependencies = [
 name = "bluecollar-registry"
 version = "0.1.0"
 dependencies = [
+ "bluecollar-shared",
  "bluecollar-types",
  "soroban-sdk",
 ]
 
 [[package]]
 name = "bluecollar-reputation"
+version = "0.1.0"
+dependencies = [
+ "bluecollar-types",
+ "soroban-sdk",
+]
+
+[[package]]
+name = "bluecollar-shared"
 version = "0.1.0"
 dependencies = [
  "bluecollar-types",
@@ -330,6 +343,7 @@ dependencies = [
 name = "bluecollar_fee_distribution"
 version = "0.1.0"
 dependencies = [
+ "bluecollar-shared",
  "bluecollar-types",
  "proptest",
  "soroban-sdk",
@@ -339,6 +353,7 @@ dependencies = [
 name = "bluecollar_insurance_pool"
 version = "0.1.0"
 dependencies = [
+ "bluecollar-shared",
  "bluecollar-types",
  "soroban-sdk",
 ]

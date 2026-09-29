@@ -16,6 +16,8 @@ members = [
     "contracts/payment",
     # Issue #1020 — escrow contract (modular: storage/logic/lib)
     "contracts/escrow",
+    # Shared utilities and test fixtures (issue #1446)
+    "../../contracts/shared",
 ]
 resolver = "2"
 

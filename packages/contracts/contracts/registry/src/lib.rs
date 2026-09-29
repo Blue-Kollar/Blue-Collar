@@ -1530,6 +1530,31 @@ impl RegistryContract {
         Ok(storage::get_schema_version(&env))
     }
 
+    /// Run version-specific storage migration logic.
+    pub fn migrate(env: Env, admin: Address, expected_version: u32) -> Result<(), ContractError> {
+        let admin_role = logic::role_symbol(&env, ROLE_ADMIN);
+        logic::require_role(&env, &admin_role, &admin)?;
+
+        let current = storage::get_schema_version(&env);
+        if current != expected_version {
+            return Err(ContractError::WrongSchemaVersion);
+        }
+
+        // ---- version-specific migration logic -------------------------------
+        // Version 1 → 2: no structural change needed for v1→v2 in this release.
+        // Future migrations add field-backfill logic here.
+        // ----------------------------------------------------------------------
+
+        let new_version = expected_version.checked_add(1).expect("version overflow");
+        storage::set_schema_version(&env, new_version);
+
+        env.events().publish(
+            (symbol_short!("Migrated"),),
+            (expected_version, new_version),
+        );
+        Ok(())
+    }
+
     // -------------------------------------------------------------------------
     // Upgrade
     // -------------------------------------------------------------------------

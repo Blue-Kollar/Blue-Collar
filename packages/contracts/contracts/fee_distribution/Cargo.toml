@@ -11,6 +11,7 @@ soroban-sdk = { workspace = true }
 bluecollar-types = { path = "../types" }
 
 [dev-dependencies]
+bluecollar-shared = { path = "../../../../contracts/shared", features = ["testutils"] }
 soroban-sdk = { workspace = true, features = ["testutils"] }
 proptest = "1.4"
 
