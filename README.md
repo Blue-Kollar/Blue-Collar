@@ -543,3 +543,8 @@ All PRs require passing CI checks.
 ## License
 
 MIT © BlueCollar Contributors
+
+## Handsoff notes
+
+<!-- handsoff-issue-1457 -->
+- #1457: [Testing] Add unit tests for `packages/mobile/src/cache` invalidation logic
