@@ -543,3 +543,8 @@ All PRs require passing CI checks.
 ## License
 
 MIT © BlueCollar Contributors
+
+## Handsoff notes
+
+<!-- handsoff-issue-1453 -->
+- #1453: [Testing] Add E2E coverage for dispute-filing and resolution flow
