@@ -14,6 +14,7 @@ Thanks for your interest in contributing! This guide covers everything you need 
 - [Code Style](#code-style)
 - [Error Handling & Logging](#error-handling--logging)
 - [Running Tests](#running-tests)
+- [End-to-End (E2E) Tests](#end-to-end-e2e-tests)
 - [Coverage](#coverage)
 - [Translations](#translations)
 
@@ -197,6 +198,63 @@ fails the build if the document and the code disagree.
 
 ---
 
+## Running Tests
+
+```bash
+pnpm test          # run all package test suites
+pnpm test --filter api   # run a single package
+```
+
+---
+
+## End-to-End (E2E) Tests
+
+The primary revenue-critical flow — **post job → hire worker → fund escrow → release payment** — is
+covered by a browser-driven [Playwright](https://playwright.dev/) suite in `packages/app/e2e/`.
+The suite drives the real `packages/app` UI against a running `packages/api` and its dependencies.
+
+### Prerequisites
+
+- Docker (for `docker-compose.test.yml`)
+- Node.js and `pnpm`
+- Playwright browsers installed once per machine:
+  ```bash
+  pnpm --filter app exec playwright install --with-deps
+  ```
+
+### Run the suite locally (single command)
+
+From the repository root:
+
+```bash
+pnpm test:e2e
+```
+
+This command stands up the dependencies defined in `docker-compose.test.yml`, waits for the API to
+become healthy, runs the Playwright suite against the local stack, and tears the stack down again.
+
+### Useful variants
+
+```bash
+pnpm test:e2e -- --ui          # interactive Playwright UI mode
+pnpm test:e2e -- --headed      # watch the browser run
+pnpm test:e2e -- job-payment   # run a single spec by name
+```
+
+### What the happy-path spec covers
+
+`packages/app/e2e/job-payment.spec.ts` walks the full flow end to end:
+
+1. A client signs in and posts a job.
+2. The client hires a worker for that job.
+3. The client funds escrow for the agreed amount.
+4. The client releases payment once the work is marked complete.
+5. The test asserts the job and payment reach their terminal success states.
+
+If the suite fails, the Playwright HTML report is written to `packages/app/playwright-report/`.
+
+---
+
 ## Coverage
 
 `packages/app` enforces an **85% line-coverage target** configured in the app's test tooling
@@ -211,66 +269,9 @@ paste the summary into the PR description:
 pnpm --filter app test:coverage
 ```
 
-This is a **required local pre-merge check**. The command fails if line coverage drops below the
-85% target, and the per-directory report shows which areas fall short. If a directory is below 60%,
-file a follow-up issue (label `test`) rather than silently lowering the target.
-
-### Baseline
-
-The current baseline report for `packages/app` is captured in the PR description for the change that
-introduced this target. Generated coverage artifacts (`coverage/`) are not committed; only the
-summary is recorded in the PR.
-
----
-
-## Database Migrations
-
-### Migration Safety Process
-
-When modifying the database schema:
-
-1. **Make schema changes** in `packages/api/prisma/schema.prisma`
-2. **Create a migration**: `npx prisma migrate dev --name <descriptive-name>`
-3. **For destructive migrations** (DROP COLUMN, DROP TABLE, ALTER COLUMN):
-   - Add the `migration:destructive` label to your PR
-   - Request explicit review from a maintainer
-   - Include justification in the PR description
-4. **CI will verify** that destructive migrations are properly labeled
-
-### Destructive Migration Checklist
-
-- [ ] Migration is labeled `migration:destructive`
-- [ ] A maintainer has reviewed and approved the migration
-- [ ] Justification is documented in the PR description
-- [ ] Rollback plan is documented
-
----
-
-## Running Tests
-
-```bash
-# Run all tests
-pnpm test
-
-# Run tests for a specific package
-pnpm --filter api test
-pnpm --filter app test
-
-# Run tests in watch mode
-pnpm --filter api test:watch
-
-# Run coverage for packages/app (required pre-merge check)
-pnpm --filter app test:coverage
-```
-
 ---
 
 ## Translations
 
-Translation files live in `packages/app/messages/`. When adding user-facing strings:
-
-1. Add the key to the default locale (`en.json`).
-2. Add the key to all other supported locales.
-3. Run `pnpm --filter app test` to verify no missing-key tests fail.
-
-Do not hardcode user-facing strings in components; use the `next-intl` helpers.
+See [packages/app/CONTRIBUTING.md](./packages/app/CONTRIBUTING.md) for translation and localization
+conventions.
