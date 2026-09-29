@@ -14,6 +14,7 @@ Thanks for your interest in contributing! This guide covers everything you need 
 - [Code Style](#code-style)
 - [Error Handling & Logging](#error-handling--logging)
 - [Running Tests](#running-tests)
+- [Visual Regression Tests](#visual-regression-tests)
 - [Translations](#translations)
 
 ---
@@ -209,118 +210,81 @@ When modifying the database schema:
    - Include justification in the PR description
 4. **CI will verify** that destructive migrations are properly labeled
 
-### Destructive Operations Require Manual Approval
+### Destructive Migration Checklist
 
-The CI pipeline will flag any migration containing:
-- `DROP COLUMN`
-- `DROP TABLE`
-- `ALTER COLUMN`
-
-These changes require the `migration:destructive` label and manual approval before merging.
+- [ ] Migration is reversible or a rollback plan is documented
+- [ ] Data loss is intentional and called out in the PR description
+- [ ] `migration:destructive` label applied
+- [ ] Maintainer approval obtained
 
 ---
 
 ## Running Tests
 
+### API (TypeScript)
+
 ```bash
-# API tests
-cd packages/api
-pnpm test
+pnpm --filter api test          # unit + integration tests
+pnpm --filter api test:watch    # watch mode
+```
 
-# Contract tests
-cd packages/contracts
-cargo test
+### Contracts (Rust)
 
-# App
-cd packages/app
-pnpm test
+```bash
+cargo test --manifest-path contracts/Cargo.toml
+```
 
-# SDK tests (with coverage)
-cd packages/sdk
-pnpm test:coverage
+### App (Next.js)
 
-# Monitoring tests (with coverage)
-cd packages/monitoring
-pnpm test:coverage
+```bash
+pnpm --filter app test
+```
+
+### Mobile
+
+```bash
+pnpm --filter mobile test
 ```
 
 ---
 
-## Regression Test Suite
+## Visual Regression Tests
 
-The regression suite guards against regressions of previously-fixed critical bugs. Before opening
-a PR that touches payment, escrow, serializer, circuit-breaker, notification, or pagination code,
-run the full regression suite and confirm it stays green.
+Shared design-system primitives in `components/ui` (buttons, inputs, badges, etc.) are covered by
+snapshot/visual regression tests so that refactors cannot silently change their appearance across
+every feature that consumes them.
 
-### Location
+### Running snapshots locally
 
-| File | Package | Issues covered |
-|---|---|---|
-| `packages/api/src/__tests__/regression.critical.test.ts` | `@bluecollar/api` | #517 (payment idempotency), #749 (refresh token reuse), #1215 (missing catchAsync), #1217 (N+1 escrow), #1218 (Prisma schema audit) |
-| `packages/api/src/__tests__/regression.new-bugs.test.ts` | `@bluecollar/api` | ISSUE-1 (serializer helpers), ISSUE-2 (circuit breaker), ISSUE-3 (notificationPrefs relocation), ISSUE-4 (pagination contract) |
-
-### Running the regression suite
+Snapshots are part of the pre-merge test run. Run them the same way you run the rest of the suite:
 
 ```bash
-# Run both regression files together
-cd packages/api
-pnpm vitest run src/__tests__/regression.critical.test.ts src/__tests__/regression.new-bugs.test.ts
-
-# Or run all API tests (includes regression files automatically)
-pnpm test
+pnpm test          # includes the components/ui snapshot run
+pnpm test:update   # regenerate snapshots after an intentional visual change
 ```
 
-The regression tests are included in the standard `pnpm test` run — no extra step is required in
-CI. They run first because the file names sort before other test files alphabetically.
+Each `components/ui` primitive is snapshotted in its key states — **default**, **hover**,
+**disabled**, and **error** — so a regression in any single state fails the run.
 
-### Tag convention
+### Accepting intentional visual changes
 
-Every `describe` block in a regression file is prefixed with `[regression]` and references the
-originating issue number or CHANGELOG entry in the JSDoc above the block. When adding a new
-regression guard:
+When a visual change is deliberate (new design, spacing fix, color token update):
 
-1. Find the CHANGELOG entry or `docs/changes/ISSUE-*.md` that documents the original bug.
-2. Add a `describe('[regression] <short description> (<issue ref>)')` block.
-3. Write the minimal test that would have caught the bug in its pre-fix state.
-4. Add a JSDoc comment citing the issue number (`@regression`, issue link, and pre-fix failure path).
+1. Run `pnpm test:update` to regenerate the affected snapshots.
+2. **Review the snapshot diff** before committing — confirm every changed image is expected and
+   that no unrelated primitive changed.
+3. Commit the updated snapshots together with the code change in the same PR.
+4. Call out the visual change in the PR description so reviewers know to inspect the snapshots.
 
-### Coverage thresholds
-
-| Package | Tool | Threshold |
-|---|---|---|
-| `packages/api` | vitest | Enforced by CI; no explicit numeric floor, but regression files must pass. |
-| `packages/sdk` | vitest/v8 | 85% lines, functions, statements; 80% branches |
-| `packages/monitoring` | vitest/v8 | 85% lines, functions, branches, statements |
-
-Run `pnpm test:coverage` in the respective package to view the current coverage report.
+Never regenerate snapshots blindly to make a failing run pass — an unexpected diff usually means a
+real regression in a shared primitive.
 
 ---
 
 ## Translations
 
-See [docs/i18n-translations.md](./docs/i18n-translations.md) for contributing translations to the app UI and README files. This includes:
+Translation files live under `packages/app/locales/`. When adding user-facing strings:
 
-- Adding a new language to the Next.js frontend (message JSON files)
-- Translating README files to new languages
-- Keeping translations in sync with the English source
-- Validating translation completeness
-
-Translation PRs should use the `i18n:` commit type and reference the language being added.
-
----
-
-## Dead-file detection
-
-Entire files can outlive their usefulness (old prototypes, superseded
-scripts) with zero incoming imports anywhere in the monorepo. We use
-[knip](https://knip.dev/) to detect them.
-
-### Running the check
-
-From the repo root:
-
-```bash
-npm run check:dead-files
-npm run check:dead-files
-npm run check:dead-files:fix
-grep -rn "path/to/file" --include="*.ts" --include="*.tsx" --include="*.js" .
+- Add the key to the English source first, then to other locales.
+- Keep keys namespaced by feature (e.g. `workerProfile.title`).
+- Run `pnpm --filter app test` to catch missing-key regressions.
