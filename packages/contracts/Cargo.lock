@@ -273,6 +273,7 @@ version = "0.1.0"
 dependencies = [
  "bluecollar-dispute",
  "bluecollar-escrow",
+ "bluecollar-job-registry",
  "bluecollar-market",
  "bluecollar-registry",
  "bluecollar-reputation",

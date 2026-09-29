@@ -339,6 +339,14 @@ impl MarketContract {
         Self::require_role(&env, &admin_role, &caller)?;
         Self::require_not_paused(&env)?;
 
+        // Prevent removal of the last admin to avoid lockout
+        if role == admin_role {
+            let admin_members = Self::get_role_members(&env, &admin_role);
+            if admin_members.len() == 1 && admin_members.iter().any(|m| m == account) {
+                return Err(ContractError::NotAuthorized); // Cannot remove the last admin
+            }
+        }
+
         let members = Self::get_role_members(&env, &role);
         let mut updated: Vec<Address> = Vec::new(&env);
         let mut found = false;
@@ -2304,5 +2312,147 @@ mod admin_tests {
             MarketContractClient::new(&env, &contract).try_upgrade(&new_wasm_hash),
             Err(Ok(ContractError::MissingRole))
         );
+    }
+
+    /// Test that non-admin users cannot grant roles (privilege escalation prevention)
+    #[test]
+    fn test_grant_role_requires_admin() {
+        let (env, contract, admin) = setup();
+        let client = MarketContractClient::new(&env, &contract);
+        let attacker = Address::generate(&env);
+        let role = Symbol::new(&env, ROLE_FEE_MANAGER);
+        
+        // Clear auth mocks to test actual authorization
+        env.set_auths(&[]);
+        
+        // Attacker should not be able to grant themselves a role
+        assert_eq!(
+            client.try_grant_role(&attacker, &role, &attacker),
+            Err(Ok(ContractError::MissingRole))
+        );
+        
+        // Verify the attacker doesn't have the role
+        assert_eq!(client.has_role(&role, &attacker), false);
+        
+        // Verify admin can still grant roles (positive test)
+        env.mock_all_auths();
+        client.grant_role(&admin, &role, &attacker);
+        assert_eq!(client.has_role(&role, &attacker), true);
+    }
+
+    /// Test that non-admin users cannot revoke roles from others
+    #[test]
+    fn test_revoke_role_requires_admin() {
+        let (env, contract, admin) = setup();
+        let client = MarketContractClient::new(&env, &contract);
+        let user = Address::generate(&env);
+        let role = Symbol::new(&env, ROLE_FEE_MANAGER);
+        
+        // First, admin grants role to user
+        client.grant_role(&admin, &role, &user);
+        assert_eq!(client.has_role(&role, &user), true);
+        
+        // Clear auth mocks to test actual authorization
+        env.set_auths(&[]);
+        
+        // Attacker should not be able to revoke roles from others
+        let attacker = Address::generate(&env);
+        assert_eq!(
+            client.try_revoke_role(&attacker, &role, &user),
+            Err(Ok(ContractError::MissingRole))
+        );
+        
+        // Verify the user still has the role
+        assert_eq!(client.has_role(&role, &user), true);
+    }
+
+    /// Test that non-admin users cannot grant admin role to themselves (critical privilege escalation)
+    #[test]
+    fn test_cannot_grant_admin_role_without_admin() {
+        let (env, contract, admin) = setup();
+        let client = MarketContractClient::new(&env, &contract);
+        let attacker = Address::generate(&env);
+        let admin_role = Symbol::new(&env, ROLE_ADMIN);
+        
+        // Clear auth mocks to test actual authorization
+        env.set_auths(&[]);
+        
+        // Attacker should not be able to grant themselves admin role
+        assert_eq!(
+            client.try_grant_role(&attacker, &admin_role, &attacker),
+            Err(Ok(ContractError::MissingRole))
+        );
+        
+        // Verify the attacker doesn't have admin role
+        assert_eq!(client.has_role(&admin_role, &attacker), false);
+        
+        // Verify original admin still has admin role
+        assert_eq!(client.has_role(&admin_role, &admin), true);
+    }
+
+    /// Test that users cannot call privileged functions without proper roles
+    #[test]
+    fn test_privileged_functions_require_roles() {
+        let (env, contract, _admin) = setup();
+        let client = MarketContractClient::new(&env, &contract);
+        let user = Address::generate(&env);
+        
+        // Clear auth mocks to test actual authorization
+        env.set_auths(&[]);
+        
+        // User should not be able to update fee (requires ROLE_FEE_MANAGER)
+        assert_eq!(
+            client.try_update_fee(&200),
+            Err(Ok(ContractError::MissingRole))
+        );
+        
+        // User should not be able to set treasury (requires ROLE_ADMIN)
+        assert_eq!(
+            client.try_set_treasury(&user, &user),
+            Err(Ok(ContractError::MissingRole))
+        );
+        
+        // User should not be able to pause contract (requires ROLE_PAUSER)
+        assert_eq!(
+            client.try_pause(&user),
+            Err(Ok(ContractError::MissingRole))
+        );
+    }
+
+    /// Test that the last admin cannot be removed (prevents contract lockout)
+    #[test]
+    fn test_cannot_remove_last_admin() {
+        let (env, contract, admin) = setup();
+        let client = MarketContractClient::new(&env, &contract);
+        let admin_role = Symbol::new(&env, ROLE_ADMIN);
+        
+        // Verify there's only one admin initially
+        assert_eq!(client.has_role(&admin_role, &admin), true);
+        
+        // Admin should not be able to revoke their own admin role if they're the last admin
+        assert_eq!(
+            client.try_revoke_role(&admin, &admin_role, &admin),
+            Err(Ok(ContractError::NotAuthorized))
+        );
+        
+        // Verify admin still has the role after failed removal
+        assert_eq!(client.has_role(&admin_role, &admin), true);
+        
+        // Add another admin first
+        let admin2 = Address::generate(&env);
+        client.grant_role(&admin, &admin_role, &admin2);
+        assert_eq!(client.has_role(&admin_role, &admin2), true);
+        
+        // Now the original admin should be able to be removed since there's another admin
+        client.revoke_role(&admin, &admin_role, &admin);
+        assert_eq!(client.has_role(&admin_role, &admin), false);
+        assert_eq!(client.has_role(&admin_role, &admin2), true);
+        
+        // But the last remaining admin should not be removable
+        assert_eq!(
+            client.try_revoke_role(&admin2, &admin_role, &admin2),
+            Err(Ok(ContractError::NotAuthorized))
+        );
+        assert_eq!(client.has_role(&admin_role, &admin2), true);
     }
 }
