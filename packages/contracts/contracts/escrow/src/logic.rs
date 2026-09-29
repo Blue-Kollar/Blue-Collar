@@ -204,6 +204,9 @@ pub fn do_release(env: &Env, caller: &Address, id: Symbol) -> Result<(), Contrac
     let mut record = load_escrow(env, &id).ok_or(ContractError::EscrowNotFound)?;
     require_active(&record)?;
 
+    // `require_owner_or_role` performs `caller.require_auth()` itself. A second
+    // `require_auth` for the same address in one frame is rejected by the host
+    // ("frame is already authorized"), so this must be the only auth call here.
     let admins = load_role_members(env, ROLE_ADMIN_ID);
     helpers::require_owner_or_role(caller, &record.depositor, &admins)?;
 
@@ -279,6 +282,8 @@ pub fn do_dispute(env: &Env, caller: &Address, id: Symbol) -> Result<(), Contrac
     require_not_paused(env)?;
 
     let mut record = load_escrow(env, &id).ok_or(ContractError::EscrowNotFound)?;
+    // `require_party` performs `caller.require_auth()` itself; calling
+    // `require_auth` twice in one frame is a host error (see `do_release`).
     helpers::require_party(caller, &record.depositor, &record.beneficiary)?;
     require_active(&record)?;
 

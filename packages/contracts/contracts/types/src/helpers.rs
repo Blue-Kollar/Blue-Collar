@@ -200,13 +200,13 @@ mod tests {
     #[test]
     fn require_role_authorized() {
         let env = Env::default();
-        env.mock_all_auths();
+        let client = probe(&env);
 
         let caller = Address::generate(&env);
         let other = Address::generate(&env);
 
         let mut members: Vec<Address> = Vec::new(&env);
-        members.push_back(other.clone());
+        members.push_back(other);
         members.push_back(caller.clone());
 
         assert!(in_contract(&env, || require_role(&caller, &members)).is_ok());
@@ -215,7 +215,7 @@ mod tests {
     #[test]
     fn require_role_unauthorized_empty_members() {
         let env = Env::default();
-        env.mock_all_auths();
+        let client = probe(&env);
 
         let caller = Address::generate(&env);
         let members: Vec<Address> = Vec::new(&env);
@@ -229,13 +229,13 @@ mod tests {
     #[test]
     fn require_role_unauthorized_not_in_members() {
         let env = Env::default();
-        env.mock_all_auths();
+        let client = probe(&env);
 
         let caller = Address::generate(&env);
         let other = Address::generate(&env);
 
         let mut members: Vec<Address> = Vec::new(&env);
-        members.push_back(other.clone());
+        members.push_back(other);
 
         assert_eq!(
             in_contract(&env, || require_role(&caller, &members)).unwrap_err(),
@@ -246,7 +246,7 @@ mod tests {
     #[test]
     fn require_role_single_member_matches() {
         let env = Env::default();
-        env.mock_all_auths();
+        let client = probe(&env);
 
         let caller = Address::generate(&env);
         let mut members: Vec<Address> = Vec::new(&env);
@@ -279,8 +279,7 @@ mod tests {
     #[test]
     fn require_admin_caller_is_admin() {
         let env = Env::default();
-        env.mock_all_auths();
-
+        let client = probe(&env);
         let admin = Address::generate(&env);
         assert!(in_contract(&env, || require_admin(&admin, &admin)).is_ok());
     }
@@ -288,8 +287,7 @@ mod tests {
     #[test]
     fn require_admin_caller_is_not_admin() {
         let env = Env::default();
-        env.mock_all_auths();
-
+        let client = probe(&env);
         let admin = Address::generate(&env);
         let other = Address::generate(&env);
 
@@ -306,7 +304,7 @@ mod tests {
     #[test]
     fn require_party_matches_party_a() {
         let env = Env::default();
-        env.mock_all_auths();
+        let client = probe(&env);
         let a = Address::generate(&env);
         let b = Address::generate(&env);
         assert!(in_contract(&env, || require_party(&a, &a, &b)).is_ok());
@@ -315,7 +313,7 @@ mod tests {
     #[test]
     fn require_party_matches_party_b() {
         let env = Env::default();
-        env.mock_all_auths();
+        let client = probe(&env);
         let a = Address::generate(&env);
         let b = Address::generate(&env);
         assert!(in_contract(&env, || require_party(&b, &a, &b)).is_ok());
@@ -324,7 +322,7 @@ mod tests {
     #[test]
     fn require_party_rejects_stranger() {
         let env = Env::default();
-        env.mock_all_auths();
+        let client = probe(&env);
         let a = Address::generate(&env);
         let b = Address::generate(&env);
         let stranger = Address::generate(&env);
@@ -341,7 +339,7 @@ mod tests {
     #[test]
     fn require_owner_or_role_owner_ok() {
         let env = Env::default();
-        env.mock_all_auths();
+        let client = probe(&env);
         let owner = Address::generate(&env);
         let admins: Vec<Address> = Vec::new(&env);
         assert!(in_contract(&env, || require_owner_or_role(&owner, &owner, &admins)).is_ok());
@@ -350,7 +348,7 @@ mod tests {
     #[test]
     fn require_owner_or_role_admin_ok() {
         let env = Env::default();
-        env.mock_all_auths();
+        let client = probe(&env);
         let owner = Address::generate(&env);
         let admin = Address::generate(&env);
         let mut admins: Vec<Address> = Vec::new(&env);
@@ -361,7 +359,7 @@ mod tests {
     #[test]
     fn require_owner_or_role_rejects_stranger() {
         let env = Env::default();
-        env.mock_all_auths();
+        let client = probe(&env);
         let owner = Address::generate(&env);
         let stranger = Address::generate(&env);
         let admins: Vec<Address> = Vec::new(&env);

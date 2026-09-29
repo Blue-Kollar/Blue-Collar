@@ -827,3 +827,106 @@ mod auth_failures {
         );
     }
 }
+
+// ===========================================================================
+// 6. Upgrade simulation (issue #1445)
+// ===========================================================================
+//
+// Simulates the two-step upgrade (WASM swap + schema migration) against
+// pre-existing ledger state and asserts data integrity afterwards. The actual
+// `update_current_contract_wasm` call needs a registered WASM blob, which the
+// in-process test host cannot install from a dummy hash, so step 1 is
+// represented by the timelocked proposal the real swap goes through and step 2
+// by the `migrate` entry point the new WASM exposes.
+
+mod upgrade_simulation {
+    use super::*;
+
+    /// Full upgrade simulation: state written under schema v1, a timelocked
+    /// upgrade proposal, then the post-swap `migrate` step. Every stored value
+    /// must survive unchanged and the schema version must advance by exactly
+    /// one.
+    #[test]
+    fn upgrade_simulation_preserves_pre_existing_state() {
+        let f = UpgradeFixture::new();
+
+        // --- Pre-upgrade writes (schema v1) ---
+        let id = f.register("worker1");
+        f.client()
+            .add_category(&f.admin, &Symbol::new(&f.env, "electrician"));
+        let before = f.client().get_worker(&id).unwrap();
+        let count_before = f.client().worker_count();
+        let cats_before = f.client().list_categories();
+        let history_before = f.client().get_reputation_history(&id);
+        assert_eq!(f.client().get_schema_version(), 1);
+
+        // --- Step 1: the WASM swap goes through the timelocked path ---
+        let hash = BytesN::from_array(&f.env, &[7u8; 32]);
+        f.client().propose_upgrade(&f.admin, &hash);
+        let pending = f.client().get_pending_upgrade().unwrap();
+        assert_eq!(pending.wasm_hash, hash);
+
+        // --- Step 2: post-swap schema migration ---
+        f.client().migrate(&f.admin, &1u32);
+
+        // --- Integrity assertions ---
+        let after = f.client().get_worker(&id).unwrap();
+        assert_eq!(after.owner, before.owner);
+        assert_eq!(after.name, before.name);
+        assert_eq!(after.category, before.category);
+        assert_eq!(after.reputation, before.reputation);
+        assert_eq!(after.is_active, before.is_active);
+        assert_eq!(f.client().worker_count(), count_before);
+        assert_eq!(f.client().list_categories(), cats_before);
+        assert_eq!(f.client().get_reputation_history(&id), history_before);
+        assert!(f.client().is_curator(&f.curator));
+        assert_eq!(f.client().get_schema_version(), 2);
+    }
+
+    /// A replayed migration (same `expected_version` twice) is rejected, so a
+    /// duplicated post-upgrade call cannot transform already-migrated state.
+    #[test]
+    fn upgrade_simulation_rejects_replayed_migration() {
+        let f = UpgradeFixture::new();
+        f.register("worker1");
+        f.client().migrate(&f.admin, &1u32);
+        assert_eq!(
+            f.client().try_migrate(&f.admin, &1u32),
+            Err(Ok(ContractError::WrongSchemaVersion))
+        );
+        // State written before the first migrate is still intact.
+        assert!(f
+            .client()
+            .get_worker(&Symbol::new(&f.env, "worker1"))
+            .is_some());
+        assert_eq!(f.client().get_schema_version(), 2);
+    }
+
+    /// Only a `ROLE_ADMIN` holder may run the post-upgrade migration.
+    #[test]
+    fn upgrade_simulation_rejects_non_admin_migrator() {
+        let f = UpgradeFixture::new();
+        let stranger = Address::generate(&f.env);
+        assert_eq!(
+            f.client().try_migrate(&stranger, &1u32),
+            Err(Ok(ContractError::MissingRole))
+        );
+        assert_eq!(f.client().get_schema_version(), 1);
+    }
+
+    /// Sequential migrations each advance the version by exactly one, so the
+    /// version counter tracks how many migrations have run over this state.
+    #[test]
+    fn upgrade_simulation_advances_version_one_step_at_a_time() {
+        let f = UpgradeFixture::new();
+        assert_eq!(f.client().get_schema_version(), 1);
+        f.client().migrate(&f.admin, &1u32);
+        assert_eq!(f.client().get_schema_version(), 2);
+        f.client().migrate(&f.admin, &2u32);
+        assert_eq!(f.client().get_schema_version(), 3);
+        assert_eq!(
+            f.client().try_migrate(&f.admin, &1u32),
+            Err(Ok(ContractError::WrongSchemaVersion))
+        );
+    }
+}

@@ -85,9 +85,10 @@ jobs:
             packages/contracts/target
           key: ${{ runner.os }}-contracts-${{ hashFiles('packages/contracts/**/Cargo.toml', 'packages/contracts/Cargo.lock') }}
 
-      - name: State migration & backward-compatibility tests (registry + market)
+      - name: State migration & backward-compatibility tests (registry + job_registry + market)
         run: |
           cargo test -p bluecollar-registry test::
+          cargo test -p bluecollar-job-registry test::
           cargo test -p bluecollar-market  test::upgrade_framework
 
       - name: Migration property tests

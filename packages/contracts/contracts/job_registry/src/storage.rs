@@ -192,3 +192,19 @@ pub fn is_paused(env: &Env) -> bool {
 pub fn set_paused(env: &Env, paused: bool) {
     env.storage().instance().set(&DataKey::Paused, &paused);
 }
+
+/// Read the storage schema version. Defaults to 1 for deployments that predate
+/// the `SchemaVersion` key, so legacy state always reads as the baseline.
+pub fn get_schema_version(env: &Env) -> u32 {
+    env.storage()
+        .persistent()
+        .get(&DataKey::SchemaVersion)
+        .unwrap_or(1u32)
+}
+
+/// Write the storage schema version.
+pub fn set_schema_version(env: &Env, version: u32) {
+    env.storage()
+        .persistent()
+        .set(&DataKey::SchemaVersion, &version);
+}

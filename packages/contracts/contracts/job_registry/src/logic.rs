@@ -70,9 +70,7 @@ pub fn do_initialize(env: &Env, admin: &Address) -> Result<(), ContractError> {
 
     storage::set_initialized(env);
     storage::save_admin(env, admin);
-    env.storage()
-        .persistent()
-        .set(&storage::DataKey::SchemaVersion, &1u32);
+    storage::set_schema_version(env, 1u32);
 
     // Grant ROLE_ADMIN to the initial admin.
     let mut members: Vec<Address> = Vec::new(env);

@@ -244,11 +244,19 @@ pub struct PendingUpgrade {
 // =============================================================================
 
 /// Storage keys used throughout the contract.
+///
+/// These names are part of the on-chain encoding: renaming a variant or
+/// changing a payload type makes existing ledger entries unreadable and
+/// therefore breaks a naive upgrade. New keys must be appended, never
+/// reordered or repurposed. See `UPGRADE_MIGRATION.md`.
 #[contracttype]
 pub enum DataKey {
-    /// Instance storage â€” bootstrap admin address, set once at `initialize`.
+    /// Persistent storage — bootstrap admin address, set once at `initialize`.
+    /// (Written to *persistent* storage, not instance; changing the storage
+    /// domain would orphan the existing entry on upgrade — see
+    /// `UPGRADE_MIGRATION.md`, "Storage-breaking risks".)
     Admin,
-    /// Instance storage â€” paused flag; when `true` all state-mutating functions revert.
+    /// Instance storage — paused flag; when `true` all state-mutating functions revert.
     Paused,
     /// Persistent storage â€” `Vec<Address>` of members for a given role.
     RoleMembers(u64),

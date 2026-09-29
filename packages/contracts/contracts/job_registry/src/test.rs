@@ -1065,3 +1065,150 @@ fn test_upgrade_with_role_succeeds() {
     let res = client.try_upgrade(&admin, &new_wasm_hash);
     assert_ne!(res, Err(Ok(ContractError::MissingRole)));
 }
+
+// ---------------------------------------------------------------------------
+// upgrade / migration simulation (issue #1445)
+// ---------------------------------------------------------------------------
+//
+// Simulates the two-step upgrade (WASM swap + schema migration) against
+// pre-existing ledger state and asserts data integrity afterwards. The actual
+// `update_current_contract_wasm` call needs a registered WASM blob, which the
+// in-process test host cannot install from a dummy hash, so step 1 is
+// represented by the upgrade entry point's role gate and step 2 by `migrate`.
+
+/// Full upgrade simulation: jobs, indexes and roles written under schema v1,
+/// the WASM-swap role gate, then the post-swap `migrate` step. Every stored
+/// value must survive unchanged and the schema version must advance by exactly
+/// one.
+#[test]
+fn test_upgrade_simulation_preserves_pre_existing_state() {
+    let env = Env::default();
+    let (admin, poster, client) = setup(&env);
+    let token = Address::generate(&env);
+    let worker = Address::generate(&env);
+
+    // --- Pre-upgrade writes (schema v1) ---
+    let job1 = Symbol::new(&env, "job1");
+    let job2 = Symbol::new(&env, "job2");
+    client.post_job(
+        &poster,
+        &job1,
+        &Symbol::new(&env, "plumber"),
+        &zero_hash(&env),
+        &1_000_000,
+        &token,
+    );
+    client.post_job(
+        &poster,
+        &job2,
+        &Symbol::new(&env, "electrician"),
+        &zero_hash(&env),
+        &2_500,
+        &token,
+    );
+    client.assign_worker(&poster, &job1, &worker);
+    client.grant_role(&admin, &Symbol::new(&env, logic::ROLE_PAUSER), &admin);
+
+    let job1_before = client.get_job(&job1);
+    let job2_before = client.get_job(&job2);
+    let jobs_before = client.list_jobs();
+    let poster_jobs_before = client.poster_jobs(&poster);
+    assert_eq!(client.get_schema_version(), 1);
+
+    // --- Step 1: the WASM swap is gated on ROLE_UPGRADER ---
+    let unauthorized = Address::generate(&env);
+    assert_eq!(
+        client.try_upgrade(&unauthorized, &zero_hash(&env)),
+        Err(Ok(ContractError::MissingRole))
+    );
+
+    // --- Step 2: post-swap schema migration ---
+    client.migrate(&admin, &1u32);
+
+    // --- Integrity assertions ---
+    assert_eq!(client.get_job(&job1), job1_before);
+    assert_eq!(client.get_job(&job2), job2_before);
+    assert_eq!(client.get_job(&job1).status, storage::JobStatus::Assigned);
+    assert_eq!(client.get_job(&job2).status, storage::JobStatus::Open);
+    assert_eq!(client.get_job(&job1).worker, Some(worker));
+    assert_eq!(client.list_jobs(), jobs_before);
+    assert_eq!(client.poster_jobs(&poster), poster_jobs_before);
+    assert!(client.has_role(&Symbol::new(&env, logic::ROLE_ADMIN), &admin));
+    assert!(client.has_role(&Symbol::new(&env, logic::ROLE_PAUSER), &admin));
+    assert_eq!(client.get_admin(), admin);
+    assert_eq!(client.get_schema_version(), 2);
+}
+
+/// A fresh deployment reports schema version 1, the baseline old clients read.
+#[test]
+fn test_upgrade_simulation_fresh_deploy_reports_baseline_version() {
+    let env = Env::default();
+    let (_admin, _poster, client) = setup(&env);
+    assert_eq!(client.get_schema_version(), 1);
+}
+
+/// Only a `ROLE_ADMIN` holder may run the post-upgrade migration.
+#[test]
+fn test_migrate_requires_admin_role() {
+    let env = Env::default();
+    let (_admin, _poster, client) = setup(&env);
+    let stranger = Address::generate(&env);
+    assert_eq!(
+        client.try_migrate(&stranger, &1u32),
+        Err(Ok(ContractError::MissingRole))
+    );
+    assert_eq!(client.get_schema_version(), 1);
+}
+
+/// Migrating with a stale or fabricated `expected_version` is rejected.
+#[test]
+fn test_migrate_wrong_version_rejected() {
+    let env = Env::default();
+    let (admin, _poster, client) = setup(&env);
+    assert_eq!(
+        client.try_migrate(&admin, &2u32),
+        Err(Ok(ContractError::WrongSchemaVersion))
+    );
+    assert_eq!(client.get_schema_version(), 1);
+}
+
+/// A replayed migration (same `expected_version` twice) is rejected, so a
+/// duplicated post-upgrade call cannot transform already-migrated state.
+#[test]
+fn test_migrate_replay_rejected() {
+    let env = Env::default();
+    let (admin, poster, client) = setup(&env);
+    let token = Address::generate(&env);
+    let job_id = Symbol::new(&env, "job1");
+    client.post_job(
+        &poster,
+        &job_id,
+        &Symbol::new(&env, "plumber"),
+        &zero_hash(&env),
+        &1_000,
+        &token,
+    );
+    client.migrate(&admin, &1u32);
+    assert_eq!(
+        client.try_migrate(&admin, &1u32),
+        Err(Ok(ContractError::WrongSchemaVersion))
+    );
+    // State written before the first migrate is still intact.
+    assert_eq!(client.get_job(&job_id).budget, 1_000);
+    assert_eq!(client.get_schema_version(), 2);
+}
+
+/// Sequential migrations each advance the version by exactly one.
+#[test]
+fn test_migrate_sequential_versions() {
+    let env = Env::default();
+    let (admin, _poster, client) = setup(&env);
+    client.migrate(&admin, &1u32);
+    assert_eq!(client.get_schema_version(), 2);
+    client.migrate(&admin, &2u32);
+    assert_eq!(client.get_schema_version(), 3);
+    assert_eq!(
+        client.try_migrate(&admin, &1u32),
+        Err(Ok(ContractError::WrongSchemaVersion))
+    );
+}

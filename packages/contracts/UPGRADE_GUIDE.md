@@ -2,6 +2,8 @@
 
 This guide covers upgrading the deployed BlueCollar Soroban contracts (Registry and Market) without redeploying — preserving the contract ID and all on-chain storage.
 
+> Per-contract upgrade mechanisms, storage-layout risks, and the upgrade-simulation test map are documented in [`UPGRADE_MIGRATION.md`](UPGRADE_MIGRATION.md).
+
 ## Prerequisites
 
 - [Rust](https://rustup.rs/) with `wasm32v1-none` target
