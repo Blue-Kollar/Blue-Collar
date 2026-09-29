@@ -1,14 +1,24 @@
 /**
- * Integration tests for wallet endpoints — packages/api/src/__tests__/integration/wallet.test.ts
+ * Integration tests for wallet endpoints — packages/api/src/__tests__/integration/wallet.integration.test.ts
  *
  * Exercises the full HTTP stack (route → controller → service) while mocking
  * the database and Stellar Horizon HTTP calls.
  *
+ * Horizon fetch calls are intercepted by makeMockHorizonFetch() from
+ * @bluecollar/test-utils/stellar-mocks instead of ad-hoc vi.fn() stubs,
+ * giving every test a consistent, documented fixture baseline.
+ *
  * Issue: #1006 [Backend] Add integration tests for wallets endpoints
+ * Issue: [Testing] Add mock Stellar/Soroban RPC service for deterministic backend tests
  */
 import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest'
 import request from 'supertest'
 import jwt from 'jsonwebtoken'
+import {
+  makeMockHorizonFetch,
+  MOCK_STELLAR_ADDRESS,
+  MOCK_TX_HASH,
+} from '@bluecollar/test-utils/stellar-mocks'
 
 // ─── Env setup ────────────────────────────────────────────────────────────────
 process.env.JWT_SECRET = 'test-wallet-secret'
@@ -96,7 +106,8 @@ import app from '../../app.js'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const VALID_PUBLIC_KEY = 'GAAZI4TCR3TY5OJHCTJC2A4QSY6CJWJH5IAJTGKIN2ER7LBNVKOCCWN'
+/** A stable 56-character Stellar public key for wallet tests. */
+const VALID_PUBLIC_KEY = MOCK_STELLAR_ADDRESS
 
 function authToken(userId = 'user-wallet-1', role = 'user') {
   return jwt.sign({ id: userId, role }, 'test-wallet-secret', { expiresIn: '1h' })
@@ -107,18 +118,9 @@ function makeAccount(overrides: Record<string, unknown> = {}) {
     id: 'account-1',
     publicKey: VALID_PUBLIC_KEY,
     userId: 'user-wallet-1',
-    balance: 1000.5,
-    sequences: BigInt(12345678),
+    balance: 100,
+    sequences: BigInt(1234567),
     lastSyncedAt: new Date(),
-    ...overrides,
-  }
-}
-
-/** Build a minimal mock fetch that returns Horizon account data */
-function mockHorizonAccount(overrides: Record<string, unknown> = {}) {
-  return {
-    balances: [{ balance: '1000.5000000', asset_type: 'native' }],
-    sequence: '12345678',
     ...overrides,
   }
 }
@@ -138,7 +140,7 @@ describe('GET /api/wallet/balance', () => {
     expect(res.status).toBe(200)
     expect(res.body.status).toBe('success')
     expect(res.body.data.publicKey).toBe(VALID_PUBLIC_KEY)
-    expect(res.body.data.balance).toBe(1000.5)
+    expect(res.body.data.balance).toBe(100)
   })
 
   it('returns 404 when no Stellar account is linked', async () => {
@@ -165,26 +167,19 @@ describe('GET /api/wallet/account/:publicKey', () => {
   afterEach(() => vi.unstubAllGlobals())
 
   it('returns 200 with account info from Horizon', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => mockHorizonAccount(),
-    }))
+    // Uses shared mock fixture: balance=100, sequence=1234567
+    vi.stubGlobal('fetch', makeMockHorizonFetch())
 
     const res = await request(app).get(`/api/wallet/account/${VALID_PUBLIC_KEY}`)
 
     expect(res.status).toBe(200)
     expect(res.body.status).toBe('success')
     expect(res.body.data.publicKey).toBe(VALID_PUBLIC_KEY)
-    expect(res.body.data.balance).toBe(1000.5)
+    expect(res.body.data.balance).toBe(100)
   })
 
   it('returns 404 when Horizon says account not found', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      ok: false,
-      status: 404,
-      statusText: 'Not Found',
-    }))
+    vi.stubGlobal('fetch', makeMockHorizonFetch({ accountNotFound: true }))
 
     const res = await request(app).get('/api/wallet/account/INVALID000NOTFOUND0000000000000000000000000000000000000000')
 
@@ -192,11 +187,7 @@ describe('GET /api/wallet/account/:publicKey', () => {
   })
 
   it('is a public endpoint (no auth required)', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => mockHorizonAccount(),
-    }))
+    vi.stubGlobal('fetch', makeMockHorizonFetch())
 
     const res = await request(app).get(`/api/wallet/account/${VALID_PUBLIC_KEY}`)
     // Should not get 401
@@ -211,11 +202,7 @@ describe('POST /api/wallet/link', () => {
   afterEach(() => vi.unstubAllGlobals())
 
   it('returns 201 when wallet is successfully linked', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => mockHorizonAccount(),
-    }))
+    vi.stubGlobal('fetch', makeMockHorizonFetch())
     vi.mocked(db.stellarAccount.findUnique).mockResolvedValue(null as never)
     vi.mocked(db.stellarAccount.upsert).mockResolvedValue(makeAccount() as never)
 
@@ -239,11 +226,7 @@ describe('POST /api/wallet/link', () => {
   })
 
   it('returns 400 when wallet is already linked to another user', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => mockHorizonAccount(),
-    }))
+    vi.stubGlobal('fetch', makeMockHorizonFetch())
     // Account exists and belongs to a different user
     vi.mocked(db.stellarAccount.findUnique).mockResolvedValue(
       makeAccount({ userId: 'different-user' }) as never,
@@ -267,11 +250,7 @@ describe('POST /api/wallet/link', () => {
   })
 
   it('re-linking same wallet to same user succeeds', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => mockHorizonAccount(),
-    }))
+    vi.stubGlobal('fetch', makeMockHorizonFetch())
     // Account already exists for THIS user — should succeed
     vi.mocked(db.stellarAccount.findUnique).mockResolvedValue(makeAccount() as never)
     vi.mocked(db.stellarAccount.upsert).mockResolvedValue(makeAccount() as never)
@@ -294,11 +273,7 @@ describe('POST /api/wallet/build-tx', () => {
   afterEach(() => vi.unstubAllGlobals())
 
   it('returns 200 with transaction parameters', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => mockHorizonAccount(),
-    }))
+    vi.stubGlobal('fetch', makeMockHorizonFetch())
     vi.mocked(db.stellarAccount.findUnique).mockResolvedValue(makeAccount() as never)
 
     const res = await request(app)
@@ -346,11 +321,8 @@ describe('POST /api/wallet/broadcast', () => {
   afterEach(() => vi.unstubAllGlobals())
 
   it('returns 200 with transaction hash on success', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => ({ hash: 'abc123txhash', id: 'tx-id-1' }),
-    }))
+    // Uses shared mock: returns MOCK_TX_HASH by default
+    vi.stubGlobal('fetch', makeMockHorizonFetch())
 
     const res = await request(app)
       .post('/api/wallet/broadcast')
@@ -358,7 +330,7 @@ describe('POST /api/wallet/broadcast', () => {
       .send({ signedXdr: 'AAAA...signedxdr' })
 
     expect(res.status).toBe(200)
-    expect(res.body.data.txHash).toBe('abc123txhash')
+    expect(res.body.data.txHash).toBe(MOCK_TX_HASH)
   })
 
   it('returns 400 when signedXdr is missing', async () => {
@@ -380,11 +352,8 @@ describe('POST /api/wallet/broadcast', () => {
   })
 
   it('returns error status when Horizon rejects the transaction', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      ok: false,
-      status: 400,
-      json: async () => ({ title: 'Transaction Failed', detail: 'Bad sequence' }),
-    }))
+    // broadcastFails: true → Horizon returns 400 with failure detail
+    vi.stubGlobal('fetch', makeMockHorizonFetch({ broadcastFails: true }))
 
     const res = await request(app)
       .post('/api/wallet/broadcast')
@@ -402,11 +371,7 @@ describe('GET /api/wallet/tx-status/:txHash', () => {
   afterEach(() => vi.unstubAllGlobals())
 
   it('returns confirmed status for a successful transaction', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => ({ successful: true, result_code: 'success' }),
-    }))
+    vi.stubGlobal('fetch', makeMockHorizonFetch())
 
     const res = await request(app)
       .get('/api/wallet/tx-status/abc123hash')
@@ -417,10 +382,7 @@ describe('GET /api/wallet/tx-status/:txHash', () => {
   })
 
   it('returns pending when Horizon returns 404', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      ok: false,
-      status: 404,
-    }))
+    vi.stubGlobal('fetch', makeMockHorizonFetch({ txPending: true }))
 
     const res = await request(app)
       .get('/api/wallet/tx-status/pending123')
@@ -431,11 +393,7 @@ describe('GET /api/wallet/tx-status/:txHash', () => {
   })
 
   it('returns failed status for an unsuccessful transaction', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => ({ successful: false, result_code: 'tx_failed' }),
-    }))
+    vi.stubGlobal('fetch', makeMockHorizonFetch({ txSuccessful: false, txResultCode: 'tx_failed' }))
 
     const res = await request(app)
       .get('/api/wallet/tx-status/failed456')
@@ -459,11 +417,8 @@ describe('POST /api/wallet/testnet-fund', () => {
   afterEach(() => vi.unstubAllGlobals())
 
   it('returns 200 on successful testnet funding', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => ({ hash: 'friendbot-tx-hash' }),
-    }))
+    // Uses shared mock: friendbot returns MOCK_TX_HASH by default
+    vi.stubGlobal('fetch', makeMockHorizonFetch())
 
     const res = await request(app)
       .post('/api/wallet/testnet-fund')
@@ -471,7 +426,7 @@ describe('POST /api/wallet/testnet-fund', () => {
 
     expect(res.status).toBe(200)
     expect(res.body.status).toBe('success')
-    expect(res.body.data.txHash).toBe('friendbot-tx-hash')
+    expect(res.body.data.txHash).toBe(MOCK_TX_HASH)
   })
 
   it('returns 400 when publicKey is missing', async () => {
@@ -482,11 +437,7 @@ describe('POST /api/wallet/testnet-fund', () => {
   })
 
   it('is a public endpoint (no auth required)', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => ({ hash: 'friendbot-tx-hash' }),
-    }))
+    vi.stubGlobal('fetch', makeMockHorizonFetch())
 
     const res = await request(app)
       .post('/api/wallet/testnet-fund')
@@ -507,11 +458,25 @@ describe('GET /api/wallet/transactions/:publicKey', () => {
       { hash: 'tx1', created_at: '2024-01-01T00:00:00Z' },
       { hash: 'tx2', created_at: '2024-01-02T00:00:00Z' },
     ]
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => ({ _embedded: { records: mockTxList } }),
-    }))
+    vi.stubGlobal(
+      'fetch',
+      makeMockHorizonFetch({
+        // makeMockHorizonFetch always returns [] for tx history by default;
+        // override via a custom vi.fn that delegates to the mock for everything
+        // except the /transactions sub-path, where we return our own records.
+        // Simpler: just stub with a minimal manual fn for this one assertion.
+      }),
+    )
+    // The makeMockHorizonFetch returns [] for history — override for this test
+    // using a manual stub to verify the list is correctly forwarded.
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({ _embedded: { records: mockTxList } }),
+      }),
+    )
 
     const res = await request(app).get(`/api/wallet/transactions/${VALID_PUBLIC_KEY}`)
 
@@ -521,11 +486,8 @@ describe('GET /api/wallet/transactions/:publicKey', () => {
   })
 
   it('returns 200 with empty list when no transactions', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => ({ _embedded: { records: [] } }),
-    }))
+    // makeMockHorizonFetch returns [] for transaction history by default
+    vi.stubGlobal('fetch', makeMockHorizonFetch())
 
     const res = await request(app).get(`/api/wallet/transactions/${VALID_PUBLIC_KEY}`)
 
@@ -534,11 +496,7 @@ describe('GET /api/wallet/transactions/:publicKey', () => {
   })
 
   it('is a public endpoint (no auth required)', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => ({ _embedded: { records: [] } }),
-    }))
+    vi.stubGlobal('fetch', makeMockHorizonFetch())
 
     const res = await request(app).get(`/api/wallet/transactions/${VALID_PUBLIC_KEY}`)
     expect(res.status).not.toBe(401)
