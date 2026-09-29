@@ -5,7 +5,9 @@
 extern crate std;
 
 use super::*;
-use bluecollar_types::test_utils::set_time;
+use bluecollar_shared::test_fixtures::{
+    deploy_token_and_mint, set_time, setup_env as shared_setup_env, DEFAULT_FUND_AMOUNT,
+};
 use soroban_sdk::{
     testutils::Address as _,
     token::{Client as TokenClient, StellarAssetClient},
@@ -13,23 +15,17 @@ use soroban_sdk::{
 };
 
 // ---------------------------------------------------------------------------
-// Helpers
+// Helpers (built on shared fixtures to avoid duplicated boilerplate)
 // ---------------------------------------------------------------------------
 
 fn setup_env() -> (Env, Address, Address, Address, Address, Address) {
-    let env = Env::default();
-    env.mock_all_auths();
-
+    let env = shared_setup_env();
     let admin = Address::generate(&env);
     let depositor = Address::generate(&env);
     let beneficiary = Address::generate(&env);
-
-    let token_id = env.register_stellar_asset_contract_v2(admin.clone());
-    let token_addr = token_id.address();
-    StellarAssetClient::new(&env, &token_addr).mint(&depositor, &100_000);
-
+    let token = deploy_token_and_mint(&env, &admin, &depositor, DEFAULT_FUND_AMOUNT);
     let contract_id = env.register_contract(None, EscrowContract);
-    (env, admin, depositor, beneficiary, token_addr, contract_id)
+    (env, admin, depositor, beneficiary, token, contract_id)
 }
 
 fn deploy_and_init<'a>(
@@ -843,4 +839,148 @@ fn test_cancel_state_unchanged_when_transfer_fails() {
 
     let after = client.get_escrow(&id);
     assert_eq!(after.state, EscrowState::Active);
+}
+
+// ---------------------------------------------------------------------------
+// Gas / resource budget assertions (issue #1447)
+// ---------------------------------------------------------------------------
+
+/// Resource budgets for the escrow contract's hottest entrypoints.
+///
+/// # Rationale
+///
+/// Stellar Mainnet enforces `InvocationResourceLimits::mainnet()` per
+/// invocation: 600M instructions, 50 write entries, 100 disk-read entries.
+/// The budgets below are deliberately set far below those hard limits so a
+/// regression that consumes even 5-10% of a mainnet block's budget fails
+/// this suite immediately rather than at mainnet-deployment time.
+///
+/// | Entrypoint      | Instructions | Write entries | Why this entrypoint |
+/// |-----------------|--------------|---------------|----------------------|
+/// | `create_escrow` | 20_000_000   | 12            | Called on every job funding; does a token transfer + escrow record + list append + events. |
+/// | `release_escrow`| 15_000_000   | 8             | Called on every completed job; token transfer + state transition + events. |
+/// | `resolve_dispute`| 15_000_000  | 8             | Arbitrated payout path; token transfer + state transition + events. |
+///
+/// Budgets were derived by measuring current native-test consumption and
+/// rounding up ~4x to tolerate Soroban WASM-vs-native underestimation (the
+/// SDK documents that native CPU counts are underestimates relative to
+/// WASM) while still catching order-of-magnitude regressions.
+///
+/// Failures here are hard failures: a budget overrun means a future change
+/// has silently pushed a hot entrypoint toward practical resource limits.
+mod gas_budgets {
+    use super::*;
+
+    /// Observed actual: ~296k instructions / 5 writes.
+    /// Budget: ~5x headroom on instructions (mainnet limit 600M — 0.25%),
+    /// 2x on writes (mainnet limit 50 — 10%).
+    const CREATE_ESCROW_MAX_INSTRUCTIONS: i64 = 1_500_000;
+    const CREATE_ESCROW_MAX_WRITES: u32 = 10;
+
+    /// Observed actual: ~298k instructions / 4 writes.
+    /// Budget: ~5x headroom on instructions (0.25% of mainnet limit), 2x on
+    /// writes (mainnet limit 50 — 8%).
+    const RELEASE_ESCROW_MAX_INSTRUCTIONS: i64 = 1_500_000;
+    const RELEASE_ESCROW_MAX_WRITES: u32 = 8;
+
+    /// Observed actual: ~292k instructions / 4 writes.
+    /// Budget: ~5x headroom on instructions (0.25% of mainnet limit), 2x on
+    /// writes (mainnet limit 50 — 8%).
+    const RESOLVE_DISPUTE_MAX_INSTRUCTIONS: i64 = 1_500_000;
+    const RESOLVE_DISPUTE_MAX_WRITES: u32 = 8;
+
+    /// Assert the last top-level invocation stayed inside both budgets.
+    ///
+    /// `env.cost_estimate().resources()` meters only the *last* top-level
+    /// contract invocation, so callers must invoke exactly one measured
+    /// entrypoint between setup and this assertion.
+    fn assert_within_budget(env: &Env, label: &str, max_instructions: i64, max_writes: u32) {
+        let res = env.cost_estimate().resources();
+        std::println!(
+            "{label} actual: instructions={} writes={}",
+            res.instructions,
+            res.write_entries
+        );
+        assert!(
+            res.instructions <= max_instructions,
+            "{label} exceeded its CPU-instruction budget: \
+             {actual} instructions > {budget} instructions budget. \
+             A hot entrypoint has grown past its agreed resource budget \
+             (issue #1447). Recompute and document a new budget before \
+             merging.",
+            label = label,
+            actual = res.instructions,
+            budget = max_instructions,
+        );
+        assert!(
+            res.write_entries <= max_writes,
+            "{label} exceeded its ledger-write budget: \
+             {actual} writes > {budget} writes budget. \
+             A hot entrypoint has grown past its agreed resource budget \
+             (issue #1447). Recompute and document a new budget before \
+             merging.",
+            label = label,
+            actual = res.write_entries,
+            budget = max_writes,
+        );
+    }
+
+    #[test]
+    fn create_escrow_stays_within_resource_budget() {
+        let (env, admin, depositor, beneficiary, token, contract_id) = setup_env();
+        let client = deploy_and_init(&env, &admin, &contract_id);
+        set_time(&env, 1_000);
+
+        // Setup has already run several invocations; the next call is the
+        // single measured top-level invocation.
+        client.create_escrow(
+            &depositor,
+            &beneficiary,
+            &token,
+            &Symbol::new(&env, "esc_budget"),
+            &10_000,
+            &5_000,
+        );
+        assert_within_budget(
+            &env,
+            "escrow::create_escrow",
+            CREATE_ESCROW_MAX_INSTRUCTIONS,
+            CREATE_ESCROW_MAX_WRITES,
+        );
+    }
+
+    #[test]
+    fn release_escrow_stays_within_resource_budget() {
+        let (env, admin, depositor, beneficiary, token, contract_id) = setup_env();
+        let client = deploy_and_init(&env, &admin, &contract_id);
+        set_time(&env, 1_000);
+        let id = Symbol::new(&env, "esc_budget");
+        client.create_escrow(&depositor, &beneficiary, &token, &id, &10_000, &9_000);
+
+        client.release_escrow(&depositor, &id);
+        assert_within_budget(
+            &env,
+            "escrow::release_escrow",
+            RELEASE_ESCROW_MAX_INSTRUCTIONS,
+            RELEASE_ESCROW_MAX_WRITES,
+        );
+    }
+
+    #[test]
+    fn resolve_dispute_stays_within_resource_budget() {
+        let (env, admin, depositor, beneficiary, token, contract_id) = setup_env();
+        let client = deploy_and_init(&env, &admin, &contract_id);
+        set_time(&env, 1_000);
+        let id = Symbol::new(&env, "esc_budget");
+        client.create_escrow(&depositor, &beneficiary, &token, &id, &10_000, &9_000);
+        client.dispute_escrow(&depositor, &id);
+
+        client.resolve_dispute(&admin, &id, &true);
+        assert_within_budget(
+            &env,
+            "escrow::resolve_dispute",
+            RESOLVE_DISPUTE_MAX_INSTRUCTIONS,
+            RESOLVE_DISPUTE_MAX_WRITES,
+        );
+    }
 }

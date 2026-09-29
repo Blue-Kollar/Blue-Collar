@@ -2,6 +2,7 @@
 extern crate std;
 
 use super::*;
+use bluecollar_shared::test_fixtures::deploy_token_and_mint;
 use soroban_sdk::{
     testutils::storage::Persistent,
     testutils::Address as _,
@@ -32,9 +33,7 @@ impl AuthFixture {
         let arbitrator = Address::generate(&env);
         let stranger = Address::generate(&env);
 
-        let token_id = env.register_stellar_asset_contract_v2(admin.clone());
-        let token = token_id.address();
-        StellarAssetClient::new(&env, &token).mint(&disputer, &1_000_000);
+        let token = deploy_token_and_mint(&env, &admin, &disputer, 1_000_000);
 
         let contract = env.register_contract(None, DisputeContract);
         let client = DisputeContractClient::new(&env, &contract);
@@ -78,9 +77,7 @@ fn setup_no_mock() -> (Env, Address, Address, Address, Address, Address, Address
     let arbitrator = Address::generate(&env);
     let stranger = Address::generate(&env);
 
-    let token_id = env.register_stellar_asset_contract_v2(admin.clone());
-    let token = token_id.address();
-    StellarAssetClient::new(&env, &token).mint(&disputer, &1_000_000);
+    let token = deploy_token_and_mint(&env, &admin, &disputer, 1_000_000);
 
     let contract = env.register_contract(None, DisputeContract);
     (
@@ -324,9 +321,7 @@ mod ttl {
         let respondent = Address::generate(&env);
         let arbitrator = Address::generate(&env);
 
-        let token_id = env.register_stellar_asset_contract_v2(admin.clone());
-        let token = token_id.address();
-        StellarAssetClient::new(&env, &token).mint(&disputer, &1_000_000);
+        let token = deploy_token_and_mint(&env, &admin, &disputer, 1_000_000);
 
         let contract = env.register_contract(None, DisputeContract);
         let client = DisputeContractClient::new(&env, &contract);
@@ -363,9 +358,7 @@ mod ttl {
         let respondent = Address::generate(&env);
         let arbitrator = Address::generate(&env);
 
-        let token_id = env.register_stellar_asset_contract_v2(admin.clone());
-        let token = token_id.address();
-        StellarAssetClient::new(&env, &token).mint(&disputer, &1_000_000);
+        let token = deploy_token_and_mint(&env, &admin, &disputer, 1_000_000);
 
         let contract = env.register_contract(None, DisputeContract);
         let client = DisputeContractClient::new(&env, &contract);
@@ -408,9 +401,7 @@ mod ttl {
         let respondent = Address::generate(&env);
         let arbitrator = Address::generate(&env);
 
-        let token_id = env.register_stellar_asset_contract_v2(admin.clone());
-        let token = token_id.address();
-        StellarAssetClient::new(&env, &token).mint(&disputer, &1_000_000);
+        let token = deploy_token_and_mint(&env, &admin, &disputer, 1_000_000);
 
         let contract = env.register_contract(None, DisputeContract);
         let client = DisputeContractClient::new(&env, &contract);
@@ -453,9 +444,7 @@ mod ttl {
         let respondent = Address::generate(&env);
         let arbitrator = Address::generate(&env);
 
-        let token_id = env.register_stellar_asset_contract_v2(admin.clone());
-        let token = token_id.address();
-        StellarAssetClient::new(&env, &token).mint(&disputer, &1_000_000);
+        let token = deploy_token_and_mint(&env, &admin, &disputer, 1_000_000);
 
         let contract = env.register_contract(None, DisputeContract);
         let client = DisputeContractClient::new(&env, &contract);
@@ -779,9 +768,7 @@ mod file_dispute_extended {
         let respondent = Address::generate(&env);
         let arbitrator = Address::generate(&env);
 
-        let token_id = env.register_stellar_asset_contract_v2(admin.clone());
-        let token = token_id.address();
-        StellarAssetClient::new(&env, &token).mint(&disputer, &i128::MAX);
+        let token = deploy_token_and_mint(&env, &admin, &disputer, i128::MAX);
 
         let contract = env.register_contract(None, DisputeContract);
         let client = DisputeContractClient::new(&env, &contract);

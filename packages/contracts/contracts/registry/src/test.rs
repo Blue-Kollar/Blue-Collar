@@ -23,9 +23,8 @@
 extern crate std;
 
 use super::*;
-use soroban_sdk::{
-    testutils::Address as _, token::StellarAssetClient, Address, BytesN, Env, String, Symbol, Vec,
-};
+use bluecollar_shared::test_fixtures::deploy_token_and_mint;
+use soroban_sdk::{testutils::Address as _, Address, BytesN, Env, String, Symbol, Vec};
 
 // ===========================================================================
 // 5. Reputation system tests (#677)
@@ -376,8 +375,6 @@ mod perf_regression {
     }
 }
 
-// ===========================================================================
-// 3. Security regression testing
 // ===========================================================================
 
 mod security_regression {
@@ -746,9 +743,7 @@ mod auth_failures {
         let f = UpgradeFixture::new();
         let id = f.register("stake_auth");
         // Use a random token for staking
-        let token_id = f.env.register_stellar_asset_contract_v2(f.admin.clone());
-        let token_addr = token_id.address();
-        StellarAssetClient::new(&f.env, &token_addr).mint(&f.owner, &10_000);
+        let token_addr = deploy_token_and_mint(&f.env, &f.admin, &f.owner, 10_000);
         assert_eq!(
             f.client().try_stake(&f.curator, &id, &token_addr, &1_000),
             Err(Ok(ContractError::NotAuthorized))

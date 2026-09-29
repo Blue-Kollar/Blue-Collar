@@ -15,7 +15,9 @@
 extern crate std;
 
 use super::*;
-use bluecollar_types::test_utils::set_time;
+use bluecollar_shared::test_fixtures::{
+    deploy_token_and_mint, set_time, setup_env as shared_setup_env, DEFAULT_FUND_AMOUNT,
+};
 use soroban_sdk::{
     testutils::Address as _,
     token::{Client as TokenClient, StellarAssetClient},
@@ -27,19 +29,13 @@ use soroban_sdk::{
 // ---------------------------------------------------------------------------
 
 fn setup_env() -> (Env, Address, Address, Address, Address, Address) {
-    let env = Env::default();
-    env.mock_all_auths();
-
+    let env = shared_setup_env();
     let admin = Address::generate(&env);
     let fee_recipient = Address::generate(&env);
     let client_addr = Address::generate(&env);
     let worker = Address::generate(&env);
-
-    let token_id = env.register_stellar_asset_contract_v2(admin.clone());
-    let token_addr = token_id.address();
-    StellarAssetClient::new(&env, &token_addr).mint(&client_addr, &100_000);
-
-    (env, admin, fee_recipient, client_addr, worker, token_addr)
+    let token = deploy_token_and_mint(&env, &admin, &client_addr, DEFAULT_FUND_AMOUNT);
+    (env, admin, fee_recipient, client_addr, worker, token)
 }
 
 fn deploy(env: &Env) -> (Address, PaymentContractClient) {

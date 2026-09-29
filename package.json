@@ -24,16 +24,22 @@
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
     "check:dead-files": "knip",
-    "check:dead-files:fix": "knip --fix"
+    "check:dead-files:fix": "knip --fix",
+    "seed:jobs": "tsx scripts/seed-jobs.ts",
+    "test:load:jobs": "tsx tests/load/job-search.ts"
   },
   "devDependencies": {
     "@commitlint/cli": "^18.4.0",
     "@commitlint/config-conventional": "^18.4.0",
+    "@types/pg": "^8.11.0",
+    "autocannon": "^7.15.0",
     "concurrently": "^9.1.2",
     "husky": "^9.0.0",
     "knip": "^5.0.0",
     "lint-staged": "17.4.1",
-    "prettier": "^3.5.3"
+    "pg": "^8.11.0",
+    "prettier": "^3.5.3",
+    "tsx": "^4.7.0"
   },
   "lint-staged": {
     "packages/api/src/**/*.ts": [
