@@ -6,16 +6,21 @@
  * A live Horizon/Soroban dependency makes true E2E impractical (per #1162's
  * acceptance criteria), so this is a documented integration test instead: the
  * database is mocked (same convention as admin.integration.test.ts /
- * search.integration.test.ts) and global `fetch` is stubbed with a realistic
- * Horizon `/contracts/:id/events` response plus a mocked webhook subscriber
- * endpoint. This exercises the real, unmocked service code — cursor lookup,
+ * search.integration.test.ts) and global `fetch` is intercepted by
+ * MockStellarRpcServer with a customHandler that handles both the Horizon
+ * contract-events endpoints and the webhook subscriber delivery URL.
+ *
+ * This exercises the real, unmocked service code — cursor lookup,
  * ledger/txIndex/eventIndex parsing from the paging token, idempotent event
  * upsert, topic → webhook-event mapping, and signed webhook delivery — and
  * asserts that a single on-chain event correctly updates API-side state:
  * the indexed ContractEvent row, the advanced EventIndexerCursor, and a
  * delivered + HMAC-signed WebhookLog entry.
+ *
+ * Issue: [Testing] Add mock Stellar/Soroban RPC service for deterministic backend tests
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { MockStellarRpcServer } from '../../clients/mockStellarRpcServer.js'
 
 // ─── Env (read at module-load time by horizon-poller.service.ts) ─────────────
 process.env.REGISTRY_CONTRACT_ID = 'CREGISTRYCONTRACTAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
@@ -71,23 +76,36 @@ function registerEventRecord(overrides: Record<string, unknown> = {}) {
   }
 }
 
-function horizonEventsResponse(records: unknown[]) {
-  return { ok: true, status: 200, json: async () => ({ _embedded: { records } }) }
+function horizonEventsBody(records: unknown[]) {
+  return { _embedded: { records } }
 }
 
-/** Stubs global fetch: Horizon events endpoints (by contract) + the webhook subscriber URL. */
-type FetchOpts = { method?: string; headers?: Record<string, string>; body?: string }
-
-function installFetchStub(registryRecords: unknown[]) {
-  const fetchMock = vi.fn(async (url: unknown, _opts?: FetchOpts) => {
-    const href = String(url)
-    if (href.includes(`/contracts/${REGISTRY_CONTRACT_ID}/events`)) return horizonEventsResponse(registryRecords)
-    if (href.includes(`/contracts/${MARKET_CONTRACT_ID}/events`)) return horizonEventsResponse([])
-    if (href === SUBSCRIBER.url) return { ok: true, status: 200, json: async () => ({}) }
-    throw new Error(`Unexpected fetch call in test: ${href}`)
+/**
+ * Creates a MockStellarRpcServer with a customHandler that routes:
+ *  - Horizon contract-events URLs → configurable records per contract
+ *  - Webhook subscriber URL → 200 OK
+ *
+ * All other URLs fall through to the built-in routing logic (returns {}).
+ *
+ * Migrated from the hand-rolled `installFetchStub` helper to use the shared
+ * MockStellarRpcServer so Horizon interception is consistent across all
+ * backend test suites.
+ */
+function makeOnchainSyncServer(registryRecords: unknown[]) {
+  return new MockStellarRpcServer({
+    customHandler: (url, _method) => {
+      if (url.includes(`/contracts/${REGISTRY_CONTRACT_ID}/events`)) {
+        return new Response(JSON.stringify(horizonEventsBody(registryRecords)), { status: 200 })
+      }
+      if (url.includes(`/contracts/${MARKET_CONTRACT_ID}/events`)) {
+        return new Response(JSON.stringify(horizonEventsBody([])), { status: 200 })
+      }
+      if (url === SUBSCRIBER.url) {
+        return new Response(JSON.stringify({}), { status: 200 })
+      }
+      return null // fall through
+    },
   })
-  vi.stubGlobal('fetch', fetchMock)
-  return fetchMock
 }
 
 async function waitUntil(check: () => boolean, timeoutMs = 2000, intervalMs = 20) {
@@ -113,7 +131,9 @@ function resetDbMocks() {
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
-describe('On-chain sync: Horizon poller → indexer → webhook (mocked Horizon event stream)', () => {
+describe('On-chain sync: Horizon poller → indexer → webhook (MockStellarRpcServer)', () => {
+  let server: MockStellarRpcServer
+
   beforeEach(() => {
     vi.clearAllMocks()
     resetDbMocks()
@@ -121,11 +141,12 @@ describe('On-chain sync: Horizon poller → indexer → webhook (mocked Horizon 
 
   afterEach(() => {
     stopHorizonPoller()
-    vi.unstubAllGlobals()
+    server?.uninstall()
   })
 
   it('ingests a Horizon contract event, advances the cursor, and delivers a signed webhook', async () => {
-    const fetchMock = installFetchStub([registerEventRecord()])
+    server = makeOnchainSyncServer([registerEventRecord()])
+    server.install()
 
     startHorizonPoller()
     await waitUntil(() => vi.mocked(db.webhookLog.update).mock.calls.length > 0)
@@ -184,9 +205,15 @@ describe('On-chain sync: Horizon poller → indexer → webhook (mocked Horizon 
 
     // Delivery: the signed payload actually reaches the subscriber URL, and the
     // signature verifies against the subscription's own secret.
-    const deliveryCall = fetchMock.mock.calls.find(([url]) => url === SUBSCRIBER.url)
+    const deliveryCall = server.calls.find(({ url }) => url === SUBSCRIBER.url)
     expect(deliveryCall).toBeDefined()
-    const deliveryOpts = deliveryCall![1]!
+
+    // Re-fetch the raw options from the mock to verify HMAC signature
+    const deliveryFetchCall = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls.find(
+      ([url]: [string]) => url === SUBSCRIBER.url,
+    )
+    expect(deliveryFetchCall).toBeDefined()
+    const deliveryOpts = deliveryFetchCall![1]!
     const signature = deliveryOpts.headers!['X-BlueCollar-Signature']
     expect(verifySignature(SUBSCRIBER.secret, deliveryOpts.body!, signature)).toBe(true)
     expect(JSON.parse(deliveryOpts.body!)).toMatchObject({ contractId: REGISTRY_CONTRACT_ID, topic: ['register'] })
@@ -199,11 +226,20 @@ describe('On-chain sync: Horizon poller → indexer → webhook (mocked Horizon 
         data: expect.objectContaining({ statusCode: 200, success: true }),
       }),
     )
+
+    // No calls to live testnet URLs
+    const liveNetworkCalls = server.calls.filter(
+      (c) =>
+        c.url.includes('stellar.org') ||
+        c.url.includes('horizon-testnet.stellar'),
+    )
+    expect(liveNetworkCalls).toHaveLength(0)
   })
 
   it('does not fan out a webhook when no subscription is registered for the mapped event', async () => {
     vi.mocked(db.webhookSubscription.findMany).mockResolvedValue([])
-    installFetchStub([registerEventRecord()])
+    server = makeOnchainSyncServer([registerEventRecord()])
+    server.install()
 
     startHorizonPoller()
     await waitUntil(() => vi.mocked(db.webhookSubscription.findMany).mock.calls.length > 0)
@@ -215,7 +251,8 @@ describe('On-chain sync: Horizon poller → indexer → webhook (mocked Horizon 
 
   it('indexes an event with an unmapped topic without publishing a webhook', async () => {
     // 'unrecognized_event' has no mapping in resolveEventName for either contract.
-    installFetchStub([registerEventRecord({ topic: ['unrecognized_event'], paging_token: '12346-0-0' })])
+    server = makeOnchainSyncServer([registerEventRecord({ topic: ['unrecognized_event'], paging_token: '12346-0-0' })])
+    server.install()
 
     startHorizonPoller()
     await waitUntil(() => vi.mocked(db.contractEvent.upsert).mock.calls.length > 0)
