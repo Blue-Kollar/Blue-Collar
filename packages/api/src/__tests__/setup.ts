@@ -26,6 +26,40 @@ if (!process.env.HORIZON_URL) {
 // connection errors so the suite doesn't crash in environments without a DB.
 let prisma = db;
 
+// ─── Test isolation ──────────────────────────────────────────────────────────
+//
+// Flakiness in this suite came from shared/mutable state leaking between tests:
+//   * rows left behind by a previous test (non-isolated DB fixtures)
+//   * mock call history / implementations bleeding across tests
+//   * module-level singletons (e.g. cached clients) retaining state
+//
+// We fix this by (a) truncating every known table before each test so each test
+// starts from a clean DB, (b) resetting mock state (not just clearing calls) so
+// implementations and return values don't leak, and (c) restoring any globals
+// stubbed via vi.stubGlobal so a test that forgets to unstub can't poison the
+// next one.
+const TABLES = [
+  'Booking',
+  'Review',
+  'Message',
+  'Notification',
+  'Job',
+  'Worker',
+  'Location',
+  'User',
+];
+
+async function truncateAllTables(): Promise<void> {
+  if (!prisma) return;
+  for (const table of TABLES) {
+    try {
+      await prisma.$executeRawUnsafe(`TRUNCATE TABLE "${table}" CASCADE;`);
+    } catch {
+      // Table might not exist (unit-test env without a DB) — ignore.
+    }
+  }
+}
+
 beforeAll(async () => {
   // No need to connect — db is already connected
   try {
@@ -40,19 +74,15 @@ afterAll(async () => {
 });
 
 beforeEach(async () => {
-  if (!prisma) return;
-  const tables = ['Booking', 'Review', 'Message', 'Notification', 'Job', 'Worker', 'Location', 'User'];
-  for (const table of tables) {
-    try {
-      await prisma.$executeRawUnsafe(`TRUNCATE TABLE "${table}" CASCADE;`);
-    } catch {
-      // Table might not exist, ignore
-    }
-  }
+  // Fresh DB state for every test so fixtures from a prior test can't leak.
+  await truncateAllTables();
 });
 
 afterEach(() => {
-  vi.clearAllMocks();
+  // Reset (not just clear) so mock implementations/return values don't bleed
+  // into the next test, and restore any globals stubbed via vi.stubGlobal.
+  vi.resetAllMocks();
+  vi.unstubAllGlobals();
 });
 
 export { prisma };
