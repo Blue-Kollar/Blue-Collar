@@ -14,7 +14,8 @@ Thanks for your interest in contributing! This guide covers everything you need 
 - [Code Style](#code-style)
 - [Error Handling & Logging](#error-handling--logging)
 - [Running Tests](#running-tests)
-- [Visual Regression Tests](#visual-regression-tests)
+- [End-to-End (E2E) Tests](#end-to-end-e2e-tests)
+- [Coverage](#coverage)
 - [Translations](#translations)
 
 ---
@@ -27,6 +28,14 @@ Thanks for your interest in contributing! This guide covers everything you need 
    cd Blue-Collar
    pnpm install
    ```
+
+   > **pnpm is the only supported package manager.** This repo uses
+   > `pnpm-workspace.yaml` and the `packageManager` field in `package.json`
+   > enforces `pnpm@10.32.1`. Running `npm install` or `yarn install` will
+   > fail. Install pnpm with `npm install -g pnpm` or via
+   > [corepack](https://nodejs.org/api/corepack.html) (`corepack enable`).
+   > The canonical lockfile is `pnpm-lock.yaml` — never commit
+   > `package-lock.json` or `yarn.lock`.
 
 2. Install git hooks (runs automatically on `pnpm install`, but run manually if needed):
    ```bash
@@ -145,10 +154,11 @@ Fill in all relevant sections. The templates include checklists specific to the 
 ## Pull Request Process
 
 1. Ensure all CI checks pass (`pnpm test`, `pnpm build`, `cargo clippy`).
-2. Write a clear PR title following the commit convention (release-please uses it).
-3. Reference the related issue: `Closes #123`.
-4. Request a review from a maintainer.
-5. Squash-merge is preferred to keep history clean.
+2. Run the `packages/app` coverage check locally (see [Coverage](#coverage)) and paste the summary into the PR description.
+3. Write a clear PR title following the commit convention (release-please uses it).
+4. Reference the related issue: `Closes #123`.
+5. Request a review from a maintainer.
+6. Squash-merge is preferred to keep history clean.
 
 ---
 
@@ -196,95 +206,81 @@ fails the build if the document and the code disagree.
 
 ---
 
-## Database Migrations
-
-### Migration Safety Process
-
-When modifying the database schema:
-
-1. **Make schema changes** in `packages/api/prisma/schema.prisma`
-2. **Create a migration**: `npx prisma migrate dev --name <descriptive-name>`
-3. **For destructive migrations** (DROP COLUMN, DROP TABLE, ALTER COLUMN):
-   - Add the `migration:destructive` label to your PR
-   - Request explicit review from a maintainer
-   - Include justification in the PR description
-4. **CI will verify** that destructive migrations are properly labeled
-
-### Destructive Migration Checklist
-
-- [ ] Migration is reversible or a rollback plan is documented
-- [ ] Data loss is intentional and called out in the PR description
-- [ ] `migration:destructive` label applied
-- [ ] Maintainer approval obtained
-
----
-
 ## Running Tests
 
-### API (TypeScript)
-
 ```bash
-pnpm --filter api test          # unit + integration tests
-pnpm --filter api test:watch    # watch mode
-```
-
-### Contracts (Rust)
-
-```bash
-cargo test --manifest-path contracts/Cargo.toml
-```
-
-### App (Next.js)
-
-```bash
-pnpm --filter app test
-```
-
-### Mobile
-
-```bash
-pnpm --filter mobile test
+pnpm test          # run all package test suites
+pnpm test --filter api   # run a single package
 ```
 
 ---
 
-## Visual Regression Tests
+## End-to-End (E2E) Tests
 
-Shared design-system primitives in `components/ui` (buttons, inputs, badges, etc.) are covered by
-snapshot/visual regression tests so that refactors cannot silently change their appearance across
-every feature that consumes them.
+The primary revenue-critical flow — **post job → hire worker → fund escrow → release payment** — is
+covered by a browser-driven [Playwright](https://playwright.dev/) suite in `packages/app/e2e/`.
+The suite drives the real `packages/app` UI against a running `packages/api` and its dependencies.
 
-### Running snapshots locally
+### Prerequisites
 
-Snapshots are part of the pre-merge test run. Run them the same way you run the rest of the suite:
+- Docker (for `docker-compose.test.yml`)
+- Node.js and `pnpm`
+- Playwright browsers installed once per machine:
+  ```bash
+  pnpm --filter app exec playwright install --with-deps
+  ```
+
+### Run the suite locally (single command)
+
+From the repository root:
 
 ```bash
-pnpm test          # includes the components/ui snapshot run
-pnpm test:update   # regenerate snapshots after an intentional visual change
+pnpm test:e2e
 ```
+
+This command stands up the dependencies defined in `docker-compose.test.yml`, waits for the API to
+become healthy, runs the Playwright suite against the local stack, and tears the stack down again.
+
+### Useful variants
+
+```bash
+pnpm test:e2e -- --ui          # interactive Playwright UI mode
+pnpm test:e2e -- --headed      # watch the browser run
+pnpm test:e2e -- job-payment   # run a single spec by name
+```
+
+### What the happy-path spec covers
+
+`packages/app/e2e/job-payment.spec.ts` walks the full flow end to end:
+
+1. A client signs in and posts a job.
+2. The client hires a worker for that job.
+3. The client funds escrow for the agreed amount.
+4. The client releases payment once the work is marked complete.
+5. The test asserts the job and payment reach their terminal success states.
+
+If the suite fails, the Playwright HTML report is written to `packages/app/playwright-report/`.
 
 Each `components/ui` primitive is snapshotted in its key states — **default**, **hover**,
 **disabled**, and **error** — so a regression in any single state fails the run.
 
-### Accepting intentional visual changes
+## Coverage
 
-When a visual change is deliberate (new design, spacing fix, color token update):
+`packages/app` enforces an **85% line-coverage target** configured in the app's test tooling
+(`packages/app/vitest.config.ts`), with per-directory reporting enabled so gaps are visible by area.
 
-1. Run `pnpm test:update` to regenerate the affected snapshots.
-2. **Review the snapshot diff** before committing — confirm every changed image is expected and
-   that no unrelated primitive changed.
-3. Commit the updated snapshots together with the code change in the same PR.
-4. Call out the visual change in the PR description so reviewers know to inspect the snapshots.
+### Required local pre-merge check
 
-Never regenerate snapshots blindly to make a failing run pass — an unexpected diff usually means a
-real regression in a shared primitive.
+Before opening or updating a PR that touches `packages/app`, run the coverage check locally and
+paste the summary into the PR description:
+
+```bash
+pnpm --filter app test:coverage
+```
 
 ---
 
 ## Translations
 
-Translation files live under `packages/app/locales/`. When adding user-facing strings:
-
-- Add the key to the English source first, then to other locales.
-- Keep keys namespaced by feature (e.g. `workerProfile.title`).
-- Run `pnpm --filter app test` to catch missing-key regressions.
+See [packages/app/CONTRIBUTING.md](./packages/app/CONTRIBUTING.md) for translation and localization
+conventions.

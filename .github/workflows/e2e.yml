@@ -2,15 +2,20 @@ name: E2E & Accessibility
 
 # Full Playwright E2E suite + axe-core a11y gate (#814).
 # Blocks PRs on critical/serious a11y violations.
+# Job-to-payment happy path (#1452) runs against a docker-compose.test.yml stack.
 on:
   push:
     branches: [main]
     paths:
       - "packages/app/**"
+      - "packages/api/**"
+      - "docker-compose.test.yml"
       - ".github/workflows/e2e.yml"
   pull_request:
     paths:
       - "packages/app/**"
+      - "packages/api/**"
+      - "docker-compose.test.yml"
       - ".github/workflows/e2e.yml"
   workflow_dispatch:
 
@@ -62,6 +67,58 @@ jobs:
             packages/app/a11y-reports
             packages/app/playwright-report
           if-no-files-found: ignore
+
+  # Blocking: job-to-payment happy path against docker-compose.test.yml (#1452)
+  e2e-happy-path:
+    name: E2E happy path (job → payment)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers (chromium only)
+        run: pnpm --filter @bluecollar/app exec playwright install --with-deps chromium
+
+      - name: Start test stack (docker-compose.test.yml)
+        run: docker compose -f docker-compose.test.yml up -d --wait
+
+      - name: Seed local env
+        working-directory: packages/app
+        run: cp .env.example .env.local 2>/dev/null || true
+
+      - name: Start dev server
+        working-directory: packages/app
+        run: pnpm exec next dev -p 3001 &
+
+      - name: Wait for server
+        run: npx --yes wait-on http://localhost:3001 --timeout 120000
+
+      - name: Run job-to-payment E2E test
+        working-directory: packages/app
+        env:
+          PLAYWRIGHT_BASE_URL: http://localhost:3001
+        run: pnpm exec playwright test e2e/job-to-payment.spec.ts --project=chromium --reporter=list
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-happy-path-report-${{ github.run_number }}
+          path: |
+            packages/app/playwright-report
+            packages/app/test-results
+          if-no-files-found: ignore
+
+      - name: Tear down test stack
+        if: always()
+        run: docker compose -f docker-compose.test.yml down -v
 
   # Non-blocking: full E2E suite
   e2e:

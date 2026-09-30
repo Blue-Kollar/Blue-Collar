@@ -546,5 +546,8 @@ MIT © BlueCollar Contributors
 
 ## Handsoff notes
 
-<!-- handsoff-issue-1457 -->
-- #1457: [Testing] Add unit tests for `packages/mobile/src/cache` invalidation logic
+<!-- handsoff-issue-1453 -->
+- #1453: [Testing] Add E2E coverage for dispute-filing and resolution flow
+
+<!-- handsoff-issue-1456 -->
+- #1456: [Testing] Add unit tests for `packages/mobile/src/auth` achieving 90%+ coverage
