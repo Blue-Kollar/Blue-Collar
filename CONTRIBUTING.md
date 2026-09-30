@@ -29,6 +29,14 @@ Thanks for your interest in contributing! This guide covers everything you need 
    pnpm install
    ```
 
+   > **pnpm is the only supported package manager.** This repo uses
+   > `pnpm-workspace.yaml` and the `packageManager` field in `package.json`
+   > enforces `pnpm@10.32.1`. Running `npm install` or `yarn install` will
+   > fail. Install pnpm with `npm install -g pnpm` or via
+   > [corepack](https://nodejs.org/api/corepack.html) (`corepack enable`).
+   > The canonical lockfile is `pnpm-lock.yaml` — never commit
+   > `package-lock.json` or `yarn.lock`.
+
 2. Install git hooks (runs automatically on `pnpm install`, but run manually if needed):
    ```bash
    pnpm prepare
