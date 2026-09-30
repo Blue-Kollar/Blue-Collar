@@ -124,3 +124,118 @@ export const AccountInfoSchema = z.object({
   balance: z.number(),
   sequence: z.union([z.bigint(), z.string(), z.number()]),
 });
+
+// ─── Job ──────────────────────────────────────────────────────────────────────
+
+/**
+ * Mirrors packages/types#Job (serialized for API responses).
+ * Used by GET /jobs, GET /jobs/:id, POST /jobs.
+ */
+export const SerializedJobSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  description: z.string(),
+  budget: z.number().nullable().optional(),
+  skills: z.array(z.string()),
+  urgency: z.enum(['low', 'normal', 'urgent']),
+  escrowAmount: z.number().nullable().optional(),
+  escrowTxId: z.string().nullable().optional(),
+  status: z.enum(['open', 'closed', 'expired', 'filled']),
+  expiresAt: dateOrString.nullable().optional(),
+  renewedAt: dateOrString.nullable().optional(),
+  createdAt: dateOrString,
+  updatedAt: dateOrString,
+  categoryId: z.string().optional(),
+  category: CategorySchema.optional(),
+  postedBy: z
+    .object({
+      id: z.string(),
+      firstName: z.string(),
+      lastName: z.string(),
+      avatar: z.string().nullable().optional(),
+    })
+    .optional(),
+  _count: z
+    .object({
+      applications: z.number(),
+      messages: z.number(),
+    })
+    .optional(),
+});
+
+// ─── Booking ──────────────────────────────────────────────────────────────────
+
+/**
+ * Mirrors the Booking Prisma model as returned by the bookings controller.
+ * Used by POST /bookings, GET /bookings/mine, GET /bookings/:id.
+ */
+export const SerializedBookingSchema = z.object({
+  id: z.string(),
+  workerId: z.string(),
+  requesterId: z.string(),
+  status: z.enum(['pending', 'confirmed', 'cancelled', 'completed']),
+  startTime: dateOrString,
+  endTime: dateOrString,
+  timezone: z.string().optional(),
+  note: z.string().nullable().optional(),
+  serviceDescription: z.string().nullable().optional(),
+  cancelledAt: dateOrString.nullable().optional(),
+  cancelReason: z.string().nullable().optional(),
+  createdAt: dateOrString,
+  updatedAt: dateOrString,
+});
+
+// ─── Notification ─────────────────────────────────────────────────────────────
+
+/**
+ * Mirrors packages/types#AppNotification as returned by GET /notifications.
+ */
+export const SerializedNotificationSchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  type: z.enum(['tip', 'review', 'contact', 'system', 'message']),
+  title: z.string(),
+  message: z.string().nullable().optional(),
+  href: z.string().nullable().optional(),
+  read: z.boolean(),
+  createdAt: z.string(),
+});
+
+// ─── Auth login response ──────────────────────────────────────────────────────
+
+/**
+ * Mirrors the POST /auth/login (202) response envelope.
+ * Contains the user payload + JWT token.
+ */
+export const AuthLoginResponseSchema = z.object({
+  status: z.literal('success'),
+  code: z.number(),
+  message: z.string().optional(),
+  token: z.string(),
+  data: SerializedUserSchema,
+});
+
+// ─── Health / Readiness ───────────────────────────────────────────────────────
+
+/** GET /health liveness probe response. */
+export const HealthResponseSchema = z.object({
+  status: z.literal('ok'),
+});
+
+const CheckResultSchema = z.object({
+  status: z.enum(['ok', 'error']),
+  error: z.string().optional(),
+});
+
+/** GET /ready (alias /readyz) readiness probe response. */
+export const ReadinessResponseSchema = z.object({
+  status: z.enum(['ok', 'degraded']),
+  service: z.string(),
+  timestamp: z.string(),
+  checks: z.object({
+    database: CheckResultSchema,
+    redis: CheckResultSchema,
+    queue: CheckResultSchema,
+    horizon: CheckResultSchema,
+  }),
+});
