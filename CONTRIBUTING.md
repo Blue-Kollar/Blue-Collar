@@ -261,7 +261,8 @@ pnpm test:e2e -- job-payment   # run a single spec by name
 
 If the suite fails, the Playwright HTML report is written to `packages/app/playwright-report/`.
 
----
+Each `components/ui` primitive is snapshotted in its key states — **default**, **hover**,
+**disabled**, and **error** — so a regression in any single state fails the run.
 
 ## Coverage
 
