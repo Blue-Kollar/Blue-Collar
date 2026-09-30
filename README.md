@@ -26,6 +26,7 @@ Many skilled workers lack a platform to help them get noticed. Meanwhile, countl
   - [API](#api-packagesapi)
   - [Contracts](#contracts-packagescontracts)
   - [App](#app-packagesapp)
+  - [Mobile](#mobile-packagesmobile)
 - [API Reference](#api-reference)
 - [Smart Contracts](#smart-contracts)
 - [Getting Started](#getting-started)
@@ -161,6 +162,19 @@ allowed to depend on which, and a dependency graph — see
 ---
 
 ## Packages
+
+| Package | Purpose |
+| --- | --- |
+| [API](packages/api/README.md) | REST API for the BlueCollar platform and its worker listings. |
+| [App](packages/app/README.md) | Next.js web frontend for discovering and connecting with skilled workers. |
+| [Contracts](packages/contracts/README.md) | Stellar Soroban smart contracts that power the BlueCollar protocol. |
+| [Mobile](packages/mobile/README.md) | Expo-based React Native app for browsing workers and using BlueCollar services. |
+| [Monitoring](packages/monitoring/README.md) | Contract event monitoring, balance tracking, and alerting. |
+| [SDK](packages/sdk/README.md) | Shared SDK for interacting with Stellar and BlueCollar contracts. |
+| [Test Utils](packages/test-utils/README.md) | Shared test factories and rendering helpers for workspace packages. |
+| [Types](packages/types/README.md) | Shared TypeScript types, DTOs, and Zod validation schemas. |
+
+All top-level packages currently have a README; no missing-README follow-up is needed.
 
 ### API (`packages/api`)
 
