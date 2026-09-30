@@ -14,6 +14,8 @@ Thanks for your interest in contributing! This guide covers everything you need 
 - [Code Style](#code-style)
 - [Error Handling & Logging](#error-handling--logging)
 - [Running Tests](#running-tests)
+- [End-to-End (E2E) Tests](#end-to-end-e2e-tests)
+- [Coverage](#coverage)
 - [Translations](#translations)
 
 ---
@@ -152,10 +154,11 @@ Fill in all relevant sections. The templates include checklists specific to the 
 ## Pull Request Process
 
 1. Ensure all CI checks pass (`pnpm test`, `pnpm build`, `cargo clippy`).
-2. Write a clear PR title following the commit convention (release-please uses it).
-3. Reference the related issue: `Closes #123`.
-4. Request a review from a maintainer.
-5. Squash-merge is preferred to keep history clean.
+2. Run the `packages/app` coverage check locally (see [Coverage](#coverage)) and paste the summary into the PR description.
+3. Write a clear PR title following the commit convention (release-please uses it).
+4. Reference the related issue: `Closes #123`.
+5. Request a review from a maintainer.
+6. Squash-merge is preferred to keep history clean.
 
 ---
 
@@ -203,132 +206,80 @@ fails the build if the document and the code disagree.
 
 ---
 
-## Database Migrations
-
-### Migration Safety Process
-
-When modifying the database schema:
-
-1. **Make schema changes** in `packages/api/prisma/schema.prisma`
-2. **Create a migration**: `npx prisma migrate dev --name <descriptive-name>`
-3. **For destructive migrations** (DROP COLUMN, DROP TABLE, ALTER COLUMN):
-   - Add the `migration:destructive` label to your PR
-   - Request explicit review from a maintainer
-   - Include justification in the PR description
-4. **CI will verify** that destructive migrations are properly labeled
-
-### Destructive Operations Require Manual Approval
-
-The CI pipeline will flag any migration containing:
-- `DROP COLUMN`
-- `DROP TABLE`
-- `ALTER COLUMN`
-
-These changes require the `migration:destructive` label and manual approval before merging.
-
----
-
 ## Running Tests
 
 ```bash
-# API tests
-cd packages/api
-pnpm test
-
-# Contract tests
-cd packages/contracts
-cargo test
-
-# App
-cd packages/app
-pnpm test
-
-# SDK tests (with coverage)
-cd packages/sdk
-pnpm test:coverage
-
-# Monitoring tests (with coverage)
-cd packages/monitoring
-pnpm test:coverage
+pnpm test          # run all package test suites
+pnpm test --filter api   # run a single package
 ```
 
 ---
 
-## Regression Test Suite
+## End-to-End (E2E) Tests
 
-The regression suite guards against regressions of previously-fixed critical bugs. Before opening
-a PR that touches payment, escrow, serializer, circuit-breaker, notification, or pagination code,
-run the full regression suite and confirm it stays green.
+The primary revenue-critical flow — **post job → hire worker → fund escrow → release payment** — is
+covered by a browser-driven [Playwright](https://playwright.dev/) suite in `packages/app/e2e/`.
+The suite drives the real `packages/app` UI against a running `packages/api` and its dependencies.
 
-### Location
+### Prerequisites
 
-| File | Package | Issues covered |
-|---|---|---|
-| `packages/api/src/__tests__/regression.critical.test.ts` | `@bluecollar/api` | #517 (payment idempotency), #749 (refresh token reuse), #1215 (missing catchAsync), #1217 (N+1 escrow), #1218 (Prisma schema audit) |
-| `packages/api/src/__tests__/regression.new-bugs.test.ts` | `@bluecollar/api` | ISSUE-1 (serializer helpers), ISSUE-2 (circuit breaker), ISSUE-3 (notificationPrefs relocation), ISSUE-4 (pagination contract) |
+- Docker (for `docker-compose.test.yml`)
+- Node.js and `pnpm`
+- Playwright browsers installed once per machine:
+  ```bash
+  pnpm --filter app exec playwright install --with-deps
+  ```
 
-### Running the regression suite
+### Run the suite locally (single command)
+
+From the repository root:
 
 ```bash
-# Run both regression files together
-cd packages/api
-pnpm vitest run src/__tests__/regression.critical.test.ts src/__tests__/regression.new-bugs.test.ts
-
-# Or run all API tests (includes regression files automatically)
-pnpm test
+pnpm test:e2e
 ```
 
-The regression tests are included in the standard `pnpm test` run — no extra step is required in
-CI. They run first because the file names sort before other test files alphabetically.
+This command stands up the dependencies defined in `docker-compose.test.yml`, waits for the API to
+become healthy, runs the Playwright suite against the local stack, and tears the stack down again.
 
-### Tag convention
+### Useful variants
 
-Every `describe` block in a regression file is prefixed with `[regression]` and references the
-originating issue number or CHANGELOG entry in the JSDoc above the block. When adding a new
-regression guard:
+```bash
+pnpm test:e2e -- --ui          # interactive Playwright UI mode
+pnpm test:e2e -- --headed      # watch the browser run
+pnpm test:e2e -- job-payment   # run a single spec by name
+```
 
-1. Find the CHANGELOG entry or `docs/changes/ISSUE-*.md` that documents the original bug.
-2. Add a `describe('[regression] <short description> (<issue ref>)')` block.
-3. Write the minimal test that would have caught the bug in its pre-fix state.
-4. Add a JSDoc comment citing the issue number (`@regression`, issue link, and pre-fix failure path).
+### What the happy-path spec covers
 
-### Coverage thresholds
+`packages/app/e2e/job-payment.spec.ts` walks the full flow end to end:
 
-| Package | Tool | Threshold |
-|---|---|---|
-| `packages/api` | vitest | Enforced by CI; no explicit numeric floor, but regression files must pass. |
-| `packages/sdk` | vitest/v8 | 85% lines, functions, statements; 80% branches |
-| `packages/monitoring` | vitest/v8 | 85% lines, functions, branches, statements |
+1. A client signs in and posts a job.
+2. The client hires a worker for that job.
+3. The client funds escrow for the agreed amount.
+4. The client releases payment once the work is marked complete.
+5. The test asserts the job and payment reach their terminal success states.
 
-Run `pnpm test:coverage` in the respective package to view the current coverage report.
+If the suite fails, the Playwright HTML report is written to `packages/app/playwright-report/`.
+
+---
+
+## Coverage
+
+`packages/app` enforces an **85% line-coverage target** configured in the app's test tooling
+(`packages/app/vitest.config.ts`), with per-directory reporting enabled so gaps are visible by area.
+
+### Required local pre-merge check
+
+Before opening or updating a PR that touches `packages/app`, run the coverage check locally and
+paste the summary into the PR description:
+
+```bash
+pnpm --filter app test:coverage
+```
 
 ---
 
 ## Translations
 
-See [docs/i18n-translations.md](./docs/i18n-translations.md) for contributing translations to the app UI and README files. This includes:
-
-- Adding a new language to the Next.js frontend (message JSON files)
-- Translating README files to new languages
-- Keeping translations in sync with the English source
-- Validating translation completeness
-
-Translation PRs should use the `i18n:` commit type and reference the language being added.
-
----
-
-## Dead-file detection
-
-Entire files can outlive their usefulness (old prototypes, superseded
-scripts) with zero incoming imports anywhere in the monorepo. We use
-[knip](https://knip.dev/) to detect them.
-
-### Running the check
-
-From the repo root:
-
-```bash
-npm run check:dead-files
-npm run check:dead-files
-npm run check:dead-files:fix
-grep -rn "path/to/file" --include="*.ts" --include="*.tsx" --include="*.js" .
+See [packages/app/CONTRIBUTING.md](./packages/app/CONTRIBUTING.md) for translation and localization
+conventions.

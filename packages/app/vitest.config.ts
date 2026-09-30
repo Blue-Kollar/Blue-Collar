@@ -1,7 +1,7 @@
 /**
  * vitest.config.ts — packages/app
  *
- * Coverage thresholds enforced at 85 %+ (issue #1055).
+ * Coverage thresholds enforced at 85 %+ (issues #1055, #1449).
  *
  * Exceptions:
  *  - branches: 80 % — many conditional branches in React components are
@@ -56,7 +56,11 @@ export default defineConfig({
     unstubGlobals: true,
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'html'],
+      // `json-summary` emits coverage/coverage-summary.json with per-directory
+      // totals, enabling the baseline report and low-coverage directory audit
+      // required by issue #1449.
+      reporter: ['text', 'html', 'json-summary'],
+      reportsDirectory: './coverage',
       include: ['src/components/**', 'src/hooks/**', 'src/lib/**', 'src/utils/**', 'src/context/**'],
       exclude: [
         'src/app/**',
@@ -65,7 +69,8 @@ export default defineConfig({
         'src/**/*.test.{ts,tsx}',
         'src/**/__tests__/**',
       ],
-      // ── Thresholds (issue #1055) ──────────────────────────────────────────
+      // ── Thresholds (issues #1055, #1449) ──────────────────────────────────
+      // 85 % line-coverage target for packages/app.
       thresholds: {
         lines: 85,
         functions: 85,
