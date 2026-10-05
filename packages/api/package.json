@@ -85,7 +85,7 @@
     "prom-client": "^15.1.0",
     "qrcode": "^1.5.4",
     "rate-limit-redis": "^5.0.0",
-    "sharp": "^0.35.4",
+    "sharp": "^0.35.5",
     "socket.io": "^4.8.3",
     "swagger-ui-express": "5.0.1",
     "v8-profiler-next": "^1.9.0",
