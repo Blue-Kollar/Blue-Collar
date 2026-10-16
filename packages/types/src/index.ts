@@ -249,9 +249,36 @@ export interface AppNotification {
 
 // ─── Jobs ─────────────────────────────────────────────────────────────────────
 
-export type JobStatus = 'open' | 'closed' | 'expired' | 'filled';
-export type JobUrgency = 'low' | 'normal' | 'urgent';
-export type ApplicationStatus = 'pending' | 'accepted' | 'rejected' | 'withdrawn';
+export enum JobStatus {
+  Open = 'open',
+  Closed = 'closed',
+  Expired = 'expired',
+  Filled = 'filled',
+}
+export type JobStatusValue = JobStatus | `${JobStatus}`;
+
+export enum JobUrgency {
+  Low = 'low',
+  Normal = 'normal',
+  Urgent = 'urgent',
+}
+export type JobUrgencyValue = JobUrgency | `${JobUrgency}`;
+
+export enum ApplicationStatus {
+  Pending = 'pending',
+  Accepted = 'accepted',
+  Rejected = 'rejected',
+  Withdrawn = 'withdrawn',
+}
+export type ApplicationStatusValue = ApplicationStatus | `${ApplicationStatus}`;
+
+export enum BookingStatus {
+  Pending = 'pending',
+  Confirmed = 'confirmed',
+  Cancelled = 'cancelled',
+  Completed = 'completed',
+}
+export type BookingStatusValue = BookingStatus | `${BookingStatus}`;
 
 export interface Job {
   id: string;
@@ -259,10 +286,10 @@ export interface Job {
   description: string;
   budget?: number | null;
   skills: string[];
-  urgency: JobUrgency;
+  urgency: JobUrgencyValue;
   escrowAmount?: number | null;
   escrowTxId?: string | null;
-  status: JobStatus;
+  status: JobStatusValue;
   expiresAt?: string | null;
   renewedAt?: string | null;
   createdAt: string;
@@ -279,7 +306,7 @@ export interface JobApplication {
   workerId: string;
   coverLetter?: string | null;
   proposedRate?: number | null;
-  status: ApplicationStatus;
+  status: ApplicationStatusValue;
   createdAt: string;
   updatedAt: string;
   job?: { id: string; title: string; postedById: string };

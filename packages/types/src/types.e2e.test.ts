@@ -17,6 +17,12 @@
  */
 
 import { describe, it, expect } from 'vitest'
+import {
+  JobStatus,
+  JobUrgency,
+  ApplicationStatus,
+  BookingStatus,
+} from './index.js'
 import type {
   ApiResponse,
   PaginatedResult,
@@ -399,6 +405,65 @@ describe('JobApplication', () => {
       updatedAt: '2024-01-01T00:00:00Z',
     }
     expect(isOneOf(app.status, ['pending', 'accepted', 'rejected', 'withdrawn'])).toBe(true)
+  })
+})
+
+describe('Status Enums (Issue #1681)', () => {
+  it('JobStatus enum defines canonical status values', () => {
+    expect(JobStatus.Open).toBe('open')
+    expect(JobStatus.Closed).toBe('closed')
+    expect(JobStatus.Expired).toBe('expired')
+    expect(JobStatus.Filled).toBe('filled')
+  })
+
+  it('JobUrgency enum defines canonical urgency values', () => {
+    expect(JobUrgency.Low).toBe('low')
+    expect(JobUrgency.Normal).toBe('normal')
+    expect(JobUrgency.Urgent).toBe('urgent')
+  })
+
+  it('ApplicationStatus enum defines canonical application states', () => {
+    expect(ApplicationStatus.Pending).toBe('pending')
+    expect(ApplicationStatus.Accepted).toBe('accepted')
+    expect(ApplicationStatus.Rejected).toBe('rejected')
+    expect(ApplicationStatus.Withdrawn).toBe('withdrawn')
+  })
+
+  it('BookingStatus enum defines canonical booking states', () => {
+    expect(BookingStatus.Pending).toBe('pending')
+    expect(BookingStatus.Confirmed).toBe('confirmed')
+    expect(BookingStatus.Cancelled).toBe('cancelled')
+    expect(BookingStatus.Completed).toBe('completed')
+  })
+
+  it('Job and JobApplication accept enum values seamlessly', () => {
+    const category: Category = { id: 'cat-1', name: 'Plumbing' }
+    const postedBy = { id: 'u-1', firstName: 'Jane', lastName: 'Doe' }
+
+    const jobWithEnums: Job = {
+      id: 'job-enum-1',
+      title: 'Fix leak',
+      description: 'Urgent plumbing repair',
+      skills: ['plumbing'],
+      urgency: JobUrgency.Urgent,
+      status: JobStatus.Open,
+      createdAt: '2024-01-01T00:00:00Z',
+      updatedAt: '2024-01-01T00:00:00Z',
+      category,
+      postedBy,
+    }
+    expect(jobWithEnums.urgency).toBe(JobUrgency.Urgent)
+    expect(jobWithEnums.status).toBe(JobStatus.Open)
+
+    const appWithEnums: JobApplication = {
+      id: 'app-enum-1',
+      jobId: 'job-enum-1',
+      workerId: 'w-1',
+      status: ApplicationStatus.Accepted,
+      createdAt: '2024-01-01T00:00:00Z',
+      updatedAt: '2024-01-01T00:00:00Z',
+    }
+    expect(appWithEnums.status).toBe(ApplicationStatus.Accepted)
   })
 })
 
