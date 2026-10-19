@@ -12,7 +12,7 @@ jobs:
     name: Lint commit messages
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -27,11 +27,11 @@ jobs:
       # Squash merges use the PR title as the commit subject on main, so it
       # never passes through the commit-msg hook or the job above.
       # Check out the base ref so the config comes from trusted code, not the PR.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ github.base_ref }}
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 20
 
