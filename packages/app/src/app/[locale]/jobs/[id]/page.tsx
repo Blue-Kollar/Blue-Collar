@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { cn, formatDate } from "@/lib/utils";
+import { formatCurrency } from "@/lib/format";
 import LoadingState from "@/components/LoadingState";
 import {
   getJob, applyToJob, withdrawJobApplication, getJobApplications,
@@ -187,7 +188,7 @@ export default function JobDetailPage() {
 
         <div className="mt-4 flex flex-wrap gap-4 text-sm text-gray-500">
           {job.budget != null && (
-            <span className="flex items-center gap-1.5"><DollarSign size={14} /> Budget: <strong className="text-gray-700">${job.budget.toLocaleString()}</strong></span>
+            <span className="flex items-center gap-1.5"><DollarSign size={14} /> Budget: <strong className="text-gray-700">{formatCurrency(job.budget)}</strong></span>
           )}
           {daysLeft !== null && (
             <span className="flex items-center gap-1.5"><Clock size={14} /> {daysLeft === 0 ? "Expires today" : `${daysLeft} days left`}</span>
@@ -313,7 +314,7 @@ export default function JobDetailPage() {
                   <div>
                     <p className="font-medium text-gray-800">{app.worker?.name ?? "Worker"}</p>
                     {app.worker?.category && <p className="text-xs text-gray-400">{app.worker.category.name}</p>}
-                    {app.proposedRate != null && <p className="mt-1 text-xs text-gray-500">Proposed rate: <strong>${app.proposedRate.toLocaleString()}</strong></p>}
+                    {app.proposedRate != null && <p className="mt-1 text-xs text-gray-500">Proposed rate: <strong>{formatCurrency(app.proposedRate)}</strong></p>}
                   </div>
                   <span className={cn("rounded-full px-2.5 py-0.5 text-xs font-medium capitalize", APP_STATUS_STYLE[app.status])}>
                     {app.status}

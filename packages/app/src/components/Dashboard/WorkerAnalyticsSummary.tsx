@@ -2,14 +2,11 @@
 
 import { Eye, Star, TrendingUp, Wallet } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatCompact } from "@/lib/format";
 import type { PersonalAnalytics } from "@/hooks/useWorkerAnalytics";
 
 interface WorkerAnalyticsSummaryProps {
   data: PersonalAnalytics;
-}
-
-function formatXlm(value: number) {
-  return `${value.toLocaleString(undefined, { maximumFractionDigits: 2 })} XLM`;
 }
 
 function SummaryMetricCard({
@@ -55,19 +52,19 @@ export function WorkerAnalyticsSummary({ data }: WorkerAnalyticsSummaryProps) {
       <SummaryMetricCard
         icon={<Eye size={18} />}
         label="Profile views"
-        value={data.summary.totalViews.toLocaleString()}
+        value={formatCompact(data.summary.totalViews)}
         delta={data.deltas.totalViews}
       />
       <SummaryMetricCard
         icon={<TrendingUp size={18} />}
         label="Unique views"
-        value={data.summary.uniqueViews.toLocaleString()}
+        value={formatCompact(data.summary.uniqueViews)}
         delta={data.deltas.uniqueViews}
       />
       <SummaryMetricCard
         icon={<Wallet size={18} />}
         label="Tips received"
-        value={formatXlm(data.summary.tipsReceived)}
+        value={`${formatCompact(data.summary.tipsReceived, { maximumFractionDigits: 2 })} XLM`}
         delta={data.deltas.tipsReceived}
         sub={`${data.summary.tipCount} tips`}
       />

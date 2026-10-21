@@ -18,6 +18,7 @@ import { memo } from "react";
 import { Wallet } from "lucide-react";
 import { useWalletBalance } from "@/hooks/useWallet";
 import { cn } from "@/lib/utils";
+import { formatNumber } from "@/lib/format";
 
 interface WalletBalanceWidgetProps {
   className?: string;
@@ -34,7 +35,7 @@ export const WalletBalanceWidget = memo(function WalletBalanceWidget({
 
   if (balance === null) return null;
 
-  const formatted = Number(balance).toLocaleString(undefined, {
+  const formatted = formatNumber(Number(balance), {
     minimumFractionDigits: 2,
     maximumFractionDigits: 4,
   });

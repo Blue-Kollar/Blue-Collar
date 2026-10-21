@@ -5,7 +5,7 @@
  * edge cases: empty input, invalid Stellar amounts, timezone handling.
  */
 
-import { describe, it, expect, beforeEach } from "vitest";
+import { afterEach, describe, it, expect, beforeEach } from "vitest";
 import {
   cn,
   formatDate,
@@ -18,6 +18,7 @@ import {
   setLocale,
   getLocale,
 } from "@/lib/utils";
+import { formatCompact } from "@/lib/format";
 
 // ─── cn (classname merging) ───────────────────────────────────────────────────
 
@@ -218,6 +219,20 @@ describe("formatCurrency", () => {
   it("handles negative amounts", () => {
     const result = formatCurrency(-50);
     expect(result).toContain("50");
+  });
+});
+
+describe("locale-aware shared formatters", () => {
+  afterEach(() => setLocale("en"));
+
+  it("formats currency and compact numbers in English and Portuguese", () => {
+    setLocale("en");
+    expect(formatCurrency(1234.56, "USD")).toBe("$1,234.56");
+    expect(formatCompact(1234)).toBe("1.2K");
+
+    setLocale("pt");
+    expect(formatCurrency(1234.56, "BRL")).toBe("R$ 1.234,56");
+    expect(formatCompact(1234)).toBe("1,2 mil");
   });
 });
 
