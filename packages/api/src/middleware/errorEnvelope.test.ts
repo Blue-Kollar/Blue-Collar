@@ -7,7 +7,7 @@ import { describe, it, expect } from 'vitest'
 import express from 'express'
 import request from 'supertest'
 import { errorHandler, notFoundHandler } from './errorHandler.js'
-import { AppError, ErrorCode } from '@/utils/AppError.js'
+import { AppError, ErrorCode } from '@/utils/app-error.js'
 import { catchAsync } from '@/utils/catchAsync.js'
 
 function buildApp() {

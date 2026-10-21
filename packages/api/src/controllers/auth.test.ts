@@ -37,7 +37,7 @@ import {
   requestPasswordReset,
   resetPassword,
 } from '../services/auth.service.js'
-import { AppError } from '../utils/AppError.js'
+import { AppError } from '../utils/app-error.js'
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 

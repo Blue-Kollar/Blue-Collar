@@ -6,7 +6,7 @@
  */
 
 import { bookingRepository as defaultBookingRepository } from '@/repositories/booking.repository.js'
-import { AppError } from '@/utils/AppError.js'
+import { AppError } from '@/utils/app-error.js'
 import { logger } from '@/config/logger.js'
 import { enqueueNotification } from '@/queue/index.js'
 import { nowUtc, parseUtcDate } from '@/utils/date.js'

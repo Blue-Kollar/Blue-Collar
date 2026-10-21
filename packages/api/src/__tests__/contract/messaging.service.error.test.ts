@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { AppError, ErrorCode } from '../../utils/AppError.js'
+import { AppError, ErrorCode } from '../../utils/app-error.js'
 
 // Mock the db module before importing the service
 vi.mock('../../db.js', () => ({

@@ -270,7 +270,7 @@ describe('GET /api/jobs/:id', () => {
   })
 
   it('returns 404 when job does not exist', async () => {
-    const { AppError } = await import('../../utils/AppError.js')
+    const { AppError } = await import('../../utils/app-error.js')
     vi.mocked(jobService.getJob).mockRejectedValue(new AppError('Job not found', 404))
     const res = await request(app).get('/api/jobs/nonexistent')
     expect(res.status).toBe(404)
@@ -371,7 +371,7 @@ describe('PUT /api/jobs/:id', () => {
   })
 
   it('returns 404 when job does not exist', async () => {
-    const { AppError } = await import('../../utils/AppError.js')
+    const { AppError } = await import('../../utils/app-error.js')
     vi.mocked(jobService.updateJob).mockRejectedValue(new AppError('Job not found', 404))
     const token = makeToken('user')
     const res = await request(app)
@@ -382,7 +382,7 @@ describe('PUT /api/jobs/:id', () => {
   })
 
   it('returns 403 when user does not own the job', async () => {
-    const { AppError } = await import('../../utils/AppError.js')
+    const { AppError } = await import('../../utils/app-error.js')
     vi.mocked(jobService.updateJob).mockRejectedValue(new AppError('Forbidden', 403))
     const token = makeToken('user', 'other-user')
     const res = await request(app)
@@ -414,7 +414,7 @@ describe('DELETE /api/jobs/:id', () => {
   })
 
   it('returns 404 when job does not exist', async () => {
-    const { AppError } = await import('../../utils/AppError.js')
+    const { AppError } = await import('../../utils/app-error.js')
     vi.mocked(jobService.deleteJob).mockRejectedValue(new AppError('Job not found', 404))
     const token = makeToken('user')
     const res = await request(app)
@@ -424,7 +424,7 @@ describe('DELETE /api/jobs/:id', () => {
   })
 
   it('returns 403 when user does not own the job', async () => {
-    const { AppError } = await import('../../utils/AppError.js')
+    const { AppError } = await import('../../utils/app-error.js')
     vi.mocked(jobService.deleteJob).mockRejectedValue(new AppError('Forbidden', 403))
     const token = makeToken('user', 'other-user')
     const res = await request(app)
@@ -571,7 +571,7 @@ describe('POST /api/jobs/:id/apply', () => {
   })
 
   it('returns 404 when job does not exist', async () => {
-    const { AppError } = await import('../../utils/AppError.js')
+    const { AppError } = await import('../../utils/app-error.js')
     vi.mocked(jobService.applyToJob).mockRejectedValue(new AppError('Job not found', 404))
     const token = makeToken('user')
     const res = await request(app)
@@ -582,7 +582,7 @@ describe('POST /api/jobs/:id/apply', () => {
   })
 
   it('returns 400 when job is not open', async () => {
-    const { AppError } = await import('../../utils/AppError.js')
+    const { AppError } = await import('../../utils/app-error.js')
     vi.mocked(jobService.applyToJob).mockRejectedValue(
       new AppError('Job is not accepting applications', 400),
     )

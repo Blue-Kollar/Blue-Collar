@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import * as responseTimeService from './response-time.service'
 import { db } from '@/db'
-import { AppError } from '@/utils/AppError'
+import { AppError } from '@/utils/app-errorr'
 
 vi.mock('@/db.js')
 vi.mock('@/utils/AppError.js')

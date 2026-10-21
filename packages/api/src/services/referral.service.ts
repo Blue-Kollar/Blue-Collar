@@ -1,6 +1,6 @@
 import crypto from 'node:crypto'
 import { referralRepository as defaultReferralRepository } from '@/repositories/referral.repository.js'
-import { AppError } from '@/utils/AppError.js'
+import { AppError } from '@/utils/app-error.js'
 import { nowUtc } from '@/utils/date.js'
 import type { ReferralServiceDeps } from '@/container/types.js'
 

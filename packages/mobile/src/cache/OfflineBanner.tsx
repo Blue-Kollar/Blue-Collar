@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
-import { useNetworkMonitor } from "./NetworkMonitor";
+import { useNetworkMonitor } from "./network-monitor";
 
 export const OfflineBanner: React.FC = () => {
   const { isOffline, syncStatus, pendingActionsCount } = useNetworkMonitor();

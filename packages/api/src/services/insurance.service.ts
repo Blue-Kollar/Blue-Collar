@@ -1,5 +1,5 @@
 import { insuranceRepository as defaultInsuranceRepository } from '@/repositories/insurance.repository.js'
-import { AppError } from '@/utils/AppError.js'
+import { AppError } from '@/utils/app-error.js'
 import { sendInsuranceRenewalReminder } from '@/mailer/index.js'
 import { nowUtc, addUtcMs } from '@/utils/date.js'
 import type { InsuranceServiceDeps } from '@/container/types.js'

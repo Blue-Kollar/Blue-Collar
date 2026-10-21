@@ -1,7 +1,7 @@
 import type { Category } from '@prisma/client'
 import { categoryRepository as defaultCategoryRepository } from '@/repositories/category.repository.js'
 import { db as defaultDb } from '@/db.js'
-import { AppError } from '@/utils/AppError.js'
+import { AppError } from '@/utils/app-error.js'
 import type { CategoryServiceDeps } from '@/container/types.js'
 import type { PrismaClient } from '@prisma/client'
 import { nowUtc, parseUtcDate, addUtcMs, formatUtcIso } from '@/utils/date.js'

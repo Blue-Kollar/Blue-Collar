@@ -7,7 +7,7 @@
 
 'use strict'
 
-const { tsRules, baseRules, productionOnlyRules } = require('../../eslint-base-rules.js')
+const { tsRules, baseRules, productionOnlyRules, filenameRules } = require('../../eslint-base-rules.js')
 
 /** @type {import('eslint').Linter.Config} */
 module.exports = {
@@ -18,7 +18,7 @@ module.exports = {
     sourceType: 'module',
     ecmaFeatures: { jsx: true },
   },
-  plugins: ['@typescript-eslint'],
+  plugins: ['@typescript-eslint', 'unicorn'],
   extends: [
     'eslint:recommended',
     'plugin:@typescript-eslint/recommended',
@@ -32,6 +32,7 @@ module.exports = {
     ...tsRules,
     ...baseRules,
     ...productionOnlyRules,
+    ...filenameRules,
     // React Native uses console for debugging; relax for dev ergonomics.
     'no-console': ['warn', { allow: ['warn', 'error'] }],
   },

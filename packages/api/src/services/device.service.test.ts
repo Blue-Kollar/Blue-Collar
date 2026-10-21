@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { AppError } from '../utils/AppError.js'
+import { AppError } from '../utils/app-error.js'
 import * as deviceService from './device.service.js'
 
 // Mock dependencies

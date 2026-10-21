@@ -52,8 +52,47 @@ const productionOnlyRules = {
   'no-console': 'error',
 }
 
+/**
+ * File naming convention rules enforcing kebab-case.
+ * See CONTRIBUTING.md for detailed file naming guidelines.
+ * 
+ * Configuration for unicorn/filename-case rule (#1691):
+ * - Enforces kebab-case for all TypeScript/JavaScript files by default
+ * - Allows PascalCase for React component files (.tsx)
+ * - Allows camelCase for React hooks (use* prefix)
+ * - Ignores Next.js special files (page, layout, error, etc.)
+ * - Ignores test files, storybook files, and type definition files
+ */
+const filenameRules = {
+  'unicorn/filename-case': [
+    'error',
+    {
+      case: 'kebabCase',
+      ignore: [
+        // React components (PascalCase .tsx files)
+        '^[A-Z][a-zA-Z0-9]*\\.tsx$',
+        // React hooks (camelCase with 'use' prefix)
+        '^use[A-Z][a-zA-Z0-9]*\\.(ts|tsx)$',
+        // Next.js special files (always lowercase, no hyphens needed)
+        '^(page|layout|error|loading|not-found|robots|sitemap|middleware)\\.(ts|tsx)$',
+        // Test files (match source naming)
+        '\\.(test|spec)\\.(ts|tsx)$',
+        // Storybook files
+        '\\.stories\\.tsx$',
+        // Type definition files with .d.ts
+        '\\.d\\.ts$',
+        // Index files
+        '^index\\.(ts|tsx)$',
+        // Root config files (e.g., i18n.ts)
+        '^[a-z]+\\.(ts|tsx)$',
+      ],
+    },
+  ],
+}
+
 module.exports = {
   tsRules,
   baseRules,
   productionOnlyRules,
+  filenameRules,
 }

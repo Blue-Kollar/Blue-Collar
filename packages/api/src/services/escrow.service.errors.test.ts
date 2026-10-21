@@ -12,7 +12,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { createEscrowService, resolveDispute } from './escrow.service.js'
-import { AppError } from '../utils/AppError.js'
+import { AppError } from '../utils/app-error.js'
 
 vi.mock('../db.js', () => ({
   db: {

@@ -11,7 +11,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { createWalletService } from './wallet.service.js'
-import { AppError } from '../utils/AppError.js'
+import { AppError } from '../utils/app-error.js'
 
 // ── Minimal repo mock ─────────────────────────────────────────────────────────
 

@@ -213,7 +213,7 @@ describe('GET /api/escrow/:id', () => {
   })
 
   it('returns 404 when escrow not found', async () => {
-    const { AppError, ErrorCode } = await import('../../utils/AppError.js')
+    const { AppError, ErrorCode } = await import('../../utils/app-error.js')
     vi.mocked(contractsService.escrow.getEscrow).mockRejectedValue(
       new AppError('Escrow not found', 404, true, ErrorCode.NOT_FOUND),
     )
@@ -223,7 +223,7 @@ describe('GET /api/escrow/:id', () => {
   })
 
   it('returns 403 when user not authorized to view escrow', async () => {
-    const { AppError, ErrorCode } = await import('../../utils/AppError.js')
+    const { AppError, ErrorCode } = await import('../../utils/app-error.js')
     vi.mocked(contractsService.escrow.getEscrow).mockRejectedValue(
       new AppError('Forbidden', 403, true, ErrorCode.FORBIDDEN),
     )
@@ -269,7 +269,7 @@ describe('POST /api/escrow', () => {
   })
 
   it('returns 400 when payeeId is missing', async () => {
-    const { AppError, ErrorCode } = await import('../../utils/AppError.js')
+    const { AppError, ErrorCode } = await import('../../utils/app-error.js')
     vi.mocked(contractsService.createEscrowRecord).mockRejectedValue(
       new AppError('payeeId, amountXlm and expiresAt are required', 400, true, ErrorCode.VALIDATION_ERROR),
     )
@@ -282,7 +282,7 @@ describe('POST /api/escrow', () => {
   })
 
   it('returns 400 when amountXlm is missing', async () => {
-    const { AppError, ErrorCode } = await import('../../utils/AppError.js')
+    const { AppError, ErrorCode } = await import('../../utils/app-error.js')
     vi.mocked(contractsService.createEscrowRecord).mockRejectedValue(
       new AppError('payeeId, amountXlm and expiresAt are required', 400, true, ErrorCode.VALIDATION_ERROR),
     )
@@ -321,7 +321,7 @@ describe('PATCH /api/escrow/:id/activate', () => {
   })
 
   it('returns 400 when txId is missing', async () => {
-    const { AppError, ErrorCode } = await import('../../utils/AppError.js')
+    const { AppError, ErrorCode } = await import('../../utils/app-error.js')
     vi.mocked(contractsService.activateEscrowRecord).mockRejectedValue(
       new AppError('txId is required', 400, true, ErrorCode.VALIDATION_ERROR),
     )
@@ -409,7 +409,7 @@ describe('POST /api/escrow/:id/disputes', () => {
   })
 
   it('returns 400 when reason is missing', async () => {
-    const { AppError, ErrorCode } = await import('../../utils/AppError.js')
+    const { AppError, ErrorCode } = await import('../../utils/app-error.js')
     vi.mocked(contractsService.fileEscrowDispute).mockRejectedValue(
       new AppError('reason is required', 400, true, ErrorCode.VALIDATION_ERROR),
     )
@@ -503,7 +503,7 @@ describe('POST /api/disputes', () => {
   })
 
   it('returns 400 when workerId is missing', async () => {
-    const { AppError, ErrorCode } = await import('../../utils/AppError.js')
+    const { AppError, ErrorCode } = await import('../../utils/app-error.js')
     vi.mocked(contractsService.fileWorkerDispute).mockRejectedValue(
       new AppError('workerId and reason are required', 400, true, ErrorCode.VALIDATION_ERROR),
     )
@@ -516,7 +516,7 @@ describe('POST /api/disputes', () => {
   })
 
   it('returns 400 when reason is missing', async () => {
-    const { AppError, ErrorCode } = await import('../../utils/AppError.js')
+    const { AppError, ErrorCode } = await import('../../utils/app-error.js')
     vi.mocked(contractsService.fileWorkerDispute).mockRejectedValue(
       new AppError('workerId and reason are required', 400, true, ErrorCode.VALIDATION_ERROR),
     )
@@ -597,7 +597,7 @@ describe('GET /api/disputes/:id', () => {
   })
 
   it('returns 404 when dispute not found', async () => {
-    const { AppError, ErrorCode } = await import('../../utils/AppError.js')
+    const { AppError, ErrorCode } = await import('../../utils/app-error.js')
     vi.mocked(contractsService.dispute.getDispute).mockRejectedValue(
       new AppError('Dispute not found', 404, true, ErrorCode.NOT_FOUND),
     )
@@ -609,7 +609,7 @@ describe('GET /api/disputes/:id', () => {
   })
 
   it('returns 403 when user is not authorized to view the dispute', async () => {
-    const { AppError, ErrorCode } = await import('../../utils/AppError.js')
+    const { AppError, ErrorCode } = await import('../../utils/app-error.js')
     vi.mocked(contractsService.dispute.getDispute).mockRejectedValue(
       new AppError('Forbidden', 403, true, ErrorCode.FORBIDDEN),
     )
@@ -673,7 +673,7 @@ describe('PATCH /api/disputes/:id/resolve', () => {
   })
 
   it('returns 400 for invalid status', async () => {
-    const { AppError, ErrorCode } = await import('../../utils/AppError.js')
+    const { AppError, ErrorCode } = await import('../../utils/app-error.js')
     vi.mocked(contractsService.dispute.resolveDispute).mockRejectedValue(
       new AppError('status must be under_review, resolved, or dismissed', 400, true, ErrorCode.VALIDATION_ERROR),
     )

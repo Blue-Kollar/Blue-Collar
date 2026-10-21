@@ -6,7 +6,7 @@ import {
   updateFeeBps,
   getFeeBps,
 } from '../services/payment.service.js'
-import { AppError } from '../utils/AppError.js'
+import { AppError } from '../utils/app-error.js'
 
 // Reset fee to default before each test so tests are isolated
 beforeEach(() => {

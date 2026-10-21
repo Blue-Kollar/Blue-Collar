@@ -1,4 +1,4 @@
-import { CacheStore } from "../CacheStore";
+import { CacheStore } from "../cache-store";
 
 jest.mock("react-native-mmkv", () => {
   let storage: Map<string, string> = new Map();

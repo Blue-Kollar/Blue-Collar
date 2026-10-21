@@ -1,5 +1,5 @@
 import { disputeRepository as defaultDisputeRepository } from '@/repositories/dispute.repository.js'
-import { AppError, ErrorCode } from '@/utils/AppError.js'
+import { AppError, ErrorCode } from '@/utils/app-error.js'
 import { sanitizeText } from '@/utils/sanitize.js'
 import type { DisputeServiceDeps } from '@/container/types.js'
 

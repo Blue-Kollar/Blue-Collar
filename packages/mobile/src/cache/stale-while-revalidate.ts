@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { cacheStore } from "./CacheStore";
+import { cacheStore } from "./cache-store";
 
 export interface StaleWhileRevalidateOptions<T> {
   queryKey: string[];

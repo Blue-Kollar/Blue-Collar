@@ -10,7 +10,7 @@
 
 import { describe, it, expect, vi } from 'vitest'
 import { createDisputeService } from './dispute.service.js'
-import { AppError } from '../utils/AppError.js'
+import { AppError } from '../utils/app-error.js'
 
 // ── Mock repository ───────────────────────────────────────────────────────────
 

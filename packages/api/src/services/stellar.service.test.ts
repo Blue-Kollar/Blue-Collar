@@ -9,7 +9,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { registerOnChain, syncReputationToDb, getWorkerReputation } from './stellar.service.js'
-import { AppError } from '../utils/AppError.js'
+import { AppError } from '../utils/app-error.js'
 
 // ── DB mock ────────────────────────────────────────────────────────────────────
 

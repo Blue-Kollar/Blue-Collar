@@ -10,11 +10,12 @@
 
 'use strict'
 
-const { tsRules, baseRules, productionOnlyRules } = require('../../eslint-base-rules.js')
+const { tsRules, baseRules, productionOnlyRules, filenameRules } = require('../../eslint-base-rules.js')
 
 /** @type {import('eslint').Linter.Config} */
 module.exports = {
   extends: ['next/core-web-vitals', 'next/typescript'],
+  plugins: ['unicorn'],
   rules: {
     // ── Shared baseline ────────────────────────────────────────────────────
     ...tsRules,
@@ -23,6 +24,7 @@ module.exports = {
     // as before; strict no-console would be too noisy for client-side code).
     ...productionOnlyRules,
     'no-console': ['error', { allow: ['warn', 'error'] }],
+    ...filenameRules,
 
     // ── App-specific rules ─────────────────────────────────────────────────
     'jsx-a11y/control-has-associated-label': 'warn',

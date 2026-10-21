@@ -9,7 +9,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { createUserService } from './user.service.js'
 import { FakeUserRepository } from '../__tests__/helpers/fakeRepositories.js'
-import { AppError } from '../utils/AppError.js'
+import { AppError } from '../utils/app-error.js'
 
 vi.mock('../utils/logger.js', () => ({
   createServiceLogger: () => ({ info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() }),

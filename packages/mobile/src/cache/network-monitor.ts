@@ -1,6 +1,6 @@
 import { useEffect, useRef, useCallback } from "react";
 import NetInfo, { NetInfoState } from "@react-native-community/netinfo";
-import { cacheStore } from "./CacheStore";
+import { cacheStore } from "./cache-store";
 import { NetworkState } from "./types";
 
 export interface UseNetworkMonitorOptions {

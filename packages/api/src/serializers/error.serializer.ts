@@ -1,4 +1,4 @@
-import { AppError, ErrorCode } from '@/utils/AppError.js'
+import { AppError, ErrorCode } from '@/utils/app-error.js'
 import { getTraceId } from '@/monitoring/tracing.js'
 import { ErrorMessages, HttpStatus } from '@/constants/index.js'
 

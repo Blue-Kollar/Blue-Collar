@@ -32,7 +32,7 @@ vi.mock('@/repositories/wallet.repository.js', () => ({
 }));
 
 import { createWalletService } from './wallet.service.js';
-import { AppError } from '@/utils/AppError.js';
+import { AppError } from '@/utils/app-error.js';
 import type { StellarClient } from '@/clients/stellar.client.js';
 
 const PUBLIC_KEY = 'GABC';

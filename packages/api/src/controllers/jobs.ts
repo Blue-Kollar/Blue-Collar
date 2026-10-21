@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express'
 import { JobStatus } from '@bluecollar/types'
 import { catchAsync } from '@/utils/catchAsync.js'
-import { AppError, ErrorCode } from '@/utils/AppError.js'
+import { AppError, ErrorCode } from '@/utils/app-error.js'
 import { ErrorMessages } from '@/constants/errors.js'
 import * as jobService from '@/services/job.service.js'
 import { validate } from '@/middleware/validate.js'
