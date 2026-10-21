@@ -202,3 +202,29 @@ See [docs/i18n-translations.md](./docs/i18n-translations.md) for contributing tr
 - Validating translation completeness
 
 Translation PRs should use the `i18n:` commit type and reference the language being added.
+
+---
+
+## Import Ordering
+
+Imports must be ordered consistently. The rule is enforced by ESLint via `eslint-plugin-import` and defined in `.eslintrc.base.json` at the repo root.
+
+### What the rule enforces
+
+Imports are grouped in this order, with **a single blank line between groups** and **alphabetized within each group** (case-insensitive):
+
+1. `builtin` — Node.js built-ins (`fs`, `path`, `crypto`, ...)
+2. `external` — third-party packages (`react`, `zod`, `@stellar/stellar-sdk`, ...)
+3. `internal` — your own code via path aliases (`@/...`)
+4. `parent` — relative imports going up (`../foo`)
+5. `sibling` — relative imports in the same directory (`./foo`)
+6. `index` — directory index (`./`, `../`)
+7. `object` — TypeScript `import x = require(...)` style
+8. `type` — type-only imports (`import type { ... }`)
+
+### Auto-fixing
+
+Run lint with `--fix` from the repo root to reorder imports in place:
+
+```bash
+pnpm lint -- --fix
