@@ -165,6 +165,59 @@ Fill in all relevant sections. The templates include checklists specific to the 
 
 ## Code Style
 
+### File Naming Convention
+
+This project enforces **kebab-case** for file names with the following exceptions:
+
+#### Rules by File Type
+
+1. **React Components** (`.tsx` files with JSX):
+   - Use **PascalCase**: `Navbar.tsx`, `BookmarkButton.tsx`, `ErrorBoundary.tsx`
+   - Component directories may contain index files: `components/Dashboard/index.ts`
+
+2. **TypeScript/JavaScript Files** (`.ts`, `.js`):
+   - Use **kebab-case**: `auth.service.ts`, `user.repository.ts`, `rate-limit.ts`
+   - Hooks: use **camelCase** with 'use' prefix: `useDebounce.ts`, `useWallet.ts`
+
+3. **Test Files**:
+   - Match source file naming + `.test.ts` or `.test.tsx` suffix
+   - Example: `auth.service.ts` → `auth.service.test.ts`
+
+4. **Next.js Special Files** (always lowercase):
+   - `page.tsx`, `layout.tsx`, `error.tsx`, `loading.tsx`, `not-found.tsx`
+   - `robots.ts`, `sitemap.ts`, `middleware.ts`
+
+5. **Storybook Files**:
+   - Match component name + `.stories.tsx`: `Button.stories.tsx`
+
+6. **Type Definitions**:
+   - Use kebab-case: `worker.interface.ts`, `repository.interface.ts`
+
+#### Examples
+
+✅ **Correct:**
+```
+packages/api/src/services/auth.service.ts
+packages/api/src/controllers/contact-request.controller.ts
+packages/api/src/utils/graceful-shutdown.ts
+packages/app/src/components/Navbar.tsx
+packages/app/src/hooks/useDebounce.ts
+packages/app/src/lib/query-client.ts
+```
+
+❌ **Incorrect:**
+```
+packages/api/src/utils/AppError.ts          → app-error.ts
+packages/mobile/src/auth/BiometricAuth.ts   → biometric-auth.ts
+packages/app/src/lib/queryClient.ts         → query-client.ts (if multi-word)
+```
+
+#### Enforcement
+
+The file naming convention is enforced by ESLint using the `unicorn/filename-case` rule. Run `pnpm lint` to check for violations. The rule will fail CI if non-compliant files are added.
+
+---
+
 ### API (TypeScript)
 
 - 2-space indent, double quotes

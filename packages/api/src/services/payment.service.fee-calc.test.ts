@@ -21,7 +21,7 @@ import {
   PaymentService,
   type MultiSigEscrowParams,
 } from './payment.service.js';
-import { AppError } from '../utils/AppError.js';
+import { AppError } from '../utils/app-error.js';
 
 const FUTURE = () => new Date(Date.now() + 60 * 60 * 1000);
 const PAST = () => new Date(Date.now() - 60_000);

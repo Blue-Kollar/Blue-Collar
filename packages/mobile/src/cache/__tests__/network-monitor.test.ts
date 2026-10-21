@@ -22,7 +22,7 @@ jest.mock('@react-native-community/netinfo', () => ({
   },
 }))
 
-jest.mock('../CacheStore', () => ({
+jest.mock('../cache-store', () => ({
   cacheStore: {
     setNetworkState: jest.fn(),
     setSyncStatus: jest.fn(),
@@ -34,8 +34,8 @@ jest.mock('../CacheStore', () => ({
 }))
 
 import NetInfo from '@react-native-community/netinfo'
-import { cacheStore } from '../CacheStore'
-import { useNetworkMonitor } from '../NetworkMonitor'
+import { cacheStore } from '../cache-store'
+import { useNetworkMonitor } from '../network-monitor'
 
 const netInfoMock = NetInfo as jest.Mocked<typeof NetInfo>
 const cacheMock = cacheStore as jest.Mocked<typeof cacheStore>

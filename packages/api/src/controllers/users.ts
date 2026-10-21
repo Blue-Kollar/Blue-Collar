@@ -5,7 +5,7 @@
  */
 import type { Request, Response } from 'express'
 import { catchAsync } from '@/utils/catchAsync.js'
-import { AppError, ErrorCode } from '@/utils/AppError.js'
+import { AppError, ErrorCode } from '@/utils/app-error.js'
 import { db } from '@/db.js'
 import { sanitizeUser } from '@/models/user.model.js'
 import { sanitizeText } from '@/utils/sanitize.js'

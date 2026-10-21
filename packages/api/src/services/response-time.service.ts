@@ -1,5 +1,5 @@
 import { db } from '@/db.js'
-import { AppError } from '@/utils/AppError.js'
+import { AppError } from '@/utils/app-error.js'
 import { nowUtc } from '@/utils/date.js'
 
 /** Record a response to a contact request and stamp respondedAt */

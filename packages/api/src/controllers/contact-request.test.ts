@@ -25,7 +25,7 @@ import {
   getContactRequests,
   updateContactRequestStatus,
 } from './contact-request.js';
-import { AppError } from '../utils/AppError.js';
+import { AppError } from '../utils/app-error.js';
 
 function makeRes() {
   const res: any = {};

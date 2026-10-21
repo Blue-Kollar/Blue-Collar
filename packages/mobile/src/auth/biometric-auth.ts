@@ -1,5 +1,5 @@
 import * as LocalAuthentication from 'expo-local-authentication'
-import { SecureStorage } from './SecureStorage'
+import { SecureStorage } from './secure-storage'
 
 export enum BiometricType {
   FINGERPRINT = 'fingerprint',

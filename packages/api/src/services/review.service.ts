@@ -1,5 +1,5 @@
 import { reviewRepository as defaultReviewRepository } from '@/repositories/review.repository.js'
-import { AppError } from '@/utils/AppError.js'
+import { AppError } from '@/utils/app-error.js'
 import { createServiceLogger } from '@/utils/logger.js'
 import { sanitizeText } from '@/utils/sanitize.js'
 import type { ReviewServiceDeps } from '@/container/types.js'

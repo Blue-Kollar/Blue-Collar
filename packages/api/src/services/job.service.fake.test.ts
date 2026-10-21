@@ -8,7 +8,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { createJobService } from './job.service.js'
 import { FakeJobRepository } from '../__tests__/helpers/fakeRepositories.js'
-import { AppError } from '../utils/AppError.js'
+import { AppError } from '../utils/app-error.js'
 
 describe('createJobService (fake repository)', () => {
   let repo: FakeJobRepository

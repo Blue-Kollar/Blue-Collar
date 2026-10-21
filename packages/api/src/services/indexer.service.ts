@@ -1,5 +1,5 @@
 import { db } from '@/db.js'
-import { AppError } from '@/utils/AppError.js'
+import { AppError } from '@/utils/app-error.js'
 import { nowUtc, addUtcMs } from '@/utils/date.js'
 import { Gauge, Counter, Histogram } from 'prom-client'
 

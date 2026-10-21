@@ -3,7 +3,7 @@
  * Mirrors the on-chain escrow lifecycle in the DB and notifies parties on transitions.
  */
 import { escrowRepository as defaultEscrowRepository } from '@/repositories/escrow.repository.js'
-import { AppError, ErrorCode } from '@/utils/AppError.js'
+import { AppError, ErrorCode } from '@/utils/app-error.js'
 import { dispatchNotification } from './notification.service.js'
 import { db } from '@/db.js'
 import { nowUtc } from '@/utils/date.js'

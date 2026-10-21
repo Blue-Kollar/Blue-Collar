@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from 'express'
-import { AppError, ErrorCode } from '@/utils/AppError.js'
+import { AppError, ErrorCode } from '@/utils/app-error.js'
 import { logger } from '@/config/logger.js'
 import { serializeError } from '@/serializers/error.serializer.js'
 import { ErrorMessages } from '@/constants/index.js'

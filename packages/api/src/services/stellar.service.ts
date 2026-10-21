@@ -1,5 +1,5 @@
 import { db } from '@/db.js'
-import { AppError } from '@/utils/AppError.js'
+import { AppError } from '@/utils/app-error.js'
 import { nowUtc, parseUtcDate, addUtcMs, formatUtcIso } from '@/utils/date.js'
 
 export async function registerOnChain(workerId: string, contractId: string) {

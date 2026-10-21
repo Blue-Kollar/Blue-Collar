@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express'
 import * as categoryService from '@/services/category.service.js'
 import { catchAsync } from '@/utils/catchAsync.js'
-import { AppError, ErrorCode } from '@/utils/AppError.js'
+import { AppError, ErrorCode } from '@/utils/app-error.js'
 import { CategoryResource, CategoryCollection } from '@/resources/index.js'
 import { ErrorMessages, HttpStatus } from '@/constants/index.js'
 import { sendSuccess } from '@/utils/response.js'

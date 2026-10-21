@@ -1,7 +1,7 @@
 import { Request, Response } from 'express'
 import * as indexerService from '@/services/indexer.service.js'
 import { catchAsync } from '@/utils/catchAsync.js'
-import { AppError, ErrorCode } from '@/utils/AppError.js'
+import { AppError, ErrorCode } from '@/utils/app-error.js'
 
 /**
  * GET /api/events?contractId=...&eventName=...&limit=50&offset=0

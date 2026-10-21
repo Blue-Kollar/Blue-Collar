@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
 import * as deviceService from '@/services/device.service.js'
-import { AppError, ErrorCode } from '@/utils/AppError.js'
+import { AppError, ErrorCode } from '@/utils/app-error.js'
 import { catchAsync } from '@/utils/catchAsync.js'
 
 /**

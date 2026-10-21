@@ -38,7 +38,7 @@ vi.mock('../middleware/cache.js', () => ({
 }))
 
 import * as workerService from '../services/worker.service.js'
-import { AppError } from '../utils/AppError.js'
+import { AppError } from '../utils/app-error.js'
 import { sanitizeString } from '../utils/sanitize.js'
 import {
   listWorkers,
