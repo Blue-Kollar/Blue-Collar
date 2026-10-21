@@ -23,6 +23,7 @@ import { MetricCard } from "@/components/Dashboard";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/useToast";
 import { formatDate } from "@/lib/utils";
+import { formatCompact } from "@/lib/format";
 import { AdminDashboardSkeleton } from "@/components/Skeleton";
 import { getPlatformAnalytics, exportPlatformAnalyticsCsv } from "@/lib/api";
 import type { PlatformAnalytics } from "@/types";
@@ -162,12 +163,12 @@ export default function AdminDashboard() {
           icon={<Eye size={20} />}
           label="Profile Views"
           value={data.engagement.totalViews}
-          sub={`${data.engagement.viewsThisMonth.toLocaleString()} this month`}
+          sub={`${formatCompact(data.engagement.viewsThisMonth)} this month`}
         />
         <MetricCard
           icon={<DollarSign size={20} />}
           label="Total Tips"
-          value={`${data.revenue.totalTips.toLocaleString()} XLM`}
+          value={`${formatCompact(data.revenue.totalTips, { maximumFractionDigits: 2 })} XLM`}
           sub={`${data.revenue.totalTipCount} transactions`}
         />
       </div>

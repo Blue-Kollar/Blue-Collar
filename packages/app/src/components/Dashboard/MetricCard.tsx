@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { TrendingUp, TrendingDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatCompact } from "@/lib/format";
 
 export interface MetricCardProps {
   icon?: ReactNode;
@@ -35,7 +36,7 @@ export function MetricCard({ icon, label, value, sub, trend, className }: Metric
       {trend !== undefined ? (
         <div className="flex items-end gap-2 mt-1">
           <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-            {typeof value === "number" ? value.toLocaleString() : value}
+            {typeof value === "number" ? formatCompact(value) : value}
           </p>
           <span
             className={cn(
@@ -49,7 +50,7 @@ export function MetricCard({ icon, label, value, sub, trend, className }: Metric
         </div>
       ) : (
         <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">
-          {typeof value === "number" ? value.toLocaleString() : value}
+          {typeof value === "number" ? formatCompact(value) : value}
         </p>
       )}
 
