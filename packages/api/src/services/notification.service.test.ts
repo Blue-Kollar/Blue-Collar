@@ -2,7 +2,7 @@
  * Unit tests for the notifications flow (closes #1050).
  *
  * Covers packages/api/src/services/notification.service.ts at the unit level
- * by mocking the Prisma DB client, the mailer, and the push service.
+ * by mocking the Prisma DB client, mailer, push service, and notification channels.
  *
  * Scenarios tested:
  *  - dispatchNotification: in-app notification always created
@@ -14,6 +14,7 @@
  *  - getDeliveryLog: returns stored logs / null for unknown notification
  *  - updateNotificationPreferences: calls upsert with correct payload
  *  - isInQuietHours: returns false when no prefs row, true in quiet window
+ *  - Adding a custom channel needs no changes to the core service (adapter isolation)
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
@@ -73,7 +74,11 @@ import {
   getDeliveryLog,
   updateNotificationPreferences,
   isInQuietHours,
+  createNotificationService,
 } from './notification.service.js'
+import type { NotificationChannel } from './channels/NotificationChannel.js'
+import { ChannelRegistry } from './channels/ChannelRegistry.js'
+import { nowUtc } from '@/utils/date.js'
 
 const USER_ID = 'user-unit-001'
 const NOTIF_ID = 'notif-unit-001'
@@ -99,27 +104,151 @@ function makeNotification(overrides = {}) {
   }
 }
 
+// ── Fake channel implementations for testing ──────────────────────────────────
+
+/**
+ * Fake email channel for unit tests.
+ * Tracks calls and allows error injection.
+ */
+class FakeEmailChannel implements NotificationChannel {
+  readonly name = 'email'
+  public sendCalled = false
+  public shouldThrow = false
+
+  shouldSend(message: any, prefs: Record<string, boolean>): boolean {
+    const typeMap: Record<string, string> = {
+      'review': 'reviewReply',
+      'system': 'announcements',
+    }
+    const prefKey = typeMap[message.type]
+    return prefKey ? (prefs[prefKey] ?? true) : true
+  }
+
+  async send(message: any) {
+    this.sendCalled = true
+    if (this.shouldThrow) {
+      throw new Error('Fake email channel error')
+    }
+    return {
+      channel: this.name,
+      status: 'sent' as const,
+      sentAt: nowUtc(),
+    }
+  }
+
+  reset() {
+    this.sendCalled = false
+    this.shouldThrow = false
+  }
+}
+
+/**
+ * Fake push channel for unit tests.
+ * Tracks calls and allows error injection.
+ */
+class FakePushChannel implements NotificationChannel {
+  readonly name = 'push'
+  public sendCalled = false
+  public shouldThrow = false
+
+  shouldSend(message: any, prefs: Record<string, boolean>): boolean {
+    if (message.type === 'review') {
+      return prefs['reviewReply'] ?? true
+    }
+    return true
+  }
+
+  async send(message: any) {
+    this.sendCalled = true
+    if (this.shouldThrow) {
+      throw new Error('Fake push channel error')
+    }
+    return {
+      channel: this.name,
+      status: 'sent' as const,
+      sentAt: nowUtc(),
+    }
+  }
+
+  reset() {
+    this.sendCalled = false
+    this.shouldThrow = false
+  }
+}
+
+/**
+ * Fake in-app channel for unit tests.
+ * Always returns success.
+ */
+class FakeInAppChannel implements NotificationChannel {
+  readonly name = 'inapp'
+  public sendCalled = false
+
+  shouldSend(): boolean {
+    return true
+  }
+
+  async send(message: any) {
+    this.sendCalled = true
+    return {
+      channel: this.name,
+      status: 'sent' as const,
+      sentAt: nowUtc(),
+    }
+  }
+
+  reset() {
+    this.sendCalled = false
+  }
+}
+
 // ═════════════════════════════════════════════════════════════════════════════
 // dispatchNotification
 // ═════════════════════════════════════════════════════════════════════════════
 
 describe('dispatchNotification', () => {
+  let fakeEmailChannel: FakeEmailChannel
+  let fakePushChannel: FakePushChannel
+  let fakeInAppChannel: FakeInAppChannel
+  let channelRegistry: ChannelRegistry
+
   beforeEach(() => {
     vi.clearAllMocks()
+
+    // Create fresh fake channels for each test
+    fakeEmailChannel = new FakeEmailChannel()
+    fakePushChannel = new FakePushChannel()
+    fakeInAppChannel = new FakeInAppChannel()
+
+    // Create registry with fake channels
+    channelRegistry = new ChannelRegistry([
+      fakeInAppChannel,
+      fakeEmailChannel,
+      fakePushChannel,
+    ])
+
     // Default: prefs row exists with everything enabled
     mockNotificationPreferencesFindUnique.mockResolvedValue({ ...DEFAULT_PREFS })
     mockNotificationCreate.mockResolvedValue(makeNotification())
-    mockUserFindUnique.mockResolvedValue({ email: 'user@example.com', firstName: 'Test' })
-    mockMailerSend.mockResolvedValue(undefined)
-    mockSendPush.mockResolvedValue(undefined)
+    mockUserFindUnique.mockResolvedValue({
+      email: 'user@example.com',
+      firstName: 'Test',
+    })
   })
 
-  afterEach(() => vi.clearAllMocks())
+  afterEach(() => {
+    vi.clearAllMocks()
+  })
 
   // ── In-app notification ───────────────────────────────────────────────────
 
   it('always creates an in-app notification record', async () => {
-    await dispatchNotification({
+    const service = createNotificationService({
+      notificationRepository: {} as any,
+      channelRegistry,
+    })
+
+    await service.dispatchNotification({
       userId: USER_ID,
       type: 'system',
       title: 'Platform update',
@@ -135,14 +264,39 @@ describe('dispatchNotification', () => {
           title: 'Platform update',
           message: 'New feature launched',
         }),
-      }),
+      })
     )
+  })
+
+  it('routes through all channels when specified', async () => {
+    const service = createNotificationService({
+      notificationRepository: {} as any,
+      channelRegistry,
+    })
+
+    await service.dispatchNotification({
+      userId: USER_ID,
+      type: 'system',
+      title: 'Multi-channel',
+      message: 'Test message',
+      channels: ['inapp', 'email', 'push'],
+    })
+
+    // All channels should send
+    expect(fakeInAppChannel.sendCalled).toBe(true)
+    expect(fakeEmailChannel.sendCalled).toBe(true)
+    expect(fakePushChannel.sendCalled).toBe(true)
   })
 
   // ── Email delivery ────────────────────────────────────────────────────────
 
   it('sends email when channel is requested and preferences allow it', async () => {
-    await dispatchNotification({
+    const service = createNotificationService({
+      notificationRepository: {} as any,
+      channelRegistry,
+    })
+
+    await service.dispatchNotification({
       userId: USER_ID,
       type: 'system',
       title: 'Update',
@@ -150,7 +304,7 @@ describe('dispatchNotification', () => {
       channels: ['email'],
     })
 
-    expect(mockMailerSend).toHaveBeenCalledOnce()
+    expect(fakeEmailChannel.sendCalled).toBe(true)
   })
 
   it('skips email for system type when announcements preference is false', async () => {
@@ -159,7 +313,12 @@ describe('dispatchNotification', () => {
       announcements: false,
     })
 
-    await dispatchNotification({
+    const service = createNotificationService({
+      notificationRepository: {} as any,
+      channelRegistry,
+    })
+
+    await service.dispatchNotification({
       userId: USER_ID,
       type: 'system',
       title: 'Skipped',
@@ -167,7 +326,7 @@ describe('dispatchNotification', () => {
       channels: ['email'],
     })
 
-    expect(mockMailerSend).not.toHaveBeenCalled()
+    expect(fakeEmailChannel.sendCalled).toBe(false)
   })
 
   it('skips email for review type when reviewReply preference is false', async () => {
@@ -176,7 +335,12 @@ describe('dispatchNotification', () => {
       reviewReply: false,
     })
 
-    await dispatchNotification({
+    const service = createNotificationService({
+      notificationRepository: {} as any,
+      channelRegistry,
+    })
+
+    await service.dispatchNotification({
       userId: USER_ID,
       type: 'review',
       title: 'Review reply',
@@ -184,11 +348,16 @@ describe('dispatchNotification', () => {
       channels: ['email'],
     })
 
-    expect(mockMailerSend).not.toHaveBeenCalled()
+    expect(fakeEmailChannel.sendCalled).toBe(false)
   })
 
   it('sends email for contact type (default allow)', async () => {
-    await dispatchNotification({
+    const service = createNotificationService({
+      notificationRepository: {} as any,
+      channelRegistry,
+    })
+
+    await service.dispatchNotification({
       userId: USER_ID,
       type: 'contact',
       title: 'New contact',
@@ -196,13 +365,18 @@ describe('dispatchNotification', () => {
       channels: ['email'],
     })
 
-    expect(mockMailerSend).toHaveBeenCalledOnce()
+    expect(fakeEmailChannel.sendCalled).toBe(true)
   })
 
   // ── Push delivery ─────────────────────────────────────────────────────────
 
   it('sends push when channel is requested', async () => {
-    await dispatchNotification({
+    const service = createNotificationService({
+      notificationRepository: {} as any,
+      channelRegistry,
+    })
+
+    await service.dispatchNotification({
       userId: USER_ID,
       type: 'system',
       title: 'Push me',
@@ -210,11 +384,7 @@ describe('dispatchNotification', () => {
       channels: ['push'],
     })
 
-    expect(mockSendPush).toHaveBeenCalledOnce()
-    expect(mockSendPush).toHaveBeenCalledWith(
-      USER_ID,
-      expect.objectContaining({ title: 'Push me' }),
-    )
+    expect(fakePushChannel.sendCalled).toBe(true)
   })
 
   it('skips push for review type when reviewReply preference is false', async () => {
@@ -223,7 +393,12 @@ describe('dispatchNotification', () => {
       reviewReply: false,
     })
 
-    await dispatchNotification({
+    const service = createNotificationService({
+      notificationRepository: {} as any,
+      channelRegistry,
+    })
+
+    await service.dispatchNotification({
       userId: USER_ID,
       type: 'review',
       title: 'Review',
@@ -231,7 +406,7 @@ describe('dispatchNotification', () => {
       channels: ['push'],
     })
 
-    expect(mockSendPush).not.toHaveBeenCalled()
+    expect(fakePushChannel.sendCalled).toBe(false)
   })
 
   // ── Default preferences fallback ──────────────────────────────────────────
@@ -239,7 +414,12 @@ describe('dispatchNotification', () => {
   it('uses all-enabled defaults when no preferences row exists for the user', async () => {
     mockNotificationPreferencesFindUnique.mockResolvedValue(null)
 
-    await dispatchNotification({
+    const service = createNotificationService({
+      notificationRepository: {} as any,
+      channelRegistry,
+    })
+
+    await service.dispatchNotification({
       userId: USER_ID,
       type: 'system',
       title: 'No prefs row',
@@ -248,36 +428,47 @@ describe('dispatchNotification', () => {
     })
 
     // Both channels should fire even without a prefs row
-    expect(mockMailerSend).toHaveBeenCalledOnce()
-    expect(mockSendPush).toHaveBeenCalledOnce()
+    expect(fakeEmailChannel.sendCalled).toBe(true)
+    expect(fakePushChannel.sendCalled).toBe(true)
   })
 
   // ── Channel failure resilience ────────────────────────────────────────────
 
   it('still creates the in-app notification even when email throws', async () => {
-    mockMailerSend.mockRejectedValue(new Error('SMTP timeout'))
+    fakeEmailChannel.shouldThrow = true
 
-    await dispatchNotification({
+    const service = createNotificationService({
+      notificationRepository: {} as any,
+      channelRegistry,
+    })
+
+    await service.dispatchNotification({
       userId: USER_ID,
       type: 'system',
       title: 'Error resilience',
       message: 'Should survive',
-      channels: ['email'],
+      channels: ['inapp', 'email'],
     })
 
     // in-app record was created despite email failure
     expect(mockNotificationCreate).toHaveBeenCalledOnce()
+    expect(fakeInAppChannel.sendCalled).toBe(true)
   })
 
   it('still creates the in-app notification when push throws', async () => {
-    mockSendPush.mockRejectedValue(new Error('FCM unavailable'))
+    fakePushChannel.shouldThrow = true
 
-    await dispatchNotification({
+    const service = createNotificationService({
+      notificationRepository: {} as any,
+      channelRegistry,
+    })
+
+    await service.dispatchNotification({
       userId: USER_ID,
       type: 'system',
       title: 'Push failure',
       message: 'Still in-app',
-      channels: ['push'],
+      channels: ['inapp', 'push'],
     })
 
     expect(mockNotificationCreate).toHaveBeenCalledOnce()
@@ -286,6 +477,11 @@ describe('dispatchNotification', () => {
   // ── Deduplication ─────────────────────────────────────────────────────────
 
   it('deduplicates identical notifications within the 1-minute window', async () => {
+    const service = createNotificationService({
+      notificationRepository: {} as any,
+      channelRegistry,
+    })
+
     const payload = {
       userId: USER_ID,
       type: 'system',
@@ -293,16 +489,31 @@ describe('dispatchNotification', () => {
       message: 'Unique message for dedup',
     }
 
-    await dispatchNotification(payload)
-    await dispatchNotification(payload) // duplicate
+    await service.dispatchNotification(payload)
+    await service.dispatchNotification(payload) // duplicate
 
     // Second call should be deduplicated — notification created only once
     expect(mockNotificationCreate).toHaveBeenCalledOnce()
   })
 
   it('does NOT deduplicate notifications with different messages', async () => {
-    await dispatchNotification({ userId: USER_ID, type: 'system', title: 'T', message: 'msg-A' })
-    await dispatchNotification({ userId: USER_ID, type: 'system', title: 'T', message: 'msg-B' })
+    const service = createNotificationService({
+      notificationRepository: {} as any,
+      channelRegistry,
+    })
+
+    await service.dispatchNotification({
+      userId: USER_ID,
+      type: 'system',
+      title: 'T',
+      message: 'msg-A',
+    })
+    await service.dispatchNotification({
+      userId: USER_ID,
+      type: 'system',
+      title: 'T',
+      message: 'msg-B',
+    })
 
     expect(mockNotificationCreate).toHaveBeenCalledTimes(2)
   })
@@ -310,7 +521,12 @@ describe('dispatchNotification', () => {
   // ── href propagation ──────────────────────────────────────────────────────
 
   it('persists the href field in the notification record', async () => {
-    await dispatchNotification({
+    const service = createNotificationService({
+      notificationRepository: {} as any,
+      channelRegistry,
+    })
+
+    await service.dispatchNotification({
       userId: USER_ID,
       type: 'tip',
       title: 'New tip',
@@ -321,14 +537,19 @@ describe('dispatchNotification', () => {
     expect(mockNotificationCreate).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({ href: '/workers/w-001' }),
-      }),
+      })
     )
   })
 
   // ── inapp-only ────────────────────────────────────────────────────────────
 
   it('does not send email or push when channels is ["inapp"] only', async () => {
-    await dispatchNotification({
+    const service = createNotificationService({
+      notificationRepository: {} as any,
+      channelRegistry,
+    })
+
+    await service.dispatchNotification({
       userId: USER_ID,
       type: 'system',
       title: 'In-app only',
@@ -336,11 +557,61 @@ describe('dispatchNotification', () => {
       channels: ['inapp'],
     })
 
-    expect(mockMailerSend).not.toHaveBeenCalled()
-    expect(mockSendPush).not.toHaveBeenCalled()
+    expect(fakeEmailChannel.sendCalled).toBe(false)
+    expect(fakePushChannel.sendCalled).toBe(false)
+    expect(fakeInAppChannel.sendCalled).toBe(true)
     expect(mockNotificationCreate).toHaveBeenCalledOnce()
   })
+
+  // ── Adapter isolation: adding a channel needs no change to core service ─────
+
+  it('allows adding a custom channel without modifying the service', async () => {
+    class CustomNotificationChannel implements NotificationChannel {
+      readonly name = 'custom'
+      public sendCalled = false
+
+      shouldSend(): boolean {
+        return true
+      }
+
+      async send() {
+        this.sendCalled = true
+        return {
+          channel: this.name,
+          status: 'sent' as const,
+          sentAt: nowUtc(),
+        }
+      }
+    }
+
+    const customChannel = new CustomNotificationChannel()
+    const testRegistry = new ChannelRegistry([
+      fakeInAppChannel,
+      customChannel,
+    ])
+
+    const service = createNotificationService({
+      notificationRepository: {} as any,
+      channelRegistry: testRegistry,
+    })
+
+    await service.dispatchNotification({
+      userId: USER_ID,
+      type: 'system',
+      title: 'Custom channel test',
+      message: 'Testing new channel',
+      channels: ['custom'],
+    })
+
+    expect(customChannel.sendCalled).toBe(true)
+    // In-app is always included by default, but custom was explicitly requested
+    expect(fakeInAppChannel.sendCalled).toBe(false)
+  })
 })
+
+// ═════════════════════════════════════════════════════════════════════════════
+// getDeliveryLog
+// ═════════════════════════════════════════════════════════════════════════════
 
 // ═════════════════════════════════════════════════════════════════════════════
 // getDeliveryLog
@@ -352,26 +623,46 @@ describe('getDeliveryLog', () => {
   it('returns an empty array when the notification exists but has no cached logs', async () => {
     mockNotificationFindUnique.mockResolvedValue({ id: NOTIF_ID })
 
-    const logs = await getDeliveryLog(NOTIF_ID)
+    const service = createNotificationService({
+      notificationRepository: {} as any,
+    })
+
+    const logs = await service.getDeliveryLog(NOTIF_ID)
     expect(Array.isArray(logs)).toBe(true)
   })
 
   it('returns null when the notification does not exist in the DB', async () => {
     mockNotificationFindUnique.mockResolvedValue(null)
 
-    const logs = await getDeliveryLog('non-existent-id')
+    const service = createNotificationService({
+      notificationRepository: {} as any,
+    })
+
+    const logs = await service.getDeliveryLog('non-existent-id')
     expect(logs).toBeNull()
   })
 
   it('returns delivery logs after a successful dispatch', async () => {
-    // Reset mocks for an isolated dispatch
     mockNotificationPreferencesFindUnique.mockResolvedValue({ ...DEFAULT_PREFS })
     mockNotificationCreate.mockResolvedValue(makeNotification({ id: 'log-test-notif' }))
     mockUserFindUnique.mockResolvedValue({ email: 'u@e.com', firstName: 'U' })
-    mockMailerSend.mockResolvedValue(undefined)
-    mockSendPush.mockResolvedValue(undefined)
 
-    await dispatchNotification({
+    // Create fake channels for this test
+    const fakeEmailChannel = new FakeEmailChannel()
+    const fakeInAppChannel = new FakeInAppChannel()
+    const fakePushChannel = new FakePushChannel()
+    const channelRegistry = new ChannelRegistry([
+      fakeInAppChannel,
+      fakeEmailChannel,
+      fakePushChannel,
+    ])
+
+    const service = createNotificationService({
+      notificationRepository: {} as any,
+      channelRegistry,
+    })
+
+    await service.dispatchNotification({
       userId: USER_ID,
       type: 'system',
       title: 'Log test',
@@ -380,7 +671,7 @@ describe('getDeliveryLog', () => {
     })
 
     mockNotificationFindUnique.mockResolvedValue({ id: 'log-test-notif' })
-    const logs = await getDeliveryLog('log-test-notif')
+    const logs = await service.getDeliveryLog('log-test-notif')
     expect(logs).not.toBeNull()
     expect(Array.isArray(logs)).toBe(true)
   })
@@ -396,33 +687,54 @@ describe('updateNotificationPreferences', () => {
   it('calls upsert with the correct userId and preference data', async () => {
     mockNotificationPreferencesUpsert.mockResolvedValue({})
 
-    await updateNotificationPreferences(USER_ID, { announcements: false, reviewReply: true })
+    const service = createNotificationService({
+      notificationRepository: {} as any,
+    })
+
+    await service.updateNotificationPreferences(USER_ID, {
+      announcements: false,
+      reviewReply: true,
+    })
 
     expect(mockNotificationPreferencesUpsert).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { userId: USER_ID },
-        update: expect.objectContaining({ announcements: false, reviewReply: true }),
-        create: expect.objectContaining({ announcements: false, reviewReply: true }),
-      }),
+        update: expect.objectContaining({
+          announcements: false,
+          reviewReply: true,
+        }),
+        create: expect.objectContaining({
+          announcements: false,
+          reviewReply: true,
+        }),
+      })
     )
   })
 
   it('supports partial preference updates', async () => {
     mockNotificationPreferencesUpsert.mockResolvedValue({})
 
-    await updateNotificationPreferences(USER_ID, { newWorkerNearby: false })
+    const service = createNotificationService({
+      notificationRepository: {} as any,
+    })
+
+    await service.updateNotificationPreferences(USER_ID, { newWorkerNearby: false })
 
     expect(mockNotificationPreferencesUpsert).toHaveBeenCalledWith(
       expect.objectContaining({
         update: expect.objectContaining({ newWorkerNearby: false }),
-      }),
+      })
     )
   })
 
   it('supports quiet hours fields', async () => {
     mockNotificationPreferencesUpsert.mockResolvedValue({})
 
-    await updateNotificationPreferences(USER_ID, {
+    const service = createNotificationService({
+      notificationRepository: {} as any,
+    })
+
+    await service.updateNotificationPreferences(USER_ID, {
       quietHoursStart: '22:00',
       quietHoursEnd: '08:00',
     })
@@ -433,7 +745,7 @@ describe('updateNotificationPreferences', () => {
           quietHoursStart: '22:00',
           quietHoursEnd: '08:00',
         }),
-      }),
+      })
     )
   })
 })
@@ -448,7 +760,11 @@ describe('isInQuietHours', () => {
   it('returns false when no preferences row exists', async () => {
     mockNotificationPreferencesFindUnique.mockResolvedValue(null)
 
-    const result = await isInQuietHours(USER_ID)
+    const service = createNotificationService({
+      notificationRepository: {} as any,
+    })
+
+    const result = await service.isInQuietHours(USER_ID)
     expect(result).toBe(false)
   })
 
@@ -457,7 +773,12 @@ describe('isInQuietHours', () => {
 
     // Fake it being 23:00
     vi.spyOn(Date.prototype, 'getHours').mockReturnValue(23)
-    const result = await isInQuietHours(USER_ID)
+
+    const service = createNotificationService({
+      notificationRepository: {} as any,
+    })
+
+    const result = await service.isInQuietHours(USER_ID)
     vi.restoreAllMocks()
 
     expect(result).toBe(true)
@@ -467,7 +788,12 @@ describe('isInQuietHours', () => {
     mockNotificationPreferencesFindUnique.mockResolvedValue({ ...DEFAULT_PREFS })
 
     vi.spyOn(Date.prototype, 'getHours').mockReturnValue(3)
-    const result = await isInQuietHours(USER_ID)
+
+    const service = createNotificationService({
+      notificationRepository: {} as any,
+    })
+
+    const result = await service.isInQuietHours(USER_ID)
     vi.restoreAllMocks()
 
     expect(result).toBe(true)
@@ -477,7 +803,12 @@ describe('isInQuietHours', () => {
     mockNotificationPreferencesFindUnique.mockResolvedValue({ ...DEFAULT_PREFS })
 
     vi.spyOn(Date.prototype, 'getHours').mockReturnValue(10)
-    const result = await isInQuietHours(USER_ID)
+
+    const service = createNotificationService({
+      notificationRepository: {} as any,
+    })
+
+    const result = await service.isInQuietHours(USER_ID)
     vi.restoreAllMocks()
 
     expect(result).toBe(false)

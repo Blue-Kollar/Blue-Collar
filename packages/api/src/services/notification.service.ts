@@ -2,9 +2,13 @@ import type { NotificationType } from '@prisma/client'
 import { notificationRepository as defaultNotificationRepository } from '@/repositories/notification.repository.js'
 import { AppError } from '@/utils/app-error.js'
 import { logger } from '@/config/logger.js'
-import { mailer } from '@/mailer/index.js'
-import { nowUtc, addUtcMs } from '@/utils/date.js'
-import * as pushService from './push.service.js'
+import { nowUtc } from '@/utils/date.js'
+import {
+  type ChannelRegistry,
+  type NotificationMessage,
+  type DeliveryResult,
+  defaultChannelRegistry,
+} from './channels/index.js'
 import type { NotificationServiceDeps } from '@/container/types.js'
 
 interface NotificationPayload {
@@ -36,28 +40,6 @@ const DEFAULT_PREFERENCES = {
   announcements: true,
 }
 
-/**
- * Minimal view of a user's notification preferences that the dispatch gates
- * depend on.
- */
-interface NotificationPrefsView {
-  reviewReply: boolean
-  announcements: boolean
-}
-
-function shouldSendEmail(prefs: NotificationPrefsView, type: string): boolean {
-  const typeMap: Record<string, keyof NotificationPrefsView> = {
-    'review': 'reviewReply',
-    'system': 'announcements',
-  }
-  const key = typeMap[type]
-  return key ? prefs[key] : true
-}
-
-function shouldSendPush(prefs: NotificationPrefsView, type: string): boolean {
-  return !['review'].includes(type) || prefs.reviewReply
-}
-
 function isDuplicate(dedupKey: string): boolean {
   const cached = deliveryCache.get(dedupKey)
   if (cached && nowUtc().getTime() - cached[0].sentAt.getTime() < DEDUP_WINDOW) {
@@ -75,14 +57,18 @@ function storeDeliveryLog(notificationId: string, logs: DeliveryLog[]): void {
 
 // ── Factory ───────────────────────────────────────────────────────────────────
 
-export function createNotificationService(deps: NotificationServiceDeps) {
+interface NotificationServiceDepsWithChannels extends NotificationServiceDeps {
+  channelRegistry?: ChannelRegistry
+}
+
+export function createNotificationService(deps: NotificationServiceDepsWithChannels) {
   const { notificationRepository: repo } = deps
+  const channelRegistry = deps.channelRegistry ?? defaultChannelRegistry
 
   return {
     async dispatchNotification(payload: NotificationPayload): Promise<void> {
       const prefs = (await repo.findPreferences(payload.userId)) ?? DEFAULT_PREFERENCES
-
-      const channels = payload.channels || ['email', 'push', 'inapp']
+      const requestedChannelNames = payload.channels || ['inapp', 'email', 'push']
       const dedupKey = `${payload.userId}:${payload.type}:${payload.message}`
 
       if (isDuplicate(dedupKey)) {
@@ -103,49 +89,52 @@ export function createNotificationService(deps: NotificationServiceDeps) {
         href: payload.href,
       })
 
-      const logs: DeliveryLog[] = []
-
-      if (channels.includes('email') && shouldSendEmail(prefs, payload.type)) {
-        try {
-          const user = await repo.findUserEmailAndName(payload.userId)
-          if (!user) throw new AppError('User not found', 404)
-
-          await mailer.send({
-            to: user.email,
-            subject: payload.title,
-            text: payload.message,
-            html: `<p>${payload.message}</p>${payload.href ? `<a href="${payload.href}">View</a>` : ''}`,
-          })
-          logs.push({ notificationId: notification.id, userId: payload.userId, channel: 'email', status: 'sent', sentAt: nowUtc() })
-        } catch (error) {
-          logger.error({ error, userId: payload.userId }, 'Email notification failed')
-          logs.push({
-            notificationId: notification.id,
-            userId: payload.userId,
-            channel: 'email',
-            status: 'failed',
-            error: error instanceof Error ? error.message : 'Unknown error',
-            sentAt: nowUtc(),
-          })
-        }
+      // Build the message for channel adapters
+      const message: NotificationMessage = {
+        userId: payload.userId,
+        type: payload.type,
+        title: payload.title,
+        message: payload.message,
+        href: payload.href,
+        data: payload.data,
       }
 
-      if (channels.includes('push') && shouldSendPush(prefs, payload.type)) {
+      // Get requested channels (at least inapp is always included)
+      const channels = channelRegistry.getChannelsByNames(requestedChannelNames)
+
+      // Route through each channel, filtering by shouldSend and collecting results
+      const logs: DeliveryLog[] = []
+      for (const channel of channels) {
         try {
-          await pushService.sendPushNotification(payload.userId, {
-            title: payload.title,
-            body: payload.message,
-            tag: payload.type,
-          })
-          logs.push({ notificationId: notification.id, userId: payload.userId, channel: 'push', status: 'sent', sentAt: nowUtc() })
-        } catch (error) {
-          logger.error({ error, userId: payload.userId }, 'Push notification failed')
+          // Check if channel should send based on preferences
+          const should = await channel.shouldSend(message, prefs)
+          if (!should) {
+            continue
+          }
+
+          // Deliver through the channel
+          const result = await channel.send(message)
+
           logs.push({
             notificationId: notification.id,
             userId: payload.userId,
-            channel: 'push',
+            channel: result.channel,
+            status: result.status,
+            error: result.error,
+            sentAt: result.sentAt,
+          })
+        } catch (error) {
+          logger.error(
+            { error, userId: payload.userId, channel: channel.name },
+            'Channel dispatch error'
+          )
+          logs.push({
+            notificationId: notification.id,
+            userId: payload.userId,
+            channel: channel.name,
             status: 'failed',
-            error: error instanceof Error ? error.message : 'Unknown error',
+            error:
+              error instanceof Error ? error.message : 'Unknown error',
             sentAt: nowUtc(),
           })
         }

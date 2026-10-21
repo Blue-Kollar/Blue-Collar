@@ -1,5 +1,10 @@
 import { AppError, ErrorCode } from '@/utils/app-error.js'
 import { nowUtc } from '@/utils/date.js'
+import {
+  calculateFee as domainCalculateFee,
+  validateBasisPoints,
+  MAX_BASIS_POINTS,
+} from '@/domain/fees.js'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -62,11 +67,21 @@ export interface MultiSigEscrowResult {
 
 // ── Standalone helpers (kept for backward-compat & Stryker coverage) ─────────
 
+/**
+ * Calculate the platform fee for a given amount and basis points.
+ * Delegates to the domain module which contains the canonical implementation.
+ *
+ * @see @/domain/fees.ts
+ */
 export function calculateFee(amount: number, fee_bps: number): number {
-  if (fee_bps < 0 || fee_bps > 10_000) {
-    throw new AppError('fee_bps must be between 0 and 10000', 400, true, ErrorCode.VALIDATION_ERROR)
+  try {
+    return domainCalculateFee(amount, fee_bps)
+  } catch (error) {
+    if (error instanceof RangeError) {
+      throw new AppError('fee_bps must be between 0 and 10000', 400, true, ErrorCode.VALIDATION_ERROR)
+    }
+    throw error
   }
-  return Math.floor((amount * fee_bps) / 10_000)
 }
 
 // Module-level fee state (shared with PaymentService singleton)
@@ -80,8 +95,13 @@ export function updateFeeBps(callerRole: string, fee_bps: number): void {
   if (callerRole !== 'admin') {
     throw new AppError('Only admins can update the fee', 403, true, ErrorCode.FORBIDDEN)
   }
-  if (fee_bps < 0 || fee_bps > 10_000) {
-    throw new AppError('fee_bps must be between 0 and 10000', 400, true, ErrorCode.VALIDATION_ERROR)
+  try {
+    validateBasisPoints(fee_bps)
+  } catch (error) {
+    if (error instanceof RangeError) {
+      throw new AppError('fee_bps must be between 0 and 10000', 400, true, ErrorCode.VALIDATION_ERROR)
+    }
+    throw error
   }
   _feeBps = fee_bps
 }
@@ -148,8 +168,13 @@ export class PaymentService {
     if (callerRole !== 'admin') {
       throw new AppError('Only admins can update the fee', 403, true, ErrorCode.FORBIDDEN)
     }
-    if (fee_bps < 0 || fee_bps > 10_000) {
-      throw new AppError('fee_bps must be between 0 and 10000', 400, true, ErrorCode.VALIDATION_ERROR)
+    try {
+      validateBasisPoints(fee_bps)
+    } catch (error) {
+      if (error instanceof RangeError) {
+        throw new AppError('fee_bps must be between 0 and 10000', 400, true, ErrorCode.VALIDATION_ERROR)
+      }
+      throw error
     }
     this.feeBps = fee_bps
   }
