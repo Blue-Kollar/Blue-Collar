@@ -13,7 +13,8 @@
     "lint": "pnpm --filter @bluecollar/api lint && pnpm --filter @bluecollar/app lint",
     "format": "prettier --write \"packages/**/*.{ts,tsx,js,json,md}\"",
     "docker:up": "docker compose up -d",
-    "docker:down": "docker compose down"
+    "docker:down": "docker compose down",
+    "check:compose-env": "node scripts/check-compose-env.js"
   },
   "devDependencies": {
     "concurrently": "^9.1.2",

@@ -202,3 +202,12 @@ See [docs/i18n-translations.md](./docs/i18n-translations.md) for contributing tr
 - Validating translation completeness
 
 Translation PRs should use the `i18n:` commit type and reference the language being added.
+
+---
+
+## Compose Env Audit
+
+`docker-compose*.yml` variables must be read by code. Run:
+
+```bash
+pnpm check:compose-env
