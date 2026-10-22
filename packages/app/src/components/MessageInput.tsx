@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import { Send, Paperclip, Smile } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface Props {
   onSend: (body: string) => void;
@@ -11,6 +12,7 @@ interface Props {
 const EMOJIS = ["👍", "❤️", "😂", "😊", "🎉", "👏", "🔥", "💯", "🙏", "✨"];
 
 export default function MessageInput({ onSend, disabled }: Props) {
+  const t = useTranslations("componentText");
   const [message, setMessage] = useState("");
   const [showEmoji, setShowEmoji] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -49,14 +51,14 @@ export default function MessageInput({ onSend, disabled }: Props) {
           type="button"
           onClick={() => setShowEmoji((s) => !s)}
           className="flex h-9 w-9 items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-          aria-label="Toggle emoji picker"
+          aria-label={t("toggleEmojiPicker")}
         >
           <Smile size={18} />
         </button>
         <button
           type="button"
           className="flex h-9 w-9 items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-          aria-label="Attach file"
+          aria-label={t("attachFile")}
         >
           <Paperclip size={18} />
         </button>
@@ -65,7 +67,7 @@ export default function MessageInput({ onSend, disabled }: Props) {
           type="text"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          placeholder="Type a message..."
+          placeholder={t("typeMessage")}
           disabled={disabled}
           className="flex-1 rounded-full border border-gray-300 bg-gray-50 px-4 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-500"
         />
@@ -73,7 +75,7 @@ export default function MessageInput({ onSend, disabled }: Props) {
           type="submit"
           disabled={!message.trim() || disabled}
           className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
-          aria-label="Send message"
+          aria-label={t("sendMessage")}
         >
           <Send size={15} />
         </button>

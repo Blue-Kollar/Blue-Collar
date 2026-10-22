@@ -2,6 +2,7 @@
 
 import { Clock, Star, MessageSquare, Wallet, Heart } from "lucide-react";
 import { cn, formatDate } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 export type ActivityType = "tip" | "review" | "message" | "bookmark" | "escrow";
 
@@ -31,9 +32,10 @@ const colorMap: Record<ActivityType, string> = {
 };
 
 export function ActivityTimeline({ items }: { items: ActivityItem[] }) {
+  const t = useTranslations("componentText");
   if (items.length === 0) {
     return (
-      <div className="py-10 text-center text-sm text-gray-400">No activity yet.</div>
+      <div className="py-10 text-center text-sm text-gray-400">{t("noActivity")}</div>
     );
   }
 

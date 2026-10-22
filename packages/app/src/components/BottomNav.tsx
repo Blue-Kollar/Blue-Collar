@@ -5,15 +5,17 @@ import { usePathname } from "next/navigation";
 import { Compass, Search, Wallet, User } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 const BOTTOM_NAV_ITEMS = [
-  { href: "/", label: "Discover", icon: Compass },
-  { href: "/workers", label: "Search", icon: Search },
-  { href: "/wallet", label: "Wallet", icon: Wallet },
-  { href: "/profile", label: "Profile", icon: User },
+  { href: "/", key: "discover", icon: Compass },
+  { href: "/workers", key: "search", icon: Search },
+  { href: "/wallet", key: "wallet", icon: Wallet },
+  { href: "/profile", key: "profile", icon: User },
 ];
 
 export default function BottomNav() {
+  const t = useTranslations("nav");
   const pathname = usePathname();
   const { user } = useAuth();
 
@@ -24,10 +26,10 @@ export default function BottomNav() {
     <nav 
       className="md:hidden fixed bottom-0 inset-x-0 z-40 border-t bg-white/95 dark:bg-gray-900/95 dark:border-gray-800 backdrop-blur safe-area-pb"
       role="navigation"
-      aria-label="Mobile navigation"
+      aria-label={t("mobileNavigation")}
     >
       <div className="flex items-stretch">
-        {BOTTOM_NAV_ITEMS.map(({ href, label, icon: Icon }) => {
+        {BOTTOM_NAV_ITEMS.map(({ href, key, icon: Icon }) => {
           const isActive = pathname === href || (href !== "/" && pathname.startsWith(href));
           return (
             <Link
@@ -46,7 +48,7 @@ export default function BottomNav() {
                 strokeWidth={isActive ? 2.5 : 1.75}
                 fill={isActive ? "currentColor" : "none"}
               />
-              <span className="text-[10px]">{label}</span>
+              <span className="text-[10px]">{t(key)}</span>
             </Link>
           );
         })}

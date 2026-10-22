@@ -4,7 +4,8 @@
  */
 
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { render, screen, fireEvent, cleanup } from "@testing-library/react";
+import { screen, fireEvent, cleanup } from "@testing-library/react";
+import { renderWithIntl as render } from "@/__tests__/renderWithIntl";
 import SlotEditor from "@/components/AvailabilityCalendar/SlotEditor";
 
 afterEach(cleanup);

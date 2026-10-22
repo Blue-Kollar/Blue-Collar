@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { Search, Bookmark, Star, Users, TrendingUp } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 type Variant = 'no-workers' | 'no-bookmarks' | 'no-reviews' | 'no-search-results' | 'no-transactions'
 
@@ -8,47 +9,17 @@ interface EmptyStateProps {
   ctaHref?: string
 }
 
-const illustrations: Record<Variant, { icon: React.ReactNode; title: string; description: string; cta: string; defaultHref: string }> = {
-  'no-workers': {
-    icon: <UsersIllustration />,
-    title: 'No workers listed yet',
-    description: 'Be the first to add a skilled worker to the community.',
-    cta: 'Add a Worker',
-    defaultHref: '/dashboard/workers/new',
-  },
-  'no-bookmarks': {
-    icon: <BookmarksIllustration />,
-    title: 'No saved workers yet',
-    description: 'Bookmark workers you like to find them quickly later.',
-    cta: 'Browse Workers',
-    defaultHref: '/workers',
-  },
-  'no-reviews': {
-    icon: <ReviewsIllustration />,
-    title: 'No reviews yet',
-    description: 'Be the first to share your experience with this worker.',
-    cta: 'Write a Review',
-    defaultHref: '#review-form',
-  },
-  'no-search-results': {
-    icon: <SearchIllustration />,
-    title: 'No results found',
-    description: 'Try different keywords, a broader location, or remove some filters.',
-    cta: 'Clear Filters',
-    defaultHref: '/workers',
-  },
-  'no-transactions': {
-    icon: <TransactionsIllustration />,
-    title: 'No transaction history',
-    description: 'Your transactions will appear here once you start tipping workers.',
-    cta: 'Browse Workers',
-    defaultHref: '/workers',
-  },
+const illustrations: Record<Variant, { icon: React.ReactNode; defaultHref: string }> = {
+  'no-workers': { icon: <UsersIllustration />, defaultHref: '/dashboard/workers/new' },
+  'no-bookmarks': { icon: <BookmarksIllustration />, defaultHref: '/workers' },
+  'no-reviews': { icon: <ReviewsIllustration />, defaultHref: '#review-form' },
+  'no-search-results': { icon: <SearchIllustration />, defaultHref: '/workers' },
+  'no-transactions': { icon: <TransactionsIllustration />, defaultHref: '/workers' },
 }
 
 function UsersIllustration() {
   return (
-    <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="No workers illustration">
+    <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
       <circle cx="60" cy="30" r="15" fill="#DBEAFE" />
       <path d="M45 50C45 42.27 51.27 36 60 36C68.73 36 75 42.27 75 50V60H45V50Z" fill="#DBEAFE" />
       <circle cx="35" cy="70" r="12" fill="#E0E7FF" />
@@ -62,7 +33,7 @@ function UsersIllustration() {
 
 function BookmarksIllustration() {
   return (
-    <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="No bookmarks illustration">
+    <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
       <rect x="30" y="20" width="60" height="80" rx="4" fill="#DBEAFE" stroke="#3B82F6" strokeWidth="2" />
       <path d="M50 40L60 50L70 40" stroke="#3B82F6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
       <line x1="40" y1="60" x2="80" y2="60" stroke="#3B82F6" strokeWidth="1.5" opacity="0.5" />
@@ -74,7 +45,7 @@ function BookmarksIllustration() {
 
 function ReviewsIllustration() {
   return (
-    <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="No reviews illustration">
+    <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
       <circle cx="60" cy="60" r="40" fill="#DBEAFE" />
       <path d="M50 50L55 60L50 70M70 50L75 60L70 70" stroke="#3B82F6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
       <circle cx="60" cy="45" r="3" fill="#3B82F6" />
@@ -85,7 +56,7 @@ function ReviewsIllustration() {
 
 function SearchIllustration() {
   return (
-    <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="No search results illustration">
+    <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
       <circle cx="50" cy="50" r="25" fill="none" stroke="#3B82F6" strokeWidth="2" />
       <line x1="70" y1="70" x2="85" y2="85" stroke="#3B82F6" strokeWidth="2" strokeLinecap="round" />
       <circle cx="50" cy="50" r="15" fill="#DBEAFE" opacity="0.5" />
@@ -98,7 +69,7 @@ function SearchIllustration() {
 
 function TransactionsIllustration() {
   return (
-    <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="No transactions illustration">
+    <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
       <rect x="25" y="30" width="70" height="60" rx="4" fill="#DBEAFE" stroke="#3B82F6" strokeWidth="2" />
       <line x1="30" y1="45" x2="90" y2="45" stroke="#3B82F6" strokeWidth="1.5" />
       <line x1="30" y1="60" x2="90" y2="60" stroke="#3B82F6" strokeWidth="1.5" opacity="0.5" />
@@ -109,19 +80,27 @@ function TransactionsIllustration() {
 }
 
 export default function EmptyStateWithIllustration({ variant, ctaHref }: EmptyStateProps) {
-  const { icon, title, description, cta, defaultHref } = illustrations[variant]
+  const t = useTranslations('componentText')
+  const { icon, defaultHref } = illustrations[variant]
   const href = ctaHref ?? defaultHref
+  const copy = ({
+    'no-workers': ['emptyWorkersTitle', 'emptyWorkersDescription', 'addWorkerCta'],
+    'no-bookmarks': ['emptyBookmarksTitle', 'emptyBookmarksDescription', 'browseWorkers'],
+    'no-reviews': ['emptyReviewsTitle', 'emptyReviewsDescription', 'writeReview'],
+    'no-search-results': ['emptySearchTitle', 'emptySearchDescription', 'clearFilters'],
+    'no-transactions': ['emptyTransactionsTitle', 'emptyTransactionsDescription', 'browseWorkers'],
+  } as const)[variant]
 
   return (
     <div className="flex flex-col items-center justify-center rounded-xl border bg-white py-20 px-6 text-center shadow-sm">
       <div className="mb-6">{icon}</div>
-      <p className="text-lg font-semibold text-gray-700">{title}</p>
-      <p className="mt-2 max-w-xs text-sm text-gray-500">{description}</p>
+      <p className="text-lg font-semibold text-gray-700">{t(copy[0])}</p>
+      <p className="mt-2 max-w-xs text-sm text-gray-500">{t(copy[1])}</p>
       <Link
         href={href}
         className="mt-6 rounded-md bg-blue-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
       >
-        {cta}
+        {t(copy[2])}
       </Link>
     </div>
   )

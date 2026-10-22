@@ -13,6 +13,7 @@ import type { Category } from "@/types";
 // ─── Schema (single source of truth in @bluecollar/types) ────────────────────
 import { createWorkerSchema as schema } from "@bluecollar/types";
 import type { CreateWorkerInput as Fields } from "@bluecollar/types";
+import { useTranslations } from "next-intl";
 
 export interface ListingFormProps {
   /** If provided, the form is in edit mode and uses the X-HTTP-Method: PUT pattern */
@@ -22,6 +23,7 @@ export interface ListingFormProps {
 }
 
 export function ListingForm({ workerId, defaultValues, onSuccess }: ListingFormProps) {
+  const t = useTranslations("componentText");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -55,17 +57,17 @@ export function ListingForm({ workerId, defaultValues, onSuccess }: ListingFormP
       let resultId: string;
       if (workerId) {
         const res = await updateWorker.mutateAsync(form);
-        if (!res.data) throw new Error("Failed to save worker");
+        if (!res.data) throw new Error(t("saveWorkerFailed"));
         resultId = res.data.id;
       } else {
         const res = await createWorker.mutateAsync(form);
-        if (!res.data) throw new Error("Failed to save worker");
+        if (!res.data) throw new Error(t("saveWorkerFailed"));
         resultId = res.data.id;
       }
 
       onSuccess?.(resultId);
     } catch (err: unknown) {
-      setSubmitError(err instanceof Error ? err.message : "Something went wrong");
+      setSubmitError(err instanceof Error ? err.message : t("genericError"));
     }
   };
 
@@ -74,16 +76,16 @@ export function ListingForm({ workerId, defaultValues, onSuccess }: ListingFormP
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
       <Input
-        label="Full name"
+        label={t("formFullName")}
         {...register("name")}
         error={errors.name?.message}
-        placeholder="e.g. João Silva"
+        placeholder={t("nameExample")}
       />
 
       <Select
-        label="Category"
+        label={t("formCategory")}
         options={categoryOptions}
-        placeholder="Select a category"
+        placeholder={t("selectCategory")}
         error={errors.categoryId?.message}
         {...register("categoryId")}
       />
@@ -91,12 +93,12 @@ export function ListingForm({ workerId, defaultValues, onSuccess }: ListingFormP
       {/* Bio */}
       <div className="flex flex-col gap-1.5">
         <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-          Bio <span className="font-normal text-gray-400">(optional)</span>
+          {t("formBio")} <span className="font-normal text-gray-400">({t("optional")})</span>
         </label>
         <textarea
           {...register("bio")}
           rows={3}
-          placeholder="Brief description of skills and experience..."
+          placeholder={t("skillsExperiencePlaceholder")}
           className={cn(
             "w-full rounded-lg border px-3 py-2 text-sm",
             "bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100",
@@ -111,33 +113,33 @@ export function ListingForm({ workerId, defaultValues, onSuccess }: ListingFormP
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Input
-          label="Phone"
+          label={t("formPhone")}
           type="tel"
           {...register("phone")}
           error={errors.phone?.message}
-          placeholder="+55 11 99999-9999"
+          placeholder={t("phoneExample")}
         />
         <Input
-          label="Email"
+          label={t("formEmail")}
           type="email"
           {...register("email")}
           error={errors.email?.message}
-          placeholder="worker@example.com"
+          placeholder={t("emailExample")}
         />
       </div>
 
       <Input
-        label="Stellar wallet address"
+        label={t("stellarWalletAddress")}
         {...register("walletAddress")}
         error={errors.walletAddress?.message}
-        placeholder="GABC…"
-        hint="Required for on-chain registration and tips."
+        placeholder={t("walletExample")}
+        hint={t("walletRegistrationHint")}
       />
 
       <FileUpload
-        label="Profile image"
+        label={t("profileImage")}
         accept="image/*"
-        hint="PNG or JPG, up to 5 MB"
+        hint={t("imageUploadHint")}
         onChange={(fl) => setAvatarFile(fl?.[0] ?? null)}
       />
 
@@ -153,7 +155,7 @@ export function ListingForm({ workerId, defaultValues, onSuccess }: ListingFormP
         className="flex w-full items-center justify-center gap-2 rounded-lg bg-brand-600 py-2.5 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-60 transition-colors"
       >
         {(isSubmitting || createWorker.isPending || updateWorker.isPending) && <Loader2 size={15} className="animate-spin" />}
-        {workerId ? "Save changes" : "Create listing"}
+        {workerId ? t("saveChanges") : t("createListing")}
       </button>
     </form>
   );

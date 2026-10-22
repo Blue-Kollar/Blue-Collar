@@ -292,7 +292,7 @@ export default function Navbar() {
                   </Link>
                   <Link href="/messages" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm min-h-[48px] hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-gray-200 transition-colors">
                     <MessageSquare size={16} className="text-gray-400" aria-hidden="true" />
-                    Messages
+                    {t("messages")}
                   </Link>
                   {(user.role === "curator" || user.role === "admin") && (
                     <Link href="/dashboard" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm min-h-[48px] hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-gray-200 transition-colors">

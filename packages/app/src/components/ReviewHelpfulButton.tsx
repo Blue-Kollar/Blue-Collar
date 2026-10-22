@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ThumbsUp } from "lucide-react";
 import { useToggleReviewHelpful } from "@/hooks/queries";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 interface Props {
   reviewId: string;
@@ -16,6 +17,7 @@ export default function ReviewHelpfulButton({
   initialCount = 0,
   initialHelpful = false,
 }: Props) {
+  const t = useTranslations("componentText");
   const [count, setCount] = useState(initialCount);
   const [helpful, setHelpful] = useState(initialHelpful);
   const toggle = useToggleReviewHelpful(reviewId);
@@ -44,7 +46,7 @@ export default function ReviewHelpfulButton({
           ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
           : "text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800"
       )}
-      aria-label={`${helpful ? "Remove helpful vote" : "Mark as helpful"} (${count} so far)`}
+      aria-label={t(helpful ? "removeHelpfulVote" : "markHelpful", { count })}
     >
       <ThumbsUp size={13} fill={helpful ? "currentColor" : "none"} aria-hidden="true" />
       <span aria-hidden="true">{count}</span>

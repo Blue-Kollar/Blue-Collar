@@ -10,6 +10,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 interface Badge {
   key: string;
@@ -37,12 +38,13 @@ export default function VerificationBadges({
   className,
   compact = false,
 }: Props) {
+  const t = useTranslations("componentText");
   const badges: Badge[] = [
-    { key: "identity", label: "Identity Verified", icon: ShieldCheck, earned: isVerified },
-    { key: "phone", label: "Phone Verified", icon: Phone, earned: hasPhone },
-    { key: "email", label: "Email Verified", icon: Mail, earned: hasEmail },
-    { key: "wallet", label: "Wallet Connected", icon: Wallet, earned: hasWallet },
-    { key: "photo", label: "Photo Added", icon: Camera, earned: hasAvatar },
+    { key: "identity", label: t("identityVerified"), icon: ShieldCheck, earned: isVerified },
+    { key: "phone", label: t("phoneVerified"), icon: Phone, earned: hasPhone },
+    { key: "email", label: t("emailVerified"), icon: Mail, earned: hasEmail },
+    { key: "wallet", label: t("walletConnected"), icon: Wallet, earned: hasWallet },
+    { key: "photo", label: t("photoAdded"), icon: Camera, earned: hasAvatar },
   ];
 
   const earnedCount = badges.filter((b) => b.earned).length;
@@ -63,7 +65,7 @@ export default function VerificationBadges({
           ))}
         {earnedCount < badges.length && (
           <span className="text-xs text-gray-400">
-            +{badges.length - earnedCount} to earn
+            +{badges.length - earnedCount} {t("toEarn")}
           </span>
         )}
       </div>
@@ -73,9 +75,9 @@ export default function VerificationBadges({
   return (
     <div className={cn("rounded-xl border bg-white p-4 shadow-sm", className)}>
       <div className="mb-3 flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-gray-800">Verification</h3>
+        <h3 className="text-sm font-semibold text-gray-800">{t("verification")}</h3>
         <span className="text-xs text-gray-400">
-          {earnedCount}/{badges.length} earned
+          {t("earnedCount", { count: earnedCount, total: badges.length })}
         </span>
       </div>
       <div className="space-y-2">

@@ -1,4 +1,5 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, screen } from '@testing-library/react'
+import { renderWithIntl as render } from '@/__tests__/renderWithIntl'
 import { describe, expect, it, vi } from 'vitest'
 import { SavedWorkers } from '../SavedWorkers'
 

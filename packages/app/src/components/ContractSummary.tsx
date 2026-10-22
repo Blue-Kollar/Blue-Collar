@@ -3,6 +3,7 @@
 import type { TipDTO } from "@/types";
 import { TrendingUp, Calendar, DollarSign } from "lucide-react";
 import { formatDate } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 interface ContractSummaryProps {
   tip: TipDTO;
@@ -10,6 +11,7 @@ interface ContractSummaryProps {
 }
 
 export default function ContractSummary({ tip, isLoading = false }: ContractSummaryProps) {
+  const t = useTranslations("componentText");
   if (isLoading) {
     return (
       <div className="rounded-lg border bg-white p-6 shadow-sm">
@@ -30,7 +32,7 @@ export default function ContractSummary({ tip, isLoading = false }: ContractSumm
         <div className="space-y-4 flex-1">
           <div className="flex items-center gap-2 text-gray-600">
             <DollarSign size={16} />
-            <span className="text-sm font-medium">Transaction Summary</span>
+            <span className="text-sm font-medium">{t("transactionSummary")}</span>
           </div>
 
           <div className="space-y-2">
@@ -50,7 +52,7 @@ export default function ContractSummary({ tip, isLoading = false }: ContractSumm
 
           <div className="flex items-center gap-2 pt-2">
             <TrendingUp size={14} className="text-green-600" />
-            <span className="text-xs font-medium text-green-600">Confirmed</span>
+            <span className="text-xs font-medium text-green-600">{t("confirmed")}</span>
           </div>
         </div>
       </div>

@@ -3,6 +3,7 @@
 import { QrCode } from "lucide-react";
 import QRCodeModal from "./QRCodeModal";
 import { useModal } from "@/context/ModalContext";
+import { useTranslations } from "next-intl";
 
 interface QRCodeButtonProps {
   workerName: string;
@@ -10,6 +11,7 @@ interface QRCodeButtonProps {
 }
 
 export default function QRCodeButton({ workerName, workerId }: QRCodeButtonProps) {
+  const t = useTranslations("workerCard");
   const { openModal, closeModal } = useModal();
   const modalId = `qr-${workerId}`;
 
@@ -34,8 +36,8 @@ export default function QRCodeButton({ workerName, workerId }: QRCodeButtonProps
     <button
       onClick={handleOpen}
       className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
-      aria-label="Share via QR code"
-      title="Share via QR code"
+      aria-label={t("shareQr", { name: workerName })}
+      title={t("shareQr", { name: workerName })}
     >
       <QrCode size={18} className="text-gray-600" />
     </button>

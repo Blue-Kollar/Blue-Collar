@@ -115,7 +115,7 @@ export default function WorkerCard({ worker, variant = "standard" }: WorkerCardP
               <div className="flex items-center gap-2 font-bold text-gray-900 text-lg truncate">
                 <span className="truncate">{worker.name}</span>
                 {worker.isVerified && (
-                  <BadgeCheck size={18} className="shrink-0 text-blue-600" aria-label="Verified" />
+                  <BadgeCheck size={18} className="shrink-0 text-blue-600" aria-label={t("verified")} />
                 )}
               </div>
               <span className="mt-1 inline-block rounded-full bg-blue-100 px-3 py-1 text-sm font-semibold text-blue-700">
@@ -174,7 +174,7 @@ export default function WorkerCard({ worker, variant = "standard" }: WorkerCardP
           className="h-4 w-4 rounded border-gray-300 accent-blue-600 cursor-pointer disabled:cursor-not-allowed"
           aria-label={`Compare ${worker.name}`}
         />
-        <span className="text-xs text-gray-500 select-none">Compare</span>
+        <span className="text-xs text-gray-500 select-none">{t("compare")}</span>
       </label>
 
       <Link href={`/workers/${worker.id}`} className="flex flex-col gap-4">
@@ -199,7 +199,7 @@ export default function WorkerCard({ worker, variant = "standard" }: WorkerCardP
             <div className="flex items-center gap-1.5 font-semibold text-gray-800 truncate">
               <span className="truncate">{worker.name}</span>
               {worker.isVerified && (
-                <BadgeCheck size={16} className="shrink-0 text-blue-500" aria-label="Verified" />
+                <BadgeCheck size={16} className="shrink-0 text-blue-500" aria-label={t("verified")} />
               )}
             </div>
             <span className="mt-0.5 inline-block rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-600">

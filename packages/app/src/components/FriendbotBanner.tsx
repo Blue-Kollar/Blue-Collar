@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { X, Zap } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface FriendbotBannerProps {
   walletAddress: string;
@@ -12,6 +13,7 @@ import { IS_TESTNET } from "@/config/stellar";
 import { useFriendbotFunding } from "@/hooks/useFriendbotFunding";
 
 export default function FriendbotBanner({ walletAddress, xlmBalance }: FriendbotBannerProps) {
+  const t = useTranslations("componentText");
   const [dismissed, setDismissed] = useState(false);
   const [toast, setToast] = useState("");
   const funding = useFriendbotFunding();
@@ -29,7 +31,7 @@ export default function FriendbotBanner({ walletAddress, xlmBalance }: Friendbot
     try {
       await funding.mutateAsync(walletAddress);
 
-      showToast("Wallet funded with 10,000 XLM testnet tokens!");
+      showToast(t("friendbotFunded"));
       setDismissed(true);
     } catch {
       showToast("Friendbot funding failed. Please try again.");
@@ -49,9 +51,9 @@ export default function FriendbotBanner({ walletAddress, xlmBalance }: Friendbot
               <Zap size={18} aria-hidden="true" />
             </div>
             <div>
-              <p className="font-semibold">Your testnet wallet has no XLM</p>
+              <p className="font-semibold">{t("friendbotNoBalance")}</p>
               <p className="text-yellow-700">
-                Fund it instantly with Stellar Friendbot to start testing.
+                {t("friendbotDescription")}
               </p>
             </div>
           </div>
@@ -67,7 +69,7 @@ export default function FriendbotBanner({ walletAddress, xlmBalance }: Friendbot
             <button
               type="button"
               onClick={() => setDismissed(true)}
-              aria-label="Dismiss banner"
+              aria-label={t("dismissBanner")}
               className="rounded-md p-1 text-yellow-700 hover:bg-yellow-100"
             >
               <X size={16} aria-hidden="true" />

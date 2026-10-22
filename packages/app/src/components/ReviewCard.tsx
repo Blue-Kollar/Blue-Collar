@@ -3,6 +3,7 @@ import StarRating from "./StarRating";
 import ReviewHelpfulButton from "./ReviewHelpfulButton";
 import VerifiedTransactionBadge from "./VerifiedTransactionBadge";
 import { formatDate } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 interface ReviewCardProps {
   review: Review;
@@ -10,6 +11,7 @@ interface ReviewCardProps {
 }
 
 export default function ReviewCard({ review, showVerifiedBadge }: ReviewCardProps) {
+  const t = useTranslations("componentText");
   const initials = `${review.author.firstName[0]}${review.author.lastName[0]}`.toUpperCase();
 
   const authorName = `${review.author.firstName} ${review.author.lastName}`;
@@ -17,7 +19,7 @@ export default function ReviewCard({ review, showVerifiedBadge }: ReviewCardProp
   return (
     <article
       className="flex gap-3 py-4 border-b last:border-0 dark:border-gray-800"
-      aria-label={`Review by ${authorName}`}
+      aria-label={t("reviewBy", { name: authorName })}
     >
       {review.author.avatar ? (
         <img

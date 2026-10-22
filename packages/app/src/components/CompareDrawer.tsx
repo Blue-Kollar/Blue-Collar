@@ -6,6 +6,7 @@ import Image from "next/image";
 import { X, BadgeCheck, MapPin, Star } from "lucide-react";
 import { useCompare } from "@/context/CompareContext";
 import type { Worker } from "@bluecollar/types";
+import { useTranslations } from "next-intl";
 
 function Cell({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return <td className={`px-4 py-3 text-sm text-gray-700 border-b ${className}`}>{children}</td>;
@@ -22,18 +23,20 @@ function Rating({ value }: { value?: number | null }) {
 }
 
 export default function CompareDrawer() {
+  const t = useTranslations("componentText");
+  const workerCardT = useTranslations("workerCard");
   const { selected, remove, clear } = useCompare();
   const [open, setOpen] = useState(false);
 
   if (selected.length === 0) return null;
 
   const rows: { label: string; render: (w: Worker) => React.ReactNode }[] = [
-    { label: "Category", render: (w) => w.category.name },
-    { label: "Rating", render: (w) => <Rating value={w.averageRating} /> },
-    { label: "Reviews", render: (w) => w.reviewCount ?? "—" },
-    { label: "Location", render: (w) => w.location ? <span className="flex items-center gap-1"><MapPin size={12} aria-hidden="true" />{w.location}</span> : "—" },
-    { label: "Verified", render: (w) => w.isVerified ? <BadgeCheck size={16} className="text-blue-500" aria-label="Verified" /> : "—" },
-    { label: "Contact", render: (w) => w.email ?? w.phone ?? "—" },
+    { label: t("category"), render: (w) => w.category.name },
+    { label: t("rating"), render: (w) => <Rating value={w.averageRating} /> },
+    { label: t("reviews"), render: (w) => w.reviewCount ?? "—" },
+    { label: t("location"), render: (w) => w.location ? <span className="flex items-center gap-1"><MapPin size={12} aria-hidden="true" />{w.location}</span> : "—" },
+    { label: t("verified"), render: (w) => w.isVerified ? <BadgeCheck size={16} className="text-blue-500" aria-label={t("verified")} /> : "—" },
+    { label: t("contact"), render: (w) => w.email ?? w.phone ?? "—" },
   ];
 
   return (
@@ -43,18 +46,18 @@ export default function CompareDrawer() {
           {selected.map((w) => (
             <span key={w.id} className="flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1 text-sm font-medium text-blue-700">
               {w.name}
-              <button onClick={() => remove(w.id)} aria-label={`Remove ${w.name} from comparison`} className="rounded-full p-0.5 hover:bg-blue-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
+              <button onClick={() => remove(w.id)} aria-label={t("removeFromComparison", { name: w.name })} className="rounded-full p-0.5 hover:bg-blue-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
                 <X size={13} aria-hidden="true" />
               </button>
             </span>
           ))}
         </div>
         <button onClick={clear} className="text-xs text-gray-500 hover:text-gray-700 shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded px-2 py-1">
-          Clear all
+          {t("clearAll")}
         </button>
         <Dialog.Trigger asChild>
           <button className="shrink-0 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
-            Compare ({selected.length})
+            {t("compareWorkers", { count: selected.length })}
           </button>
         </Dialog.Trigger>
       </div>
@@ -64,9 +67,9 @@ export default function CompareDrawer() {
         <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-4xl max-h-[90vh] -translate-x-1/2 -translate-y-1/2 overflow-auto rounded-2xl bg-white shadow-xl outline-none">
           <div className="flex items-center justify-between border-b px-6 py-4">
             <Dialog.Title className="text-lg font-semibold text-gray-900">
-              Compare Workers
+              {t("compareWorkersTitle")}
             </Dialog.Title>
-            <Dialog.Close aria-label="Close comparison" className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
+            <Dialog.Close aria-label={t("closeComparison")} className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
               <X size={20} aria-hidden="true" />
             </Dialog.Close>
           </div>
@@ -87,8 +90,8 @@ export default function CompareDrawer() {
                           </div>
                         )}
                         <span className="text-sm font-semibold text-gray-800">{w.name}</span>
-                        <button onClick={() => { remove(w.id); }} aria-label={`Remove ${w.name} from comparison`} className="text-xs text-gray-400 hover:text-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded px-1">
-                          Remove
+                        <button onClick={() => { remove(w.id); }} aria-label={t("removeFromComparison", { name: w.name })} className="text-xs text-gray-400 hover:text-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded px-1">
+                          {t("remove")}
                         </button>
                       </div>
                     </th>
@@ -110,7 +113,7 @@ export default function CompareDrawer() {
                         href={`/workers/${w.id}`}
                         className="block rounded-md bg-blue-600 py-1.5 text-center text-sm font-medium text-white hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
                       >
-                        View Profile
+                        {workerCardT("viewProfile")}
                       </a>
                     </td>
                   ))}
