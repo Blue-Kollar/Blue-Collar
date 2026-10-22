@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Star } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface DistributionEntry {
   rating: number;
@@ -17,6 +18,7 @@ interface Props {
 }
 
 export default function RatingBreakdown({ averageRating, reviewCount, distribution, onFilterChange }: Props) {
+  const t = useTranslations("componentText");
   const [activeFilter, setActiveFilter] = useState<number | null>(null);
 
   if (reviewCount === 0) return null;
@@ -34,9 +36,7 @@ export default function RatingBreakdown({ averageRating, reviewCount, distributi
           {/* The numeral and the stars say the same thing; expose it once, as one label. */}
           <div
             role="img"
-            aria-label={`Average rating ${averageRating?.toFixed(1) ?? 0} out of 5 stars, from ${reviewCount} review${
-              reviewCount !== 1 ? "s" : ""
-            }`}
+            aria-label={t("averageRatingDescription", { rating: averageRating?.toFixed(1) ?? 0, count: reviewCount })}
           >
             <p className="text-4xl font-bold text-gray-900" aria-hidden="true">
               {averageRating?.toFixed(1)}
@@ -52,12 +52,12 @@ export default function RatingBreakdown({ averageRating, reviewCount, distributi
               ))}
             </div>
             <p className="text-xs text-gray-500 mt-1" aria-hidden="true">
-              {reviewCount} review{reviewCount !== 1 ? "s" : ""}
+              {t("reviewsCount", { count: reviewCount })}
             </p>
           </div>
         </div>
 
-        <div className="flex-1 flex flex-col gap-1.5" role="group" aria-label="Filter reviews by rating">
+        <div className="flex-1 flex flex-col gap-1.5" role="group" aria-label={t("filterReviewsByRating")}>
           {distribution.map(({ rating, count, percentage }) => (
             <button
               key={rating}
@@ -67,9 +67,7 @@ export default function RatingBreakdown({ averageRating, reviewCount, distributi
                 activeFilter === rating ? "bg-blue-50 ring-1 ring-blue-300" : "hover:bg-white"
               }`}
               aria-pressed={activeFilter === rating}
-              aria-label={`Filter by ${rating} star${rating !== 1 ? "s" : ""}: ${count} review${
-                count !== 1 ? "s" : ""
-              }, ${percentage}%`}
+              aria-label={t("filterReviewsByRatingOption", { rating, count, percentage })}
             >
               {/* The button's aria-label already carries the numbers, so the bar,
                   the count and the percentage are decorative for screen readers. */}
@@ -97,14 +95,14 @@ export default function RatingBreakdown({ averageRating, reviewCount, distributi
       {activeFilter !== null && (
         <div className="flex items-center justify-between border-t pt-3">
           <p className="text-xs text-gray-500">
-            Showing {activeFilter}-star reviews
+            {t("showingRatingReviews", { rating: activeFilter })}
           </p>
           <button
             type="button"
             onClick={() => handleFilter(activeFilter)}
             className="rounded text-xs text-blue-600 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
           >
-            Clear filter
+            {t("clearFilter")}
           </button>
         </div>
       )}

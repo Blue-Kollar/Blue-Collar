@@ -12,6 +12,7 @@ import type { Category } from "@/types";
 // ─── Schema (single source of truth in @bluecollar/types) ────────────────────
 import { createWorkerSchema as workerSchema } from "@bluecollar/types";
 import type { CreateWorkerInput as WorkerFormInput } from "@bluecollar/types";
+import { useTranslations } from "next-intl";
 
 export { workerSchema };
 export type { WorkerFormInput };
@@ -30,21 +31,22 @@ function useProfileCompletion(
   portfolioCount: number,
   hasAvailability: boolean,
 ): { steps: CompletionStep[]; percentage: number } {
+  const t = useTranslations("componentText");
   return useMemo(() => {
     const steps: CompletionStep[] = [
-      { key: "name", label: "Full name", done: (values.name?.length ?? 0) >= 2 },
-      { key: "category", label: "Category", done: !!values.categoryId },
-      { key: "bio", label: "Bio", done: (values.bio?.length ?? 0) > 0 },
-      { key: "avatar", label: "Profile photo", done: hasAvatar },
-      { key: "phone", label: "Phone number", done: !!values.phone },
-      { key: "email", label: "Email", done: !!values.email },
-      { key: "wallet", label: "Wallet address", done: !!values.walletAddress },
-      { key: "portfolio", label: "Portfolio images", done: portfolioCount > 0 },
-      { key: "availability", label: "Availability", done: hasAvailability },
+      { key: "name", label: t("formFullName"), done: (values.name?.length ?? 0) >= 2 },
+      { key: "category", label: t("formCategory"), done: !!values.categoryId },
+      { key: "bio", label: t("formBio"), done: (values.bio?.length ?? 0) > 0 },
+      { key: "avatar", label: t("profilePhoto"), done: hasAvatar },
+      { key: "phone", label: t("phoneNumber"), done: !!values.phone },
+      { key: "email", label: t("formEmail"), done: !!values.email },
+      { key: "wallet", label: t("walletAddress"), done: !!values.walletAddress },
+      { key: "portfolio", label: t("portfolioImages"), done: portfolioCount > 0 },
+      { key: "availability", label: t("availability"), done: hasAvailability },
     ];
     const done = steps.filter((s) => s.done).length;
     return { steps, percentage: Math.round((done / steps.length) * 100) };
-  }, [values, hasAvatar, portfolioCount, hasAvailability]);
+  }, [values, hasAvatar, portfolioCount, hasAvailability, t]);
 }
 
 function ProfileCompletionBar({
@@ -54,13 +56,14 @@ function ProfileCompletionBar({
   steps: CompletionStep[];
   percentage: number;
 }) {
+  const t = useTranslations("componentText");
   const color =
     percentage === 100 ? "bg-green-500" : percentage >= 60 ? "bg-blue-500" : "bg-amber-500";
 
   return (
     <div className="rounded-xl border bg-white p-4 shadow-sm">
       <div className="mb-2 flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-gray-800">Profile Completion</h3>
+        <h3 className="text-sm font-semibold text-gray-800">{t("profileCompletion")}</h3>
         <span className={cn("text-sm font-bold", percentage === 100 ? "text-green-600" : "text-gray-700")}>
           {percentage}%
         </span>
@@ -103,10 +106,11 @@ export default function WorkerForm({
   defaultValues,
   existingAvatar,
   onSubmit,
-  submitLabel = "Save",
+  submitLabel,
   isSubmitting = false,
   onChange,
 }: Props) {
+  const t = useTranslations("componentText");
   const [categories, setCategories] = useState<Category[]>([]);
   const [imageFile, setImageFile] = useState<File | null>(null);
 
@@ -153,7 +157,7 @@ export default function WorkerForm({
     >
       {/* Profile image — issue #271 */}
       <FileUpload
-        label="Profile Image"
+        label={t("profileImage")}
         mode="image"
         existingUrl={existingAvatar}
         onChange={(files) => setImageFile(files?.[0] ?? null)}
@@ -161,16 +165,16 @@ export default function WorkerForm({
 
       {/* Name */}
       <FormField
-        label="Full name"
+        label={t("formFullName")}
         id="name"
         error={touchedFields.name ? errors.name?.message : undefined}
         isValid={isValid("name")}
-        hint="Use your real name so clients can find you"
+        hint={t("realNameHint")}
       >
         <input
           id="name"
           type="text"
-          placeholder="e.g. John Doe"
+          placeholder={t("nameExample")}
           {...register("name")}
           className={inputClass(touchedFields.name && !!errors.name, isValid("name"))}
         />
@@ -178,11 +182,11 @@ export default function WorkerForm({
 
       {/* Category */}
       <FormField
-        label="Category"
+        label={t("formCategory")}
         id="categoryId"
         error={touchedFields.categoryId ? errors.categoryId?.message : undefined}
         isValid={isValid("categoryId")}
-        hint="Choose the trade that best describes your work"
+        hint={t("tradeHint")}
       >
         <select
           id="categoryId"
@@ -192,7 +196,7 @@ export default function WorkerForm({
             isValid("categoryId")
           )}
         >
-          <option value="">Select a category…</option>
+          <option value="">{t("selectCategory")}</option>
           {categories.map((c: Category) => (
             <option key={c.id} value={c.id}>
               {c.name}
@@ -203,16 +207,16 @@ export default function WorkerForm({
 
       {/* Bio */}
       <FormField
-        label="Bio"
+        label={t("formBio")}
         id="bio"
         error={touchedFields.bio ? errors.bio?.message : undefined}
         isValid={isValid("bio")}
-        hint={`${bioValue.length}/500 — describe your skills and experience`}
+        hint={t("bioCharacterHint", { count: bioValue.length })}
       >
         <textarea
           id="bio"
           rows={3}
-          placeholder="Brief description of skills and experience…"
+          placeholder={t("skillsExperiencePlaceholder")}
           {...register("bio")}
           className={cn(
             inputClass(touchedFields.bio && !!errors.bio, isValid("bio")),
@@ -224,23 +228,23 @@ export default function WorkerForm({
       {/* Phone + Email */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <FormField
-          label="Phone"
+          label={t("formPhone")}
           id="phone"
           error={touchedFields.phone ? errors.phone?.message : undefined}
           isValid={isValid("phone")}
-          hint="Include country code, e.g. +1 234 567 8900"
+          hint={t("phoneCountryCodeHint")}
         >
           <input
             id="phone"
             type="tel"
-            placeholder="+1 234 567 8900"
+            placeholder={t("phoneExample")}
             {...register("phone")}
             className={inputClass(touchedFields.phone && !!errors.phone, isValid("phone"))}
           />
         </FormField>
 
         <FormField
-          label="Email"
+          label={t("formEmail")}
           id="email"
           error={touchedFields.email ? errors.email?.message : undefined}
           isValid={isValid("email")}
@@ -248,7 +252,7 @@ export default function WorkerForm({
           <input
             id="email"
             type="email"
-            placeholder="worker@example.com"
+            placeholder={t("emailExample")}
             {...register("email")}
             className={inputClass(touchedFields.email && !!errors.email, isValid("email"))}
           />
@@ -257,16 +261,16 @@ export default function WorkerForm({
 
       {/* Wallet address */}
       <FormField
-        label="Stellar Wallet Address"
+        label={t("stellarWalletAddress")}
         id="walletAddress"
         error={touchedFields.walletAddress ? errors.walletAddress?.message : undefined}
         isValid={isValid("walletAddress")}
-        hint="Your Stellar public key starts with G and is 56 characters long"
+        hint={t("stellarPublicKeyHint")}
       >
         <input
           id="walletAddress"
           type="text"
-          placeholder="G…"
+          placeholder={t("walletExample")}
           {...register("walletAddress")}
           className={inputClass(
             touchedFields.walletAddress && !!errors.walletAddress,
@@ -281,7 +285,7 @@ export default function WorkerForm({
         className="flex items-center justify-center gap-2 rounded-lg bg-blue-600 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60 transition-colors"
       >
         {isSubmitting && <Loader2 size={15} className="animate-spin" />}
-        {submitLabel}
+        {submitLabel ?? t("save")}
       </button>
     </form>
   );

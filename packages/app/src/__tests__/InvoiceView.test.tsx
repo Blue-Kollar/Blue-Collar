@@ -5,7 +5,8 @@
  * money arithmetic. API responses are mocked at the `@/lib/api` boundary.
  */
 
-import { act, render, screen, waitFor, within } from '@testing-library/react'
+import { act, screen, waitFor, within } from '@testing-library/react'
+import { renderWithIntl as render } from '@/__tests__/renderWithIntl'
 import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import React from 'react'

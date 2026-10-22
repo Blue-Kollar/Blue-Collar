@@ -6,6 +6,7 @@ import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
 import { cn, formatDate as sharedFormatDate, formatTime as sharedFormatTime } from "@/lib/utils";
 import MessageInput from "./MessageInput";
 import type { Message } from "@/types";
+import { useTranslations } from "next-intl";
 
 interface Props {
   messages: Message[];
@@ -18,14 +19,14 @@ function formatTime(iso: string) {
   return sharedFormatTime(iso);
 }
 
-function formatDate(iso: string) {
+function formatDate(iso: string, todayLabel: string, yesterdayLabel: string) {
   const date = new Date(iso);
   const today = new Date();
   const yesterday = new Date(today);
   yesterday.setDate(yesterday.getDate() - 1);
 
-  if (date.toDateString() === today.toDateString()) return "Today";
-  if (date.toDateString() === yesterday.toDateString()) return "Yesterday";
+  if (date.toDateString() === today.toDateString()) return todayLabel;
+  if (date.toDateString() === yesterday.toDateString()) return yesterdayLabel;
   return sharedFormatDate(iso);
 }
 
@@ -42,6 +43,7 @@ export default function MessageThread({
   onSend,
   currentUserId,
 }: Props) {
+  const t = useTranslations("componentText");
   const virtuosoRef = useRef<VirtuosoHandle>(null);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -55,22 +57,22 @@ export default function MessageThread({
       <div
         className="flex flex-1 items-center justify-center text-gray-400"
         role="status"
-        aria-label="No conversation selected"
+        aria-label={t("noConversationSelected")}
       >
         <div className="text-center">
-          <p className="text-sm font-medium">Select a conversation</p>
-          <p className="text-xs mt-1">Choose a conversation from the list to start chatting</p>
+          <p className="text-sm font-medium">{t("selectConversation")}</p>
+          <p className="text-xs mt-1">{t("chooseConversation")}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-1 flex-col" role="main" aria-label="Message thread">
+    <div className="flex flex-1 flex-col" role="main" aria-label={t("messageThread")}>
       <div
         className="flex-1 min-h-0 overflow-hidden px-4 py-4"
         role="region"
-        aria-label="Messages"
+        aria-label={t("messages")}
         aria-live="polite"
         aria-atomic="false"
         onKeyDown={handleKeyDown}
@@ -80,12 +82,12 @@ export default function MessageThread({
           <div
             className="flex h-full items-center justify-center text-gray-400"
             role="status"
-            aria-label="No messages"
+            aria-label={t("noMessages")}
           >
-            <p className="text-sm">No messages yet. Start the conversation!</p>
+            <p className="text-sm">{t("noMessagesYetStart")}</p>
           </div>
         ) : (
-          <div role="log" aria-label="Conversation messages" className="h-full">
+          <div role="log" aria-label={t("conversationMessages")} className="h-full">
             <Virtuoso
               ref={virtuosoRef}
               className="h-full"
@@ -101,7 +103,7 @@ export default function MessageThread({
                         className="rounded-full bg-gray-100 px-3 py-1 text-[10px] font-medium text-gray-500 dark:bg-gray-800 dark:text-gray-400"
                         role="doc-subtitle"
                       >
-                        {formatDate(msg.createdAt)}
+                        {formatDate(msg.createdAt, t("today"), t("yesterday"))}
                       </span>
                     </div>
                   )}
@@ -111,7 +113,7 @@ export default function MessageThread({
                       msg.senderId === currentUserId ? "flex-row-reverse" : "flex-row"
                     )}
                     role="article"
-                    aria-label={`Message from ${msg.sender.firstName} ${msg.sender.lastName} at ${formatTime(msg.createdAt)}`}
+                    aria-label={t("messageFrom", { name: `${msg.sender.firstName} ${msg.sender.lastName}`, time: formatTime(msg.createdAt) })}
                   >
                     <div
                       className={cn(
@@ -122,13 +124,13 @@ export default function MessageThread({
                       {msg.sender.avatar ? (
                         <img
                           src={msg.sender.avatar}
-                          alt={`${msg.sender.firstName} ${msg.sender.lastName}'s avatar`}
+                          alt={t("avatarAlt", { name: `${msg.sender.firstName} ${msg.sender.lastName}` })}
                           className="h-6 w-6 shrink-0 rounded-full object-cover"
                         />
                       ) : (
                         <div
                           className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gray-200 dark:bg-gray-700"
-                          aria-label={`${msg.sender.firstName} ${msg.sender.lastName}'s default avatar`}
+                          aria-label={t("defaultAvatarAlt", { name: `${msg.sender.firstName} ${msg.sender.lastName}` })}
                         >
                           <User size={12} className="text-gray-500" aria-hidden="true" />
                         </div>
@@ -149,14 +151,14 @@ export default function MessageThread({
                             "mt-0.5 flex items-center gap-1 px-1",
                             msg.senderId === currentUserId ? "justify-end" : "justify-start"
                           )}
-                          aria-label={msg.senderId === currentUserId ? `Sent at ${formatTime(msg.createdAt)}. ${msg.readAt ? "Read" : "Sent"}` : ""}
+                          aria-label={msg.senderId === currentUserId ? t(msg.readAt ? "sentAtRead" : "sentAtSent", { time: formatTime(msg.createdAt) }) : ""}
                         >
                           <span className="text-[10px] text-gray-400">
                             {formatTime(msg.createdAt)}
                           </span>
                           {msg.senderId === currentUserId && (
-                            <span className="text-[10px] text-gray-400" aria-label={msg.readAt ? "Message read" : "Message sent"}>
-                              {msg.readAt ? "Read" : "Sent"}
+                            <span className="text-[10px] text-gray-400" aria-label={msg.readAt ? t("messageRead") : t("messageSent")}>
+                              {msg.readAt ? t("read") : t("sent")}
                             </span>
                           )}
                         </div>

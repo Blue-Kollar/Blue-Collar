@@ -5,8 +5,10 @@ import { Bell, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { useAuth } from "@/hooks/useAuth";
+import { useTranslations } from "next-intl";
 
 export default function PushNotificationPrompt() {
+  const t = useTranslations("componentText");
   const { user } = useAuth();
   const { isSupported, isSubscribed, isLoading, subscribe } = usePushNotifications();
   const [isVisible, setIsVisible] = useState(false);
@@ -39,9 +41,9 @@ export default function PushNotificationPrompt() {
       <div className="flex items-start gap-3">
         <Bell size={20} className="text-blue-600 shrink-0 mt-0.5" />
         <div className="flex-1 min-w-0">
-          <p className="font-semibold text-gray-900">Stay Updated</p>
+          <p className="font-semibold text-gray-900">{t("stayUpdated")}</p>
           <p className="text-sm text-gray-600 mt-1">
-            Get notified when your workers receive tips or reviews
+            {t("pushNotificationDescription")}
           </p>
           <div className="flex gap-2 mt-3">
             <Button
@@ -53,7 +55,7 @@ export default function PushNotificationPrompt() {
               size="sm"
               className="gap-2"
             >
-              {isLoading ? "Enabling..." : "Enable Notifications"}
+              {isLoading ? t("enablingNotifications") : t("enableNotifications")}
             </Button>
             <Button
               onClick={() => {
@@ -63,13 +65,13 @@ export default function PushNotificationPrompt() {
               variant="outline"
               size="sm"
             >
-              Later
+              {t("later")}
             </Button>
           </div>
         </div>
         <button
           onClick={() => setIsVisible(false)}
-          aria-label="Dismiss"
+          aria-label={t("dismiss")}
           className="text-gray-400 hover:text-gray-600 shrink-0"
         >
           <X size={18} />

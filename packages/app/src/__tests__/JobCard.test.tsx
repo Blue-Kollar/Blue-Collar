@@ -12,7 +12,8 @@
  * Closes #971
  */
 
-import { render, screen, within } from '@testing-library/react'
+import { screen, within } from '@testing-library/react'
+import { renderWithIntl as render } from '@/__tests__/renderWithIntl'
 import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeAll } from 'vitest'
 import axe from 'axe-core'

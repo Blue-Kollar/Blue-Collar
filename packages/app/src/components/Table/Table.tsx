@@ -10,6 +10,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -81,10 +82,12 @@ export function Table<T extends { id: string | number }>({
   selectable,
   selectedIds,
   onSelectionChange,
-  emptyMessage = "No results found.",
+  emptyMessage,
   className,
   "aria-label": ariaLabel,
 }: TableProps<T>) {
+  const t = useTranslations("componentText");
+  const resolvedEmptyMessage = emptyMessage ?? t("noResults");
   const allIds = data.map((r) => r.id);
   const allSelected = allIds.length > 0 && allIds.every((id) => selectedIds?.has(id));
   const someSelected = !allSelected && allIds.some((id) => selectedIds?.has(id));
@@ -136,7 +139,7 @@ export function Table<T extends { id: string | number }>({
                 <th className="w-10 px-4 py-3">
                   <input
                     type="checkbox"
-                    aria-label="Select all"
+                    aria-label={t("selectAll")}
                     checked={allSelected}
                     ref={(el) => { if (el) el.indeterminate = someSelected; }}
                     onChange={toggleAll}
@@ -168,7 +171,7 @@ export function Table<T extends { id: string | number }>({
               ))}
               {rowActions && rowActions.length > 0 && (
                 <th scope="col" className="px-4 py-3 text-right font-semibold">
-                  Actions
+                  {t("actions")}
                 </th>
               )}
             </tr>
@@ -180,7 +183,7 @@ export function Table<T extends { id: string | number }>({
                   colSpan={columns.length + (selectable ? 1 : 0) + (rowActions ? 1 : 0)}
                   className="py-16 text-center text-gray-400"
                 >
-                  <Loader2 size={28} className="mx-auto animate-spin" aria-label="Loading" />
+                  <Loader2 size={28} className="mx-auto animate-spin" aria-label={t("loading")} />
                 </td>
               </tr>
             ) : data.length === 0 ? (
@@ -189,7 +192,7 @@ export function Table<T extends { id: string | number }>({
                   colSpan={columns.length + (selectable ? 1 : 0) + (rowActions ? 1 : 0)}
                   className="py-16 text-center text-gray-400"
                 >
-                  {emptyMessage}
+                  {resolvedEmptyMessage}
                 </td>
               </tr>
             ) : (
@@ -205,7 +208,7 @@ export function Table<T extends { id: string | number }>({
                     <td className="px-4 py-3">
                       <input
                         type="checkbox"
-                        aria-label={`Select row ${row.id}`}
+                        aria-label={t("selectRow", { id: row.id })}
                         checked={selectedIds?.has(row.id) ?? false}
                         onChange={() => toggleRow(row.id)}
                         className="accent-brand-600 cursor-pointer"
@@ -257,7 +260,7 @@ export function Table<T extends { id: string | number }>({
             <Loader2 size={28} className="mx-auto animate-spin" />
           </div>
         ) : data.length === 0 ? (
-          <div className="py-12 text-center text-sm text-gray-400">{emptyMessage}</div>
+          <div className="py-12 text-center text-sm text-gray-400">          {resolvedEmptyMessage}</div>
         ) : (
           data.map((row) => (
             <div key={row.id} className={cn("p-4 space-y-2", selectedIds?.has(row.id) && "bg-brand-50 dark:bg-brand-900/20")}>
@@ -267,10 +270,10 @@ export function Table<T extends { id: string | number }>({
                     type="checkbox"
                     checked={selectedIds?.has(row.id) ?? false}
                     onChange={() => toggleRow(row.id)}
-                    aria-label={`Select row ${row.id}`}
+                    aria-label={t("selectRow", { id: row.id })}
                     className="accent-brand-600"
                   />
-                  <span className="text-xs text-gray-400">Select</span>
+                  <span className="text-xs text-gray-400">{t("select")}</span>
                 </div>
               )}
               {visibleCols.map((col) => (
@@ -311,15 +314,15 @@ export function Table<T extends { id: string | number }>({
       {totalPages !== undefined && totalPages > 1 && (
         <div className="flex items-center justify-between border-t border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-3 text-sm">
           <span className="text-gray-500 dark:text-gray-400">
-            Page {page} of {totalPages}
-            {total !== undefined && ` · ${total} total`}
+            {t("pageOf", { page, totalPages })}
+            {total !== undefined && ` · ${t("totalRecords", { total })}`}
           </span>
           <div className="flex items-center gap-1">
             <button
               type="button"
               onClick={() => onPageChange?.(page - 1)}
               disabled={page <= 1}
-              aria-label="Previous page"
+              aria-label={t("previous")}
               className="rounded p-1.5 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:pointer-events-none disabled:opacity-40"
             >
               <ChevronLeft size={16} />
@@ -328,7 +331,7 @@ export function Table<T extends { id: string | number }>({
               type="button"
               onClick={() => onPageChange?.(page + 1)}
               disabled={page >= totalPages}
-              aria-label="Next page"
+              aria-label={t("next")}
               className="rounded p-1.5 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:pointer-events-none disabled:opacity-40"
             >
               <ChevronRight size={16} />

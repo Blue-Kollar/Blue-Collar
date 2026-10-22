@@ -5,28 +5,30 @@ import { Briefcase, Clock, DollarSign } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/format";
 import type { Job } from "@/types";
+import { useTranslations } from "next-intl";
 
 interface UrgencyStyle {
-  label: string;
+  key: "low" | "normal" | "urgent";
   color: string;
 }
 
 /** Fallback for urgency values the UI does not have a style for. */
-const DEFAULT_URGENCY: UrgencyStyle = { label: "Normal", color: "bg-blue-50 text-blue-700" };
+const DEFAULT_URGENCY: UrgencyStyle = { key: "normal", color: "bg-blue-50 text-blue-700" };
 
 /**
  * Visible label and chip colours per urgency level. Text/background pairs are
  * all >= 4.5:1 so the chip meets WCAG 2.1 AA for small text.
  */
 export const URGENCY_LABEL: Record<string, UrgencyStyle> = {
-  low:    { label: "Low",    color: "bg-gray-100 text-gray-700" },
+  low:    { key: "low",    color: "bg-gray-100 text-gray-700" },
   normal: DEFAULT_URGENCY,
-  urgent: { label: "Urgent", color: "bg-red-50 text-red-700" },
+  urgent: { key: "urgent", color: "bg-red-50 text-red-700" },
 };
 
 const MAX_VISIBLE_SKILLS = 4;
 
 export default function JobCard({ job }: { job: Job }) {
+  const t = useTranslations("componentText");
   const urg = URGENCY_LABEL[job.urgency] ?? DEFAULT_URGENCY;
   const daysLeft = job.expiresAt
     ? Math.max(0, Math.ceil((new Date(job.expiresAt).getTime() - Date.now()) / 86_400_000))
@@ -51,10 +53,10 @@ export default function JobCard({ job }: { job: Job }) {
               {job.title}
             </h3>
             <p className="mt-0.5 text-xs text-gray-600">
-              <span className="sr-only">Posted by </span>
+              <span className="sr-only">{t("postedBy")}</span>
               {job.postedBy.firstName} {job.postedBy.lastName}
               <span aria-hidden="true"> · </span>
-              <span className="sr-only">in </span>
+              <span className="sr-only">{t("inLabel")}</span>
               {job.category.name}
             </p>
           </div>
@@ -64,8 +66,8 @@ export default function JobCard({ job }: { job: Job }) {
               urg.color,
             )}
           >
-            <span className="sr-only">Urgency: </span>
-            {urg.label}
+            <span className="sr-only">{t("urgencyLabel")}</span>
+            {t(`urgency${urg.key}`)}
           </span>
         </div>
 
@@ -74,7 +76,7 @@ export default function JobCard({ job }: { job: Job }) {
         {visibleSkills.length > 0 && (
           <>
             <h4 id={skillsId} className="sr-only">
-              Skills required
+              {t("skillsRequired")}
             </h4>
             <ul aria-labelledby={skillsId} className="mt-3 flex flex-wrap gap-1.5">
               {visibleSkills.map((s) => (
@@ -99,18 +101,18 @@ export default function JobCard({ job }: { job: Job }) {
           {job.budget != null && (
             <span className="flex items-center gap-1">
               <DollarSign size={12} aria-hidden="true" />
-              <span className="sr-only">Budget: </span>
+              <span className="sr-only">{t("budgetLabel")}</span>
               {formatCurrency(job.budget)}
             </span>
           )}
           <span className="flex items-center gap-1">
             <Briefcase size={12} aria-hidden="true" />
-            {applicants} applicant{applicants !== 1 ? "s" : ""}
+            {t("applicantCount", { count: applicants })}
           </span>
           {daysLeft !== null && (
             <span className="flex items-center gap-1">
               <Clock size={12} aria-hidden="true" />
-              {daysLeft === 0 ? "Expires today" : `${daysLeft}d left`}
+              {daysLeft === 0 ? t("expiresToday") : t("daysLeft", { count: daysLeft })}
             </span>
           )}
         </div>

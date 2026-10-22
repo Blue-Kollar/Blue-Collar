@@ -4,6 +4,7 @@ import { useState, useRef, useCallback } from "react";
 import Image from "next/image";
 import { GripVertical, Plus, Trash2, X, ImageIcon, AlertCircle } from "lucide-react";
 import ImageLightbox from "@/components/ImageLightbox";
+import { useTranslations } from "next-intl";
 
 export interface PortfolioImage {
   id: string;
@@ -33,6 +34,7 @@ export default function PortfolioGallery({
   onReorder,
   onCaptionChange,
 }: Props) {
+  const t = useTranslations("componentText");
   const [lightbox, setLightbox] = useState<PortfolioImage | null>(null);
   const [editingCaption, setEditingCaption] = useState<string | null>(null);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
@@ -48,17 +50,17 @@ export default function PortfolioGallery({
     setUploadError(null);
     const imageFiles = files.filter((f) => f.type.startsWith("image/"));
     if (imageFiles.length === 0) {
-      setUploadError("Only image files are accepted.");
+      setUploadError(t("imageFilesOnly"));
       return;
     }
     const oversized = imageFiles.filter((f) => f.size > MAX_FILE_SIZE_MB * 1024 * 1024);
     if (oversized.length > 0) {
-      setUploadError(`${oversized.length} file(s) exceed ${MAX_FILE_SIZE_MB}MB limit.`);
+      setUploadError(t("oversizedFiles", { count: oversized.length, max: MAX_FILE_SIZE_MB }));
       return;
     }
     const allowed = imageFiles.slice(0, remaining);
     if (allowed.length < imageFiles.length) {
-      setUploadError(`Only ${remaining} more image(s) can be added (max ${maxImages}).`);
+      setUploadError(t("remainingImages", { count: remaining, max: maxImages }));
     }
     if (allowed.length > 0) onAdd?.(allowed);
   };
@@ -103,7 +105,7 @@ export default function PortfolioGallery({
 
   if (images.length === 0 && !editable) {
     return (
-      <p className="text-sm text-gray-400 italic">No portfolio images yet.</p>
+      <p className="text-sm text-gray-400 italic">{t("portfolioEmpty")}</p>
     );
   }
 
@@ -115,7 +117,7 @@ export default function PortfolioGallery({
           <div className="flex items-center gap-1.5 text-xs text-gray-500">
             <ImageIcon size={13} />
             <span>
-              {images.length}/{maxImages} images
+              {t("imageCount", { count: images.length, max: maxImages })}
             </span>
           </div>
           {uploadError && (
@@ -154,7 +156,7 @@ export default function PortfolioGallery({
           >
             <Image
               src={img.url}
-              alt={img.caption ?? `Portfolio image ${i + 1}`}
+              alt={img.caption ?? t("portfolioImage", { number: i + 1 })}
               fill
               sizes="(min-width: 1024px) 320px, (min-width: 640px) 33vw, 50vw"
               className="h-full w-full object-cover cursor-pointer"
@@ -177,7 +179,7 @@ export default function PortfolioGallery({
                 <button
                   onClick={() => onRemove?.(img.id)}
                   className="absolute top-1.5 right-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-red-500/80 text-white hover:bg-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
-                  aria-label="Remove image"
+                  aria-label={t("removeImage")}
                 >
                   <X size={12} />
                 </button>
@@ -196,7 +198,7 @@ export default function PortfolioGallery({
                         if (e.key === "Escape") setEditingCaption(null);
                       }}
                       className="w-full rounded bg-white/20 px-2 py-0.5 text-xs text-white placeholder-white/50 outline-none"
-                      placeholder="Add caption…"
+                      placeholder={t("addCaption")}
                     />
                   </div>
                 ) : (
@@ -204,7 +206,7 @@ export default function PortfolioGallery({
                     onClick={() => setEditingCaption(img.id)}
                     className="absolute bottom-0 left-0 right-0 bg-black/40 py-1 text-xs text-white/70 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity text-center"
                   >
-                    {img.caption ? img.caption : "Add caption"}
+                    {img.caption ? img.caption : t("addCaption")}
                   </button>
                 )}
               </>
@@ -217,11 +219,11 @@ export default function PortfolioGallery({
           <button
             onClick={() => fileInputRef.current?.click()}
             className="flex aspect-square flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-gray-300 text-gray-400 hover:border-blue-400 hover:text-blue-500 transition-colors"
-            aria-label="Add photos"
+            aria-label={t("addPhotos")}
           >
             <Plus size={24} />
-            <span className="text-xs font-medium">Add photos</span>
-            <span className="text-[10px] text-gray-300">{remaining} remaining</span>
+            <span className="text-xs font-medium">{t("addPhotos")}</span>
+            <span className="text-[10px] text-gray-300">{t("imagesRemaining", { count: remaining })}</span>
           </button>
         )}
       </div>
@@ -238,7 +240,7 @@ export default function PortfolioGallery({
       {lightbox && (
         <ImageLightbox
           src={lightbox.url}
-          alt={lightbox.caption ?? "Portfolio image"}
+          alt={lightbox.caption ?? t("portfolioImageFallback")}
           onClose={() => setLightbox(null)}
         />
       )}

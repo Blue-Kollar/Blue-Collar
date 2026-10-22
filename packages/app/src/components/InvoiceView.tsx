@@ -8,6 +8,7 @@ import { formatAssetAmount } from "@/lib/format";
 import { cn, formatDate as sharedFormatDate } from "@/lib/utils";
 import ErrorState from "@/components/ErrorState";
 import type { Invoice, InvoiceStatus } from "@/types";
+import { useTranslations } from "next-intl";
 
 import { EXPLORER_TX_BASE } from "@/config/stellar";
 
@@ -22,11 +23,11 @@ const STATUS_STYLES: Record<InvoiceStatus, string> = {
 };
 
 const STATUS_LABELS: Record<InvoiceStatus, string> = {
-  draft: "Draft",
-  issued: "Issued",
-  paid: "Paid",
-  overdue: "Overdue",
-  void: "Void",
+  draft: "draftStatus",
+  issued: "issuedStatus",
+  paid: "paidStatus",
+  overdue: "overdueStatus",
+  void: "voidStatus",
 };
 
 export interface InvoiceViewProps {
@@ -62,6 +63,7 @@ export default function InvoiceView({
   onDownload,
   className,
 }: InvoiceViewProps) {
+  const t = useTranslations("componentText");
   const headingId = useId();
   const query = useInvoice(initialInvoice ? "" : invoiceId);
 
@@ -69,7 +71,7 @@ export default function InvoiceView({
   const invoice: Invoice | null = initialInvoice ?? query.data?.data ?? null;
   const loading = !initialInvoice && query.isLoading;
   const error = !initialInvoice && query.isError
-    ? formatErrorMessage(query.error, "We couldn't load this invoice.")
+    ? formatErrorMessage(query.error, t("invoiceLoadError"))
     : null;
 
   if (loading) {
@@ -79,7 +81,7 @@ export default function InvoiceView({
         aria-live="polite"
         className={cn("rounded-xl border p-6 dark:border-gray-800", className)}
       >
-        <span className="sr-only">Loading invoice…</span>
+        <span className="sr-only">{t("loadingInvoice")}</span>
         <div aria-hidden="true" className="animate-pulse space-y-3">
           <div className="h-5 w-40 rounded bg-gray-200 dark:bg-gray-700" />
           <div className="h-3 w-28 rounded bg-gray-100 dark:bg-gray-800" />
@@ -104,9 +106,9 @@ export default function InvoiceView({
         )}
       >
         <FileText size={32} className="text-gray-300" aria-hidden="true" />
-        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Invoice not found</p>
+        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">{t("invoiceNotFound")}</p>
         <p className="text-sm text-gray-500 dark:text-gray-400">
-          This invoice may have been removed or you may not have access to it.
+          {t("invoiceRemovedOrNoAccess")}
         </p>
       </div>
     );
@@ -125,13 +127,13 @@ export default function InvoiceView({
       <header className="flex flex-wrap items-start justify-between gap-3 border-b pb-4 dark:border-gray-800">
         <div>
           <h2 id={headingId} className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-            Invoice {invoice.number}
+            {t("invoice")} {invoice.number}
           </h2>
           <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-            Issued <time dateTime={invoice.issuedAt}>{formatDate(invoice.issuedAt)}</time>
+            {t("issued")} <time dateTime={invoice.issuedAt}>{formatDate(invoice.issuedAt)}</time>
             {invoice.dueAt && (
               <>
-                {" · Due "}
+                {" · "}{t("due")}{" "}
                 <time dateTime={invoice.dueAt}>{formatDate(invoice.dueAt)}</time>
               </>
             )}
@@ -145,7 +147,7 @@ export default function InvoiceView({
               STATUS_STYLES[status],
             )}
           >
-            {STATUS_LABELS[status]}
+            {t(STATUS_LABELS[status])}
           </span>
           {onDownload && (
             <button
@@ -154,7 +156,7 @@ export default function InvoiceView({
               className="flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
             >
               <Download size={13} aria-hidden="true" />
-              Download
+              {t("download")}
             </button>
           )}
         </div>
@@ -162,13 +164,13 @@ export default function InvoiceView({
 
       <dl className="grid grid-cols-2 gap-4 py-4 text-sm">
         <div>
-          <dt className="text-xs uppercase tracking-wide text-gray-400">From</dt>
+          <dt className="text-xs uppercase tracking-wide text-gray-400">{t("from")}</dt>
           <dd className="mt-0.5 font-medium text-gray-800 dark:text-gray-200">
             {invoice.worker.name}
           </dd>
         </div>
         <div>
-          <dt className="text-xs uppercase tracking-wide text-gray-400">Billed to</dt>
+          <dt className="text-xs uppercase tracking-wide text-gray-400">{t("billedTo")}</dt>
           <dd className="mt-0.5 font-medium text-gray-800 dark:text-gray-200">
             {invoice.client.name}
           </dd>
@@ -178,20 +180,20 @@ export default function InvoiceView({
       {hasLineItems ? (
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <caption className="sr-only">Line items for invoice {invoice.number}</caption>
+            <caption className="sr-only">{t("lineItemsCaption", { number: invoice.number })}</caption>
             <thead>
               <tr className="border-b text-left text-xs uppercase tracking-wide text-gray-400 dark:border-gray-800">
                 <th scope="col" className="py-2 font-medium">
-                  Description
+                  {t("description")}
                 </th>
                 <th scope="col" className="py-2 text-right font-medium">
-                  Qty
+                  {t("quantity")}
                 </th>
                 <th scope="col" className="py-2 text-right font-medium">
-                  Unit price
+                  {t("unitPrice")}
                 </th>
                 <th scope="col" className="py-2 text-right font-medium">
-                  Amount
+                  {t("amount")}
                 </th>
               </tr>
             </thead>
@@ -213,25 +215,25 @@ export default function InvoiceView({
         </div>
       ) : (
         <p className="rounded-lg bg-gray-50 py-6 text-center text-sm text-gray-500 dark:bg-gray-900 dark:text-gray-400">
-          This invoice has no line items yet.
+          {t("invoiceNoLineItems")}
         </p>
       )}
 
       <dl className="mt-4 space-y-1.5 border-t pt-4 text-sm dark:border-gray-800">
         <div className="flex justify-between">
-          <dt className="text-gray-500 dark:text-gray-400">Subtotal</dt>
+          <dt className="text-gray-500 dark:text-gray-400">{t("subtotal")}</dt>
           <dd className="tabular-nums text-gray-700 dark:text-gray-300">
             {formatAmount(subtotal, currency)}
           </dd>
         </div>
         <div className="flex justify-between">
-          <dt className="text-gray-500 dark:text-gray-400">Platform fee</dt>
+          <dt className="text-gray-500 dark:text-gray-400">{t("platformFee")}</dt>
           <dd className="tabular-nums text-gray-700 dark:text-gray-300">
             {formatAmount(platformFee, currency)}
           </dd>
         </div>
         <div className="flex justify-between border-t pt-2 text-base font-semibold dark:border-gray-800">
-          <dt className="text-gray-900 dark:text-gray-100">Total</dt>
+          <dt className="text-gray-900 dark:text-gray-100">{t("total")}</dt>
           <dd className="tabular-nums text-gray-900 dark:text-gray-100">
             {formatAmount(total, currency)}
           </dd>
@@ -251,7 +253,7 @@ export default function InvoiceView({
           rel="noopener noreferrer"
           className="mt-4 inline-flex items-center gap-1.5 rounded text-xs font-medium text-blue-600 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:text-blue-400"
         >
-          View transaction on Stellar
+          {t("viewStellarTransaction")}
           <ExternalLink size={12} aria-hidden="true" />
         </a>
       )}

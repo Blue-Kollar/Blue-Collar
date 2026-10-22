@@ -9,15 +9,9 @@ import EmptyState from "./EmptyState";
 import type { Review, RatingDistributionEntry } from "@/types";
 import { useWorkerReviews } from "@/hooks/queries";
 import { useAuth } from "@/context/AuthContext";
+import { useTranslations } from "next-intl";
 
 const PAGE_SIZE = 5;
-
-const SORT_LABELS: Record<SortOption, string> = {
-  newest: "newest first",
-  oldest: "oldest first",
-  highest: "highest rated first",
-  lowest: "lowest rated first",
-};
 
 interface ReviewsSectionProps {
   workerId: string;
@@ -34,6 +28,7 @@ export default function ReviewsSection({
   averageRating,
   distribution,
 }: ReviewsSectionProps) {
+  const t = useTranslations("componentText");
   const { user } = useAuth();
   const [reviews, setReviews] = useState<Review[]>(initialReviews);
   const [count, setCount] = useState<number>(reviewCount);
@@ -54,12 +49,13 @@ export default function ReviewsSection({
     setReviews((prev) => [review, ...prev]);
     setCount((c) => c + 1);
     setVisibleCount((v) => v + 1);
-    setAnnouncement("Your review was posted.");
+    setAnnouncement(t("reviewPosted"));
   };
 
   const handleSortChange = (next: SortOption) => {
     setSort(next);
-    setAnnouncement(`Reviews sorted by ${SORT_LABELS[next]}.`);
+    const sortLabel = t(next === "newest" ? "newestFirst" : next === "oldest" ? "oldestFirst" : next === "highest" ? "highestRatedFirst" : "lowestRatedFirst");
+    setAnnouncement(t("reviewsSorted", { sort: sortLabel }));
   };
 
   const handleLoadMore = () => {
@@ -88,7 +84,7 @@ export default function ReviewsSection({
     setRatingFilter(rating);
     setVisibleCount(PAGE_SIZE);
     if (rating === null) {
-      setAnnouncement("Rating filter cleared. Showing all reviews.");
+      setAnnouncement(t("ratingFilterCleared"));
     }
   };
 
@@ -96,9 +92,9 @@ export default function ReviewsSection({
     if (ratingFilter === null) return;
     if (filteredQuery.isSuccess) {
       const n = (filteredQuery.data.data ?? []).length;
-      setAnnouncement(`Showing ${n} ${ratingFilter}-star review${n !== 1 ? "s" : ""}.`);
+      setAnnouncement(t(n === 1 ? "showingOneStarReview" : "showingStarReviews", { count: n, rating: ratingFilter }));
     } else if (filteredQuery.isError) {
-      setAnnouncement("Could not load filtered reviews. Showing all reviews.");
+      setAnnouncement(t("filteredReviewsError"));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filteredQuery.isSuccess, filteredQuery.isError, filteredQuery.data, ratingFilter]);
@@ -131,7 +127,7 @@ export default function ReviewsSection({
     >
       <div className="flex items-center justify-between mb-4">
         <h2 id={headingId} className="text-base font-semibold text-gray-900 dark:text-gray-100">
-          Reviews {count > 0 && `(${count})`}
+          {t("reviews")} {count > 0 && `(${count})`}
         </h2>
         {count > 0 && <ReviewSortFilter sort={sort} onSortChange={handleSortChange} />}
       </div>
@@ -153,12 +149,12 @@ export default function ReviewsSection({
 
       <div className="mb-6">
         {hasReviewed ? (
-          <p className="text-sm text-gray-500 italic dark:text-gray-400">You have already reviewed this worker.</p>
+          <p className="text-sm text-gray-500 italic dark:text-gray-400">{t("alreadyReviewed")}</p>
         ) : (
           // EmptyState's "Write a Review" CTA links here; the id must exist for
           // that skip target to work.
           <div id="review-form">
-            <p className="text-sm font-medium text-gray-700 mb-3 dark:text-gray-300">Leave a review</p>
+            <p className="text-sm font-medium text-gray-700 mb-3 dark:text-gray-300">{t("leaveReview")}</p>
             <ReviewForm workerId={workerId} onReviewCreated={handleReviewCreated} />
           </div>
         )}
@@ -166,7 +162,7 @@ export default function ReviewsSection({
 
       {filterLoading ? (
         <div role="status" className="py-6 text-center text-sm text-gray-400">
-          Loading reviews…
+          {t("loadingReviews")}
         </div>
       ) : displayed.length > 0 ? (
         <div>
@@ -183,10 +179,10 @@ export default function ReviewsSection({
             <button
               type="button"
               onClick={handleLoadMore}
-              aria-label={`Load more reviews, ${sorted.length - visibleCount} remaining`}
+              aria-label={t("loadMoreReviews", { count: sorted.length - visibleCount })}
               className="mt-4 w-full rounded-lg border py-2 text-sm text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
             >
-              Load more ({sorted.length - visibleCount} remaining)
+              {t("loadMore", { count: sorted.length - visibleCount })}
             </button>
           )}
         </div>

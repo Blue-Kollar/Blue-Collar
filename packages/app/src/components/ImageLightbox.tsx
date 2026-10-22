@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { X, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface Props {
   src: string;
@@ -14,6 +15,7 @@ const MAX_SCALE = 4;
 const ZOOM_STEP = 0.75;
 
 export default function ImageLightbox({ src, alt, onClose }: Props) {
+  const t = useTranslations("componentText");
   const [loaded, setLoaded] = useState(false);
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
@@ -108,7 +110,7 @@ export default function ImageLightbox({ src, alt, onClose }: Props) {
     <div
       role="dialog"
       aria-modal="true"
-      aria-label={`Full size image: ${alt}`}
+      aria-label={`${alt}`}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 animate-fade-in"
       onClick={onClose}
     >
@@ -120,7 +122,7 @@ export default function ImageLightbox({ src, alt, onClose }: Props) {
         <button
           onClick={() => zoom(ZOOM_STEP)}
           disabled={scale >= MAX_SCALE}
-          aria-label="Zoom in"
+          aria-label={t("zoomIn")}
           className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 disabled:opacity-40 transition-colors"
         >
           <ZoomIn size={18} />
@@ -128,21 +130,21 @@ export default function ImageLightbox({ src, alt, onClose }: Props) {
         <button
           onClick={() => zoom(-ZOOM_STEP)}
           disabled={scale <= MIN_SCALE}
-          aria-label="Zoom out"
+          aria-label={t("zoomOut")}
           className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 disabled:opacity-40 transition-colors"
         >
           <ZoomOut size={18} />
         </button>
         <button
           onClick={reset}
-          aria-label="Reset zoom"
+          aria-label={t("resetZoom")}
           className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors"
         >
           <RotateCcw size={16} />
         </button>
         <button
           onClick={onClose}
-          aria-label="Close image viewer"
+          aria-label={t("closeImageViewer")}
           className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors"
         >
           <X size={18} />
@@ -188,7 +190,7 @@ export default function ImageLightbox({ src, alt, onClose }: Props) {
       {/* Hint */}
       {loaded && scale === 1 && (
         <p className="absolute bottom-4 left-1/2 -translate-x-1/2 text-xs text-white/50 select-none">
-          Scroll or pinch to zoom · ESC to close
+          {t("imageZoomHint")}
         </p>
       )}
     </div>

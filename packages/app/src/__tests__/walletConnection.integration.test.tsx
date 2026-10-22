@@ -20,7 +20,8 @@
  */
 
 import React from 'react'
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
+import { screen, fireEvent, waitFor, act } from '@testing-library/react'
+import { renderWithIntl as render } from '@/__tests__/renderWithIntl'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { renderHook } from '@testing-library/react'
 

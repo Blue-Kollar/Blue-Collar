@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { TrendingUp, TrendingDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatCompact } from "@/lib/format";
+import { useTranslations } from "next-intl";
 
 export interface MetricCardProps {
   icon?: ReactNode;
@@ -22,6 +23,7 @@ export interface MetricCardProps {
  * beneath the value (mirrors the former GrowthCard in admin/page.tsx).
  */
 export function MetricCard({ icon, label, value, sub, trend, className }: MetricCardProps) {
+  const t = useTranslations("componentText");
   const isPositive = trend !== undefined && trend >= 0;
 
   return (
@@ -56,7 +58,7 @@ export function MetricCard({ icon, label, value, sub, trend, className }: Metric
 
       {sub && <p className="mt-0.5 text-xs text-gray-400">{sub}</p>}
       {trend !== undefined && !sub && (
-        <p className="mt-0.5 text-xs text-gray-400">vs last month</p>
+        <p className="mt-0.5 text-xs text-gray-400">{t("vsLastMonth")}</p>
       )}
     </div>
   );

@@ -1,5 +1,6 @@
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 interface LoadingStateProps {
   /** Optional text shown next to (inline) or below (block) the spinner */
@@ -18,12 +19,13 @@ export default function LoadingState({
   size = 28,
   className,
 }: LoadingStateProps) {
+  const t = useTranslations("common");
   const spinner = <Loader2 size={size} className="animate-spin" aria-hidden="true" />;
 
   if (variant === "list" || variant === "card" || variant === "detail") {
     return (
       <div role="status" className={cn("animate-pulse", className)}>
-        <span className="sr-only">{message ?? "Loading"}</span>
+        <span className="sr-only">{message ?? t("loading")}</span>
         {variant === "list" &&
           Array.from({ length: 5 }, (_, i) => (
             <div key={i} className="flex items-center gap-3 border-b py-3">
@@ -60,7 +62,7 @@ export default function LoadingState({
         className={cn("flex items-center gap-2 text-sm text-gray-500", className)}
       >
         {spinner}
-        {message ? <span>{message}</span> : <span className="sr-only">Loading</span>}
+        {message ? <span>{message}</span> : <span className="sr-only">{t("loading")}</span>}
       </div>
     );
   }
@@ -77,7 +79,7 @@ export default function LoadingState({
       {message ? (
         <p className="text-sm text-gray-500">{message}</p>
       ) : (
-        <span className="sr-only">Loading</span>
+        <span className="sr-only">{t("loading")}</span>
       )}
     </div>
   );

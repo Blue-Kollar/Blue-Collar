@@ -1,10 +1,5 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
-
-const DAY_LABELS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
-const MONTH_NAMES = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
-];
+import { useLocale, useTranslations } from "next-intl";
 
 interface CalendarHeaderProps {
   year: number;
@@ -21,11 +16,21 @@ export default function CalendarHeader({
   onPrevMonth,
   onNextMonth,
 }: CalendarHeaderProps) {
+  const locale = useLocale();
+  const t = useTranslations("componentText");
+  const monthLabel = new Intl.DateTimeFormat(locale, { month: "long", timeZone: "UTC" }).format(
+    new Date(Date.UTC(year, month, 1))
+  );
+  const dayLabels = Array.from({ length: 7 }, (_, day) =>
+    new Intl.DateTimeFormat(locale, { weekday: "short", timeZone: "UTC" }).format(
+      new Date(Date.UTC(2023, 0, 1 + day))
+    )
+  );
   return (
     <>
       {/* Header */}
       <div className="mb-4 flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-gray-800">Availability</h3>
+        <h3 className="text-sm font-semibold text-gray-800">{t("availability")}</h3>
         <span className="text-xs text-gray-400">{timezone}</span>
       </div>
 
@@ -34,17 +39,17 @@ export default function CalendarHeader({
         <button
           onClick={onPrevMonth}
           className="rounded p-1 hover:bg-gray-100 transition-colors"
-          aria-label="Previous month"
+          aria-label={t("previousMonth")}
         >
           <ChevronLeft size={16} />
         </button>
         <span className="text-sm font-medium text-gray-700">
-          {MONTH_NAMES[month]} {year}
+          {monthLabel} {year}
         </span>
         <button
           onClick={onNextMonth}
           className="rounded p-1 hover:bg-gray-100 transition-colors"
-          aria-label="Next month"
+          aria-label={t("nextMonth")}
         >
           <ChevronRight size={16} />
         </button>
@@ -52,8 +57,8 @@ export default function CalendarHeader({
 
       {/* Day labels */}
       <div className="mb-1 grid grid-cols-7 text-center">
-        {DAY_LABELS.map((d) => (
-          <span key={d} className="text-xs font-medium text-gray-400">{d}</span>
+        {dayLabels.map((d, index) => (
+          <span key={index} className="text-xs font-medium text-gray-400">{d}</span>
         ))}
       </div>
     </>

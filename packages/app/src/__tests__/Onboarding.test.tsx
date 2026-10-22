@@ -4,7 +4,8 @@
  * future removal of "unused" code cannot silently break the flows.
  */
 
-import { render, screen } from '@testing-library/react'
+import { screen } from '@testing-library/react'
+import { renderWithIntl as render } from '@/__tests__/renderWithIntl'
 import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 

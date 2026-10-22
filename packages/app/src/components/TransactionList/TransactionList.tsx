@@ -4,6 +4,7 @@ import EmptyState from "@/components/EmptyState";
 import { useTransactionList } from "@/hooks/useTransactionList";
 import TransactionListPagination from "./TransactionListPagination";
 import TransactionListTable from "./TransactionListTable";
+import { useTranslations } from "next-intl";
 
 interface TransactionListProps {
   walletAddress: string;
@@ -18,6 +19,7 @@ export default function TransactionList({
   walletAddress,
   marketContractId,
 }: TransactionListProps) {
+  const t = useTranslations("componentText");
   const { transactions, page, setPage, totalPages, loading, error } = useTransactionList({
     walletAddress,
     marketContractId,
@@ -25,13 +27,13 @@ export default function TransactionList({
 
   return (
     <div className="mt-8 border-t pt-6">
-      <h2 className="text-sm font-semibold text-gray-700 mb-4">Tip History</h2>
+      <h2 className="text-sm font-semibold text-gray-700 mb-4">{t("tipHistory")}</h2>
 
       {loading && (
-        <p className="text-sm text-gray-400 animate-pulse">Loading transactions…</p>
+        <p className="text-sm text-gray-400 animate-pulse">{t("loadingTransactions")}</p>
       )}
 
-      {error && <p className="text-sm text-red-500">Error: {error}</p>}
+      {error && <p className="text-sm text-red-500">{t("errorPrefix", { message: error })}</p>}
 
       {!loading && !error && transactions.length === 0 && (
         <EmptyState variant="no-transactions" ctaHref="/workers" />
