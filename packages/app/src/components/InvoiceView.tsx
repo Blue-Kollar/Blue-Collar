@@ -92,7 +92,7 @@ export default function InvoiceView({
   }
 
   if (error) {
-    return <ErrorState message={error} onRetry={() => void load()} className={className} />;
+    return <ErrorState message={error} onRetry={() => void query.refetch()} className={className} />;
   }
 
   // Nothing to render and nothing failed — treat as not found rather than

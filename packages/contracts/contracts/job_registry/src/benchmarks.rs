@@ -48,7 +48,7 @@ mod benchmarks {
             }
         }
 
-        fn client(&self) -> crate::JobRegistryContractClient {
+        fn client(&self) -> crate::JobRegistryContractClient<'_> {
             crate::JobRegistryContractClient::new(&self.env, &self.contract_id)
         }
 

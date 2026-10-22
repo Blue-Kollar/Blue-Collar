@@ -20,7 +20,7 @@ use bluecollar_shared::test_fixtures::{
 };
 use soroban_sdk::{
     testutils::Address as _,
-    token::{Client as TokenClient, StellarAssetClient},
+    token::{Client as TokenClient},
     Address, Env, Symbol,
 };
 
@@ -38,7 +38,7 @@ fn setup_env() -> (Env, Address, Address, Address, Address, Address) {
     (env, admin, fee_recipient, client_addr, worker, token)
 }
 
-fn deploy(env: &Env) -> (Address, PaymentContractClient) {
+fn deploy(env: &Env) -> (Address, PaymentContractClient<'_>) {
     let id = env.register_contract(None, PaymentContract);
     let client = PaymentContractClient::new(env, &id);
     (id, client)
@@ -97,7 +97,7 @@ fn test_initialize_fee_too_high() {
 #[test]
 fn test_pay_with_fee() {
     let (env, admin, fee_recipient, client_addr, worker, token) = setup_env();
-    let (contract_id, pmt) = deploy(&env);
+    let (_contract_id, pmt) = deploy(&env);
     init(&env, &pmt, &admin, 100, &fee_recipient); // 1% fee
 
     let token_client = TokenClient::new(&env, &token);

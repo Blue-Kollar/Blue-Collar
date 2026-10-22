@@ -9,13 +9,14 @@ interface FriendbotBannerProps {
   xlmBalance: number;
 }
 
-import { FRIENDBOT_URL, IS_TESTNET } from "@/config/stellar";
+import { IS_TESTNET } from "@/config/stellar";
+import { useFriendbotFunding } from "@/hooks/useFriendbotFunding";
 
 export default function FriendbotBanner({ walletAddress, xlmBalance }: FriendbotBannerProps) {
   const t = useTranslations("componentText");
   const [dismissed, setDismissed] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState("");
+  const funding = useFriendbotFunding();
 
   const showToast = (message: string) => {
     setToast(message);
@@ -27,17 +28,13 @@ export default function FriendbotBanner({ walletAddress, xlmBalance }: Friendbot
   const handleFund = async () => {
     if (!walletAddress) return;
 
-    setLoading(true);
     try {
-      const res = await fetch(`${FRIENDBOT_URL}?addr=${encodeURIComponent(walletAddress)}`);
-      if (!res.ok) throw new Error("Friendbot funding failed.");
+      await funding.mutateAsync(walletAddress);
 
       showToast(t("friendbotFunded"));
       setDismissed(true);
     } catch {
-      showToast(t("friendbotFailed"));
-    } finally {
-      setLoading(false);
+      showToast("Friendbot funding failed. Please try again.");
     }
   };
 
@@ -64,10 +61,10 @@ export default function FriendbotBanner({ walletAddress, xlmBalance }: Friendbot
             <button
               type="button"
               onClick={handleFund}
-              disabled={loading}
+              disabled={funding.isPending}
               className="rounded-lg bg-yellow-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-yellow-600 disabled:opacity-50"
             >
-              {loading ? t("funding") : t("fundWithFriendbot")}
+              {funding.isPending ? "Funding..." : "Fund with Friendbot"}
             </button>
             <button
               type="button"

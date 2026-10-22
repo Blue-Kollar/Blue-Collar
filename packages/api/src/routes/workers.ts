@@ -28,7 +28,7 @@ import { withAuth, withAuthAndValidation } from '@/middleware/composition.js'
 import { upload, handleMulterError } from '@/middleware/upload.js'
 import { createWorkerRules, listWorkersQuerySchema, searchWorkersQuerySchema, advancedSearchRules } from '@/validations/index.js'
 import { cacheMiddleware, invalidateCachePattern, CacheTTL } from '@/middleware/cache.js'
-import { contactRateLimit, generalRateLimit } from '@/middleware/userRateLimit.js'
+import { contactRateLimit, generalRateLimit } from '@/middleware/rateLimit.js'
 import { db } from '@/db.js'
 
 import { idempotency } from '@/middleware/idempotency.js'

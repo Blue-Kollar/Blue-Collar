@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Loader2, Check } from "lucide-react";
 import { Input } from "@/components/Form/Input";
+import { useQuickProfileUpdate } from "@/hooks/useQuickProfileUpdate";
 import type { AuthUser } from "@/types";
 import { useTranslations } from "next-intl";
 
@@ -23,11 +24,10 @@ interface Props {
   onSaved?: (updated: Pick<AuthUser, "firstName" | "lastName" | "email">) => void;
 }
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/api";
-
 export function QuickProfileEdit({ user, token, onSaved }: Props) {
   const t = useTranslations("componentText");
   const [saved, setSaved] = useState(false);
+  const updateProfile = useQuickProfileUpdate(token);
   const {
     register,
     handleSubmit,
@@ -42,12 +42,7 @@ export function QuickProfileEdit({ user, token, onSaved }: Props) {
   });
 
   const onSubmit = async (data: Fields) => {
-    const res = await fetch(`${API}/users/me`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify(data),
-    });
-    if (!res.ok) throw new Error(t("saveFailed"));
+    await updateProfile.mutateAsync(data);
     setSaved(true);
     onSaved?.(data);
     setTimeout(() => setSaved(false), 2000);

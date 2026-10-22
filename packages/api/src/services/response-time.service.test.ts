@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import * as responseTimeService from './response-time.service'
 import { db } from '@/db'
-import { AppError } from '@/utils/app-errorr'
+import { AppError } from '@/utils/app-error.js'
 
 vi.mock('@/db.js')
-vi.mock('@/utils/AppError.js')
+vi.mock('@/utils/app-error.js')
 
 type MockedDb = {
   contactRequest: {

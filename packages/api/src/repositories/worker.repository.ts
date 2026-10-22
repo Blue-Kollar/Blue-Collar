@@ -201,6 +201,7 @@ export class WorkerRepository extends BaseRepository<Worker, Prisma.WorkerCreate
       },
       ...(sortBy === 'newest' ? { orderBy: { createdAt: 'desc' as const } } : {}),
       skip,
+      ...(sortBy === 'newest' ? { orderBy: { createdAt: 'desc' as const } } : {}),
       take: take + 1, // +1 for hasMore detection (used when no in-memory filtering)
     })
 
