@@ -373,7 +373,7 @@ describe('TypeScript Strict Mode - Object Property Type Safety', () => {
 
     const user: ReadonlyUser = { id: '1', name: 'John' }
     expect(user.id).toBe('1')
-    // user.id = '2' // Type error in strict mode
+    // Assigning to `user.id` is a compile-time error under strict mode.
   })
 })
 

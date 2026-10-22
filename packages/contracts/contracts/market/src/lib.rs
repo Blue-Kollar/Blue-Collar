@@ -1270,7 +1270,7 @@ mod tests {
     use soroban_sdk::{
         testutils::{Address as _, Ledger},
         token::{Client as TokenClient, StellarAssetClient},
-        Address, Env, Symbol, Vec,
+        Address, Env, Symbol,
     };
 
     struct TestEnv {
@@ -1315,7 +1315,7 @@ mod tests {
             }
         }
 
-        fn client(&self) -> MarketContractClient {
+        fn client(&self) -> MarketContractClient<'_> {
             MarketContractClient::new(&self.env, &self.contract_id)
         }
 
