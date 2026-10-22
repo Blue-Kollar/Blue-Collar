@@ -23,6 +23,7 @@
     "security:scan": "pnpm audit --audit-level=high && pnpm --filter @bluecollar/contracts security:scan",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
+    "check:compose-env": "node scripts/check-compose-env.js",
     "check:dead-files": "knip",
     "check:dead-files:fix": "knip --fix",
     "seed:jobs": "tsx scripts/seed-jobs.ts",
