@@ -140,6 +140,7 @@ pub fn require_disputed(record: &EscrowRecord) -> Result<(), ContractError> {
 /// Create a new escrow and lock `amount` tokens.
 ///
 /// The depositor must have approved the contract to spend `amount` tokens.
+#[allow(deprecated)]
 pub fn do_create(
     env: &Env,
     depositor: &Address,
@@ -194,6 +195,7 @@ pub fn do_create(
 /// Release escrow funds to the beneficiary.
 ///
 /// Only the depositor or an admin may release.
+#[allow(deprecated)]
 pub fn do_release(env: &Env, caller: &Address, id: Symbol) -> Result<(), ContractError> {
     // --- Checks ---
     // NB: `helpers::require_owner_or_role` performs `caller.require_auth()`
@@ -236,6 +238,7 @@ pub fn do_release(env: &Env, caller: &Address, id: Symbol) -> Result<(), Contrac
 /// Cancel escrow and refund funds to the depositor.
 ///
 /// Admin may cancel at any time. The depositor may self-cancel after expiry.
+#[allow(deprecated)]
 pub fn do_cancel(env: &Env, caller: &Address, id: Symbol) -> Result<(), ContractError> {
     // --- Checks ---
     require_not_paused(env)?;
@@ -302,6 +305,7 @@ pub fn do_dispute(env: &Env, caller: &Address, id: Symbol) -> Result<(), Contrac
 ///
 /// If `release_to_beneficiary` is `true`, funds go to the beneficiary;
 /// otherwise funds are returned to the depositor.
+#[allow(deprecated)]
 pub fn do_resolve(
     env: &Env,
     caller: &Address,

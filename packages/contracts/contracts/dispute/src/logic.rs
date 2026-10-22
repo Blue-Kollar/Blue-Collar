@@ -99,6 +99,7 @@ pub fn remove_arbitrator(
 // Dispute lifecycle — Step 1: Open
 // =============================================================================
 
+#[allow(deprecated)]
 pub fn file_dispute(
     env: &Env,
     id: Symbol,
@@ -195,6 +196,7 @@ pub fn submit_evidence(
 // Dispute lifecycle — Step 3: Decision
 // =============================================================================
 
+#[allow(deprecated)]
 pub fn decide(
     env: &Env,
     dispute_id: Symbol,
@@ -297,6 +299,7 @@ pub fn execute_payout(env: &Env, dispute: &Dispute, disputer_share: i128, respon
     }
 }
 
+#[allow(deprecated)]
 pub fn settle(env: &Env, dispute_id: Symbol) -> Result<(), ContractError> {
     // --- Checks ---
     let mut dispute = validate_evidence(env, &dispute_id)?;
