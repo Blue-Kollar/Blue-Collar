@@ -118,6 +118,16 @@ feat(api)!: rename /workers/mine to /workers/curator
 BREAKING CHANGE: clients must update the endpoint path.
 ```
 
+### Code formatting
+
+Formatting is enforced with [Prettier](https://prettier.io/):
+
+- `pnpm format` — rewrite every `*.ts`, `*.tsx`, `*.js`, `*.json`, and `*.md` file under `packages/`.
+- `pnpm format:check` — verify formatting without writing files; this is the command run by the `pre-commit` hook and CI.
+- `pnpm --filter @bluecollar/api format:check` — check a single package.
+
+If `format:check` fails, run `pnpm format` and commit the formatting changes separately from behavioural changes so review diffs stay readable.
+
 ---
 
 ## Release Notes
