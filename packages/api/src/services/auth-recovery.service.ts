@@ -5,6 +5,7 @@ import { AppError } from '@/utils/app-error.js'
 import { sanitizeUser } from '@/models/user.model.js'
 import { createServiceLogger } from '@/utils/logger.js'
 import { nowUtc, addUtcMs } from '@/utils/date.js'
+import { config } from '@/config/config.js'
 import type { RegisterBody } from '@/interfaces/index.js'
 import type { AuthServiceDeps } from '@/container/types.js'
 
@@ -14,7 +15,7 @@ const logger = createServiceLogger('AuthService')
  * Generate a short-lived email verification token for a user.
  */
 export function generateVerificationToken(userId: string) {
-  const raw = jwt.sign({ id: userId, purpose: 'email-verify' }, process.env.JWT_SECRET!, {
+  const raw = jwt.sign({ id: userId, purpose: 'email-verify' }, config.auth.jwtSecret, {
     expiresIn: '24h',
   })
   const hash = crypto.createHash('sha256').update(raw).digest('hex')
@@ -58,7 +59,7 @@ export function createAuthRecoveryService(deps: Pick<AuthServiceDeps, 'userRepos
       logger.debug('Email verification attempt')
       let payload: { id?: string; purpose?: string }
       try {
-        payload = jwt.verify(token, process.env.JWT_SECRET!) as { id: string; purpose: string }
+        payload = jwt.verify(token, config.auth.jwtSecret) as { id: string; purpose: string }
       } catch {
         logger.warn('Email verification failed: invalid token')
         throw new AppError('Token is invalid or has expired', 400)

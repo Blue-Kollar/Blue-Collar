@@ -185,12 +185,13 @@ export class WorkerRepository extends BaseRepository<Worker, Prisma.WorkerCreate
         location: true,
       },
       skip,
+      ...(sortBy === 'newest' ? { orderBy: { createdAt: 'desc' as const } } : {}),
       take: take + 1, // +1 for hasMore detection (used when no in-memory filtering)
     })
 
     // Apply geo filtering in memory if provided (PostGIS would be ideal but not configured)
     if (lat !== undefined && lng !== undefined) {
-      filteredWorkers = workers.filter(w => {
+      workers = workers.filter(w => {
         if (!w.location?.lat || !w.location?.lng) return false
         const dist = this.haversine(lat, lng, w.location.lat, w.location.lng)
         return dist <= radius
@@ -230,6 +231,7 @@ export class WorkerRepository extends BaseRepository<Worker, Prisma.WorkerCreate
     })
 
     // Apply sorting that requires computed fields
+    const requiresPostProcessing = sortBy !== 'newest'
     let sortedEnriched = enriched
     if (requiresPostProcessing) {
       sortedEnriched.sort((a, b) => {

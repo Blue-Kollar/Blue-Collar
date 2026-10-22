@@ -15,7 +15,6 @@
 import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vitest/config'
 import path from 'node:path'
-import { fileURLToPath } from 'node:url'
 
 const srcDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), 'src')
 
@@ -29,6 +28,19 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
+    env: {
+      NODE_ENV: 'test',
+      JWT_SECRET: 'test-jwt-secret-key-for-testing',
+      DATABASE_URL: 'postgresql://localhost:5432/bluecollar_test',
+      REDIS_URL: 'redis://localhost:6379/1',
+      APP_URL: 'http://localhost:3000',
+      GOOGLE_CLIENT_ID: 'test-google-client-id',
+      GOOGLE_CLIENT_SECRET: 'test-google-client-secret',
+      MAIL_HOST: 'localhost',
+      MAIL_USER: 'test@example.com',
+      MAIL_PASS: 'test-mail-password',
+      HORIZON_URL: 'http://127.0.0.1:0',
+    },
     include: ['src/**/*.test.ts', 'src/**/__tests__/**/*.test.ts'],
     exclude: ['src/**/*.e2e.test.ts'],
     setupFiles: ['src/__tests__/setup.ts'],

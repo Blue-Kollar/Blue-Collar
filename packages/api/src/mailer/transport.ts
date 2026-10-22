@@ -1,10 +1,11 @@
 import nodemailer from 'nodemailer'
+import { config } from '@/config/config.js'
 
 export const transporter = nodemailer.createTransport({
-  host: process.env.MAIL_HOST,
-  port: Number(process.env.MAIL_PORT) || 587,
+  host: config.mail.host,
+  port: config.mail.port,
   auth: {
-    user: process.env.MAIL_USER,
-    pass: process.env.MAIL_PASS,
+    user: config.mail.user,
+    pass: config.mail.pass,
   },
 })

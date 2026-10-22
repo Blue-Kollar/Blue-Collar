@@ -4,19 +4,20 @@ import { db } from '@/db.js'
 import { logger } from '@/config/logger.js'
 import { sendVerificationReminderEmail } from '@/mailer/index.js'
 import { nowUtc, addUtcMs } from '@/utils/date.js'
+import { config } from '@/config/config.js'
 
 const HOUR = 60 * 60 * 1000
 const DAY = 24 * HOUR
 
 function generateVerificationToken(userId: string) {
-  const raw = jwt.sign({ id: userId, purpose: 'email-verify' }, process.env.JWT_SECRET!, { expiresIn: '7d' })
+  const raw = jwt.sign({ id: userId, purpose: 'email-verify' }, config.auth.jwtSecret, { expiresIn: '7d' })
   const hash = crypto.createHash('sha256').update(raw).digest('hex')
   const expiry = addUtcMs(nowUtc(), 7 * DAY)
   return { raw, hash, expiry }
 }
 
 function generateUnsubscribeToken(userId: string) {
-  return jwt.sign({ id: userId, purpose: 'unsubscribe-reminders' }, process.env.JWT_SECRET!, { expiresIn: '30d' })
+  return jwt.sign({ id: userId, purpose: 'unsubscribe-reminders' }, config.auth.jwtSecret, { expiresIn: '30d' })
 }
 
 /**

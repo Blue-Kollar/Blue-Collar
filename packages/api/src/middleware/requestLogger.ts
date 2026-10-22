@@ -54,14 +54,15 @@ import fs from 'node:fs'
 import path from 'node:path'
 import type { Request } from 'express'
 import type { IncomingMessage } from 'node:http'
+import { config } from '@/config/config.js'
 
 /** Request augmented with the authenticated user attached by auth middleware. */
 type LoggedRequest = IncomingMessage & { user?: { id?: string } }
 
-const LOG_DIR = process.env.LOG_DIR ?? 'storage/logs'
+const LOG_DIR = config.logDir
 fs.mkdirSync(path.resolve(LOG_DIR), { recursive: true })
 
-const isDev = process.env.NODE_ENV !== 'production'
+const isDev = config.env !== 'production'
 
 export const requestLogger = pinoHttp({
   logger: isDev
