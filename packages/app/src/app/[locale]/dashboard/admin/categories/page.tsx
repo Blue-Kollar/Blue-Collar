@@ -20,7 +20,7 @@ export default function AdminCategoriesPage() {
     setLoading(true);
     try {
       const res = await getCategories();
-      setCategories(res.data);
+      setCategories(res.data ?? []);
     } catch {
       toast("Failed to load categories", "error");
     } finally {

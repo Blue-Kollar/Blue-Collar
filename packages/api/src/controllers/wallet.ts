@@ -34,7 +34,7 @@ export function createWalletController(service: WalletService = walletService) {
      */
     getAccountInfo: catchAsync(async (req: Request, res: Response) => {
       const { publicKey } = req.params
-      const data = await service.getAccountInfo(publicKey)
+      const data = await service.getAccountInfo(publicKey!)
       res.json({ status: 'success', code: 200, data })
     }),
 
@@ -86,7 +86,7 @@ export function createWalletController(service: WalletService = walletService) {
      */
     getTxStatus: catchAsync(async (req: Request, res: Response) => {
       const { txHash } = req.params
-      const status = await service.pollTransactionStatus(txHash)
+      const status = await service.pollTransactionStatus(txHash!)
       res.json({ status: 'success', code: 200, data: status })
     }),
 
@@ -109,7 +109,7 @@ export function createWalletController(service: WalletService = walletService) {
       const { publicKey } = req.params
       const limit = parseInt((req.query.limit as string) || '50', 10)
       const order = ((req.query.order as string) || 'desc') as 'asc' | 'desc'
-      const transactions = await service.getAccountTransactions(publicKey, limit, order)
+      const transactions = await service.getAccountTransactions(publicKey!, limit, order)
       res.json({ status: 'success', code: 200, data: transactions })
     }),
   }

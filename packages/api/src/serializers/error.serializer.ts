@@ -19,13 +19,11 @@ interface PrismaClientKnownRequestError {
 }
 
 function isPrismaError(err: unknown): err is PrismaClientKnownRequestError {
-  return (
-    typeof err === 'object' &&
-    err !== null &&
-    'code' in err &&
-    typeof (err as Record<string, unknown>).code === 'string' &&
-    (err as Record<string, unknown>).code?.toString().startsWith('P')
-  )
+  if (typeof err !== 'object' || err === null || !('code' in err)) {
+    return false
+  }
+  const code = (err as Record<string, unknown>).code
+  return typeof code === 'string' && code.startsWith('P')
 }
 
 function mapPrismaError(err: PrismaClientKnownRequestError): { statusCode: number; message: string; errorCode: ErrorCode } {

@@ -1,3 +1,4 @@
+import type { Prisma } from '@prisma/client'
 import { availabilityRepository as defaultAvailabilityRepository } from '@/repositories/availability.repository.js'
 import { AppError } from '@/utils/app-error.js'
 import { nowUtc, parseUtcDate, addUtcMs, formatUtcIso } from '@/utils/date.js'
@@ -18,7 +19,7 @@ export interface AvailabilitySlot {
 /** Convert "HH:MM" to minutes since midnight */
 function toMinutes(time: string): number {
   const [h, m] = time.split(':').map(Number)
-  return h * 60 + m
+  return h! * 60 + m!
 }
 
 /**
@@ -70,10 +71,10 @@ function detectConflicts(slots: AvailabilitySlot[]): string | null {
       (a, b) => toUtcMinutes(a.startTime, a.timezone) - toUtcMinutes(b.startTime, b.timezone),
     )
     for (let i = 0; i < sorted.length - 1; i++) {
-      const currentEnd = toUtcMinutes(sorted[i].endTime, sorted[i].timezone)
-      const nextStart = toUtcMinutes(sorted[i + 1].startTime, sorted[i + 1].timezone)
+      const currentEnd = toUtcMinutes(sorted[i]!.endTime, sorted[i]!.timezone)
+      const nextStart = toUtcMinutes(sorted[i + 1]!.startTime, sorted[i + 1]!.timezone)
       if (currentEnd > nextStart) {
-        return `Conflicting slots on day ${day}: ${sorted[i].startTime}-${sorted[i].endTime} overlaps ${sorted[i + 1].startTime}-${sorted[i + 1].endTime}`
+        return `Conflicting slots on day ${day}: ${sorted[i]!.startTime}-${sorted[i]!.endTime} overlaps ${sorted[i + 1]!.startTime}-${sorted[i + 1]!.endTime}`
       }
     }
   }
@@ -144,7 +145,7 @@ export function createAvailabilityService(deps: AvailabilityServiceDeps) {
         endTime: slot.endTime,
         timezone: slot.timezone ?? 'UTC',
         isRecurring: slot.isRecurring ?? true,
-      })
+      } as Prisma.AvailabilityUncheckedCreateInput)
     },
 
     async deleteAvailabilitySlot(workerId: string, slotId: string) {

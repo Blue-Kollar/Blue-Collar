@@ -46,7 +46,9 @@ export function checkRedis(): Promise<DependencyStatus> {
 
 /** BullMQ job queue connectivity (shares the Redis connection). */
 export function checkQueue(): Promise<DependencyStatus> {
-  return timed(() => emailQueue.client.then((client) => client.ping()))
+  return timed(() =>
+    (emailQueue as unknown as { client: Promise<{ ping: () => Promise<string> }> }).client.then((client) => client.ping()),
+  )
 }
 
 /** Stellar Horizon RPC connectivity. */

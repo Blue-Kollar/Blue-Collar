@@ -1,5 +1,6 @@
 import crypto from 'node:crypto'
 import jwt from 'jsonwebtoken'
+import type { Prisma } from '@prisma/client'
 import { db } from '@/db.js'
 import { logger } from '@/config/logger.js'
 import { sendVerificationReminderEmail } from '@/mailer/index.js'
@@ -37,7 +38,7 @@ export async function runVerificationReminderJob() {
       unsubscribedReminders: false,
       reminderCount: 0,
       createdAt: { lte: firstReminderCutoff },
-    },
+    } as Prisma.UserWhereInput,
     select: { id: true, email: true, firstName: true },
   })
 
@@ -46,7 +47,7 @@ export async function runVerificationReminderJob() {
       const { raw, hash, expiry } = generateVerificationToken(user.id)
       await db.user.update({
         where: { id: user.id },
-        data: { verificationToken: hash, verificationTokenExpiry: expiry, reminderCount: 1, reminderSentAt: now },
+        data: { verificationToken: hash, verificationTokenExpiry: expiry, reminderCount: 1, reminderSentAt: now } as Prisma.UserUncheckedUpdateInput,
       })
       const unsubToken = generateUnsubscribeToken(user.id)
       await sendVerificationReminderEmail(user.email, user.firstName, raw, unsubToken)
@@ -64,7 +65,7 @@ export async function runVerificationReminderJob() {
       unsubscribedReminders: false,
       reminderCount: 1,
       createdAt: { lte: secondReminderCutoff },
-    },
+    } as Prisma.UserWhereInput,
     select: { id: true, email: true, firstName: true },
   })
 
@@ -73,7 +74,7 @@ export async function runVerificationReminderJob() {
       const { raw, hash, expiry } = generateVerificationToken(user.id)
       await db.user.update({
         where: { id: user.id },
-        data: { verificationToken: hash, verificationTokenExpiry: expiry, reminderCount: 2, reminderSentAt: now },
+        data: { verificationToken: hash, verificationTokenExpiry: expiry, reminderCount: 2, reminderSentAt: now } as Prisma.UserUncheckedUpdateInput,
       })
       const unsubToken = generateUnsubscribeToken(user.id)
       await sendVerificationReminderEmail(user.email, user.firstName, raw, unsubToken)

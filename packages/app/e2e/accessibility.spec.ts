@@ -56,7 +56,7 @@ for (const { name, path: pagePath } of PAGES) {
             `[${v.impact}] ${v.id}: ${v.description}\n  ${v.nodes.map((n) => n.html).join('\n  ')}`,
         )
         .join('\n\n')
-      expect.fail(`Accessibility violations on "${name}":\n\n${summary}`)
+      throw new Error(`Accessibility violations on "${name}":\n\n${summary}`)
     }
 
     expect(critical).toHaveLength(0)

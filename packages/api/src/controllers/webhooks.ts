@@ -27,14 +27,14 @@ export const listSubscriptions = catchAsync(async (req: Request, res: Response) 
 })
 
 export const deleteSubscription = catchAsync(async (req: Request, res: Response) => {
-  const result = await webhookService.deleteSubscription(req.params.id, req.user!.id)
+  const result = await webhookService.deleteSubscription(req.params.id!, req.user!.id)
   if (!result) throw new AppError('Subscription not found', 404, true, ErrorCode.NOT_FOUND)
   return res.status(204).send()
 })
 
 export const getLogs = catchAsync(async (req: Request, res: Response) => {
   const { page = '1', limit = '20' } = req.query
-  const result = await webhookService.getLogs(req.params.id, req.user!.id, Number(page), Number(limit))
+  const result = await webhookService.getLogs(req.params.id!, req.user!.id, Number(page), Number(limit))
   if (!result) throw new AppError('Subscription not found', 404, true, ErrorCode.NOT_FOUND)
   return res.json({ ...result, status: 'success', code: 200 })
 })

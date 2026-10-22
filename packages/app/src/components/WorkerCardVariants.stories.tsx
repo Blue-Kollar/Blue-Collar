@@ -5,7 +5,7 @@ import type { Worker } from '@/types'
 const mockWorker: Worker = {
   id: '1',
   name: 'John Smith',
-  category: { id: '1', name: 'Plumber', slug: 'plumber' },
+  category: { id: '1', name: 'Plumber' },
   avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=John',
   bio: 'Professional plumber with 10 years of experience. Specializing in residential and commercial plumbing.',
   location: 'San Francisco, CA',

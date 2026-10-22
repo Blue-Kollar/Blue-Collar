@@ -129,7 +129,7 @@ export default function WorkerForm({
 
   useEffect(() => {
     getCategories()
-      .then((res) => setCategories(res.data))
+      .then((res) => setCategories(res.data ?? []))
       .catch(() => {});
   }, []);
 

@@ -39,7 +39,7 @@ function generateVerificationToken(userId: string) {
     expiresIn: '24h',
   })
   const hash = crypto.createHash('sha256').update(raw).digest('hex')
-  const expiry = addUtcMs(24 * 60 * 60 * 1000)
+  const expiry = addUtcMs(nowUtc(), 24 * 60 * 60 * 1000)
   return { raw, hash, expiry }
 }
 

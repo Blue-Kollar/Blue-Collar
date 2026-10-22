@@ -14,7 +14,6 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { getCategoryConfig } from "@/config/categoryConfig";
-import type { Category } from "@bluecollar/types";
 
 const ICON_MAP: Record<string, LucideIcon> = {
   Droplets,
@@ -32,7 +31,7 @@ const ICON_MAP: Record<string, LucideIcon> = {
 type BadgeSize = "sm" | "md" | "lg";
 
 interface CategoryBadgeProps {
-  slug: Category["slug"];
+  slug: string;
   size?: BadgeSize;
   showLabel?: boolean;
 }
@@ -68,7 +67,7 @@ export function CategoryBadge({
 }
 
 interface CategoryIconProps {
-  slug: Category["slug"];
+  slug: string;
   size?: number;
   className?: string;
 }

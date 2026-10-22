@@ -169,5 +169,103 @@ export const businessMetrics = {
   }),
 };
 
+// Business event metrics
+const workerRegistrationsTotal = new client.Counter({
+  name: 'worker_registrations_total',
+  help: 'Total number of worker registrations',
+  labelNames: ['category', 'status'],
+  registers: [register],
+});
+
+const usersTotalGauge = new client.Gauge({
+  name: 'users_total',
+  help: 'Total number of users',
+  labelNames: ['role'],
+  registers: [register],
+});
+
+const usersVerifiedGauge = new client.Gauge({
+  name: 'users_verified_total',
+  help: 'Total number of verified users',
+  labelNames: ['role'],
+  registers: [register],
+});
+
+const tipsTotal = new client.Counter({
+  name: 'tips_total',
+  help: 'Total number of tips',
+  labelNames: ['currency', 'status'],
+  registers: [register],
+});
+
+const tipAmount = new client.Histogram({
+  name: 'tip_amount',
+  help: 'Value of tips',
+  labelNames: ['currency'],
+  buckets: [0.1, 0.5, 1, 5, 10, 50, 100, 500, 1000],
+  registers: [register],
+});
+
+const tipUsdValue = new client.Histogram({
+  name: 'tip_usd_value',
+  help: 'USD value of tips',
+  labelNames: ['currency'],
+  buckets: [0.1, 0.5, 1, 5, 10, 50, 100, 500, 1000],
+  registers: [register],
+});
+
+const reviewRating = new client.Histogram({
+  name: 'review_rating',
+  help: 'Rating submitted in reviews',
+  labelNames: ['category'],
+  buckets: [1, 2, 3, 4, 5],
+  registers: [register],
+});
+
+const contractGasUsed = new client.Histogram({
+  name: 'contract_gas_used',
+  help: 'Gas used by contract transactions',
+  labelNames: ['type'],
+  buckets: [100, 500, 1000, 5000, 10000, 50000, 100000],
+  registers: [register],
+});
+
+export function recordWorkerRegistration(category: string, status: string): void {
+  workerRegistrationsTotal.inc({ category, status });
+}
+
+export function setActiveWorkers(count: number): void {
+  businessMetrics.workerActive.set({ worker_type: 'all' }, count);
+}
+
+export function recordTip(amount: number, currency: string, usdValue: number): void {
+  tipsTotal.inc({ currency, status: 'success' });
+  tipAmount.observe({ currency }, amount);
+  tipUsdValue.observe({ currency }, usdValue);
+}
+
+export function setUsersTotal(count: number, role: string): void {
+  usersTotalGauge.set({ role }, count);
+}
+
+export function setUsersVerified(count: number, role: string): void {
+  usersVerifiedGauge.set({ role }, count);
+}
+
+export function recordReview(rating: number, category: string): void {
+  reviewRating.observe({ category }, rating);
+}
+
+export function recordContractRegistration(status: string): void {
+  businessMetrics.contractCalls.inc({ contract: 'registry', method: 'register', status });
+}
+
+export function recordContractTransaction(type: string, status: string, gasUsed?: number): void {
+  businessMetrics.contractCalls.inc({ contract: 'transaction', method: type, status });
+  if (gasUsed !== undefined) {
+    contractGasUsed.observe({ type }, gasUsed);
+  }
+}
+
 // Export register for custom metrics
 export const metricsRegister = register;

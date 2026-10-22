@@ -53,7 +53,7 @@ export default function ContactModal({ workerId, workerName }: Props) {
             </Dialog.Close>
           </div>
 
-          {status === ContactRequestStatus.Success ? (
+          {status === "success" ? (
             <div role="status" className="mt-6 flex flex-col items-center gap-3 py-4 text-center">
               <CheckCircle2 size={36} className="text-green-500" aria-hidden="true" />
               <p className="text-sm font-medium text-gray-800">{t("messageSent")}</p>
@@ -99,10 +99,10 @@ export default function ContactModal({ workerId, workerName }: Props) {
                 </Dialog.Close>
                 <button
                   type="submit"
-                  disabled={status === ContactRequestStatus.Loading}
+                  disabled={status === "loading"}
                   className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-blue-600 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60 transition-colors"
                 >
-                  {status === ContactRequestStatus.Loading && <Loader2 size={14} className="animate-spin" />}
+                  {status === "loading" && <Loader2 size={14} className="animate-spin" />}
                   {t("sendMessage")}
                 </button>
               </div>

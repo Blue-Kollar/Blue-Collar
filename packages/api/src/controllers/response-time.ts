@@ -8,12 +8,12 @@ export const respondToContact = catchAsync(async (req: Request, res: Response) =
   if (!['accepted', 'declined'].includes(status)) {
     throw new AppError('status must be accepted or declined', 400, true, ErrorCode.VALIDATION_ERROR)
   }
-  const request = await responseTimeService.recordResponse(req.params.requestId, status)
+  const request = await responseTimeService.recordResponse(req.params.requestId!, status)
   return res.json({ data: request, status: 'success', code: 200 })
 })
 
 export const getWorkerResponseStats = catchAsync(async (req: Request, res: Response) => {
-  const stats = await responseTimeService.getWorkerResponseStats(req.params.id)
+  const stats = await responseTimeService.getWorkerResponseStats(req.params.id!)
   return res.json({ data: stats, status: 'success', code: 200 })
 })
 

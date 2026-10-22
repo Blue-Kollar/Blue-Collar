@@ -1,17 +1,35 @@
-import * as NodeVault from 'node-vault';
+import NodeVault from 'node-vault';
 import { logger } from '@/config/logger.js'
-import { nowUtc, parseUtcDate, addUtcMs, formatUtcIso } from '@/utils/date.js'
 import { config } from '@/config/config.js'
 
-const vault = new NodeVault({
+const vault = NodeVault({
   endpoint: config.vault.addr,
   token: config.vault.token,
 });
 
+/**
+ * Validate a payload returned by Vault before handing it to callers.
+ * A tampered or malformed response must never be treated as secret material.
+ */
+function parseSecretPayload(payload: unknown): Record<string, string> {
+  if (typeof payload !== 'object' || payload === null || Array.isArray(payload)) {
+    throw new Error('Vault returned an invalid secret payload');
+  }
+
+  const secret: Record<string, string> = {};
+  for (const [key, value] of Object.entries(payload)) {
+    if (typeof value !== 'string') {
+      throw new Error(`Vault returned a non-string value for secret key "${key}"`);
+    }
+    secret[key] = value;
+  }
+  return secret;
+}
+
 export async function getSecret(path: string): Promise<Record<string, string>> {
   try {
     const secret = await vault.read(`kv/data/bluecollar/${path}`);
-    return secret.data.data;
+    return parseSecretPayload(secret?.data?.data);
   } catch (error) {
     logger.error({ err: error, path }, 'Failed to retrieve secret')
     throw error;

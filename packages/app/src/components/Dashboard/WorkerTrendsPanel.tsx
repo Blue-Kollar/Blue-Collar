@@ -4,10 +4,13 @@ import dynamic from "next/dynamic";
 import { X } from "lucide-react";
 import type { ViewTrend } from "@/types";
 
-const CuratorCharts = dynamic(() => import("@/components/charts/CuratorCharts"), {
-  ssr: false,
-  loading: () => <div className="h-[250px] rounded-lg bg-gray-50 animate-pulse" />,
-});
+const ViewTrendsChart = dynamic(
+  () => import("@/components/charts/CuratorCharts").then((m) => m.ViewTrendsChart),
+  {
+    ssr: false,
+    loading: () => <div className="h-[250px] rounded-lg bg-gray-50 animate-pulse" />,
+  }
+);
 
 interface WorkerTrendsPanelProps {
   trends: ViewTrend[];
@@ -31,7 +34,7 @@ export function WorkerTrendsPanel({
           <X size={16} />
         </button>
       </div>
-      <CuratorCharts.ViewTrendsChart
+      <ViewTrendsChart
         trends={trends}
         trendsLoading={trendsLoading}
         workerName={workerName}

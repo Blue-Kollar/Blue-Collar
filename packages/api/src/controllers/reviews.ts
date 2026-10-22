@@ -39,7 +39,7 @@ export const createWorkerReview = catchAsync(async (req: Request, res: Response)
   const workerId = req.params.id ?? req.params.workerId
   const { rating, comment, transactionHash } = req.body
   const sanitizedComment = comment == null ? comment : sanitizeText(comment)
-  const review = await reviewService.createReview(workerId, req.user!.id, rating, sanitizedComment, transactionHash)
+  const review = await reviewService.createReview(workerId!, req.user!.id, rating, sanitizedComment, transactionHash)
   return res.status(201).json({
     data: review,
     status: 'success',
@@ -68,7 +68,7 @@ export const listReviews = catchAsync(async (req: Request, res: Response) => {
   const limit = Math.min(100, parseInt(req.query.limit as string) || 20)
   const filterRating = req.query.rating ? parseInt(req.query.rating as string) : undefined
 
-  const result = await reviewService.listReviews(workerId, page, limit, filterRating)
+  const result = await reviewService.listReviews(workerId!, page, limit, filterRating)
   res.json({ data: result.data, meta: result.meta, stats: { averageRating: result.averageRating, reviewCount: result.reviewCount, verified: result.verified, distribution: result.distribution }, status: 'success', code: 200 })
 })
 
@@ -77,7 +77,7 @@ export const createReview = catchAsync(async (req: Request, res: Response) => {
   const { rating, comment, transactionHash } = req.body
 
   const sanitizedComment = comment == null ? comment : sanitizeText(comment)
-  const review = await reviewService.createReview(workerId, req.user!.id, rating, sanitizedComment, transactionHash)
+  const review = await reviewService.createReview(workerId!, req.user!.id, rating, sanitizedComment, transactionHash)
   res.status(201).json({ data: review, status: 'success', message: 'Review created (pending moderation)', code: 201 })
 })
 
@@ -85,7 +85,7 @@ export const flagReview = catchAsync(async (req: Request, res: Response) => {
   const { reason } = req.body
   if (!reason) throw new AppError('reason is required', 400, true, ErrorCode.VALIDATION_ERROR)
 
-  const review = await reviewService.flagReview(req.params.id, sanitizeText(reason))
+  const review = await reviewService.flagReview(req.params.id!, sanitizeText(reason))
   res.json({ data: review, status: 'success', message: 'Review flagged', code: 200 })
 })
 
@@ -126,12 +126,12 @@ export const moderateReview = catchAsync(async (req: Request, res: Response) => 
   if (!review) throw new AppError('Review not found', 404, true, ErrorCode.NOT_FOUND)
 
   const updated = action === 'approve'
-    ? await reviewService.approveReview(req.params.id)
-    : await reviewService.rejectReview(req.params.id)
+    ? await reviewService.approveReview(req.params.id!)
+    : await reviewService.rejectReview(req.params.id!)
 
   // Notify author
   if (review.author.email) {
-    await sendModerationEmail(review.author.email, review.author.firstName, updated.status).catch(() => {})
+    await sendModerationEmail(review.author.email, review.author.firstName, updated.status as 'approved' | 'rejected').catch(() => {})
   }
 
   res.json({ data: updated, status: 'success', message: `Review ${action}ed`, code: 200 })
@@ -167,6 +167,6 @@ export const reportReview = catchAsync(async (req: Request, res: Response) => {
   const { reason } = req.body
   if (!reason) throw new AppError('reason is required', 400, true, ErrorCode.VALIDATION_ERROR)
 
-  const review = await reviewService.flagReview(req.params.reviewId, sanitizeText(reason))
+  const review = await reviewService.flagReview(req.params.reviewId!, sanitizeText(reason))
   res.json({ data: review, status: 'success', message: 'Review reported', code: 200 })
 })

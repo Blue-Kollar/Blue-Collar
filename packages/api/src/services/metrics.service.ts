@@ -65,7 +65,7 @@ export async function getProtocolMetricsTimeSeries(days = 30) {
     ])
 
     metrics.push({
-      date: formatUtcIso(start).split('T')[0],
+      date: formatUtcIso(start).slice(0, 10),
       registrations,
       tips: tips._sum.totalTips ?? 0,
       disputes,

@@ -1,3 +1,4 @@
+import type { Prisma } from '@prisma/client'
 import { reviewRepository as defaultReviewRepository } from '@/repositories/review.repository.js'
 import { AppError } from '@/utils/app-error.js'
 import { createServiceLogger } from '@/utils/logger.js'
@@ -73,8 +74,8 @@ export function createReviewService(deps: ReviewServiceDeps) {
      * Return a paginated list of reviews for a worker, plus aggregate stats and rating distribution.
      */
     async listReviews(workerId: string, page: number, limit: number, filterRating?: number) {
-      const where = { workerId, status: 'approved', ...(filterRating ? { rating: filterRating } : {}) }
-      const baseWhere = { workerId, status: 'approved' }
+      const where: Prisma.ReviewWhereInput = { workerId, status: 'approved', ...(filterRating ? { rating: filterRating } : {}) }
+      const baseWhere: Prisma.ReviewWhereInput = { workerId, status: 'approved' }
 
       const [reviews, total, agg, allRatings] = await Promise.all([
         repo.findWorkerReviews(where, { skip: (page - 1) * limit, take: limit }),

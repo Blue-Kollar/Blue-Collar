@@ -53,7 +53,7 @@ const TransactionRow = memo(function TransactionRow({ item }: { item: HistoryIte
       <td className="whitespace-nowrap px-6 py-4 text-gray-600">
         {new Date(item.date).toLocaleString()}
       </td>
-      <td className="px-6 py-4 font-mono text-gray-700">{truncate(item.recipient)}</td>
+      <td className="px-6 py-4 font-mono text-gray-700">{truncate(item.recipient, 12)}</td>
       <td className="whitespace-nowrap px-6 py-4 font-medium text-gray-900">
         {formatAmount(item.amount)} XLM
       </td>
@@ -108,7 +108,7 @@ export default function TransactionHistory({ publicKey }: { publicKey: string })
             hash: record.transaction_hash,
           }))
         );
-        setNextCursor(payments.length > DEFAULT_LIMIT ? visible.at(-1)?.cursor ?? null : null);
+        setNextCursor(payments.length > DEFAULT_LIMIT ? visible.at(-1)?.paging_token ?? null : null);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Something went wrong");
       } finally {

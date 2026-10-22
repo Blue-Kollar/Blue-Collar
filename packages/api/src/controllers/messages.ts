@@ -16,7 +16,7 @@ export const getConversations = catchAsync(async (req: AuthRequest, res: Respons
 
 export const getConversation = catchAsync(async (req: AuthRequest, res: Response) => {
   const conversation = await messagingService.getConversation(
-    req.params.conversationId,
+    req.params.conversationId!,
     req.user!.id
   )
   res.json({ status: 'success', data: conversation })
@@ -52,7 +52,7 @@ export const searchMessages = catchAsync(async (req: AuthRequest, res: Response)
   const { q } = req.query
   const sanitizedQuery = sanitizeString(q as string)
   const messages = await messagingService.searchMessages(
-    conversationId,
+    conversationId!,
     sanitizedQuery,
     req.user!.id
   )
@@ -60,12 +60,12 @@ export const searchMessages = catchAsync(async (req: AuthRequest, res: Response)
 })
 
 export const deleteMessage = catchAsync(async (req: AuthRequest, res: Response) => {
-  await messagingService.deleteMessage(req.params.messageId, req.user!.id)
+  await messagingService.deleteMessage(req.params.messageId!, req.user!.id)
   res.json({ status: 'success', message: 'Message deleted' })
 })
 
 export const markAsRead = catchAsync(async (req: AuthRequest, res: Response) => {
-  await messagingService.markConversationAsRead(req.params.conversationId, req.user!.id)
+  await messagingService.markConversationAsRead(req.params.conversationId!, req.user!.id)
   res.json({ status: 'success', message: 'Marked as read' })
 })
 

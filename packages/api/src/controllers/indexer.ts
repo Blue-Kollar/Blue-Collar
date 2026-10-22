@@ -35,7 +35,7 @@ export const queryEvents = catchAsync(async (req: Request, res: Response) => {
 export const getWorkerRegistrations = catchAsync(async (req: Request, res: Response) => {
   const { contractId, ownerAddress } = req.params
 
-  const events = await indexerService.getWorkerRegistrationEvents(contractId, ownerAddress)
+  const events = await indexerService.getWorkerRegistrationEvents(contractId!, ownerAddress!)
 
   res.json({
     status: 'success',
@@ -51,7 +51,7 @@ export const getWorkerRegistrations = catchAsync(async (req: Request, res: Respo
 export const getCursor = catchAsync(async (req: Request, res: Response) => {
   const { contractId } = req.params
 
-  const cursor = await indexerService.getOrCreateCursor(contractId)
+  const cursor = await indexerService.getOrCreateCursor(contractId!)
 
   res.json({
     status: 'success',
