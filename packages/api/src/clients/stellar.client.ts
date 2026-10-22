@@ -8,7 +8,7 @@
  */
 
 import { AppError, ErrorCode } from '@/utils/app-error.js';
-import { TESTNET_HORIZON_URL, TESTNET_FRIENDBOT_URL } from '@bluecollar/sdk';
+import { TESTNET_FRIENDBOT_URL } from '@bluecollar/sdk';
 import { CircuitBreaker } from './circuitBreaker.js';
 import { config } from '@/config/config.js';
 
