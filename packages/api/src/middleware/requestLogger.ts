@@ -54,14 +54,15 @@ import fs from 'node:fs'
 import path from 'node:path'
 import type { Request } from 'express'
 import type { IncomingMessage } from 'node:http'
+import { config } from '@/config/config.js'
 
 /** Request augmented with the authenticated user attached by auth middleware. */
-type LoggedRequest = IncomingMessage & { user?: { id?: string } }
+type LoggedRequest = IncomingMessage & { user?: { id?: string }; id?: string }
 
-const LOG_DIR = process.env.LOG_DIR ?? 'storage/logs'
+const LOG_DIR = config.logDir
 fs.mkdirSync(path.resolve(LOG_DIR), { recursive: true })
 
-const isDev = process.env.NODE_ENV !== 'production'
+const isDev = config.env !== 'production'
 
 export const requestLogger = pinoHttp({
   logger: isDev
@@ -88,27 +89,8 @@ export const requestLogger = pinoHttp({
    * Falls back to a new UUID if the `requestId` middleware was not mounted
    * (e.g. legacy test helpers that bypass the middleware stack).
    */
-  genReqId: (req: Request) => req.id ?? crypto.randomUUID(),
+  genReqId: (req: IncomingMessage) => (req as LoggedRequest).id ?? crypto.randomUUID(),
 
-  /**
-   * Root-level fields added to every log line.
-   * `requestId` at the root (not nested under `req`) is the convention used
-   * by the Logstash pipeline in deploy/logstash — keeps it queryable without
-   * a nested field path.
-   */
-  customProps: (req: Request) => ({
-    service:   'bluecollar-api',
-    requestId: req.id ?? null,
-    userAgent: req.headers['user-agent'],
-    ip:        req.headers['x-forwarded-for'] ?? req.socket?.remoteAddress,
-    userId:    (req as any).user?.id ?? null,
-  }),
-
-  customSuccessMessage: (req: Request, res) =>
-    `${req.method} ${req.url} ${res.statusCode}`,
-
-  customErrorMessage: (req: Request, res, err) =>
-    `${req.method} ${req.url} ${res.statusCode} — ${err.message}`,
   // PII SAFETY: Only method, url, and statusCode are logged.
   // No headers, body, query params, or IP addresses are persisted.
   customProps: (req: IncomingMessage) => ({

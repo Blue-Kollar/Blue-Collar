@@ -37,7 +37,7 @@ export const createBooking = catchAsync(async (req: Request, res: Response) => {
 export const confirmBooking = catchAsync(async (req: Request, res: Response) => {
   // Resolve workerId from authenticated user's worker profile
   const { db } = await import('../db.js')
-  const worker = await db.worker.findUnique({ where: { userId: req.user!.id }, select: { id: true } })
+  const worker = await db.worker.findFirst({ where: { curatorId: req.user!.id }, select: { id: true } })
   if (!worker) throw new AppError('Worker profile not found', 404)
 
   const booking = await bookingService.confirmBooking(req.params.id!, worker.id)
@@ -71,7 +71,7 @@ export const getMyBookings = catchAsync(async (req: Request, res: Response) => {
 
   if (role === 'worker') {
     const { db } = await import('../db.js')
-    const worker = await db.worker.findUnique({ where: { userId: req.user!.id }, select: { id: true } })
+    const worker = await db.worker.findFirst({ where: { curatorId: req.user!.id }, select: { id: true } })
     if (!worker) throw new AppError('Worker profile not found', 404)
     const result = await bookingService.getWorkerBookings(worker.id, opts)
     return res.json({ status: 'success', ...result })

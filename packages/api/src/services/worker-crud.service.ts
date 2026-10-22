@@ -7,6 +7,7 @@ import { publishEvent } from './webhook.service.js'
 import { appEvents } from '@/events/app-events.js'
 import { createServiceLogger } from '@/utils/logger.js'
 import { sanitizeFreeText } from '@/utils/sanitize.js'
+import { nowUtc } from '@/utils/date.js'
 
 const logger = createServiceLogger('WorkerService')
 const workerInclude = { category: true, curator: true } as const
@@ -93,6 +94,6 @@ export async function toggleWorker(id: string) {
 export async function getWorkerWithPortfolio(id: string) {
   return db.worker.findUnique({
     where: { id },
-    include: { category: true, portfolio: { orderBy: { order: 'asc' } } },
+    include: { category: true, portfolioItems: { orderBy: { order: 'asc' } } },
   })
 }

@@ -1,4 +1,4 @@
-import { NodeSDK } from '@opentelemetry/sdk-node';
+import { NodeSDK, type NodeSDKConfiguration } from '@opentelemetry/sdk-node';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
 import { ExpressInstrumentation } from '@opentelemetry/instrumentation-express';
 import { HttpInstrumentation } from '@opentelemetry/instrumentation-http';
@@ -29,29 +29,29 @@ const resource = new Resource({
 });
 
 const sdk = new NodeSDK({
-  resource,
-  traceExporter: exporter,
-  spanProcessor: new BatchSpanProcessor(exporter),
+  resource: resource as unknown as NodeSDKConfiguration['resource'],
+  traceExporter: exporter as unknown as NodeSDKConfiguration['traceExporter'],
+  spanProcessor: new BatchSpanProcessor(exporter) as unknown as NodeSDKConfiguration['spanProcessor'],
   instrumentations: [
     new HttpInstrumentation({
       ignoreIncomingPaths: ['/health', '/metrics', '/favicon.ico'],
       requestHook: (span, request) => {
-        span.setAttribute('http.request.method', request.method);
-        span.setAttribute('http.url', request.url);
+        span.setAttribute('http.request.method', (request as { method?: string }).method ?? '');
+        span.setAttribute('http.url', (request as { url?: string }).url ?? '');
       },
       responseHook: (span, response) => {
-        span.setAttribute('http.status_code', response.statusCode);
+        span.setAttribute('http.status_code', response.statusCode ?? 0);
       },
     }),
     new ExpressInstrumentation({
       ignoreLayers: ['middleware', 'static'],
       requestHook: (span, request) => {
-        const route = request.route?.path || request.path;
+        const route = request.route;
         span.setAttribute('express.route', route);
         span.setAttribute('http.route', route);
         
         // Add user ID if available
-        const userId = (request as { user?: { id: string } }).user?.id;
+        const userId = (request.request as { user?: { id: string } }).user?.id;
         if (userId) {
           span.setAttribute('user.id', userId);
         }
@@ -59,12 +59,12 @@ const sdk = new NodeSDK({
     }),
     new PgInstrumentation({
       requestHook: (span, queryInfo) => {
-        const sanitizedQuery = queryInfo.query?.replace(/\s+/g, ' ').trim();
+        const sanitizedQuery = queryInfo.query.text.replace(/\s+/g, ' ').trim();
         span.setAttribute('db.query.text', sanitizedQuery);
         span.setAttribute('db.system', 'postgresql');
       },
       responseHook: (span, result) => {
-        span.setAttribute('db.rows_affected', result.rowCount || 0);
+        span.setAttribute('db.rows_affected', result.data.rowCount || 0);
       },
     }),
   ],

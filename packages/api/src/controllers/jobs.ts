@@ -1,5 +1,4 @@
 import type { Request, Response } from 'express'
-import { JobStatus } from '@bluecollar/types'
 import { catchAsync } from '@/utils/catchAsync.js'
 import { AppError, ErrorCode } from '@/utils/AppError.js'
 import { ErrorMessages } from '@/constants/errors.js'
@@ -43,16 +42,18 @@ export function createJobsController(service: JobsService = jobService) {
       const { page: parsedPage, limit: parsedLimit } = parsePaginationParams({ page, limit })
       const result = await service.listJobs({
         categoryId, status, search, urgency, minBudget, maxBudget,
-        skills: skills ? String(skills).split(',').map((s: string) => s.trim()).filter(Boolean) : undefined,
+        skills: (skills
+          ? String(skills).split(',').map((s: string) => s.trim()).filter(Boolean)
+          : undefined) as unknown as ListJobsQuery['skills'],
         page: parsedPage,
         limit: parsedLimit,
       })
-      return res.json({ ...result, status: JobStatus.SUCCESS, code: 200 })
+      return res.json({ ...result, status: 'success', code: 200 })
     }),
 
     showJob: catchAsync(async (req: Request, res: Response) => {
-      const job = await service.getJob(req.params.id)
-      return res.json({ data: job, status: JobStatus.SUCCESS, code: 200 })
+      const job = await service.getJob(req.params.id!)
+      return res.json({ data: job, status: 'success', code: 200 })
     }),
 
     createJob: catchAsync(async (req: Request, res: Response) => {
@@ -67,25 +68,25 @@ export function createJobsController(service: JobsService = jobService) {
       const payload = { ...req.body }
       if (typeof payload.title === 'string') payload.title = sanitizeText(payload.title)
       if (typeof payload.description === 'string') payload.description = sanitizeText(payload.description)
-      const job = await service.updateJob(req.params.id, req.user!.id, payload)
+      const job = await service.updateJob(req.params.id!, req.user!.id, payload)
       return res.json({ data: job, status: 'success', code: 200 })
     }),
 
     deleteJob: catchAsync(async (req: Request, res: Response) => {
-      await service.deleteJob(req.params.id, req.user!.id)
+      await service.deleteJob(req.params.id!, req.user!.id)
       return res.status(204).send()
     }),
 
     renewJob: catchAsync(async (req: Request, res: Response) => {
       const days = req.body.days ? Number(req.body.days) : 30
-      const job = await service.renewJob(req.params.id, req.user!.id, days)
-      return res.json({ data: job, status: JobStatus.SUCCESS, code: 200 })
+      const job = await service.renewJob(req.params.id!, req.user!.id, days)
+      return res.json({ data: job, status: 'success', code: 200 })
     }),
 
     // ── Recommendations ─────────────────────────────────────────────────────────
     recommendedJobs: catchAsync(async (req: Request, res: Response) => {
-      const jobs = await service.recommendedJobs(req.params.workerId)
-      return res.json({ data: jobs, status: JobStatus.SUCCESS, code: 200 })
+      const jobs = await service.recommendedJobs(req.params.workerId!)
+      return res.json({ data: jobs, status: 'success', code: 200 })
     }),
 
     // ── My jobs / applications ──────────────────────────────────────────────────
@@ -93,7 +94,7 @@ export function createJobsController(service: JobsService = jobService) {
       const { page, limit } = req.query as Record<string, string | undefined>
       const parsed = parsePaginationParams({ page, limit })
       const result = await service.myPostedJobs(req.user!.id, parsed.page, parsed.limit)
-      return res.json({ ...result, status: JobStatus.SUCCESS, code: 200 })
+      return res.json({ ...result, status: 'success', code: 200 })
     }),
 
     myApplications: catchAsync(async (req: Request, res: Response) => {
@@ -104,30 +105,30 @@ export function createJobsController(service: JobsService = jobService) {
       }
       const parsed = parsePaginationParams({ page, limit })
       const result = await service.myApplications(String(workerId), parsed.page, parsed.limit)
-      return res.json({ ...result, status: JobStatus.SUCCESS, code: 200 })
+      return res.json({ ...result, status: 'success', code: 200 })
     }),
 
     // ── Applications ─────────────────────────────────────────────────────────────
     applyToJob: catchAsync(async (req: Request, res: Response) => {
       const { workerId, coverLetter, proposedRate } = req.body
       const sanitizedCoverLetter = typeof coverLetter === 'string' ? sanitizeText(coverLetter) : coverLetter
-      const application = await service.applyToJob(req.params.id, String(workerId), sanitizedCoverLetter, proposedRate)
+      const application = await service.applyToJob(req.params.id!, String(workerId), sanitizedCoverLetter, proposedRate)
       return res.status(201).json({ data: application, status: 'success', code: 201 })
     }),
 
     listApplications: catchAsync(async (req: Request, res: Response) => {
-      const applications = await service.listApplications(req.params.id, req.user!.id)
-      return res.json({ data: applications, status: JobStatus.SUCCESS, code: 200 })
+      const applications = await service.listApplications(req.params.id!, req.user!.id)
+      return res.json({ data: applications, status: 'success', code: 200 })
     }),
 
     updateApplicationStatus: catchAsync(async (req: Request, res: Response) => {
       const application = await service.updateApplicationStatus(
-        req.params.id,
-        req.params.applicationId,
+        req.params.id!,
+        req.params.applicationId!,
         req.user!.id,
         req.body.status,
       )
-      return res.json({ data: application, status: JobStatus.SUCCESS, code: 200 })
+      return res.json({ data: application, status: 'success', code: 200 })
     }),
 
     withdrawApplication: catchAsync(async (req: Request, res: Response) => {
@@ -135,21 +136,21 @@ export function createJobsController(service: JobsService = jobService) {
       if (!workerId) {
         throw new AppError(ErrorMessages.WORKER_ID_REQUIRED, 400, true, ErrorCode.VALIDATION_ERROR)
       }
-      const application = await service.withdrawApplication(req.params.id, String(workerId))
-      return res.json({ data: application, status: JobStatus.SUCCESS, code: 200 })
+      const application = await service.withdrawApplication(req.params.id!, String(workerId))
+      return res.json({ data: application, status: 'success', code: 200 })
     }),
 
     // ── Messaging ────────────────────────────────────────────────────────────────
     sendMessage: catchAsync(async (req: Request, res: Response) => {
       const { recipientId, body } = req.body
       const sanitizedBody = typeof body === 'string' ? sanitizeText(body) : body
-      const message = await service.sendMessage(req.params.id, req.user!.id, recipientId, sanitizedBody)
+      const message = await service.sendMessage(req.params.id!, req.user!.id, recipientId, sanitizedBody)
       return res.status(201).json({ data: message, status: 'success', code: 201 })
     }),
 
     listMessages: catchAsync(async (req: Request, res: Response) => {
-      const messages = await service.listMessages(req.params.id, req.user!.id)
-      return res.json({ data: messages, status: JobStatus.SUCCESS, code: 200 })
+      const messages = await service.listMessages(req.params.id!, req.user!.id)
+      return res.json({ data: messages, status: 'success', code: 200 })
     }),
   }
 }

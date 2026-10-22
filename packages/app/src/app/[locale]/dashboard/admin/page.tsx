@@ -28,9 +28,19 @@ import { getPlatformAnalytics, exportPlatformAnalyticsCsv } from "@/lib/api";
 import type { PlatformAnalytics } from "@/types";
 
 // ── Dynamic imports (code splitting: recharts is ~200KB) ─────────────────────
-const AdminCharts = dynamic(
-  () => import("@/components/charts/AdminCharts"),
-  { ssr: false, loading: () => <div className="h-[300px] rounded-lg bg-gray-50 animate-pulse" /> }
+const chartLoading = () => <div className="h-[300px] rounded-lg bg-gray-50 animate-pulse" />;
+
+const UserGrowthChart = dynamic(
+  () => import("@/components/charts/AdminCharts").then((m) => m.UserGrowthChart),
+  { ssr: false, loading: chartLoading }
+);
+const WorkerGrowthChart = dynamic(
+  () => import("@/components/charts/AdminCharts").then((m) => m.WorkerGrowthChart),
+  { ssr: false, loading: chartLoading }
+);
+const TopCategoriesChart = dynamic(
+  () => import("@/components/charts/AdminCharts").then((m) => m.TopCategoriesChart),
+  { ssr: false, loading: chartLoading }
 );
 
 const QUICK_LINKS = [
@@ -93,7 +103,7 @@ export default function AdminDashboard() {
     }
 
     getPlatformAnalytics()
-      .then((res) => setData(res.data))
+      .then((res) => setData(res.data ?? null))
       .catch(() => toast("Failed to load dashboard analytics", "error"))
       .finally(() => setIsLoading(false));
   }, [user, router, toast]);
@@ -202,19 +212,19 @@ export default function AdminDashboard() {
       <div className="mb-8 grid grid-cols-1 gap-8 lg:grid-cols-2">
         <div className="rounded-lg border bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
           <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">User Growth (6 months)</h2>
-          <AdminCharts.UserGrowthChart data={data.trends.userGrowth} />
+          <UserGrowthChart data={data.trends.userGrowth} />
         </div>
 
         <div className="rounded-lg border bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
           <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">Worker Growth (6 months)</h2>
-          <AdminCharts.WorkerGrowthChart data={data.trends.workerGrowth} />
+          <WorkerGrowthChart data={data.trends.workerGrowth} />
         </div>
       </div>
 
       {/* Top Categories Chart */}
       <div className="mb-8 rounded-lg border bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
         <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">Top Categories</h2>
-        <AdminCharts.TopCategoriesChart data={data.topCategories} />
+        <TopCategoriesChart data={data.topCategories} />
       </div>
 
       {/* Recent Activity */}

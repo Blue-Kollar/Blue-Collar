@@ -107,7 +107,7 @@ export class MessagingRepository implements IMessagingRepository {
     return db.message.findMany({
       where: {
         conversationId,
-        body: { search: searchQuery.split(' ').join(' | ') },
+        body: { search: searchQuery.split(' ').join(' | ') } as unknown as Prisma.StringFilter<'Message'>,
       },
       orderBy: { createdAt: 'desc' },
       take: 50,

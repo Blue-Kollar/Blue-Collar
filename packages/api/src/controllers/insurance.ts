@@ -10,7 +10,7 @@ export const uploadInsurance = catchAsync(async (req: Request, res: Response) =>
   }
   const documentUrl = `/uploads/${req.file.filename}`
   const doc = await insuranceService.uploadInsurance(
-    req.params.id,
+    req.params.id!,
     documentUrl,
     new Date(expiresAt),
     provider,
@@ -20,7 +20,7 @@ export const uploadInsurance = catchAsync(async (req: Request, res: Response) =>
 })
 
 export const getWorkerInsurance = catchAsync(async (req: Request, res: Response) => {
-  const docs = await insuranceService.getWorkerInsurance(req.params.id)
+  const docs = await insuranceService.getWorkerInsurance(req.params.id!)
   return res.json({ data: docs, status: 'success', code: 200 })
 })
 
@@ -29,7 +29,7 @@ export const updateInsuranceStatus = catchAsync(async (req: Request, res: Respon
   if (!['verified', 'rejected'].includes(status)) {
     throw new AppError('status must be verified or rejected', 400, true, ErrorCode.VALIDATION_ERROR)
   }
-  const doc = await insuranceService.updateInsuranceStatus(req.params.docId, status)
+  const doc = await insuranceService.updateInsuranceStatus(req.params.docId!, status)
   return res.json({ data: doc, status: 'success', code: 200 })
 })
 

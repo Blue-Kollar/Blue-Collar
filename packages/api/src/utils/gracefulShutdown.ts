@@ -11,6 +11,7 @@
 
 import type { Worker } from 'bullmq'
 import { logger } from '@/config/logger.js'
+import { config } from '@/config/config.js'
 
 export interface GracefulShutdownOptions {
   /** Max time (ms) to wait for in-flight jobs to finish before forcing exit. */
@@ -19,7 +20,7 @@ export interface GracefulShutdownOptions {
   onShutdown?: () => void | Promise<void>
 }
 
-const DEFAULT_SHUTDOWN_TIMEOUT_MS = Number(process.env.WORKER_SHUTDOWN_TIMEOUT_MS ?? 30_000)
+const DEFAULT_SHUTDOWN_TIMEOUT_MS = config.worker.shutdownTimeoutMs
 
 /**
  * Registers SIGTERM/SIGINT handlers that close the given worker(s) gracefully.

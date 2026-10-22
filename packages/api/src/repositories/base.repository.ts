@@ -8,7 +8,7 @@ export interface IRepository<T, CreateInput, UpdateInput> {
   create(data: CreateInput): Promise<T>
   update(id: string, data: UpdateInput): Promise<T>
   delete(id: string): Promise<T>
-  count(where?: Record<string, unknown>): Promise<number>
+  count(where?: object): Promise<number>
 }
 
 /**
@@ -53,7 +53,7 @@ export abstract class BaseRepository<
   T,
   CreateInput,
   UpdateInput,
-  WhereInput = Record<string, unknown>,
+  WhereInput extends object = Record<string, unknown>,
 > implements IRepository<T, CreateInput, UpdateInput>
 {
   protected readonly softDelete: boolean

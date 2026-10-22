@@ -1,3 +1,4 @@
+import type { Prisma } from '@prisma/client'
 import { db } from '@/db.js'
 import { AppError } from '@/utils/AppError.js'
 import { nowUtc, addUtcMs } from '@/utils/date.js'
@@ -59,8 +60,8 @@ export async function ingestContractEvent(event: ContractEventData) {
       ledger: event.ledger,
       txIndex: event.txIndex,
       eventIndex: event.eventIndex,
-      indexed: event.indexed,
-      data: event.data,
+      indexed: event.indexed as Prisma.InputJsonValue,
+      data: event.data as Prisma.InputJsonValue | undefined,
     },
   })
 }
@@ -211,8 +212,8 @@ export async function ingestBatch(events: ContractEventData[]): Promise<number> 
       ledger: e.ledger,
       txIndex: e.txIndex,
       eventIndex: e.eventIndex,
-      indexed: e.indexed,
-      data: e.data ?? {},
+      indexed: e.indexed as Prisma.InputJsonValue,
+      data: (e.data ?? {}) as Prisma.InputJsonValue,
     })),
     skipDuplicates: true,
   })

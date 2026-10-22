@@ -24,7 +24,7 @@ export default function CuratorConsolePage() {
   }, [user, authLoading, router]);
 
   const workersQuery = useMyWorkers();
-  const workers = (workersQuery.data?.data ?? []) as CuratorWorker[];
+  const workers = (workersQuery.data?.data ?? []) as unknown as CuratorWorker[];
   const loading = workersQuery.isLoading;
   const error = workersQuery.isError ? "Something went wrong" : null;
 

@@ -65,6 +65,9 @@ model User {
   twoFactorBackupCodes    String[]                  @default([])
   referralCode            String?                   @unique
   onboardingCompleted     Boolean                   @default(false)
+  reminderSentAt          DateTime?
+  reminderCount           Int                       @default(0)
+  unsubscribedReminders   Boolean                   @default(false)
   locationId              String?
   location                Location?                 @relation(fields: [locationId], references: [id])
   createdAt               DateTime                  @default(now())
@@ -214,6 +217,8 @@ model Availability {
   dayOfWeek Int // 0=Sun … 6=Sat
   startTime String // "09:00"
   endTime   String // "17:00"
+  timezone  String   @default("UTC")
+  isRecurring Boolean @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   worker    Worker   @relation(fields: [workerId], references: [id], onDelete: Cascade)

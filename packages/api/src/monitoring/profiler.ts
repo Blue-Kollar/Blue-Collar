@@ -1,4 +1,4 @@
-import profiler from 'v8-profiler-next';
+import { startProfiling, stopProfiling } from 'v8-profiler-next';
 import fs from 'fs';
 import path from 'path';
 import v8 from 'v8';
@@ -27,7 +27,7 @@ export class PerformanceProfiler {
       return;
     }
 
-    profiler.startProfiling(name, true);
+    startProfiling(name, true);
     this.cpuProfileActive = true;
     logger.info(`CPU profiling started: ${name}`);
   }
@@ -41,11 +41,11 @@ export class PerformanceProfiler {
       return;
     }
 
-    const profile = profiler.stopProfiling(name);
+    const profile = stopProfiling(name);
     const filename = path.join(PROFILE_DIR, `${name}-${Date.now()}.cpuprofile`);
 
-    profile.export((error, result) => {
-      if (error) {
+    profile.export((error: Error | undefined, result: string | undefined) => {
+      if (error || result === undefined) {
         logger.error('Error exporting CPU profile', error);
         return;
       }

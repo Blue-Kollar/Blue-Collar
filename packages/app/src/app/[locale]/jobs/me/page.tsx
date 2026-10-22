@@ -35,7 +35,7 @@ export default function MyJobsPage() {
     setLoading(true);
     try {
       const res = await getMyPostedJobs({ page, limit: 10 });
-      setJobs(res.data);
+      setJobs(res.data ?? []);
       setMeta(res.meta ?? null);
     } catch {/* ignore */}
     finally { setLoading(false); }

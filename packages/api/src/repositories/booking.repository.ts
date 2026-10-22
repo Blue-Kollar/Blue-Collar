@@ -1,12 +1,22 @@
 import type { Availability, Booking, Prisma } from '@prisma/client'
 import { BookingStatus } from '@bluecollar/types'
-import type { BookingSlot, PaginatedBookings } from '@bluecollar/types'
 import type { IRepository } from './base.repository.js'
 import { db } from '@/db.js'
 
 // ── Interface ─────────────────────────────────────────────────────────────────
 
-export type { BookingSlot }
+export interface BookingSlot {
+  startTime: Date
+  endTime: Date
+}
+
+export interface PaginatedBookings {
+  bookings: Booking[]
+  total: number
+  page: number
+  limit: number
+  totalPages: number
+}
 
 export interface IBookingRepository extends IRepository<Booking, Prisma.BookingCreateInput, Prisma.BookingUpdateInput> {
   findWorkerById(id: string): Promise<{ id: string; userId: string } | null>
@@ -48,14 +58,15 @@ export class BookingRepository implements IBookingRepository {
   }
 
   async findWorkerById(id: string): Promise<{ id: string; userId: string } | null> {
-    return db.worker.findUnique({ where: { id }, select: { id: true, userId: true } })
+    const worker = await db.worker.findUnique({ where: { id }, select: { id: true, curatorId: true } })
+    return worker ? { id: worker.id, userId: worker.curatorId } : null
   }
 
   async findConflicting(workerId: string, startTime: Date, endTime: Date): Promise<BookingSlot[]> {
     return db.booking.findMany({
       where: {
         workerId,
-        status: { in: [BookingStatus.PENDING, BookingStatus.CONFIRMED] },
+        status: { in: [BookingStatus.Pending, BookingStatus.Confirmed] },
         OR: [{ startTime: { lt: endTime }, endTime: { gt: startTime } }],
       },
       select: { startTime: true, endTime: true },
@@ -67,30 +78,33 @@ export class BookingRepository implements IBookingRepository {
   }
 
   async createBooking(data: Prisma.BookingUncheckedCreateInput) {
-    return db.booking.create({
+    const booking = await db.booking.create({
       data,
       include: {
-        worker: { select: { userId: true } },
+        worker: { select: { curatorId: true } },
         requester: { select: { id: true, firstName: true } },
       },
     })
+    return { ...booking, worker: { userId: booking.worker.curatorId } }
   }
 
   async findBookingWithWorker(id: string) {
-    return db.booking.findUnique({
+    const booking = await db.booking.findUnique({
       where: { id },
       include: {
-        worker: { select: { userId: true } },
+        worker: { select: { curatorId: true } },
         requester: { select: { id: true, firstName: true } },
       },
     })
+    return booking ? { ...booking, worker: { userId: booking.worker.curatorId } } : null
   }
 
   async findBookingWithCancelInfo(id: string) {
-    return db.booking.findUnique({
+    const booking = await db.booking.findUnique({
       where: { id },
-      include: { worker: { select: { userId: true } } },
+      include: { worker: { select: { curatorId: true } } },
     })
+    return booking ? { ...booking, worker: { userId: booking.worker.curatorId } } : null
   }
 
   async updateBooking(id: string, data: Prisma.BookingUpdateInput): Promise<Booking> {

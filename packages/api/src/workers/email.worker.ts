@@ -7,7 +7,7 @@
 import { Worker, type Job } from 'bullmq'
 import { redis } from '@/config/redis.js'
 import { logger } from '@/config/logger.js'
-import { mailer } from '@/mailer/index.js'
+import { transporter } from '@/mailer/transport.js'
 import type { EmailJobData } from '@/queue/index.js'
 import { registerGracefulShutdown } from '@/utils/gracefulShutdown.js'
 
@@ -20,7 +20,7 @@ export const emailWorker = new Worker<EmailJobData>(
 
     logger.info({ jobId: job.id, to, templateName }, 'Processing email job')
 
-    await mailer.send({
+    await transporter.sendMail({
       to,
       subject,
       html: `<p>${context.message ?? subject}</p>`,

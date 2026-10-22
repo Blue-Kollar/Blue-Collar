@@ -14,7 +14,7 @@ export const createContactRequest = catchAsync(async (req: Request, res: Respons
     throw new AppError('message is required', 400, true, ErrorCode.VALIDATION_ERROR)
   }
   const contactRequest = await contactRequestService.createContactRequest(
-    req.params.id,
+    req.params.id!,
     req.user!.id,
     sanitizedMessage
   )
@@ -26,7 +26,7 @@ export const createContactRequest = catchAsync(async (req: Request, res: Respons
 })
 
 export const getContactRequests = catchAsync(async (req: Request, res: Response) => {
-  const requests = await contactRequestService.getContactRequests(req.params.id)
+  const requests = await contactRequestService.getContactRequests(req.params.id!)
   return res.json({ data: requests, status: 'success', code: 200 })
 })
 
@@ -35,6 +35,6 @@ export const updateContactRequestStatus = catchAsync(async (req: Request, res: R
   if (!['accepted', 'declined'].includes(status)) {
     throw new AppError('Invalid status', 400, true, ErrorCode.VALIDATION_ERROR)
   }
-  const request = await contactRequestService.updateContactRequestStatus(req.params.requestId, status)
+  const request = await contactRequestService.updateContactRequestStatus(req.params.requestId!, status)
   return res.json({ data: request, status: 'success', code: 200 })
 })

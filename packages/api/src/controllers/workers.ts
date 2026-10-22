@@ -28,7 +28,10 @@ const WORKER_FREE_TEXT_FIELDS = [
 
 function sanitizeWorkerBody<T extends Record<string, unknown>>(body: T): T {
   if (!body || typeof body !== 'object') return body
-  return sanitizeObject(body, [...WORKER_FREE_TEXT_FIELDS]) as T
+  const freeText = Object.fromEntries(
+    WORKER_FREE_TEXT_FIELDS.filter((field) => field in body).map((field) => [field, body[field]]),
+  ) as Parameters<typeof sanitizeObject>[0]
+  return { ...body, ...sanitizeObject(freeText) } as T
 }
 
 // Parse a comma-separated ?fields= query param into a set for O(1) lookup.
@@ -163,7 +166,7 @@ export async function listWorkers(req: Request, res: Response) {
  * @param res - JSON `{ data: Worker, status, code }` or 404.
  */
 export async function showWorker(req: Request, res: Response) {
-  const worker = await workerService.getWorkerWithPortfolio(req.params.id)
+  const worker = await workerService.getWorkerWithPortfolio(req.params.id!)
   if (!worker) throw new AppError('Not found', 404, true, ErrorCode.NOT_FOUND)
   return res.json({ data: worker, status: 'success', code: 200 })
 }
@@ -211,10 +214,10 @@ export const createWorker = catchAsync(async (req: Request<{}, {}, CreateWorkerB
  * @param req - Route param `id`. Body: `UpdateWorkerBody` (JSON or multipart).
  * @param res - JSON `{ data: Worker, status, code }`.
  */
-export const updateWorker = catchAsync(async (req: Request<{ id: string }, {}, UpdateWorkerBody>, res: Response) => {
+export const updateWorker = catchAsync(async (req: Request<Record<string, string | undefined>, {}, UpdateWorkerBody>, res: Response) => {
   const sanitizedBody = sanitizeWorkerBody(req.body as unknown as Record<string, unknown>) as unknown as UpdateWorkerBody
-  const worker = await workerService.updateWorkerWithMedia(req.params.id, sanitizedBody, req.file, req.user?.id)
-  await invalidateCachePattern(`cache:*workers/${req.params.id}*`)
+  const worker = await workerService.updateWorkerWithMedia(req.params.id!, sanitizedBody, req.file, req.user?.id)
+  await invalidateCachePattern(`cache:*workers/${req.params.id!}*`)
   await invalidateCachePattern(`cache:*workers?*`)
   return res.json({
     // See createWorker() above: pre-existing formatWorker()/serialize() shape mismatch.
@@ -361,7 +364,7 @@ export const { searchWorkersHandler, advancedSearch } = createSearchHandlers()
  * @param res - JSON `{ data: ReputationSummary, status, code }`.
  */
 export async function getReputation(req: Request, res: Response) {
-  const data = await getWorkerReputation(req.params.id)
+  const data = await getWorkerReputation(req.params.id!)
   return res.json({ data, status: 'success', code: 200 })
 }
 
@@ -383,6 +386,6 @@ export async function syncReputation(req: Request, res: Response) {
     reviewCount: number
     reputation: number
   }
-  const data = await syncReputationToDb(req.params.id, avgRating, reviewCount, reputation)
+  const data = await syncReputationToDb(req.params.id!, avgRating, reviewCount, reputation)
   return res.json({ data, status: 'success', code: 200 })
 }

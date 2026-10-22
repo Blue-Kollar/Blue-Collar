@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react'
-import CategoryBadge from './CategoryBadge'
+import { CategoryBadge } from './CategoryBadge'
 
 const meta: Meta<typeof CategoryBadge> = {
   title: 'Components/CategoryBadge',
@@ -12,19 +12,19 @@ type Story = StoryObj<typeof meta>
 
 export const Plumber: Story = {
   args: {
-    category: { id: '1', name: 'Plumber' },
+    slug: 'plumber',
   },
 }
 
 export const Electrician: Story = {
   args: {
-    category: { id: '2', name: 'Electrician' },
+    slug: 'electrician',
   },
 }
 
 export const Carpenter: Story = {
   args: {
-    category: { id: '3', name: 'Carpenter' },
+    slug: 'carpenter',
   },
 }
 

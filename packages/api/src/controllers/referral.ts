@@ -26,6 +26,6 @@ export const getLeaderboard = catchAsync(async (_req: Request, res: Response) =>
 })
 
 export const rewardReferral = catchAsync(async (req: Request, res: Response) => {
-  const referral = await referralService.rewardReferral(req.params.id)
+  const referral = await referralService.rewardReferral(req.params.id!)
   return res.json({ data: referral, status: 'success', code: 200 })
 })

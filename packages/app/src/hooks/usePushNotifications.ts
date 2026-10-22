@@ -43,11 +43,11 @@ export function usePushNotifications() {
 
   const subscribe = async () => {
     if (!isSupported) {
-      toast({
-        title: "Not Supported",
-        description: "Push notifications are not available in your browser",
-        type: "error",
-      });
+      toast(
+        "Not Supported",
+        "error",
+        { description: "Push notifications are not available in your browser" }
+      );
       return;
     }
 
@@ -55,11 +55,11 @@ export function usePushNotifications() {
     try {
       const permission = await Notification.requestPermission();
       if (permission !== "granted") {
-        toast({
-          title: "Permission Denied",
-          description: "Enable notifications in browser settings to receive updates",
-          type: "error",
-        });
+        toast(
+          "Permission Denied",
+          "error",
+          { description: "Enable notifications in browser settings to receive updates" }
+        );
         setIsLoading(false);
         return;
       }
@@ -73,7 +73,7 @@ export function usePushNotifications() {
 
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
+        applicationServerKey: urlBase64ToUint8Array(vapidPublicKey) as BufferSource,
       });
 
       const response = await fetch("/api/users/me/push-subscription", {
@@ -95,18 +95,18 @@ export function usePushNotifications() {
 
       setIsSubscribed(true);
       setPermissionStatus("granted");
-      toast({
-        title: "Notifications Enabled",
-        description: "You'll receive updates about worker availability",
-        type: "success",
-      });
+      toast(
+        "Notifications Enabled",
+        "success",
+        { description: "You'll receive updates about worker availability" }
+      );
     } catch (error) {
       console.error("[usePushNotifications] subscribe error:", error);
-      toast({
-        title: "Error",
-        description: "Failed to enable notifications. Please try again.",
-        type: "error",
-      });
+      toast(
+        "Error",
+        "error",
+        { description: "Failed to enable notifications. Please try again." }
+      );
     } finally {
       setIsLoading(false);
     }
@@ -133,18 +133,18 @@ export function usePushNotifications() {
 
       await subscription.unsubscribe();
       setIsSubscribed(false);
-      toast({
-        title: "Notifications Disabled",
-        description: "You will no longer receive notifications",
-        type: "success",
-      });
+      toast(
+        "Notifications Disabled",
+        "success",
+        { description: "You will no longer receive notifications" }
+      );
     } catch (error) {
       console.error("[usePushNotifications] unsubscribe error:", error);
-      toast({
-        title: "Error",
-        description: "Failed to disable notifications",
-        type: "error",
-      });
+      toast(
+        "Error",
+        "error",
+        { description: "Failed to disable notifications" }
+      );
     } finally {
       setIsLoading(false);
     }
@@ -176,7 +176,7 @@ function arrayBufferToBase64(buffer: ArrayBuffer | null): string {
   const bytes = new Uint8Array(buffer);
   let binary = "";
   for (let i = 0; i < bytes.byteLength; i++) {
-    binary += String.fromCharCode(bytes[i]);
+    binary += String.fromCharCode(bytes[i]!);
   }
   return window.btoa(binary);
 }

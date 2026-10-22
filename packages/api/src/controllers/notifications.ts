@@ -106,7 +106,7 @@ export const dispatchMultiChannel = catchAsync(async (req: AuthRequest, res: Res
 })
 
 export const getDeliveryLog = catchAsync(async (req: AuthRequest, res: Response) => {
-  const log = await notificationService.getDeliveryLog(req.params.notificationId)
+  const log = await notificationService.getDeliveryLog(req.params.notificationId!)
   if (!log) {
     throw new AppError('Not found', 404, true, ErrorCode.NOT_FOUND)
   }

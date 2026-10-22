@@ -96,7 +96,7 @@ export async function verifyBackupCode(userId: string, code: string): Promise<bo
   if (!user || !user.twoFactorEnabled) return false
 
   for (let i = 0; i < user.twoFactorBackupCodes.length; i++) {
-    const match = await argon2.verify(user.twoFactorBackupCodes[i], code)
+    const match = await argon2.verify(user.twoFactorBackupCodes[i]!, code)
     if (match) {
       // Remove used backup code
       const remaining = [...user.twoFactorBackupCodes]

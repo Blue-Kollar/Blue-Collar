@@ -1,5 +1,5 @@
-import { render, screen } from "@testing-library/react";
-import { describe, it, expect } from "vitest";
+import { fireEvent, render, screen, within } from "@testing-library/react";
+import { describe, it, expect, vi } from "vitest";
 import EscrowStatus, { Escrow } from "../components/EscrowStatus";
 
 describe("EscrowStatus - Issue #1380", () => {
@@ -26,7 +26,7 @@ describe("EscrowStatus - Issue #1380", () => {
           {...mockHandlers}
         />
       );
-      expect(screen.getByText("Pending")).toBeInTheDocument();
+      expect(within(screen.getByRole("status")).getByText("Pending")).toBeInTheDocument();
     });
 
     it("should render funded status with correct label", () => {
@@ -37,7 +37,7 @@ describe("EscrowStatus - Issue #1380", () => {
           {...mockHandlers}
         />
       );
-      expect(screen.getByText("Funded")).toBeInTheDocument();
+      expect(within(screen.getByRole("status")).getByText("Funded")).toBeInTheDocument();
     });
 
     it("should render released status with correct label", () => {
@@ -48,7 +48,7 @@ describe("EscrowStatus - Issue #1380", () => {
           {...mockHandlers}
         />
       );
-      expect(screen.getByText("Released")).toBeInTheDocument();
+      expect(within(screen.getByRole("status")).getByText("Released")).toBeInTheDocument();
     });
 
     it("should render disputed status with correct label", () => {
@@ -338,5 +338,72 @@ describe("EscrowStatus - Issue #1380", () => {
       const srOnlyElements = container.querySelectorAll('.sr-only');
       expect(srOnlyElements.length).toBeGreaterThan(0);
     });
+  });
+});
+
+describe("EscrowStatus - funded actions", () => {
+  const fundedEscrow: Escrow = {
+    id: "escrow-123",
+    amount: "100",
+    token: "USDC",
+    counterparty: "G123456789",
+    terms: "Complete the job within 7 days",
+    status: "funded",
+    createdAt: new Date().toISOString(),
+  };
+
+  it("calls onRelease when Release is clicked", () => {
+    const onRelease = vi.fn();
+    render(
+      <EscrowStatus escrow={fundedEscrow} onRelease={onRelease} onDispute={vi.fn()} />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /Release 100 USDC/ }));
+
+    expect(onRelease).toHaveBeenCalledOnce();
+  });
+
+  it("calls onDispute when Dispute is clicked", () => {
+    const onDispute = vi.fn();
+    render(
+      <EscrowStatus escrow={fundedEscrow} onRelease={vi.fn()} onDispute={onDispute} />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /Dispute 100 USDC/ }));
+
+    expect(onDispute).toHaveBeenCalledOnce();
+  });
+
+  it("disables actions and shows progress while a transition is in flight", () => {
+    render(
+      <EscrowStatus
+        escrow={fundedEscrow}
+        onRelease={vi.fn()}
+        onDispute={vi.fn()}
+        isLoading
+      />,
+    );
+
+    expect(screen.getByRole("button", { name: /Release 100 USDC/ })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /Dispute 100 USDC/ })).toBeDisabled();
+    expect(screen.getByText("Submitting escrow action, please wait.")).toBeInTheDocument();
+  });
+
+  it("moves focus to the status line after an action removes the buttons", () => {
+    const { rerender } = render(
+      <EscrowStatus escrow={fundedEscrow} onRelease={vi.fn()} onDispute={vi.fn()} />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /Release 100 USDC/ }));
+    rerender(
+      <EscrowStatus
+        escrow={{ ...fundedEscrow, status: "released" }}
+        onRelease={vi.fn()}
+        onDispute={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByRole("status")).toHaveFocus();
+    expect(within(screen.getByRole("status")).getByText("Released")).toBeInTheDocument();
   });
 });

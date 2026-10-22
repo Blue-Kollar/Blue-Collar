@@ -16,7 +16,7 @@ export function getApiVersion(req: Request): string {
  * Check if a version is supported
  */
 export function isSupportedVersion(version: string): boolean {
-  return VERSION_CONFIG.supported.includes(version)
+  return (VERSION_CONFIG.supported as readonly string[]).includes(version)
 }
 
 /**

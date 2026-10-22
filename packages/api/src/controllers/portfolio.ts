@@ -43,7 +43,7 @@ export const addPortfolioItem = catchAsync(async (req: Request, res: Response) =
   }
 
   const item = await db.portfolioItem.create({
-    data: { workerId, imageUrl, description, order: order ? Number(order) : 0 },
+    data: { workerId: workerId!, imageUrl, description, order: order ? Number(order) : 0 },
   })
   return res.status(201).json({ data: item, status: 'success', code: 201 })
 })

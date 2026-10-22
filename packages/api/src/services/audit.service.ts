@@ -14,7 +14,15 @@ export interface AuditOptions {
 /** Write an audit log entry (fire-and-forget safe) */
 export async function log(opts: AuditOptions) {
   try {
-    await db.auditLog.create({ data: { ...opts, createdAt: nowUtc() } })
+    const data: Prisma.AuditLogUncheckedCreateInput = {
+      action: opts.action,
+      resource: opts.resource,
+      resourceId: opts.resourceId,
+      meta: opts.meta as Prisma.InputJsonValue | undefined,
+      createdAt: nowUtc(),
+      ...(opts.userId ? { userId: opts.userId } : {}),
+    }
+    await db.auditLog.create({ data })
   } catch (err) {
     logger.error({ err }, 'Failed to write audit log')
   }
@@ -31,8 +39,8 @@ export async function queryLogs(opts: {
   limit?: number
 }) {
   const { userId, action, resource, page = 1, limit = 50 } = opts
-  const from = parseUtcDate(opts.from)
-  const to = parseUtcDate(opts.to)
+  const from = opts.from ? parseUtcDate(opts.from) : undefined
+  const to = opts.to ? parseUtcDate(opts.to) : undefined
 
   const where: Prisma.AuditLogWhereInput = {
     ...(userId ? { userId } : {}),

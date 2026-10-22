@@ -9,7 +9,7 @@ export const registerOnChain = catchAsync(async (req: Request, res: Response) =>
   if (!contractId) {
     throw new AppError('contractId is required', 400, true, ErrorCode.VALIDATION_ERROR)
   }
-  const worker = await stellarService.registerOnChain(req.params.id, contractId)
+  const worker = await stellarService.registerOnChain(req.params.id!, contractId)
   return res.json({
     data: WorkerResource(worker as any),
     status: 'success',
