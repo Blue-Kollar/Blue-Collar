@@ -37,6 +37,7 @@ export default function WorkerCard({ worker, variant = "standard" }: WorkerCardP
               alt={worker.name}
               width={40}
               height={40}
+              sizes="40px"
               className="h-10 w-10 rounded-full object-cover"
             />
           ) : (
@@ -101,6 +102,7 @@ export default function WorkerCard({ worker, variant = "standard" }: WorkerCardP
                 alt={worker.name}
                 width={64}
                 height={64}
+                sizes="64px"
                 className="h-16 w-16 rounded-full object-cover ring-3 ring-blue-200"
               />
             ) : (
@@ -184,6 +186,7 @@ export default function WorkerCard({ worker, variant = "standard" }: WorkerCardP
               alt={worker.name}
               width={56}
               height={56}
+              sizes="56px"
               className="h-14 w-14 rounded-full object-cover ring-2 ring-blue-100"
             />
           ) : (

@@ -50,6 +50,7 @@ export function CompactWorkerCard({ worker }: WorkerCardVariantProps) {
               alt={worker.name}
               width={40}
               height={40}
+              sizes="40px"
               className="h-10 w-10 rounded-full object-cover ring-1 ring-blue-100"
             />
           ) : (
@@ -118,6 +119,7 @@ export function StandardWorkerCard({ worker }: WorkerCardVariantProps) {
               alt={worker.name}
               width={56}
               height={56}
+              sizes="56px"
               className="h-14 w-14 rounded-full object-cover ring-2 ring-blue-100"
             />
           ) : (
@@ -198,6 +200,7 @@ export function FeaturedWorkerCard({ worker }: WorkerCardVariantProps) {
               alt={worker.name}
               width={80}
               height={80}
+              sizes="80px"
               className="h-20 w-20 rounded-full object-cover ring-4 ring-white shadow-md"
             />
           ) : (
