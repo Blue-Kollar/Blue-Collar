@@ -41,7 +41,7 @@ doc = false
 required-features = ["fuzzing"]
 
 [dependencies]
-soroban-sdk = "26.1.0"
+soroban-sdk = { workspace = true }
 bluecollar-registry = { path = "../registry" }
 bluecollar-market = { path = "../market" }
 libfuzzer-sys = { version = "0.4", optional = true }
@@ -49,9 +49,18 @@ arbitrary = { version = "1.3", features = ["derive"], optional = true }
 
 [dev-dependencies]
 # Property-based tests in `tests/` use the in-process Soroban test host.
-soroban-sdk = { version = "26.1.0", features = ["testutils"] }
+soroban-sdk = { workspace = true, features = ["testutils"] }
 proptest = "1.4"
+# Test-only contract crates (issue #1448): the lib and the libFuzzer bins
+# only link registry + market, so these stay dev-dependencies rather than
+# bloating the dependency graph of every normal build.
+bluecollar-dispute = { path = "../dispute" }
+bluecollar-escrow = { path = "../escrow" }
+bluecollar-payment = { path = "../payment" }
 
 [features]
 # Enables the libFuzzer bins and the Soroban test host they need.
 fuzzing = ["dep:libfuzzer-sys", "dep:arbitrary", "soroban-sdk/testutils"]
+
+[lints]
+workspace = true

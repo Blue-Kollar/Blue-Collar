@@ -1,6 +1,8 @@
 node_modules
 dist
 .env
+.env.local
+.env.*.local
 *.log
 .DS_Store
 storage/uploads/*
@@ -10,11 +12,20 @@ packages/api_backup/
 
 # Test snapshots
 **/__snapshots__/
+**/test_snapshots/
 *.snap
 
 # Coverage reports
 coverage/
 .nyc_output/
+
+# Playwright
+playwright-report/
+test-results/
+
+# k6 load test results
+load-results/
+performance-results/
 
 # Build artifacts
 *.tsbuildinfo
@@ -53,3 +64,10 @@ package-lock.json
 *.tmp
 *.bak
 .cache/
+
+
+
+
+
+# Mobile E2E junit output
+packages/mobile/e2e/e2e-results/

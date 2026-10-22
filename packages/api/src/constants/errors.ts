@@ -81,4 +81,4 @@ export const ErrorMessages = {
   DB_ERROR: 'Database error',
 } as const
 
-export type ErrorMessage = (typeof ErrorMessages)[keyof typeof ErrorMessages]
+type ErrorMessage = (typeof ErrorMessages)[keyof typeof ErrorMessages]

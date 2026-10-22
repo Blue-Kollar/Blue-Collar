@@ -1,0 +1,522 @@
+// ─── Core domain types ────────────────────────────────────────────────────────
+// ─── API Response Contracts ───────────────────────────────────────────────────
+//
+// ─── Null / undefined convention (#1297) ─────────────────────────────────────
+//
+// These types sit at the API/client boundary and are serialised to/from JSON.
+// JSON has `null` but not `undefined`, so fields that may be absent in a JSON
+// response are typed as `T | null` (Prisma-originated nullable columns) or as
+// optional (`T?`) when they are truly absent rather than explicitly cleared.
+//
+// Rule of thumb:
+//   • Use `string | null`  — field exists in the DB schema as nullable and the
+//     API sends `null` when no value is set (Prisma columns, JSON payloads).
+//   • Use `field?: T`      — field may be omitted entirely from the response
+//     (e.g., pagination meta is absent on single-item responses).
+//   • Do NOT use `null` for internal/service-layer types that never reach JSON.
+//     Those live in packages/api and should use `undefined` per
+//     docs/NULL_UNDEFINED_CONVENTIONS.md.
+//
+// Changing existing `string | null` fields to `string | undefined` would be a
+// breaking API contract change and is deliberately deferred per that doc.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Standard API envelope returned by all endpoints. */
+export interface ApiResponse<T = undefined> {
+  data?: T;
+  meta?: Meta;
+  /** 'success' on 2xx, 'error' on 4xx/5xx responses. */
+  status: 'success' | 'error';
+  code: number;
+  message?: string;
+  token?: string;
+}
+
+export interface Meta {
+  total: number;
+  page: number;
+  limit: number;
+  pages: number;
+}
+
+/** Paginated list response. */
+export interface PaginatedResult<T> {
+  data: T[];
+  meta: Meta;
+}
+
+/** Paginated list response. */
+export type PaginatedResponse<T> = ApiResponse<T[]> & { meta: Meta };
+
+// ─── Auth DTOs ────────────────────────────────────────────────────────────────
+
+export interface LoginDTO {
+  email: string;
+  password: string;
+}
+
+export interface RegisterDTO {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+}
+
+export interface ForgotPasswordDTO {
+  email: string;
+}
+
+export interface ResetPasswordDTO {
+  token: string;
+  password: string;
+}
+
+// ─── Auth types ───────────────────────────────────────────────────────────────
+
+/** Authenticated user shape returned from /auth/me and stored in AuthContext. */
+export interface User {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: 'user' | 'curator' | 'admin';
+  verified: boolean;
+  avatar?: string | null;
+  onboardingCompleted?: boolean;
+  createdAt?: string | Date;
+  updatedAt?: string | Date;
+}
+
+/** Alias for backward compatibility */
+export type AuthUser = User
+
+// ─── Category ─────────────────────────────────────────────────────────────────
+
+export interface Category {
+  id: string;
+  name: string;
+  icon?: string | null;
+  description?: string | null;
+}
+
+// ─── Worker DTOs ──────────────────────────────────────────────────────────────
+
+export interface PortfolioImage {
+  id: string;
+  url: string;
+  caption?: string | null;
+  order?: number;
+}
+
+export interface Worker {
+  id: string;
+  name: string;
+  bio?: string | null;
+  avatar?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  location?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  isVerified: boolean;
+  isActive: boolean;
+  locationId?: string | null;
+  walletAddress?: string | null;
+  categoryId?: string;
+  category: Category;
+  averageRating?: number | null;
+  reviewCount?: number;
+  portfolioImages?: PortfolioImage[];
+  createdAt?: string | Date;
+  updatedAt?: string | Date;
+}
+
+export interface CreateWorkerDTO {
+  name: string;
+  categoryId: string;
+  phone?: string;
+  email?: string;
+  bio?: string;
+  walletAddress?: string;
+  locationId?: string;
+}
+
+export type UpdateWorkerDTO = Partial<CreateWorkerDTO>
+
+// ─── Review ───────────────────────────────────────────────────────────────────
+
+export interface Review {
+  id: string;
+  rating: number;
+  comment?: string | null;
+  workerId: string;
+  authorId: string;
+  createdAt: string;
+  author: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    avatar?: string | null;
+  };
+}
+
+export interface CreateReviewDTO {
+  rating: number;
+  comment?: string;
+}
+
+export interface RatingDistributionEntry {
+  rating: number;
+  count: number;
+  percentage: number;
+}
+
+// ─── Form types ───────────────────────────────────────────────────────────────
+
+export interface LoginForm {
+  email: string;
+  password: string;
+}
+
+export interface RegisterForm {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+}
+
+export interface WorkerForm {
+  name: string;
+  bio?: string;
+  phone?: string;
+  email?: string;
+  location?: string;
+  categoryId: string;
+  walletAddress?: string;
+}
+
+// ─── Stellar/SDK types ───────────────────────────────────────────────────────
+
+export interface AccountInfo {
+  publicKey: string;
+  balance: number;
+  sequence: bigint;
+}
+
+export interface BroadcastResult {
+  txHash: string;
+  txId: string;
+}
+
+export interface TxStatus {
+  status: TxStatusValue;
+  resultCode?: string;
+}
+
+export interface WorkerRegistration {
+  workerId: string;
+  contractId: string;
+}
+
+export interface ReputationSync {
+  workerId: string;
+  avgRating: number;
+  reviewCount: number;
+  reputation: number;
+}
+
+export interface SdkConfig {
+  horizonUrl: string;
+  registryContractId?: string;
+  marketContractId?: string;
+  network: 'testnet' | 'mainnet';
+}
+
+// ─── Notifications ────────────────────────────────────────────────────────────
+
+export type NotificationType = 'tip' | 'review' | 'contact' | 'system' | 'message';
+
+export interface AppNotification {
+  id: string;
+  userId: string;
+  type: NotificationType;
+  title: string;
+  message?: string | null;
+  href?: string | null;
+  read: boolean;
+  createdAt: string;
+}
+
+// ─── Status enums (#1681) ─────────────────────────────────────────────────────
+//
+// Canonical status values. Use these const objects / union types instead of
+// raw string literals in the api and app packages.
+
+export const JobStatus = {
+  Open: 'open',
+  Closed: 'closed',
+  Filled: 'filled',
+  Expired: 'expired',
+} as const;
+export type JobStatus = (typeof JobStatus)[keyof typeof JobStatus];
+
+export const JobUrgency = {
+  Low: 'low',
+  Normal: 'normal',
+  Urgent: 'urgent',
+} as const;
+export type JobUrgency = (typeof JobUrgency)[keyof typeof JobUrgency];
+
+export const ApplicationStatus = {
+  Pending: 'pending',
+  Accepted: 'accepted',
+  Rejected: 'rejected',
+  Withdrawn: 'withdrawn',
+} as const;
+export type ApplicationStatus = (typeof ApplicationStatus)[keyof typeof ApplicationStatus];
+
+export const BookingStatus = {
+  Pending: 'pending',
+  Confirmed: 'confirmed',
+  Cancelled: 'cancelled',
+  Completed: 'completed',
+} as const;
+export type BookingStatus = (typeof BookingStatus)[keyof typeof BookingStatus];
+
+export const TxStatusValue = {
+  Pending: 'pending',
+  Confirmed: 'confirmed',
+  Failed: 'failed',
+} as const;
+export type TxStatusValue = (typeof TxStatusValue)[keyof typeof TxStatusValue];
+
+// ─── Jobs ─────────────────────────────────────────────────────────────────────
+
+export interface Job {
+  id: string;
+  title: string;
+  description: string;
+  budget?: number | null;
+  skills: string[];
+  urgency: JobUrgency;
+  escrowAmount?: number | null;
+  escrowTxId?: string | null;
+  status: JobStatus;
+  expiresAt?: string | null;
+  renewedAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  category: Category;
+  location?: { id: string; city: string; state?: string | null; country: string } | null;
+  postedBy: { id: string; firstName: string; lastName: string; avatar?: string | null };
+  _count?: { applications: number; messages: number };
+}
+
+export interface JobApplication {
+  id: string;
+  jobId: string;
+  workerId: string;
+  coverLetter?: string | null;
+  proposedRate?: number | null;
+  status: ApplicationStatus;
+  createdAt: string;
+  updatedAt: string;
+  job?: { id: string; title: string; postedById: string };
+  worker?: {
+    id: string;
+    name: string;
+    avatar?: string | null;
+    email?: string | null;
+    category?: Category;
+  };
+}
+
+// ─── Bookings ─────────────────────────────────────────────────────────────────
+
+export interface Booking {
+  id: string;
+  workerId: string;
+  clientId: string;
+  status: BookingStatus;
+  scheduledAt?: string | null;
+  notes?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ─── Payments ─────────────────────────────────────────────────────────────────
+
+export interface TipDTO {
+  workerWallet: string;
+  amount: string;
+  memo?: string;
+}
+
+// ─── Conversations ────────────────────────────────────────────────────────────
+
+export interface Message {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  body: string;
+  attachmentUrl?: string | null;
+  attachmentType?: string | null;
+  readAt?: string | null;
+  createdAt: string;
+  sender: { id: string; firstName: string; lastName: string; avatar?: string | null };
+}
+
+export interface Conversation {
+  id: string;
+  subject?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  participants: ConversationParticipant[];
+  messages?: Message[];
+  unreadCount?: number;
+}
+
+export interface ConversationParticipant {
+  id: string;
+  conversationId: string;
+  userId: string;
+  lastReadAt?: string | null;
+  joinedAt: string;
+  user: { id: string; firstName: string; lastName: string; avatar?: string | null };
+}
+
+// ─── Analytics ────────────────────────────────────────────────────────────────
+
+export interface WorkerAnalytics {
+  workerId: string;
+  workerName: string;
+  category: string;
+  totalViews: number;
+  uniqueViews: number;
+  viewsLast30Days: number;
+  totalTips: number;
+  tipCount: number;
+  bookmarkCount: number;
+  contactCount: number;
+  contactsLast30Days: number;
+  responseRate: number;
+  avgRating: number;
+  reviewCount: number;
+  updatedAt: string | null;
+}
+
+// ─── Audit Log ────────────────────────────────────────────────────────────────
+
+export interface AuditLogEntry {
+  id: string;
+  userId?: string | null;
+  action: string;
+  resource?: string | null;
+  resourceId?: string | null;
+  meta?: Record<string, unknown> | null;
+  createdAt: string;
+  user?: { id: string; firstName: string; lastName: string; email: string } | null;
+}
+
+// ─── Shared request/response shapes (#1682) ──────────────────────────────────
+//
+// Single source of truth for request bodies and query shapes shared between
+// the api and app packages. Import these from `@bluecollar/types`.
+
+export interface LoginBody {
+  email: string;
+  password: string;
+}
+
+export interface RegisterBody {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+}
+
+export interface ForgotPasswordBody {
+  email: string;
+}
+
+export interface ResetPasswordBody {
+  token: string;
+  password: string;
+}
+
+export interface CreateWorkerBody {
+  name: string;
+  categoryId: string;
+  phone?: string;
+  email?: string;
+  bio?: string;
+  walletAddress?: string;
+  locationId?: string;
+}
+
+export type UpdateWorkerBody = Partial<CreateWorkerBody>;
+
+export interface WorkerQuery {
+  page?: number;
+  limit?: number;
+  categoryId?: string;
+  locationId?: string;
+  search?: string;
+  isVerified?: boolean;
+  isActive?: boolean;
+}
+
+export interface CreateJobBody {
+  title: string;
+  description: string;
+  budget?: number;
+  skills: string[];
+  urgency?: JobUrgency;
+  categoryId: string;
+  locationId?: string;
+  expiresAt?: string;
+}
+
+export type UpdateJobBody = Partial<CreateJobBody>;
+
+export interface JobQuery {
+  page?: number;
+  limit?: number;
+  status?: JobStatus;
+  urgency?: JobUrgency;
+  categoryId?: string;
+  locationId?: string;
+  search?: string;
+}
+
+export interface CreateJobApplicationBody {
+  coverLetter?: string;
+  proposedRate?: number;
+}
+
+export interface UpdateJobApplicationBody {
+  status: ApplicationStatus;
+}
+
+export interface CreateBookingBody {
+  workerId: string;
+  scheduledAt?: string;
+  notes?: string;
+}
+
+export interface UpdateBookingBody {
+  status?: BookingStatus;
+  scheduledAt?: string;
+  notes?: string;
+}
+
+export interface BookingQuery {
+  page?: number;
+  limit?: number;
+  status?: BookingStatus;
+  workerId?: string;
+  clientId?: string;
+}
+
+// ─── Shared Validation Schemas ────────────────────────────────────────────────
+export * from './validations.js';

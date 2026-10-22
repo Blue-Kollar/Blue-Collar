@@ -1,11 +1,14 @@
 import { BadgeCheck } from "lucide-react";
+import dynamic from "next/dynamic";
 import StarRating from "@/components/StarRating";
 import BookmarkButton from "@/components/BookmarkButton";
-import QRCodeButton from "@/components/QRCodeButton";
-import ContactModal from "@/components/ContactModal";
 import ZoomableAvatar from "@/components/ZoomableAvatar";
 import ShareWorkerButton from "@/components/ShareWorkerButton";
 import type { Worker } from "@/types";
+
+// Interaction-gated widgets — split out so they aren't bundled into the initial route chunk.
+const QRCodeButton = dynamic(() => import("@/components/QRCodeButton"));
+const ContactModal = dynamic(() => import("@/components/ContactModal"));
 
 interface Props {
   worker: Worker;

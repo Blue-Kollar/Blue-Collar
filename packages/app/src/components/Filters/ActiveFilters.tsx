@@ -3,7 +3,7 @@
 import { X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { Category } from "@/types";
-import type { FilterValues } from "./FilterPanel";
+import type { FilterValues } from "@/hooks/useFilterState";
 
 interface ActiveFiltersProps {
   filters: FilterValues;

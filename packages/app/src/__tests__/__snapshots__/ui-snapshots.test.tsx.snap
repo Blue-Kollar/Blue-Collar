@@ -1,0 +1,374 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Badge snapshots > renders the default variant 1`] = `
+<div
+  class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors border-transparent bg-primary text-primary-foreground"
+>
+  New
+</div>
+`;
+
+exports[`Badge snapshots > renders the destructive variant 1`] = `
+<div
+  class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors border-transparent bg-destructive text-destructive-foreground"
+>
+  New
+</div>
+`;
+
+exports[`Badge snapshots > renders the outline variant 1`] = `
+<div
+  class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors text-foreground"
+>
+  New
+</div>
+`;
+
+exports[`Badge snapshots > renders the secondary variant 1`] = `
+<div
+  class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors border-transparent bg-secondary text-secondary-foreground"
+>
+  New
+</div>
+`;
+
+exports[`Button snapshots > renders a disabled button 1`] = `
+<button
+  class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
+  disabled=""
+>
+  Action
+</button>
+`;
+
+exports[`Button snapshots > renders the default size 1`] = `
+<button
+  class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
+>
+  Action
+</button>
+`;
+
+exports[`Button snapshots > renders the default variant 1`] = `
+<button
+  class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
+>
+  Action
+</button>
+`;
+
+exports[`Button snapshots > renders the destructive variant 1`] = `
+<button
+  class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-destructive text-destructive-foreground hover:bg-destructive/90 h-10 px-4 py-2"
+>
+  Action
+</button>
+`;
+
+exports[`Button snapshots > renders the ghost variant 1`] = `
+<button
+  class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2"
+>
+  Action
+</button>
+`;
+
+exports[`Button snapshots > renders the icon size 1`] = `
+<button
+  class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 w-10"
+>
+  Action
+</button>
+`;
+
+exports[`Button snapshots > renders the lg size 1`] = `
+<button
+  class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-11 rounded-md px-8"
+>
+  Action
+</button>
+`;
+
+exports[`Button snapshots > renders the link variant 1`] = `
+<button
+  class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 text-primary underline-offset-4 hover:underline h-10 px-4 py-2"
+>
+  Action
+</button>
+`;
+
+exports[`Button snapshots > renders the outline variant 1`] = `
+<button
+  class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2"
+>
+  Action
+</button>
+`;
+
+exports[`Button snapshots > renders the secondary variant 1`] = `
+<button
+  class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-secondary text-secondary-foreground hover:bg-secondary/80 h-10 px-4 py-2"
+>
+  Action
+</button>
+`;
+
+exports[`Button snapshots > renders the sm size 1`] = `
+<button
+  class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-9 rounded-md px-3"
+>
+  Action
+</button>
+`;
+
+exports[`Card snapshots > renders a composed card with content 1`] = `
+<div
+  class="rounded-lg border bg-card text-card-foreground shadow-sm"
+>
+  <div
+    class="flex flex-col space-y-1.5 p-6"
+  >
+    <h3
+      class="text-lg font-semibold leading-none tracking-tight"
+    >
+      Job title
+    </h3>
+  </div>
+  <div
+    class="p-6 pt-0"
+  >
+    <p>
+      Description text
+    </p>
+  </div>
+  <div
+    class="flex items-center p-6 pt-0"
+  >
+    <button
+      class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
+    >
+      Apply
+    </button>
+  </div>
+</div>
+`;
+
+exports[`CategoryBadge snapshots > renders a plumber badge (md, label shown) 1`] = `
+<span
+  class="inline-flex items-center rounded-full border font-medium
+        bg-blue-100 text-blue-800 border-blue-200 px-2.5 py-1 text-sm gap-1.5"
+>
+  <span
+    data-testid="icon-droplets"
+  />
+  <span
+    aria-label="Plumber category"
+  >
+    Plumber
+  </span>
+</span>
+`;
+
+exports[`CategoryBadge snapshots > renders a plumber badge without the label 1`] = `
+<span
+  class="inline-flex items-center rounded-full border font-medium
+        bg-blue-100 text-blue-800 border-blue-200 px-2.5 py-1 text-sm gap-1.5"
+>
+  <span
+    data-testid="icon-droplets"
+  />
+  <span
+    class="sr-only"
+  >
+    Plumber category
+  </span>
+</span>
+`;
+
+exports[`CategoryBadge snapshots > renders a small electrician badge 1`] = `
+<span
+  class="inline-flex items-center rounded-full border font-medium
+        bg-yellow-100 text-yellow-800 border-yellow-200 px-2 py-0.5 text-xs gap-1"
+>
+  <span
+    data-testid="icon-zap"
+  />
+  <span
+    aria-label="Electrician category"
+  >
+    Electrician
+  </span>
+</span>
+`;
+
+exports[`Dialog (Modal) snapshots > renders the closed trigger only 1`] = `
+<button
+  aria-expanded="false"
+  aria-haspopup="dialog"
+  data-state="closed"
+  type="button"
+>
+  Open
+</button>
+`;
+
+exports[`Dialog (Modal) snapshots > renders the open modal content 1`] = `
+<div
+  aria-labelledby="radix-:r4:"
+  class="fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 sm:rounded-lg"
+  data-state="open"
+  id="radix-:r3:"
+  role="dialog"
+  style="pointer-events: auto;"
+  tabindex="-1"
+>
+  <div
+    class="flex flex-col space-y-1.5 text-center sm:text-left"
+  >
+    <h2
+      class="text-lg font-semibold"
+      id="radix-:r4:"
+    >
+      Confirm action
+    </h2>
+  </div>
+  <p>
+    Are you sure you want to continue?
+  </p>
+  <button
+    class="absolute right-4 top-4 rounded-sm opacity-70 transition-opacity hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+    type="button"
+  >
+    <span
+      data-testid="icon-x"
+    />
+    <span
+      class="sr-only"
+    >
+      Close
+    </span>
+  </button>
+</div>
+`;
+
+exports[`IconButton snapshots > renders a default icon button with aria-label 1`] = `
+<button
+  aria-label="Close menu"
+  class="
+          inline-flex items-center justify-center
+          min-h-[44px] min-w-[44px] rounded-md
+          transition-colors duration-150
+          focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-blue-600 focus-visible:outline-offset-2
+          disabled:pointer-events-none disabled:opacity-50
+          
+        "
+  type="button"
+>
+  <span
+    data-testid="icon-x"
+  />
+</button>
+`;
+
+exports[`IconButton snapshots > renders a disabled icon button 1`] = `
+<button
+  aria-label="Close menu"
+  class="
+          inline-flex items-center justify-center
+          min-h-[44px] min-w-[44px] rounded-md
+          transition-colors duration-150
+          focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-blue-600 focus-visible:outline-offset-2
+          disabled:pointer-events-none disabled:opacity-50
+          
+        "
+  disabled=""
+  type="button"
+>
+  <span
+    data-testid="icon-x"
+  />
+</button>
+`;
+
+exports[`Input (ui) snapshots > renders a default input 1`] = `
+<input
+  class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+  placeholder="Email"
+/>
+`;
+
+exports[`Input (ui) snapshots > renders a disabled input 1`] = `
+<input
+  class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+  disabled=""
+  placeholder="Email"
+/>
+`;
+
+exports[`StarRating snapshots > renders a 3/5 rating 1`] = `
+<span
+  aria-label="3 out of 5 stars"
+  class="flex items-center gap-0.5"
+  role="img"
+>
+  <span
+    aria-hidden="true"
+    class="text-yellow-400"
+    data-testid="icon-star"
+  />
+  <span
+    aria-hidden="true"
+    class="text-yellow-400"
+    data-testid="icon-star"
+  />
+  <span
+    aria-hidden="true"
+    class="text-yellow-400"
+    data-testid="icon-star"
+  />
+  <span
+    aria-hidden="true"
+    class="text-gray-200"
+    data-testid="icon-star"
+  />
+  <span
+    aria-hidden="true"
+    class="text-gray-200"
+    data-testid="icon-star"
+  />
+</span>
+`;
+
+exports[`StarRating snapshots > renders a full 5/5 rating 1`] = `
+<span
+  aria-label="5 out of 5 stars"
+  class="flex items-center gap-0.5"
+  role="img"
+>
+  <span
+    aria-hidden="true"
+    class="text-yellow-400"
+    data-testid="icon-star"
+  />
+  <span
+    aria-hidden="true"
+    class="text-yellow-400"
+    data-testid="icon-star"
+  />
+  <span
+    aria-hidden="true"
+    class="text-yellow-400"
+    data-testid="icon-star"
+  />
+  <span
+    aria-hidden="true"
+    class="text-yellow-400"
+    data-testid="icon-star"
+  />
+  <span
+    aria-hidden="true"
+    class="text-yellow-400"
+    data-testid="icon-star"
+  />
+</span>
+`;

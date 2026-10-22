@@ -1,6 +1,9 @@
 //! Property-based fuzz tests for the Market contract.
 //!
 //! These tests use `proptest` to generate random inputs and verify invariants.
+// `Env::register_contract` is deprecated in favour of `Env::register`; the test
+// helpers here are migrated alongside the contracts, not ahead of them.
+#![allow(deprecated)]
 
 use proptest::prelude::*;
 use soroban_sdk::{
@@ -165,7 +168,7 @@ proptest! {
         // Set time before expiry
         env.ledger().set(LedgerInfo {
             timestamp: 1000,
-            protocol_version: 22,
+            protocol_version: 26,
             sequence_number: 1,
             network_id: Default::default(),
             base_reserve: 10,
@@ -183,7 +186,7 @@ proptest! {
         // their TTL — which would otherwise mask the behavior under test).
         env.ledger().set(LedgerInfo {
             timestamp: 3000,
-            protocol_version: 22,
+            protocol_version: 26,
             sequence_number: 1,
             network_id: Default::default(),
             base_reserve: 10,

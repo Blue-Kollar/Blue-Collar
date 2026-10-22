@@ -1,6 +1,6 @@
 import { Router } from 'express'
-import { createSubscription, listSubscriptions, deleteSubscription, getLogs } from '../controllers/webhooks.js'
-import { authenticate } from '../middleware/auth.js'
+import { createSubscription, listSubscriptions, deleteSubscription, getLogs } from '@/controllers/webhooks.js'
+import { authenticate } from '@/middleware/auth.js'
 
 const router = Router()
 

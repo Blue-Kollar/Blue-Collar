@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { useWallet } from "@/context/WalletContext";
-import EscrowForm from "@/components/Escrow/EscrowForm";
-import EscrowStatus, { Escrow } from "@/components/Escrow/EscrowStatus";
+import EscrowForm from "@/features/payments/components/EscrowForm";
+import EscrowStatus, { Escrow } from "@/features/payments/components/EscrowStatus";
 
 let idCounter = 1;
 

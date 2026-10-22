@@ -4,8 +4,8 @@ import {
   createOrUpgradeSubscription,
   cancelSubscription,
   stripeWebhook,
-} from '../controllers/subscriptions.js'
-import { authenticate, authorize } from '../middleware/auth.js'
+} from '@/controllers/subscriptions.js'
+import { authenticate, authorize } from '@/middleware/auth.js'
 
 const router = Router()
 

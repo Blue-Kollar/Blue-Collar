@@ -1,4 +1,4 @@
-import { db } from '../db.js'
+import { db } from '@/db.js'
 
 export async function createDevice(userId: string, deviceName: string, userAgent: string | undefined, ipAddress: string) {
   return db.device.create({

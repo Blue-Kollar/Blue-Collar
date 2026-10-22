@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { errorHandler, notFoundHandler } from './errorHandler.js'
-import { AppError } from '../utils/AppError.js'
+import { AppError } from '../utils/app-error.js'
 import type { Request, Response, NextFunction } from 'express'
 
 function makeReq(method = 'GET', url = '/test') {

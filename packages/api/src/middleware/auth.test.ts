@@ -1,11 +1,24 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import jwt from 'jsonwebtoken'
-import { authenticate, authorize } from './auth.js'
+import { authenticate, authorize, revokeToken, _getRevokedJtis } from './auth.js'
 import type { Request, Response, NextFunction } from 'express'
 
-process.env.JWT_SECRET = 'test-secret'
+// ─── Mocks ─────────────────────────────────────────────────────────────────────
 
-vi.mock('../config/env.js', () => ({ env: { JWT_SECRET: 'test-secret' } }))
+vi.mock('../utils/tokenValidator.js', () => ({
+  verifyToken: vi.fn(),
+}))
+
+vi.mock('../utils/roleChecker.js', () => ({
+  hasRole: vi.fn(),
+}))
+
+import { verifyToken } from '../utils/tokenValidator.js'
+import { hasRole } from '../utils/roleChecker.js'
+
+const mockVerifyToken = vi.mocked(verifyToken)
+const mockHasRole = vi.mocked(hasRole)
+
+// ─── Helpers ────────────────────────────────────────────────────────────────────
 
 function makeRes() {
   const res: any = {}
@@ -14,87 +27,28 @@ function makeRes() {
   return res as Response
 }
 
-const next = vi.fn() as unknown as NextFunction
-
-beforeEach(() => vi.clearAllMocks())
-
-// ── authenticate ──────────────────────────────────────────────────────────────
-
-describe('authenticate', () => {
-  it('returns 401 when no Authorization header is present', () => {
-    const req = { headers: {} } as Request
-    const res = makeRes()
-    authenticate(req, res, next)
-// Mock jsonwebtoken
-vi.mock('jsonwebtoken', () => ({
-  default: {
-    verify: vi.fn(),
-  },
-}))
-
-// Mock env config
-vi.mock('../config/env.js', () => ({
-  env: {
-    JWT_SECRET: 'test-secret',
-  },
-}))
-
-const mockJwt = jwt as any
-
-// Helper to create mock request
-function createMockRequest(overrides = {}): Partial<Request> {
+function makeReq(overrides: Partial<Request> = {}): Request {
   return {
     headers: {},
     user: undefined,
     ...overrides,
-  }
+  } as Request
 }
 
-// Helper to create mock response
-function createMockResponse(): Partial<Response> {
-  const res: any = {}
-  res.status = vi.fn().mockReturnValue(res)
-  res.json = vi.fn().mockReturnValue(res)
-  return res
-}
-
-// Helper to create mock next function
-function createMockNext(): NextFunction {
-  return vi.fn()
-}
+const next = vi.fn() as unknown as NextFunction
 
 beforeEach(() => {
-  vi.clearAllMocks()
+  vi.resetAllMocks()
+  // Clear the revoked JTI set between tests
+  _getRevokedJtis().clear()
 })
 
-// ── authenticate middleware tests ────────────────────────────────────────────
+// ── authenticate: Missing Token ────────────────────────────────────────────────
 
-describe('authenticate middleware', () => {
-  it('calls next when valid token is provided', () => {
-    const token = 'valid-token'
-    const payload = { id: 'user-1', role: 'user' }
-    mockJwt.verify.mockReturnValue(payload)
-
-    const req = createMockRequest({
-      headers: { authorization: `Bearer ${token}` },
-    }) as Request
-    const res = createMockResponse() as Response
-    const next = createMockNext()
-
-    authenticate(req, res, next)
-
-    expect(mockJwt.verify).toHaveBeenCalledWith(token, 'test-secret')
-    expect(req.user).toEqual(payload)
-    expect(next).toHaveBeenCalled()
-    expect(res.status).not.toHaveBeenCalled()
-  })
-
-  it('returns 401 when token is missing', () => {
-    const req = createMockRequest({
-      headers: {},
-    }) as Request
-    const res = createMockResponse() as Response
-    const next = createMockNext()
+describe('authenticate — missing token', () => {
+  it('returns 401 when no Authorization header is present', () => {
+    const req = makeReq()
+    const res = makeRes()
 
     authenticate(req, res, next)
 
@@ -107,12 +61,24 @@ describe('authenticate middleware', () => {
     expect(next).not.toHaveBeenCalled()
   })
 
-  it('returns 401 when authorization header is missing', () => {
-    const req = createMockRequest({
-      headers: { authorization: undefined },
-    }) as Request
-    const res = createMockResponse() as Response
-    const next = createMockNext()
+  it('returns 401 when Authorization header is undefined', () => {
+    const req = makeReq({ headers: { authorization: undefined } })
+    const res = makeRes()
+
+    authenticate(req, res, next)
+
+    expect(res.status).toHaveBeenCalledWith(401)
+    expect(res.json).toHaveBeenCalledWith({
+      status: 'error',
+      message: 'Unauthorized',
+      code: 401,
+    })
+    expect(next).not.toHaveBeenCalled()
+  })
+
+  it('returns 401 when Authorization header is empty string', () => {
+    const req = makeReq({ headers: { authorization: '' } })
+    const res = makeRes()
 
     authenticate(req, res, next)
 
@@ -120,12 +86,9 @@ describe('authenticate middleware', () => {
     expect(next).not.toHaveBeenCalled()
   })
 
-  it('returns 401 when authorization header is empty', () => {
-    const req = createMockRequest({
-      headers: { authorization: '' },
-    }) as Request
-    const res = createMockResponse() as Response
-    const next = createMockNext()
+  it('returns 401 when Authorization header lacks Bearer scheme', () => {
+    const req = makeReq({ headers: { authorization: 'Basic abc123' } })
+    const res = makeRes()
 
     authenticate(req, res, next)
 
@@ -133,73 +96,112 @@ describe('authenticate middleware', () => {
     expect(next).not.toHaveBeenCalled()
   })
 
-  it('returns 401 when token is invalid', () => {
-    const req = { headers: { authorization: 'Bearer bad.token.here' } } as Request
+  it('returns 401 when Authorization header is "Token" scheme', () => {
+    const req = makeReq({ headers: { authorization: 'Token some-value' } })
     const res = makeRes()
+
     authenticate(req, res, next)
+
     expect(res.status).toHaveBeenCalledWith(401)
-    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ message: 'Invalid token' }))
+    expect(next).not.toHaveBeenCalled()
   })
 
-  it('returns 401 when token is expired', () => {
-    const expired = jwt.sign({ id: 'u1', role: 'user' }, 'test-secret', { expiresIn: -1 })
-    const req = { headers: { authorization: `Bearer ${expired}` } } as Request
+  it('returns 401 when Authorization header is "Digest" scheme', () => {
+    const req = makeReq({ headers: { authorization: 'Digest username="user"' } })
     const res = makeRes()
+
     authenticate(req, res, next)
+
     expect(res.status).toHaveBeenCalledWith(401)
+    expect(next).not.toHaveBeenCalled()
   })
 
-  it('calls next and sets req.user for a valid token', () => {
-    const token = jwt.sign({ id: 'u1', role: 'curator' }, 'test-secret')
-    const req = { headers: { authorization: `Bearer ${token}` } } as any
+  it('returns 401 when Authorization header has Bearer but no token', () => {
+    const req = makeReq({ headers: { authorization: 'Bearer ' } })
     const res = makeRes()
+
     authenticate(req, res, next)
-    expect(next).toHaveBeenCalled()
-    expect(req.user).toMatchObject({ id: 'u1', role: 'curator' })
+
+    expect(res.status).toHaveBeenCalledWith(401)
+    expect(next).not.toHaveBeenCalled()
   })
 })
 
-// ── authorize ─────────────────────────────────────────────────────────────────
+// ── authenticate: Malformed Token ──────────────────────────────────────────────
 
-describe('authorize', () => {
-  it('returns 403 when req.user is not set', () => {
-    const req = {} as Request
+describe('authenticate — malformed token', () => {
+  it('returns 401 for a token that does not match JWT structure', () => {
+    const req = makeReq({ headers: { authorization: 'Bearer not-a-jwt' } })
     const res = makeRes()
-    authorize('admin')(req, res, next)
-    expect(res.status).toHaveBeenCalledWith(403)
+
+    authenticate(req, res, next)
+
+    expect(res.status).toHaveBeenCalledWith(401)
+    expect(res.json).toHaveBeenCalledWith({
+      status: 'error',
+      message: 'Invalid token',
+      code: 401,
+    })
+    expect(next).not.toHaveBeenCalled()
+    expect(mockVerifyToken).not.toHaveBeenCalled()
   })
 
-  it('returns 403 when user role is not in allowed list', () => {
-    const req = { user: { id: 'u1', role: 'user' } } as any
+  it('returns 401 for a token with only two segments', () => {
+    const req = makeReq({ headers: { authorization: 'Bearer header.payload' } })
     const res = makeRes()
-    authorize('admin', 'curator')(req, res, next)
-    expect(res.status).toHaveBeenCalledWith(403)
-    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ message: 'Forbidden' }))
+
+    authenticate(req, res, next)
+
+    expect(res.status).toHaveBeenCalledWith(401)
+    expect(mockVerifyToken).not.toHaveBeenCalled()
   })
 
-  it('calls next when user role is allowed', () => {
-    const req = { user: { id: 'u1', role: 'curator' } } as any
+  it('returns 401 for a token with four segments', () => {
+    const req = makeReq({
+      headers: { authorization: 'Bearer aaa.bbb.ccc.ddd' },
+    })
     const res = makeRes()
-    authorize('admin', 'curator')(req, res, next)
-    expect(next).toHaveBeenCalled()
+
+    authenticate(req, res, next)
+
+    expect(res.status).toHaveBeenCalledWith(401)
+    expect(mockVerifyToken).not.toHaveBeenCalled()
   })
 
-  it('allows admin role', () => {
-    const req = { user: { id: 'u1', role: 'admin' } } as any
+  it('returns 401 for a token with invalid base64 characters', () => {
+    const req = makeReq({
+      headers: { authorization: 'Bearer spaces in token!!' },
+    })
     const res = makeRes()
-    authorize('admin')(req, res, next)
-    expect(next).toHaveBeenCalled()
+
+    authenticate(req, res, next)
+
+    expect(res.status).toHaveBeenCalledWith(401)
+    expect(mockVerifyToken).not.toHaveBeenCalled()
   })
-})
-    mockJwt.verify.mockImplementation(() => {
-      throw new Error('Invalid token')
+
+  it('returns 401 for a token exceeding 2048 characters', () => {
+    const longToken = 'a'.repeat(2049)
+    const req = makeReq({
+      headers: { authorization: `Bearer ${longToken}` },
+    })
+    const res = makeRes()
+
+    authenticate(req, res, next)
+
+    expect(res.status).toHaveBeenCalledWith(401)
+    expect(mockVerifyToken).not.toHaveBeenCalled()
+  })
+
+  it('returns 401 when verifyToken throws for an invalid token', () => {
+    mockVerifyToken.mockImplementation(() => {
+      throw new Error('invalid signature')
     })
 
-    const req = createMockRequest({
-      headers: { authorization: 'Bearer invalid-token' },
-    }) as Request
-    const res = createMockResponse() as Response
-    const next = createMockNext()
+    const req = makeReq({
+      headers: { authorization: 'Bearer aaa.bbb.ccc' },
+    })
+    const res = makeRes()
 
     authenticate(req, res, next)
 
@@ -212,18 +214,57 @@ describe('authorize', () => {
     expect(next).not.toHaveBeenCalled()
   })
 
-  it('returns 401 when token is expired', () => {
-    mockJwt.verify.mockImplementation(() => {
-      const error = new Error('jwt expired')
-      ;(error as any).name = 'TokenExpiredError'
+  it('returns 401 when verifyToken throws a JsonWebTokenError', () => {
+    const error = new Error('jwt malformed')
+    error.name = 'JsonWebTokenError'
+    mockVerifyToken.mockImplementation(() => {
       throw error
     })
 
-    const req = createMockRequest({
-      headers: { authorization: 'Bearer expired-token' },
-    }) as Request
-    const res = createMockResponse() as Response
-    const next = createMockNext()
+    const req = makeReq({
+      headers: { authorization: 'Bearer aaa.bbb.ccc' },
+    })
+    const res = makeRes()
+
+    authenticate(req, res, next)
+
+    expect(res.status).toHaveBeenCalledWith(401)
+    expect(next).not.toHaveBeenCalled()
+  })
+
+  it('returns 401 when verifyToken throws NotBeforeError', () => {
+    const error = new Error('jwt not active')
+    error.name = 'NotBeforeError'
+    mockVerifyToken.mockImplementation(() => {
+      throw error
+    })
+
+    const req = makeReq({
+      headers: { authorization: 'Bearer aaa.bbb.ccc' },
+    })
+    const res = makeRes()
+
+    authenticate(req, res, next)
+
+    expect(res.status).toHaveBeenCalledWith(401)
+    expect(next).not.toHaveBeenCalled()
+  })
+})
+
+// ── authenticate: Expired Token ────────────────────────────────────────────────
+
+describe('authenticate — expired token', () => {
+  it('returns 401 when token is expired', () => {
+    const error = new Error('jwt expired')
+    error.name = 'TokenExpiredError'
+    mockVerifyToken.mockImplementation(() => {
+      throw error
+    })
+
+    const req = makeReq({
+      headers: { authorization: 'Bearer expired.jwt.token' },
+    })
+    const res = makeRes()
 
     authenticate(req, res, next)
 
@@ -235,94 +276,122 @@ describe('authorize', () => {
     })
     expect(next).not.toHaveBeenCalled()
   })
+})
 
-  it('extracts token from Bearer scheme correctly', () => {
-    const token = 'my-token-123'
-    const payload = { id: 'user-1', role: 'admin' }
-    mockJwt.verify.mockReturnValue(payload)
+// ── authenticate: Revoked Token ────────────────────────────────────────────────
 
-    const req = createMockRequest({
-      headers: { authorization: `Bearer ${token}` },
-    }) as Request
-    const res = createMockResponse() as Response
-    const next = createMockNext()
+describe('authenticate — revoked token', () => {
+  it('returns 401 when token JTI has been revoked', () => {
+    mockVerifyToken.mockReturnValue({ id: 'user-1', role: 'user', jti: 'revoked-jti' } as any)
 
-    authenticate(req, res, next)
+    revokeToken('revoked-jti')
 
-    expect(mockJwt.verify).toHaveBeenCalledWith(token, 'test-secret')
-  })
-
-  it('sets user on request object with correct payload', () => {
-    const payload = { id: 'user-123', role: 'curator' }
-    mockJwt.verify.mockReturnValue(payload)
-
-    const req = createMockRequest({
-      headers: { authorization: 'Bearer token' },
-    }) as Request
-    const res = createMockResponse() as Response
-    const next = createMockNext()
-
-    authenticate(req, res, next)
-
-    expect(req.user).toEqual(payload)
-    expect(req.user?.id).toBe('user-123')
-    expect(req.user?.role).toBe('curator')
-  })
-
-  it('handles malformed authorization header gracefully', () => {
-    const req = createMockRequest({
-      headers: { authorization: 'InvalidFormat' },
-    }) as Request
-    const res = createMockResponse() as Response
-    const next = createMockNext()
+    const req = makeReq({
+      headers: { authorization: 'Bearer valid.jwt.token' },
+    })
+    const res = makeRes()
 
     authenticate(req, res, next)
 
     expect(res.status).toHaveBeenCalledWith(401)
+    expect(res.json).toHaveBeenCalledWith({
+      status: 'error',
+      message: 'Token has been revoked',
+      code: 401,
+    })
     expect(next).not.toHaveBeenCalled()
+  })
+
+  it('allows token with a JTI that has not been revoked', () => {
+    mockVerifyToken.mockReturnValue({ id: 'user-1', role: 'user', jti: 'valid-jti' } as any)
+
+    const req = makeReq({
+      headers: { authorization: 'Bearer valid.jwt.token' },
+    })
+    const res = makeRes()
+
+    authenticate(req, res, next)
+
+    expect(next).toHaveBeenCalled()
+    expect(req.user).toEqual({ id: 'user-1', role: 'user', jti: 'valid-jti' })
+  })
+
+  it('allows token without a JTI even if other JTIs are revoked', () => {
+    revokeToken('some-other-jti')
+    mockVerifyToken.mockReturnValue({ id: 'user-1', role: 'user' })
+
+    const req = makeReq({
+      headers: { authorization: 'Bearer valid.jwt.token' },
+    })
+    const res = makeRes()
+
+    authenticate(req, res, next)
+
+    expect(next).toHaveBeenCalled()
   })
 })
 
-// ── authorize middleware tests ───────────────────────────────────────────────
+// ── authenticate: Valid Token (Control Case) ──────────────────────────────────
 
-describe('authorize middleware', () => {
-  it('calls next when user has correct role', () => {
-    const req = createMockRequest({
-      user: { id: 'user-1', role: 'admin' },
-    }) as Request
-    const res = createMockResponse() as Response
-    const next = createMockNext()
+describe('authenticate — valid token', () => {
+  it('calls next and sets req.user for a valid token', () => {
+    const payload = { id: 'user-1', role: 'curator' }
+    mockVerifyToken.mockReturnValue(payload)
 
-    const middleware = authorize('admin')
-    middleware(req, res, next)
+    const req = makeReq({
+      headers: { authorization: 'Bearer valid.jwt.token' },
+    })
+    const res = makeRes()
 
+    authenticate(req, res, next)
+
+    expect(mockVerifyToken).toHaveBeenCalledWith('valid.jwt.token')
+    expect(req.user).toEqual(payload)
     expect(next).toHaveBeenCalled()
     expect(res.status).not.toHaveBeenCalled()
   })
 
-  it('calls next when user has one of multiple allowed roles', () => {
-    const req = createMockRequest({
-      user: { id: 'user-1', role: 'curator' },
-    }) as Request
-    const res = createMockResponse() as Response
-    const next = createMockNext()
+  it('extracts token correctly after "Bearer " prefix', () => {
+    const payload = { id: 'user-1', role: 'admin' }
+    mockVerifyToken.mockReturnValue(payload)
 
-    const middleware = authorize('admin', 'curator')
-    middleware(req, res, next)
+    const req = makeReq({
+      headers: { authorization: 'Bearer my.jwt.token' },
+    })
+    const res = makeRes()
 
-    expect(next).toHaveBeenCalled()
-    expect(res.status).not.toHaveBeenCalled()
+    authenticate(req, res, next)
+
+    expect(mockVerifyToken).toHaveBeenCalledWith('my.jwt.token')
   })
 
-  it('returns 403 when user has wrong role', () => {
-    const req = createMockRequest({
-      user: { id: 'user-1', role: 'user' },
-    }) as Request
-    const res = createMockResponse() as Response
-    const next = createMockNext()
+  it('sets req.user with id and role from payload', () => {
+    const payload = { id: 'user-123', role: 'admin' }
+    mockVerifyToken.mockReturnValue(payload)
 
-    const middleware = authorize('admin')
-    middleware(req, res, next)
+    const req = makeReq({
+      headers: { authorization: 'Bearer aaa.bbb.ccc' },
+    }) as any
+    const res = makeRes()
+
+    authenticate(req, res, next)
+
+    expect(req.user).toBeDefined()
+    expect(req.user?.id).toBe('user-123')
+    expect(req.user?.role).toBe('admin')
+  })
+})
+
+// ── authorize: Insufficient Permissions ────────────────────────────────────────
+
+describe('authorize — insufficient permissions', () => {
+  it('returns 403 when req.user is not set', () => {
+    const req = makeReq() as any
+    const res = makeRes()
+
+    mockHasRole.mockReturnValue(false)
+
+    authorize('admin')(req, res, next)
 
     expect(res.status).toHaveBeenCalledWith(403)
     expect(res.json).toHaveBeenCalledWith({
@@ -333,15 +402,13 @@ describe('authorize middleware', () => {
     expect(next).not.toHaveBeenCalled()
   })
 
-  it('returns 403 when user is not on request', () => {
-    const req = createMockRequest({
-      user: undefined,
-    }) as Request
-    const res = createMockResponse() as Response
-    const next = createMockNext()
+  it('returns 403 when user role is not in allowed list', () => {
+    const req = makeReq({ user: { id: 'u1', role: 'user' } }) as any
+    const res = makeRes()
 
-    const middleware = authorize('admin')
-    middleware(req, res, next)
+    mockHasRole.mockReturnValue(false)
+
+    authorize('admin', 'curator')(req, res, next)
 
     expect(res.status).toHaveBeenCalledWith(403)
     expect(res.json).toHaveBeenCalledWith({
@@ -353,155 +420,178 @@ describe('authorize middleware', () => {
   })
 
   it('returns 403 when user object is null', () => {
-    const req = createMockRequest({
-      user: null,
-    }) as Request
-    const res = createMockResponse() as Response
-    const next = createMockNext()
+    const req = makeReq({ user: null }) as any
+    const res = makeRes()
 
-    const middleware = authorize('admin')
-    middleware(req, res, next)
+    mockHasRole.mockReturnValue(false)
+
+    authorize('admin')(req, res, next)
 
     expect(res.status).toHaveBeenCalledWith(403)
     expect(next).not.toHaveBeenCalled()
   })
 
-  it('supports multiple roles in authorization', () => {
-    const req = createMockRequest({
-      user: { id: 'user-1', role: 'moderator' },
-    }) as Request
-    const res = createMockResponse() as Response
-    const next = createMockNext()
+  it('returns 403 for a "user" role trying to access "admin" route', () => {
+    const req = makeReq({ user: { id: 'u1', role: 'user' } }) as any
+    const res = makeRes()
 
-    const middleware = authorize('admin', 'moderator', 'curator')
-    middleware(req, res, next)
+    mockHasRole.mockReturnValue(false)
+
+    authorize('admin')(req, res, next)
+
+    expect(res.status).toHaveBeenCalledWith(403)
+    expect(next).not.toHaveBeenCalled()
+  })
+
+  it('returns 403 for a "curator" role trying to access "admin" route', () => {
+    const req = makeReq({ user: { id: 'u1', role: 'curator' } }) as any
+    const res = makeRes()
+
+    mockHasRole.mockReturnValue(false)
+
+    authorize('admin')(req, res, next)
+
+    expect(res.status).toHaveBeenCalledWith(403)
+    expect(next).not.toHaveBeenCalled()
+  })
+
+  it('returns correct error response structure for forbidden', () => {
+    const req = makeReq({ user: { id: 'u1', role: 'user' } }) as any
+    const res = makeRes()
+
+    mockHasRole.mockReturnValue(false)
+
+    authorize('admin')(req, res, next)
+
+    const jsonCall = (res.json as any).mock.calls[0][0]
+    expect(jsonCall).toHaveProperty('status', 'error')
+    expect(jsonCall).toHaveProperty('message', 'Forbidden')
+    expect(jsonCall).toHaveProperty('code', 403)
+  })
+})
+
+// ── authorize: Valid Permission (Control Case) ────────────────────────────────
+
+describe('authorize — valid permissions', () => {
+  it('calls next when user role is allowed', () => {
+    const req = makeReq({ user: { id: 'u1', role: 'curator' } }) as any
+    const res = makeRes()
+
+    mockHasRole.mockReturnValue(true)
+
+    authorize('admin', 'curator')(req, res, next)
 
     expect(next).toHaveBeenCalled()
     expect(res.status).not.toHaveBeenCalled()
   })
 
-  it('is case-sensitive for role matching', () => {
-    const req = createMockRequest({
-      user: { id: 'user-1', role: 'Admin' },
-    }) as Request
-    const res = createMockResponse() as Response
-    const next = createMockNext()
+  it('calls next when user has admin role', () => {
+    const req = makeReq({ user: { id: 'u1', role: 'admin' } }) as any
+    const res = makeRes()
 
-    const middleware = authorize('admin')
-    middleware(req, res, next)
+    mockHasRole.mockReturnValue(true)
 
-    expect(res.status).toHaveBeenCalledWith(403)
-    expect(next).not.toHaveBeenCalled()
-  })
-
-  it('returns correct error response structure', () => {
-    const req = createMockRequest({
-      user: { id: 'user-1', role: 'user' },
-    }) as Request
-    const res = createMockResponse() as Response
-    const next = createMockNext()
-
-    const middleware = authorize('admin')
-    middleware(req, res, next)
-
-    expect(res.status).toHaveBeenCalledWith(403)
-    const jsonCall = res.json.mock.calls[0][0]
-    expect(jsonCall).toHaveProperty('status', 'error')
-    expect(jsonCall).toHaveProperty('message', 'Forbidden')
-    expect(jsonCall).toHaveProperty('code', 403)
-  })
-
-  it('handles single role authorization', () => {
-    const req = createMockRequest({
-      user: { id: 'user-1', role: 'admin' },
-    }) as Request
-    const res = createMockResponse() as Response
-    const next = createMockNext()
-
-    const middleware = authorize('admin')
-    middleware(req, res, next)
+    authorize('admin')(req, res, next)
 
     expect(next).toHaveBeenCalled()
   })
 
-  it('handles many roles authorization', () => {
-    const req = createMockRequest({
-      user: { id: 'user-1', role: 'curator' },
-    }) as Request
-    const res = createMockResponse() as Response
-    const next = createMockNext()
+  it('passes the correct roles array to hasRole', () => {
+    const req = makeReq({ user: { id: 'u1', role: 'curator' } }) as any
+    const res = makeRes()
 
-    const middleware = authorize('admin', 'curator', 'moderator', 'user', 'guest')
-    middleware(req, res, next)
+    mockHasRole.mockReturnValue(true)
 
-    expect(next).toHaveBeenCalled()
+    authorize('admin', 'curator', 'moderator')(req, res, next)
+
+    expect(mockHasRole).toHaveBeenCalledWith(
+      { id: 'u1', role: 'curator' },
+      ['admin', 'curator', 'moderator'],
+    )
   })
 })
 
-// ── Integration tests ────────────────────────────────────────────────────────
+// ── authenticate + authorize: Combined Flow ────────────────────────────────────
 
-describe('authenticate and authorize together', () => {
-  it('allows authenticated admin user through both middlewares', () => {
-    const token = 'valid-token'
+describe('authenticate and authorize — combined flow', () => {
+  it('allows authenticated admin through both middlewares', () => {
     const payload = { id: 'user-1', role: 'admin' }
-    mockJwt.verify.mockReturnValue(payload)
+    mockVerifyToken.mockReturnValue(payload)
+    mockHasRole.mockReturnValue(true)
 
-    const req = createMockRequest({
-      headers: { authorization: `Bearer ${token}` },
-    }) as Request
-    const res = createMockResponse() as Response
-    const next1 = createMockNext()
+    const req = makeReq({
+      headers: { authorization: 'Bearer valid.jwt.token' },
+    })
+    const res = makeRes()
+    const next1 = vi.fn() as unknown as NextFunction
 
-    // First authenticate
     authenticate(req, res, next1)
     expect(next1).toHaveBeenCalled()
 
-    // Then authorize
-    const next2 = createMockNext()
-    const authorizeMiddleware = authorize('admin')
-    authorizeMiddleware(req, res, next2)
+    const next2 = vi.fn() as unknown as NextFunction
+    authorize('admin')(req, res, next2)
     expect(next2).toHaveBeenCalled()
   })
 
-  it('blocks unauthenticated user at authenticate step', () => {
-    const req = createMockRequest({
-      headers: {},
-    }) as Request
-    const res = createMockResponse() as Response
-    const next1 = createMockNext()
+  it('blocks unauthenticated request at authenticate step', () => {
+    const req = makeReq() as any
+    const res = makeRes()
+    const next1 = vi.fn() as unknown as NextFunction
 
-    // First authenticate
     authenticate(req, res, next1)
     expect(next1).not.toHaveBeenCalled()
     expect(res.status).toHaveBeenCalledWith(401)
 
-    // Authorize should not be reached
-    const next2 = createMockNext()
-    const authorizeMiddleware = authorize('admin')
-    authorizeMiddleware(req, res, next2)
+    // Authorize should see no user and also block
+    const next2 = vi.fn() as unknown as NextFunction
+    mockHasRole.mockReturnValue(false)
+    authorize('admin')(req, res, next2)
     expect(next2).not.toHaveBeenCalled()
   })
 
   it('blocks authenticated user with wrong role at authorize step', () => {
-    const token = 'valid-token'
     const payload = { id: 'user-1', role: 'user' }
-    mockJwt.verify.mockReturnValue(payload)
+    mockVerifyToken.mockReturnValue(payload)
+    mockHasRole.mockReturnValue(false)
 
-    const req = createMockRequest({
-      headers: { authorization: `Bearer ${token}` },
-    }) as Request
-    const res = createMockResponse() as Response
-    const next1 = createMockNext()
+    const req = makeReq({
+      headers: { authorization: 'Bearer valid.jwt.token' },
+    })
+    const res = makeRes()
+    const next1 = vi.fn() as unknown as NextFunction
 
-    // First authenticate
     authenticate(req, res, next1)
     expect(next1).toHaveBeenCalled()
+    expect(req.user).toEqual(payload)
 
-    // Then authorize
-    const next2 = createMockNext()
-    const authorizeMiddleware = authorize('admin')
-    authorizeMiddleware(req, res, next2)
+    const next2 = vi.fn() as unknown as NextFunction
+    authorize('admin')(req, res, next2)
     expect(next2).not.toHaveBeenCalled()
     expect(res.status).toHaveBeenCalledWith(403)
+  })
+
+  it('blocks expired token before reaching authorize', () => {
+    const error = new Error('jwt expired')
+    error.name = 'TokenExpiredError'
+    mockVerifyToken.mockImplementation(() => { throw error })
+
+    const req = makeReq({
+      headers: { authorization: 'Bearer expired.jwt.token' },
+    })
+    const res = makeRes()
+    const next1 = vi.fn() as unknown as NextFunction
+
+    authenticate(req, res, next1)
+    expect(next1).not.toHaveBeenCalled()
+    expect(res.status).toHaveBeenCalledWith(401)
+  })
+})
+
+// ── requireAuth alias ──────────────────────────────────────────────────────────
+
+describe('requireAuth', () => {
+  it('is an alias for authenticate', async () => {
+    const { requireAuth } = await import('./auth.js')
+    expect(requireAuth).toBe(authenticate)
   })
 })

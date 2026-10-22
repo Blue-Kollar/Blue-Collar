@@ -1,6 +1,6 @@
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
-import { db } from '../db.js';
+import { db } from '@/db.js';
 
 passport.use(
   new GoogleStrategy(
@@ -60,8 +60,8 @@ passport.use(
 );
 
 // Passport session setup (if using sessions, but we'll use JWT)
-passport.serializeUser((user: any, done) => {
-  done(null, user.id);
+passport.serializeUser((user: unknown, done) => {
+  done(null, (user as { id: string }).id);
 });
 
 passport.deserializeUser(async (id: string, done) => {

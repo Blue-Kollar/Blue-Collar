@@ -11,14 +11,14 @@ export interface PaginationOpts {
 /**
  * Common filtering options
  */
-export interface FilterOpts {
+interface FilterOpts {
   where?: Prisma.UserWhereInput | Prisma.WorkerWhereInput
 }
 
 /**
  * Common sorting options
  */
-export interface SortOpts {
+interface SortOpts {
   orderBy?: Prisma.UserOrderByWithRelationInput | Prisma.WorkerOrderByWithRelationInput
 }
 

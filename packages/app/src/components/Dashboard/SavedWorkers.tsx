@@ -3,14 +3,28 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Bookmark, Star } from "lucide-react";
+import { WorkerCardSkeleton } from "@/components/Skeleton";
 import type { Worker } from "@/types";
 
 interface Props {
   workers: Pick<Worker, "id" | "name" | "avatar" | "category" | "averageRating" | "location">[];
+  loading?: boolean;
   onRemove?: (id: string) => void;
 }
 
-export function SavedWorkers({ workers, onRemove }: Props) {
+export function SavedWorkers({ workers, loading, onRemove }: Props) {
+  // ── Loading state (#1203) ──────────────────────────────────────────────────
+  if (loading) {
+    return (
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2" aria-busy="true" aria-label="Loading saved workers">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <WorkerCardSkeleton key={i} />
+        ))}
+      </div>
+    );
+  }
+
+  // ── Empty state (#1203) ────────────────────────────────────────────────────
   if (workers.length === 0) {
     return (
       <div className="py-10 text-center">

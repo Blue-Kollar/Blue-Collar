@@ -1,12 +1,12 @@
 //! Property-based fuzz tests for the Registry contract.
 //!
 //! These tests use `proptest` to generate random inputs and verify invariants.
+// `Env::register_contract` is deprecated in favour of `Env::register`; the test
+// helpers here are migrated alongside the contracts, not ahead of them.
+#![allow(deprecated)]
 
 use proptest::prelude::*;
-use soroban_sdk::{
-    testutils::{Address as _, Ledger, LedgerInfo},
-    Address, BytesN, Env, String as SorobanString, Symbol,
-};
+use soroban_sdk::{testutils::Address as _, Address, BytesN, Env, String as SorobanString, Symbol};
 
 // Re-export the contract client
 use bluecollar_registry::{RegistryContract, RegistryContractClient};

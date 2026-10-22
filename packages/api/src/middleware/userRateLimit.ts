@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from 'express'
-import { redis } from '../config/redis.js'
+import { redis } from '@/config/redis.js'
 
 interface UserRateLimitOptions {
   /** Window size in seconds */

@@ -102,7 +102,7 @@ Example: upgrade a contract on testnet:
 
 ```bash
 stellar contract install \
-  --wasm target/wasm32-unknown-unknown/release/bluecollar_registry.wasm \
+  --wasm target/wasm32v1-none/release/bluecollar_registry.wasm \
   --source deployer \
   --network testnet
 
@@ -118,7 +118,7 @@ stellar contract invoke \
 
 - If friendbot fails, confirm the network is `testnet`.
 - Use `stellar keys list` to verify alias registration.
-- If deploy script fails, run `make build` first and ensure the WASM files exist in `target/wasm32-unknown-unknown/release/`.
+- If deploy script fails, run `make build` first and ensure the WASM files exist in `target/wasm32v1-none/release/`.
 
 ## Next steps
 

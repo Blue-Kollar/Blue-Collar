@@ -1,0 +1,9 @@
+{
+  "fileExtensions": ["ts"],
+  "excludeRegExp": [".*\\.test\\.ts$", ".*\\.spec\\.ts$", ".*__tests__.*"],
+  "detectiveOptions": {
+    "ts": {
+      "skipTypeImports": true
+    }
+  }
+}

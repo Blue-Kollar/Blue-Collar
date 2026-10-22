@@ -1,5 +1,6 @@
-import { db } from '../db.js'
-import { AppError } from '../utils/AppError.js'
+import { db } from '@/db.js'
+import { AppError } from '@/utils/app-error.js'
+import { nowUtc } from '@/utils/date.js'
 
 /** Record a response to a contact request and stamp respondedAt */
 export async function recordResponse(requestId: string, status: 'accepted' | 'declined') {
@@ -9,7 +10,7 @@ export async function recordResponse(requestId: string, status: 'accepted' | 'de
 
   return db.contactRequest.update({
     where: { id: requestId },
-    data: { status, respondedAt: new Date() },
+    data: { status, respondedAt: nowUtc() },
     include: { fromUser: true, worker: true },
   })
 }

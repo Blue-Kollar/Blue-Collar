@@ -7,14 +7,32 @@ type WorkerWithRelations = Worker & {
   curator?: User | null
 }
 
+// Escapes HTML-significant characters so that any legacy unsanitised rows
+// (e.g. containing script tags) are neutralised when rendered by clients.
+// This is a defence-in-depth measure; write paths must still sanitise input.
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
+function escapeOptional(value: string | null | undefined): string | null {
+  if (value === null || value === undefined) return null
+  return escapeHtml(value)
+}
+
+// PII SAFETY: phone and email are excluded from public API responses.
+// Contact details are only shared through the contact request flow
+// and never via public listing responses.
 export function WorkerResource(worker: WorkerWithRelations) {
   return {
     id: worker.id,
-    name: worker.name,
-    bio: worker.bio,
+    name: escapeOptional(worker.name),
+    bio: escapeOptional(worker.bio),
     avatar: worker.avatar,
-    phone: worker.phone,
-    email: worker.email,
     walletAddress: worker.walletAddress,
     isActive: worker.isActive,
     isVerified: worker.isVerified,

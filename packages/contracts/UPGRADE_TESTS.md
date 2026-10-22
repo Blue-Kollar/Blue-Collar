@@ -1,4 +1,12 @@
 // Contract Upgrade Tests (#375)
+//
+// ⚠️ STATUS: illustrative / aspirational — this file is NOT compiled and its
+// snippets are out of date (e.g. registry's `upgrade` takes only a wasm hash,
+// and a dummy hash is rejected by the host). The authoritative upgrade test
+// map lives in UPGRADE_MIGRATION.md §5, and the real tests live in
+// contracts/registry/src/test.rs, contracts/job_registry/src/test.rs,
+// contracts/market/src/test.rs and contracts/fuzz/tests/upgrade_fuzz.rs.
+//
 // This module contains comprehensive tests for contract upgrade functionality
 
 #[cfg(test)]

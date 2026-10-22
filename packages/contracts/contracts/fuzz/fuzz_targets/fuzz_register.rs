@@ -1,11 +1,8 @@
 #![no_main]
-use libfuzzer_sys::fuzz_target;
-use soroban_sdk::{
-    testutils::Address as _,
-    Address, BytesN, Env, String as SorobanString, Symbol,
-};
-use bluecollar_registry::{RegistryContract, RegistryContractClient};
 use arbitrary::Arbitrary;
+use bluecollar_registry::{RegistryContract, RegistryContractClient};
+use libfuzzer_sys::fuzz_target;
+use soroban_sdk::{testutils::Address as _, Address, BytesN, Env, String as SorobanString, Symbol};
 
 #[derive(Arbitrary, Debug)]
 struct RegisterInput {
@@ -21,13 +18,13 @@ fuzz_target!(|input: RegisterInput| {
     } else {
         input.worker_id.chars().take(16).collect::<String>()
     };
-    
+
     let name = if input.name.is_empty() {
         "Worker".to_string()
     } else {
         input.name.chars().take(32).collect::<String>()
     };
-    
+
     let category = if input.category.is_empty() {
         "plumber".to_string()
     } else {
@@ -54,5 +51,7 @@ fuzz_target!(|input: RegisterInput| {
     let zero_hash = BytesN::from_array(&env, &[0u8; 32]);
 
     // This should never panic with arbitrary inputs
-    let _ = client.register(&id, &owner, &name_str, &cat, &zero_hash, &zero_hash, &curator);
+    let _ = client.register(
+        &id, &owner, &name_str, &cat, &zero_hash, &zero_hash, &curator,
+    );
 });

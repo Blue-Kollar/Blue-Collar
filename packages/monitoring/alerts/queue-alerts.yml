@@ -1,0 +1,45 @@
+# Queue Backlog Alerts
+groups:
+  - name: queue-alerts
+    interval: 30s
+    rules:
+      # Queue Backlog Alert
+      - alert: QueueBacklog
+        expr: |
+          queue_messages_unprocessed > 1000
+        for: 5m
+        labels:
+          severity: warning
+          team: backend
+          service: queue
+        annotations:
+          summary: "Queue backlog exceeds 1000 messages"
+          description: "There are {{ $value }} unprocessed messages in the queue"
+          runbook: "https://github.com/Blue-Kollar/Blue-Collar/docs/INCIDENT_RUNBOOK.md#queue-backlog"
+
+      # Queue Processing Rate Alert
+      - alert: QueueProcessingSlowdown
+        expr: |
+          rate(queue_messages_processed[5m]) < 10
+        for: 10m
+        labels:
+          severity: warning
+          team: backend
+          service: queue
+        annotations:
+          summary: "Queue processing rate is slow"
+          description: "Processing rate is {{ $value }} messages/second over the last 10 minutes"
+
+      # Queue Dead Letter Alert
+      - alert: QueueDeadLetter
+        expr: |
+          rate(queue_messages_dead_lettered[5m]) > 0
+        for: 5m
+        labels:
+          severity: critical
+          team: backend
+          service: queue
+        annotations:
+          summary: "Messages entering dead letter queue"
+          description: "{{ $value }} messages dead-lettered in the last 5 minutes"
+          runbook: "https://github.com/Blue-Kollar/Blue-Collar/docs/INCIDENT_RUNBOOK.md#queue-dead-letter"

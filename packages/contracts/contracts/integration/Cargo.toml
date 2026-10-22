@@ -9,10 +9,19 @@ description = "End-to-end integration tests for BlueCollar Soroban contracts aga
 name = "bluecollar_integration"
 # No cdylib – this crate is test-only.
 
-[dependencies]
-soroban-sdk = { version = "21.0.0", features = ["testutils"] }
+[dev-dependencies]
+# Test-only crate (issue #1448): the lib is an empty harness, so every
+# contract below is only linked by the `tests/` suite — none of them
+# participate in a normal build of this crate.
+soroban-sdk = { workspace = true, features = ["testutils"] }
+bluecollar-types    = { path = "../types" }
 bluecollar-registry = { path = "../registry" }
 bluecollar-market   = { path = "../market" }
+bluecollar-dispute  = { path = "../dispute" }
+bluecollar-escrow   = { path = "../escrow" }
+bluecollar-reputation = { path = "../reputation" }
+bluecollar-job-registry = { path = "../job_registry" }
+bluecollar_insurance_pool = { path = "../insurance_pool" }
 
-[dev-dependencies]
-soroban-sdk = { version = "21.0.0", features = ["testutils"] }
+[lints]
+workspace = true

@@ -4,12 +4,8 @@ import type { ReactNode } from "react";
 import { AuthProvider } from "@/context/AuthContext";
 import { WalletProvider } from "@/context/WalletContext";
 import { OnboardingProvider } from "@/context/OnboardingContext";
-import { ThemeProvider } from "next-themes";
-import { Toaster } from "sonner";
 import PushNotificationPrompt from "@/components/PushNotificationPrompt";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
-import WebVitalsReporter from "@/components/WebVitalsReporter";
-import OfflineBanner from "@/components/OfflineBanner";
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://bluecollar.app";
 
@@ -55,22 +51,18 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <a href="#main-content" className="skip-to-main">
           Skip to main content
         </a>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem storageKey="bc_theme">
-          <AuthProvider>
-            <WalletProvider>
-              <OnboardingProvider>
-                <OfflineBanner />
-                <ServiceWorkerRegister />
-                <WebVitalsReporter />
-                <div id="main-content" tabIndex={-1}>
-                  {children}
-                </div>
-                <PushNotificationPrompt />
-              </OnboardingProvider>
-            </WalletProvider>
-          </AuthProvider>
-          <Toaster position="bottom-right" richColors closeButton />
-        </ThemeProvider>
+        {/* Theme, locale, query and toast providers live in the locale layout (components/Providers) */}
+        <AuthProvider>
+          <WalletProvider>
+            <OnboardingProvider>
+              <ServiceWorkerRegister />
+              <div id="main-content" tabIndex={-1}>
+                {children}
+              </div>
+              <PushNotificationPrompt />
+            </OnboardingProvider>
+          </WalletProvider>
+        </AuthProvider>
       </body>
     </html>
   );

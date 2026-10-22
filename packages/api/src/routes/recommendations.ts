@@ -1,6 +1,6 @@
 import { Router } from 'express'
-import { getRecommendations, trackInteraction } from '../controllers/recommendations.js'
-import { authenticate } from '../middleware/auth.js'
+import { getRecommendations, trackInteraction } from '@/controllers/recommendations.js'
+import { authenticate } from '@/middleware/auth.js'
 
 const router = Router()
 

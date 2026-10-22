@@ -12,16 +12,6 @@ export default function ServiceWorkerRegister() {
       .register("/sw.js")
       .then((reg) => {
         registration = reg;
-        reg.addEventListener("updatefound", () => {
-          const newWorker = reg.installing;
-          if (newWorker) {
-            newWorker.addEventListener("statechange", () => {
-              if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
-                console.log("[SW] New version available — reload to update");
-              }
-            });
-          }
-        });
       })
       .catch((error) => console.error("[ServiceWorkerRegister] error:", error));
 

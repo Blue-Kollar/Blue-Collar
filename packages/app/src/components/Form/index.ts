@@ -15,3 +15,7 @@ export type { DatePickerProps } from "./DatePicker";
 
 export { FileUpload } from "./FileUpload";
 export type { FileUploadProps } from "./FileUpload";
+
+export { default as FormError, FieldError } from "./FormError";
+
+export { default as FormField } from "./FormField";

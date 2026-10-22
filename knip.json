@@ -1,0 +1,114 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "workspaces": {
+    ".": {
+      "entry": ["scripts/*.{js,mjs,cjs,ts}"],
+      "project": ["*.{js,mjs,cjs,ts}", "scripts/**/*.{js,mjs,cjs,ts}"],
+      "ignore": [
+        "**/*.d.ts",
+        "**/dist/**",
+        "**/build/**",
+        "**/coverage/**"
+      ]
+    },
+    "packages/*": {
+      "entry": [
+        "src/index.{ts,tsx,js,jsx}",
+        "src/main.{ts,tsx,js,jsx}",
+        "src/cli.{ts,tsx,js,jsx}"
+      ],
+      "project": ["src/**/*.{ts,tsx,js,jsx}"],
+      "ignore": [
+        "**/*.test.{ts,tsx,js,jsx}",
+        "**/*.spec.{ts,tsx,js,jsx}",
+        "**/__tests__/**",
+        "**/*.d.ts",
+        "**/dist/**",
+        "**/build/**"
+      ]
+    },
+    "app": {
+      "entry": ["src/index.{ts,tsx,js,jsx}", "src/main.{ts,tsx,js,jsx}"],
+      "project": ["src/**/*.{ts,tsx,js,jsx}"],
+      "ignore": [
+        "**/*.test.{ts,tsx,js,jsx}",
+        "**/*.spec.{ts,tsx,js,jsx}",
+        "**/__tests__/**",
+        "**/*.d.ts",
+        "**/dist/**",
+        "**/build/**"
+      ]
+    },
+    "frontend": {
+      "entry": [
+        "src/main.{ts,tsx,js,jsx}",
+        "src/index.{ts,tsx,js,jsx}",
+        "index.html"
+      ],
+      "project": ["src/**/*.{ts,tsx,js,jsx}"],
+      "ignore": [
+        "**/*.test.{ts,tsx,js,jsx}",
+        "**/*.spec.{ts,tsx,js,jsx}",
+        "**/__tests__/**",
+        "**/*.d.ts",
+        "**/dist/**",
+        "**/build/**",
+        "e2e/**"
+      ]
+    },
+    "mobile": {
+      "entry": [
+        "index.{js,ts,jsx,tsx}",
+        "App.{js,ts,jsx,tsx}",
+        "src/index.{ts,tsx,js,jsx}"
+      ],
+      "project": ["src/**/*.{ts,tsx,js,jsx}"],
+      "ignore": [
+        "**/*.test.{ts,tsx,js,jsx}",
+        "**/*.spec.{ts,tsx,js,jsx}",
+        "**/__tests__/**",
+        "**/*.d.ts"
+      ]
+    },
+    "backend": {
+      "entry": ["src/index.{ts,js}", "src/server.{ts,js}"],
+      "project": ["src/**/*.{ts,js}"],
+      "ignore": ["**/*.test.{ts,js}", "**/*.spec.{ts,js}", "**/__tests__/**", "**/*.d.ts"]
+    },
+    "indexer": {
+      "entry": ["src/index.{ts,js}"],
+      "project": ["src/**/*.{ts,js}"],
+      "ignore": ["**/*.test.{ts,js}", "**/*.spec.{ts,js}", "**/__tests__/**", "**/*.d.ts"]
+    },
+    "contracts": {
+      "entry": ["src/lib.{ts,js}"],
+      "project": ["src/**/*.{ts,js}"],
+      "ignore": ["**/*.test.{ts,js}", "**/*.spec.{ts,js}", "**/__tests__/**", "**/*.d.ts"]
+    },
+    "docs": {
+      "entry": [],
+      "project": []
+    }
+  },
+  "ignore": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/build/**",
+    "**/coverage/**",
+    "**/.turbo/**",
+    "**/.next/**",
+    "**/.expo/**"
+  ],
+  "ignoreDependencies": [
+    "@types/*",
+    "eslint-*",
+    "prettier",
+    "typescript",
+    "vitest",
+    "jest",
+    "tsup",
+    "turbo"
+  ],
+  "ignoreExportsUsedInFile": true,
+  "includeEntryExports": false
+}

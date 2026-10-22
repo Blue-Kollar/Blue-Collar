@@ -2,10 +2,11 @@ import { Router } from 'express'
 import {
   listWorkers, listUsers, getStats, bulkToggleWorkers, bulkDeleteWorkers,
   suspendUser, unsuspendUser, banUser, changeRole, moderateWorker, listAuditLogs,
-} from '../controllers/admin.js'
-import { importWorkersFromCsvController } from '../controllers/csv-import.js'
-import { exportWorkers, exportUsers } from '../controllers/export.js'
-import { authenticate, authorize } from '../middleware/auth.js'
+  bulkSuspendUsers, bulkUnsuspendUsers,
+} from '@/controllers/admin.js'
+import { importWorkersFromCsvController } from '@/controllers/csv-import.js'
+import { exportWorkers, exportUsers } from '@/controllers/export.js'
+import { authenticate, authorize } from '@/middleware/auth.js'
 import multer from 'multer'
 import rateLimit from 'express-rate-limit'
 
@@ -38,6 +39,8 @@ router.patch('/users/:id/suspend', suspendUser)
 router.patch('/users/:id/unsuspend', unsuspendUser)
 router.patch('/users/:id/ban', banUser)
 router.patch('/users/:id/role', changeRole)
+router.patch('/users/bulk-suspend', bulkSuspendUsers)
+router.patch('/users/bulk-unsuspend', bulkUnsuspendUsers)
 router.patch('/workers/:id/moderate', moderateWorker)
 router.get('/audit', listAuditLogs)
 

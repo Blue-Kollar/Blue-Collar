@@ -1,0 +1,49 @@
+# API Service Alerts
+groups:
+  - name: api-alerts
+    interval: 30s
+    rules:
+      # High Error Rate Alert
+      - alert: APIHighErrorRate
+        expr: |
+          (
+            sum(rate(http_requests_total{status=~"5.."}[5m])) 
+            / 
+            sum(rate(http_requests_total[5m]))
+          ) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+          team: backend
+          service: api
+        annotations:
+          summary: "API error rate exceeds 5%"
+          description: "Error rate is {{ $value | humanizePercentage }} over the last 5 minutes"
+          runbook: "https://github.com/Blue-Kollar/Blue-Collar/docs/INCIDENT_RUNBOOK.md#api-high-error-rate"
+
+      # High Latency Alert
+      - alert: APIHighLatency
+        expr: |
+          histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le)) > 2
+        for: 5m
+        labels:
+          severity: warning
+          team: backend
+          service: api
+        annotations:
+          summary: "API p95 latency exceeds 2s"
+          description: "p95 latency is {{ $value }}s over the last 5 minutes"
+          runbook: "https://github.com/Blue-Kollar/Blue-Collar/docs/INCIDENT_RUNBOOK.md#api-high-latency"
+
+      # Low Request Rate Alert
+      - alert: APIRequestRateDrop
+        expr: |
+          sum(rate(http_requests_total[5m])) < 10
+        for: 5m
+        labels:
+          severity: warning
+          team: backend
+          service: api
+        annotations:
+          summary: "API request rate dropped significantly"
+          description: "Request rate is {{ $value }} req/s over the last 5 minutes"
