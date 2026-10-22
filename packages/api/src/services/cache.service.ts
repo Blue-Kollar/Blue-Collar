@@ -11,6 +11,7 @@
 
 import { redis } from '@/config/redis.js'
 import { logger } from '@/config/logger.js'
+import { CacheKeys } from '@/services/cache.keys.js'
 import { nowUtc, parseUtcDate, addUtcMs, formatUtcIso } from '@/utils/date.js'
 import { Counter, Histogram, register } from 'prom-client'
 
@@ -44,33 +45,9 @@ try {
   // Already registered — ignore
 }
 
-// ── TTL presets ───────────────────────────────────────────────────────────────
+// ── Keys and TTLs ─────────────────────────────────────────────────────────────
 
-export const CacheTTL = {
-  /** 60 s — frequently changing data (availability, reviews) */
-  SHORT: 60,
-  /** 300 s — worker profiles */
-  MEDIUM: 300,
-  /** 600 s — semi-static lists (worker search results) */
-  LONG: 600,
-  /** 3 600 s — categories, aggregates (rarely change) */
-  HOUR: 3_600,
-  /** 86 400 s — very stable data */
-  DAY: 86_400,
-} as const
-
-// ── Key helpers ───────────────────────────────────────────────────────────────
-
-/** Standard key prefixes to namespace cache entries. */
-export const CacheKeys = {
-  workerList: (params: string) => `cache:workers:list:${params}`,
-  workerProfile: (id: string) => `cache:workers:profile:${id}`,
-  workerSearch: (query: string) => `cache:workers:search:${query}`,
-  categoryList: () => `cache:categories:list`,
-  categoryById: (id: string) => `cache:categories:${id}`,
-  ratingAggregate: (workerId: string) => `cache:ratings:${workerId}`,
-  availability: (workerId: string) => `cache:availability:${workerId}`,
-} as const
+export { CacheKeys, CacheTTL } from '@/services/cache.keys.js'
 
 // ── Service ───────────────────────────────────────────────────────────────────
 
