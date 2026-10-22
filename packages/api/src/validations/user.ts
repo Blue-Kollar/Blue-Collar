@@ -55,3 +55,11 @@ export const pushSubscriptionRules = z.object({
     p256dh: z.string().min(1),
   }),
 })
+
+// DELETE /users/me/push-subscription — API-only
+export const deletePushSubscriptionRules = z.object({
+  endpoint: z.string().url('Must be a valid URL'),
+})
+
+// POST /users/onboarding/complete — API-only, no body fields required
+export const completeOnboardingRules = z.object({})

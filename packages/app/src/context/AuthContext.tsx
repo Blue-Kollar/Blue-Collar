@@ -18,6 +18,8 @@ export interface AuthUser {
   lastName: string;
   email: string;
   role: "user" | "curator" | "admin";
+  verified?: boolean;
+  onboardingCompleted?: boolean;
 }
 
 interface AuthContextValue {

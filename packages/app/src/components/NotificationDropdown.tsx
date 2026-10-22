@@ -13,6 +13,7 @@ const TYPE_STYLES: Record<NotificationType, string> = {
   review: "bg-blue-100 text-blue-700",
   contact: "bg-green-100 text-green-700",
   system: "bg-gray-100 text-gray-600",
+  message: "bg-purple-100 text-purple-700",
 };
 
 const TYPE_LABELS: Record<NotificationType, string> = {
@@ -20,6 +21,7 @@ const TYPE_LABELS: Record<NotificationType, string> = {
   review: "Review",
   contact: "Contact",
   system: "System",
+  message: "Message",
 };
 
 

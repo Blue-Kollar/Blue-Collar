@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { sanitisedString } from './common'
+import { sanitizedString } from './worker.js'
 
 // NOTE: Booking endpoints currently accept no free-text fields.
 // The only string input is `workerId`, which is an opaque identifier and is
@@ -20,6 +20,6 @@ export const listMyBookingsQuery = z.object({
 // Reserved for future free-text booking fields; exported so write paths can
 // reuse the shared sanitised string validation.
 export const bookingFreeTextRules = z.object({
-  notes: sanitisedString({ max: 1000 }).optional(),
-  description: sanitisedString({ max: 1000 }).optional(),
+  notes: sanitizedString(1000).optional(),
+  description: sanitizedString(1000).optional(),
 })

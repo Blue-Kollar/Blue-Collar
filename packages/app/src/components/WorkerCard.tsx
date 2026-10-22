@@ -57,7 +57,7 @@ export default function WorkerCard({ worker, variant = "standard" }: WorkerCardP
 
           {worker.averageRating != null && (
             <div className="flex items-center gap-0.5 shrink-0">
-              <StarRating rating={worker.averageRating} size="sm" />
+              <StarRating rating={worker.averageRating} size={14} />
               <span className="text-xs text-gray-500">{worker.averageRating.toFixed(1)}</span>
             </div>
           )}

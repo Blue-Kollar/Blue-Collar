@@ -8,6 +8,7 @@ import type {
 } from '@bluecollar/types'
 import { jobRepository as defaultJobRepository } from '@/repositories/job.repository.js'
 import { AppError } from '@/utils/app-error.js'
+import { nowUtc, parseUtcDate, addUtcMs } from '@/utils/date.js'
 import { dispatchNotification } from '@/services/notification.service.js'
 import { buildPaginationMeta } from '@/utils/pagination.js'
 import { sanitizeText } from '@/utils/sanitize.js'
@@ -57,7 +58,7 @@ export function createJobService(deps: JobServiceDeps) {
         ...(search
           ? { OR: [{ title: { contains: search, mode: 'insensitive' as const } }, { description: { contains: search, mode: 'insensitive' as const } }] }
           : {}),
-        ...(skills && skills.length > 0 ? { skills: { hasSome: skills } } : {}),
+        ...(skills && skills.length > 0 ? { skills: { hasSome: skills as unknown as string[] } } : {}),
       }
 
       const [data, total] = await Promise.all([
@@ -103,7 +104,7 @@ export function createJobService(deps: JobServiceDeps) {
         categoryId: data.categoryId,
         locationId: data.locationId,
         postedById,
-        escrowAmount: data.escrowAmount,
+        escrowAmount: (data as CreateJobRequest & { escrowAmount?: number }).escrowAmount,
         expiresAt: data.expiresAt ? parseUtcDate(data.expiresAt) : undefined,
       })
     },

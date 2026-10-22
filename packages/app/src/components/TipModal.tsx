@@ -392,9 +392,9 @@ async function buildTipTxXdr(
   networkPassphrase: string
 ): Promise<string> {
   const StellarSdk = await import("@stellar/stellar-sdk");
-  const { Server, TransactionBuilder, Operation, Asset, BASE_FEE } = StellarSdk;
+  const { Horizon, TransactionBuilder, Operation, Asset, BASE_FEE } = StellarSdk;
 
-  const server = new Server(HORIZON_URL);
+  const server = new Horizon.Server(HORIZON_URL);
   const account = await server.loadAccount(from);
 
   const tx = new TransactionBuilder(account, {

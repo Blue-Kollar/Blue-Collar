@@ -19,7 +19,7 @@ export const listEscrows = catchAsync(async (req: Request, res: Response) => {
 })
 
 export const getEscrow = catchAsync(async (req: Request, res: Response) => {
-  const record = await contractsService.escrow.getEscrow(req.params.id, req.user!.id, req.user!.role)
+  const record = await contractsService.escrow.getEscrow(req.params.id!, req.user!.id, req.user!.role)
   return res.json({ data: record, status: 'success', code: 200 })
 })
 
@@ -38,7 +38,7 @@ export const createEscrow = catchAsync(async (req: Request, res: Response) => {
 export const activateEscrow = catchAsync(async (req: Request, res: Response) => {
   const { txId } = req.body
   const record = await contractsService.activateEscrowRecord(
-    req.params.id,
+    req.params.id!,
     txId,
     req.user!.id,
     req.user!.role,
@@ -47,25 +47,25 @@ export const activateEscrow = catchAsync(async (req: Request, res: Response) => 
 })
 
 export const releaseEscrow = catchAsync(async (req: Request, res: Response) => {
-  const record = await contractsService.escrow.releaseEscrow(req.params.id, req.user!.id, req.user!.role)
+  const record = await contractsService.escrow.releaseEscrow(req.params.id!, req.user!.id, req.user!.role)
   return res.json({ data: record, status: 'success', code: 200 })
 })
 
 export const cancelEscrow = catchAsync(async (req: Request, res: Response) => {
-  const record = await contractsService.escrow.cancelEscrow(req.params.id, req.user!.id, req.user!.role)
+  const record = await contractsService.escrow.cancelEscrow(req.params.id!, req.user!.id, req.user!.role)
   return res.json({ data: record, status: 'success', code: 200 })
 })
 
 export const fileDispute = catchAsync(async (req: Request, res: Response) => {
   const { reason, evidence } = req.body
-  const dispute = await contractsService.fileEscrowDispute(req.params.id, req.user!.id, { reason, evidence })
+  const dispute = await contractsService.fileEscrowDispute(req.params.id!, req.user!.id, { reason, evidence })
   return res.status(201).json({ data: dispute, status: 'success', code: 201 })
 })
 
 export const resolveDispute = catchAsync(async (req: Request, res: Response) => {
   const { status, resolution } = req.body
   const dispute = await contractsService.resolveEscrowDispute(
-    req.params.disputeId,
+    req.params.disputeId!,
     req.user!.id,
     status,
     resolution,

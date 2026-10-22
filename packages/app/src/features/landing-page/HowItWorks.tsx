@@ -32,7 +32,7 @@ export default function HowItWorks() {
       const el = ref.current
       if (!el) return
       const observer = new IntersectionObserver(
-        ([entry]) => { if (entry.isIntersecting) { setVisible(true); observer.disconnect() } },
+        ([entry]) => { if (entry?.isIntersecting) { setVisible(true); observer.disconnect() } },
         { threshold: 0.2 }
       )
       observer.observe(el)

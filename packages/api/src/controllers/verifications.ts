@@ -27,12 +27,12 @@ export const reviewRequest = catchAsync(async (req: Request, res: Response) => {
   if (!status || !['approved', 'rejected'].includes(status)) {
     throw new AppError(ErrorMessages.VERIFICATION_STATUS_INVALID, HttpStatus.BAD_REQUEST, true, ErrorCode.VALIDATION_ERROR)
   }
-  const result = await verificationService.reviewRequest(req.params.id, req.user!.id, status, reviewNote)
+  const result = await verificationService.reviewRequest(req.params.id!, req.user!.id, status, reviewNote)
   return res.json({ data: result, status: 'success', code: 200 })
 })
 
 /** GET /api/workers/:id/verifications — get verification history for a worker */
 export const getWorkerVerifications = catchAsync(async (req: Request, res: Response) => {
-  const data = await verificationService.getWorkerVerifications(req.params.id)
+  const data = await verificationService.getWorkerVerifications(req.params.id!)
   return res.json({ data, status: 'success', code: 200 })
 })

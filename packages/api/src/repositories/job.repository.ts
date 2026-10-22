@@ -100,7 +100,7 @@ export class JobRepository implements IJobRepository {
 
   async findExpiredOpen(): Promise<{ id: string; title: string; postedById: string }[]> {
     return db.job.findMany({
-      where: { status: JobStatus.OPEN, expiresAt: { lt: new Date() } },
+      where: { status: JobStatus.Open, expiresAt: { lt: new Date() } },
       select: { id: true, title: true, postedById: true },
     })
   }

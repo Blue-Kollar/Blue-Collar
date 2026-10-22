@@ -25,7 +25,7 @@ export default function SavedWorkersPage() {
   useEffect(() => {
     if (authLoading || !user) return;
     getMyBookmarks()
-      .then((res) => setWorkers(res.data))
+      .then((res) => setWorkers(res.data ?? []))
       .catch((err: unknown) =>
         setError(err instanceof Error ? err.message : "Failed to load bookmarks")
       )

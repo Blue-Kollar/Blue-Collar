@@ -39,7 +39,7 @@ async function showWorkerWithRatings(req: Request, res: Response) {
   const [worker, rating] = await Promise.all([
     db.worker.findUnique({
       where: { id: req.params.id },
-      include: { category: true, portfolio: { orderBy: { order: 'asc' } } },
+      include: { category: true, portfolioItems: { orderBy: { order: 'asc' } } },
     }),
     db.review.aggregate({
       where: { workerId: req.params.id },
@@ -62,7 +62,7 @@ router.get('/', generalRateLimit, cacheMiddleware(CacheTTL.SHORT), listWorkers)
 router.get('/search', generalRateLimit, cacheMiddleware(CacheTTL.SHORT), searchWorkersHandler)
 router.get('/search/advanced', generalRateLimit, cacheMiddleware(CacheTTL.SHORT), advancedSearch)
 router.get('/mine', authenticate, authorize('curator', 'admin'), listMyWorkers)
-router.get('/mine', withAuth(['curator', 'admin']), listMyWorkers)
+router.get('/mine', withAuth('curator', 'admin'), listMyWorkers)
 router.get('/:id', generalRateLimit, cacheMiddleware(CacheTTL.MEDIUM), showWorkerWithRatings)
 router.post('/', authenticate, authorize('curator'), idempotency, validate(createWorkerRules), createWorker)
 router.put('/:id', authenticate, authorize('curator'), updateWorker)
@@ -106,7 +106,7 @@ router.delete('/reviews/:id', authenticate, deleteReview)
 
 // Verifications
 router.get('/:id/verifications', authenticate, authorize('curator', 'admin'), getWorkerVerifications)
-router.get('/:id/verifications', withAuth(['curator', 'admin']), getWorkerVerifications)
+router.get('/:id/verifications', withAuth('curator', 'admin'), getWorkerVerifications)
 
 // Analytics
 router.post('/:id/analytics/view', trackView)
@@ -114,7 +114,7 @@ router.get('/:id/analytics/dashboard', authenticate, authorize('curator', 'admin
 router.get('/:id/analytics/export', authenticate, authorize('curator', 'admin'), exportWorkerPersonalCsv)
 router.get('/:id/analytics', authenticate, authorize('curator', 'admin'), getAnalytics)
 router.get('/:id/analytics/trends', authenticate, authorize('curator', 'admin'), getViewTrends)
-router.get('/:id/analytics', withAuth(['curator', 'admin']), getAnalytics)
+router.get('/:id/analytics', withAuth('curator', 'admin'), getAnalytics)
 
 // Reputation (#677)
 router.get('/:id/reputation', cacheMiddleware(CacheTTL.SHORT), getReputation)

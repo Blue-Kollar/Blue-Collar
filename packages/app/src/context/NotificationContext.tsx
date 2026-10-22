@@ -35,10 +35,10 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   const refresh = useCallback(async () => {
     try {
       const [notifRes, countRes] = await Promise.all([
-        getNotifications({ limit: "50" }),
+        getNotifications({ limit: 50 }),
         getUnreadNotificationCount(),
       ]);
-      setNotifications(notifRes.data);
+      setNotifications(notifRes.data ?? []);
       setUnreadCount(countRes.data.count);
     } catch {
       // silently fail

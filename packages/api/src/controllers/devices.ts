@@ -18,7 +18,7 @@ export const listDevices = catchAsync(async (req: Request, res: Response) => {
 export const revokeDevice = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user!.id
   const { deviceId } = req.params
-  await deviceService.revokeDevice(deviceId, userId)
+  await deviceService.revokeDevice(deviceId!, userId)
   res.json({ data: { success: true }, status: 'success', message: 'Device revoked' })
 })
 

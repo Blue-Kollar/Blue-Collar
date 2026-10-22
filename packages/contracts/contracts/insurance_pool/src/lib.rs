@@ -77,6 +77,8 @@ pub struct PoolStats {
     pub total_claims_paid: i128,
     /// Premium rate in basis points.
     pub premium_bps: u32,
+    /// Policy expiry timestamp (0 = no expiry).
+    pub policy_expiry: u64,
 }
 
 /// Storage keys.
@@ -86,6 +88,8 @@ pub enum DataKey {
     Admin,
     /// Instance storage — paused flag.
     Paused,
+    /// Instance storage — token address.
+    Token,
     /// Persistent storage — role members.
     RoleMembers(Symbol),
     /// Persistent storage — pool members.
@@ -122,6 +126,7 @@ impl InsurancePoolContract {
         }
 
         env.storage().instance().set(&DataKey::Admin, &admin);
+        env.storage().instance().set(&DataKey::Token, &token);
         let role = Symbol::new(&env, ROLE_ADMIN);
         let mut members: Vec<Address> = Vec::new(&env);
         members.push_back(admin.clone());
@@ -135,6 +140,7 @@ impl InsurancePoolContract {
             total_contributions: 0,
             total_claims_paid: 0,
             premium_bps,
+            policy_expiry: 0,
         };
         env.storage()
             .persistent()
@@ -338,6 +344,7 @@ impl InsurancePoolContract {
                 total_contributions: 0,
                 total_claims_paid: 0,
                 premium_bps: 0,
+                policy_expiry: 0,
             });
 
         stats.total_balance = stats.total_balance.saturating_add(amount);
@@ -363,7 +370,39 @@ impl InsurancePoolContract {
             return Err(ContractError::AmountMustBePositive);
         }
 
+        let token: Address = env
+            .storage()
+            .instance()
+            .get(&DataKey::Token)
+            .ok_or(ContractError::PoolStatsNotFound)?;
+        let stats: PoolStats = env
+            .storage()
+            .persistent()
+            .get(&DataKey::PoolStats(token.clone()))
+            .ok_or(ContractError::PoolStatsNotFound)?;
+        if stats.policy_expiry > 0 && env.ledger().timestamp() > stats.policy_expiry {
+            return Err(ContractError::InvalidExpiry);
+        }
+
+        if env
+            .storage()
+            .persistent()
+            .has(&DataKey::Claim(claim_id.clone()))
+        {
+            return Err(ContractError::AlreadyExists);
+        }
+
         claimant.require_auth();
+
+        let members: Vec<PoolMember> = env
+            .storage()
+            .persistent()
+            .get(&DataKey::PoolMembers)
+            .unwrap_or(Vec::new(&env));
+        let has_contributed = members.iter().any(|m| m.address == claimant);
+        if !has_contributed {
+            return Err(ContractError::NoActiveStake);
+        }
 
         let claim = Claim {
             id: claim_id.clone(),
@@ -507,6 +546,7 @@ impl InsurancePoolContract {
                 total_contributions: 0,
                 total_claims_paid: 0,
                 premium_bps: 0,
+                policy_expiry: 0,
             }))
     }
 
@@ -553,6 +593,32 @@ impl InsurancePoolContract {
 
         env.events()
             .publish((symbol_short!("Rebal"), token, new_premium_bps as i128), ());
+        Ok(())
+    }
+
+    /// Set policy expiry timestamp. Caller must hold [`ROLE_ADMIN`].
+    pub fn set_policy_expiry(
+        env: Env,
+        caller: Address,
+        token: Address,
+        policy_expiry: u64,
+    ) -> Result<(), ContractError> {
+        let admin_role = Symbol::new(&env, ROLE_ADMIN);
+        Self::require_role(&env, &admin_role, &caller)?;
+
+        let mut stats: PoolStats = env
+            .storage()
+            .persistent()
+            .get(&DataKey::PoolStats(token.clone()))
+            .ok_or(ContractError::PoolStatsNotFound)?;
+
+        stats.policy_expiry = policy_expiry;
+        env.storage()
+            .persistent()
+            .set(&DataKey::PoolStats(token.clone()), &stats);
+
+        env.events()
+            .publish((symbol_short!("PlcExp"), token, policy_expiry as i128), ());
         Ok(())
     }
 

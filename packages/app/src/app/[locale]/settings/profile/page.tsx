@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { validateUserProfile, validatePassword, validateRequired } from "@/utils/validation";
+import { useUpdateAccount, useChangePassword, useDeleteAccount } from "@/hooks/queries";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/api";
 

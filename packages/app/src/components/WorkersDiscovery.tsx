@@ -66,7 +66,7 @@ export default function WorkersDiscovery() {
 
   useEffect(() => {
     getCategories()
-      .then((res) => setCategories(res.data))
+      .then((res) => setCategories(res.data ?? []))
       .catch(() => {});
   }, []);
 
@@ -91,7 +91,7 @@ export default function WorkersDiscovery() {
     getWorkers(params)
       .then((res) => {
         if (cancelled) return;
-        setWorkers(res.data);
+        setWorkers(res.data ?? []);
         setMeta(res.meta);
       })
       .catch((err) => {

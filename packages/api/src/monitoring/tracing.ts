@@ -7,7 +7,7 @@
  * Auto-instruments Express, Prisma (via @prisma/instrumentation), and HTTP.
  * Must be imported before any other module in the entry point.
  */
-import { NodeSDK } from '@opentelemetry/sdk-node'
+import { NodeSDK, type NodeSDKConfiguration } from '@opentelemetry/sdk-node'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node'
 import { Resource } from '@opentelemetry/resources'
@@ -22,8 +22,8 @@ export const sdk = new NodeSDK({
   resource: new Resource({
     [SEMRESATTRS_SERVICE_NAME]: 'bluecollar-api',
     [SEMRESATTRS_SERVICE_VERSION]: process.env.npm_package_version ?? '1.0.0',
-  }),
-  traceExporter: exporter,
+  }) as unknown as NodeSDKConfiguration['resource'],
+  traceExporter: exporter as unknown as NodeSDKConfiguration['traceExporter'],
   instrumentations: [
     getNodeAutoInstrumentations({
       '@opentelemetry/instrumentation-fs': { enabled: false },

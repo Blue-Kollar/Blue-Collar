@@ -113,5 +113,5 @@ export const categoryConfig: Record<string, CategoryConfig> = {
 };
 
 export function getCategoryConfig(slug?: string): CategoryConfig {
-  return categoryConfig[slug?.toLowerCase() ?? ""] ?? categoryConfig.other;
+  return categoryConfig[slug?.toLowerCase() ?? ""] ?? categoryConfig.other!;
 }

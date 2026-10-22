@@ -70,7 +70,7 @@ export default function ReviewForm({ workerId, onReviewCreated }: ReviewFormProp
     setError(null);
     try {
       const res = await createReview.mutateAsync({ rating, comment: comment.trim() || undefined });
-      onReviewCreated(res.data);
+      if (res.data) onReviewCreated(res.data);
       setRating(0);
       setComment("");
     } catch (err: unknown) {

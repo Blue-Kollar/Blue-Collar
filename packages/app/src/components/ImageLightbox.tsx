@@ -74,28 +74,28 @@ export default function ImageLightbox({ src, alt, onClose }: Props) {
   const onTouchStart = (e: React.TouchEvent) => {
     if (e.touches.length === 2) {
       lastTouchDist.current = Math.hypot(
-        e.touches[1].clientX - e.touches[0].clientX,
-        e.touches[1].clientY - e.touches[0].clientY
+        e.touches[1]!.clientX - e.touches[0]!.clientX,
+        e.touches[1]!.clientY - e.touches[0]!.clientY
       );
     } else if (e.touches.length === 1 && scale > 1) {
       dragging.current = true;
-      dragStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      dragStart.current = { x: e.touches[0]!.clientX, y: e.touches[0]!.clientY };
       offsetAtDragStart.current = offset;
     }
   };
   const onTouchMove = (e: React.TouchEvent) => {
     if (e.touches.length === 2 && lastTouchDist.current !== null) {
       const dist = Math.hypot(
-        e.touches[1].clientX - e.touches[0].clientX,
-        e.touches[1].clientY - e.touches[0].clientY
+        e.touches[1]!.clientX - e.touches[0]!.clientX,
+        e.touches[1]!.clientY - e.touches[0]!.clientY
       );
       const delta = (dist - lastTouchDist.current) / 80;
       zoom(delta);
       lastTouchDist.current = dist;
     } else if (e.touches.length === 1 && dragging.current) {
       setOffset({
-        x: offsetAtDragStart.current.x + (e.touches[0].clientX - dragStart.current.x),
-        y: offsetAtDragStart.current.y + (e.touches[0].clientY - dragStart.current.y),
+        x: offsetAtDragStart.current.x + (e.touches[0]!.clientX - dragStart.current.x),
+        y: offsetAtDragStart.current.y + (e.touches[0]!.clientY - dragStart.current.y),
       });
     }
   };

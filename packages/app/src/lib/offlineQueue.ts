@@ -70,7 +70,12 @@ export async function queueOfflineAction(
       // Attempt to register background sync
       if ("serviceWorker" in navigator && "SyncManager" in window) {
         navigator.serviceWorker.ready
-          .then((registration) => registration.sync.register("sync-offline-queue"))
+          .then((registration) => {
+            const sync = (registration as ServiceWorkerRegistration & {
+              sync?: { register: (tag: string) => Promise<void> };
+            }).sync;
+            return sync?.register("sync-offline-queue");
+          })
           .catch((err) => console.warn("[Offline Queue] Sync registration failed:", err));
       }
       resolve(id);

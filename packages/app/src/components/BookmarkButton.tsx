@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { Heart } from "lucide-react";
 import { useTranslations } from "next-intl";
-import type { BookmarkToggleResponse } from "@bluecollar/types";
 import { useToggleBookmark } from "@/hooks/queries";
 import { cn } from "@/lib/utils";
 
@@ -34,8 +33,7 @@ export default function BookmarkButton({
     setBookmarked((prev) => !prev);
     try {
       const res = await toggleBookmark.mutateAsync(workerId);
-      const data: BookmarkToggleResponse = res.data;
-      setBookmarked(data.bookmarked);
+      if (res.data) setBookmarked(res.data.bookmarked);
     } catch {
       setBookmarked((prev) => !prev); // revert on error
     }

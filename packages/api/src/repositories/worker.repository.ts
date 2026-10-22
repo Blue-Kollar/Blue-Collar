@@ -62,7 +62,12 @@ export class WorkerRepository extends BaseRepository<Worker, Prisma.WorkerCreate
     const query = QueryBuilder.buildQuery({
       pagination: opts,
       filter: { isActive: true, deletedAt: null },
-    })
+    }) as {
+      skip: number
+      take: number
+      where: Prisma.WorkerWhereInput
+      orderBy: Prisma.WorkerOrderByWithRelationInput
+    }
     return db.worker.findMany({
       ...query,
       include: workerInclude,
@@ -72,7 +77,12 @@ export class WorkerRepository extends BaseRepository<Worker, Prisma.WorkerCreate
   async findByCurator(curatorId: string): Promise<Worker[]> {
     const query = QueryBuilder.buildQuery({
       filter: { curatorId, deletedAt: null },
-    })
+    }) as {
+      skip: number
+      take: number
+      where: Prisma.WorkerWhereInput
+      orderBy: Prisma.WorkerOrderByWithRelationInput
+    }
     return db.worker.findMany({
       ...query,
       include: workerInclude,
@@ -83,7 +93,12 @@ export class WorkerRepository extends BaseRepository<Worker, Prisma.WorkerCreate
     const query = QueryBuilder.buildQuery({
       pagination: opts,
       filter: { categoryId, isActive: true },
-    })
+    }) as {
+      skip: number
+      take: number
+      where: Prisma.WorkerWhereInput
+      orderBy: Prisma.WorkerOrderByWithRelationInput
+    }
     return db.worker.findMany({
       ...query,
       include: workerInclude,
@@ -184,13 +199,14 @@ export class WorkerRepository extends BaseRepository<Worker, Prisma.WorkerCreate
         curator: true,
         location: true,
       },
+      ...(sortBy === 'newest' ? { orderBy: { createdAt: 'desc' as const } } : {}),
       skip,
       take: take + 1, // +1 for hasMore detection (used when no in-memory filtering)
     })
 
     // Apply geo filtering in memory if provided (PostGIS would be ideal but not configured)
     if (lat !== undefined && lng !== undefined) {
-      filteredWorkers = workers.filter(w => {
+      workers = workers.filter(w => {
         if (!w.location?.lat || !w.location?.lng) return false
         const dist = this.haversine(lat, lng, w.location.lat, w.location.lng)
         return dist <= radius
@@ -230,7 +246,8 @@ export class WorkerRepository extends BaseRepository<Worker, Prisma.WorkerCreate
     })
 
     // Apply sorting that requires computed fields
-    let sortedEnriched = enriched
+    const requiresPostProcessing = sortBy !== 'newest'
+    const sortedEnriched = enriched
     if (requiresPostProcessing) {
       sortedEnriched.sort((a, b) => {
         switch (sortBy) {
@@ -249,8 +266,8 @@ export class WorkerRepository extends BaseRepository<Worker, Prisma.WorkerCreate
       })
     }
 
-    const hasMore = enriched.length > take
-    const data = enriched.slice(0, take)
+    const hasMore = sortedEnriched.length > take
+    const data = sortedEnriched.slice(0, take)
 
     // Use count estimate for total to avoid full table scan on large datasets
     const total = await db.worker.count({ where })

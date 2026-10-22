@@ -13,7 +13,7 @@ FEE_BPS       ?= 0
 
 WASM_DIR := target/wasm32v1-none/release
 
-.PHONY: build build-registry build-market test \
+.PHONY: build build-registry build-market test lint \
         coverage coverage-html coverage-open coverage-summary \
         fuzz fuzz-proptest fuzz-register fuzz-tip fuzz-migrate \
         audit security-scan \
@@ -37,6 +37,11 @@ build-market:
 # Run the full workspace test suite (unit + upgrade framework + property tests).
 test:
 	cargo test --workspace
+
+# Enforce formatting and treat every clippy warning as an error.
+lint:
+	cargo fmt --all -- --check
+	cargo clippy --workspace --all-targets -- -D warnings
 
 # ---------------------------------------------------------------------------
 # Coverage — minimum 90% line coverage

@@ -21,6 +21,11 @@ export default defineConfig({
     actionTimeout: 30_000,
     navigationTimeout: 30_000,
     headless: true,
+    // Pin rendering inputs so screenshots are reproducible across machines.
+    locale: 'en-US',
+    timezoneId: 'UTC',
+    colorScheme: 'light',
+    reducedMotion: 'reduce',
     // sensible defaults for visual comparisons
     screenshotOptions: { fullPage: true },
   },
@@ -30,12 +35,15 @@ export default defineConfig({
     },
   },
   projects: [
-    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
-    { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
-    { name: 'webkit', use: { ...devices['Desktop Safari'] } },
+    { name: 'chromium', use: { ...devices['Desktop Chrome'] }, testIgnore: /visual\.spec\.ts/ },
+    { name: 'firefox', use: { ...devices['Desktop Firefox'] }, testIgnore: /visual\.spec\.ts/ },
+    { name: 'webkit', use: { ...devices['Desktop Safari'] }, testIgnore: /visual\.spec\.ts/ },
     // Mobile viewports
-    { name: 'Mobile Chrome (Pixel 5)', use: { ...devices['Pixel 5'] } },
-    { name: 'Mobile Safari (iPhone 12)', use: { ...devices['iPhone 12'] } },
+    { name: 'Mobile Chrome (Pixel 5)', use: { ...devices['Pixel 5'] }, testIgnore: /visual\.spec\.ts/ },
+    { name: 'Mobile Safari (iPhone 12)', use: { ...devices['iPhone 12'] }, testIgnore: /visual\.spec\.ts/ },
+    // Visual snapshots run once on a pinned Chromium configuration instead of
+    // once per browser/device, which caused cross-project snapshot drift.
+    { name: 'visual', testMatch: /visual\.spec\.ts/, use: { ...devices['Desktop Chrome'] } },
   ],
   // helpful when running locally: start the dev server unless CI provides one
   webServer: process.env.CI

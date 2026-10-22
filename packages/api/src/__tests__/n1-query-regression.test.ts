@@ -125,3 +125,69 @@ describe('exportWorkers — uses Prisma include (single joined query, no N+1)', 
     vi.doUnmock('../services/audit.service.js')
   })
 })
+
+// ── Worker advanced search — batched review aggregation ───────────────────────
+
+describe('WorkerRepository.advancedSearch — single review aggregation query', () => {
+  it('fetches aggregates for every worker in one GROUP BY query (no N+1)', async () => {
+    const workers = [
+      {
+        id: 'w1',
+        name: 'Alice',
+        bio: 'Plumber',
+        isVerified: true,
+        category: { id: 'c1' },
+        curator: null,
+        location: { lat: 10, lng: 10 },
+      },
+      {
+        id: 'w2',
+        name: 'Bob',
+        bio: 'Electrician',
+        isVerified: false,
+        category: { id: 'c1' },
+        curator: null,
+        location: { lat: 10.1, lng: 10.1 },
+      },
+    ]
+    const findManySpy = vi.fn().mockResolvedValue(workers)
+    const countSpy = vi.fn().mockResolvedValue(workers.length)
+    const groupBySpy = vi.fn().mockResolvedValue([
+      { workerId: 'w1', _avg: { rating: 4.5 }, _count: { rating: 2 } },
+      { workerId: 'w2', _avg: { rating: 3 }, _count: { rating: 1 } },
+    ])
+
+    vi.doMock('../db.js', () => ({
+      db: {
+        worker: { findMany: findManySpy, count: countSpy },
+        review: { groupBy: groupBySpy },
+      },
+    }))
+
+    const { WorkerRepository } = await import('../repositories/worker.repository.js')
+    const repo = new WorkerRepository()
+
+    const result = await repo.advancedSearch({
+      lat: 10,
+      lng: 10,
+      radius: 50,
+      sortBy: 'rating',
+      take: 10,
+    })
+
+    // One worker query, one aggregate query, one count — regardless of page size.
+    expect(findManySpy).toHaveBeenCalledOnce()
+    expect(groupBySpy).toHaveBeenCalledOnce()
+    expect(countSpy).toHaveBeenCalledOnce()
+
+    // Aggregation covers all page IDs in a single batched `in` clause.
+    const groupByArgs = groupBySpy.mock.calls[0][0]
+    expect(groupByArgs.where.workerId.in).toEqual(['w1', 'w2'])
+
+    expect(result.data).toHaveLength(2)
+    expect(result.data[0].avgRating).toBe(4.5)
+    expect(result.data[0].reviewCount).toBe(2)
+
+    vi.doUnmock('../db.js')
+  })
+})

@@ -82,13 +82,14 @@ export class ReferralRepository implements IReferralRepository {
   }
 
   async groupReferralsByReferrer(take: number): Promise<{ referrerId: string; _count: { referrerId: number } }[]> {
-    return db.referral.groupBy({
+    const result = await db.referral.groupBy({
       by: ['referrerId'],
       where: { status: { in: ['converted', 'rewarded'] } },
       _count: { referrerId: true },
       orderBy: { _count: { referrerId: 'desc' } },
       take,
     })
+    return result
   }
 
   async findUsersByIds(ids: string[]): Promise<{ id: string; firstName: string; lastName: string }[]> {
