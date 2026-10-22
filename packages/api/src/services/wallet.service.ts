@@ -1,7 +1,6 @@
 import { walletRepository as defaultWalletRepository } from '@/repositories/wallet.repository.js'
 import { stellarClient as defaultStellarClient, StellarClient } from '@/clients/stellar.client.js'
 import { AppError, ErrorCode } from '@/utils/app-error.js'
-import type { WalletServiceDeps } from '@/container/types.js'
 
 /**
  * WalletService encapsulates wallet business logic.

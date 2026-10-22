@@ -5,7 +5,7 @@ import { ChevronLeft, ChevronRight, ExternalLink, Loader2, RefreshCw } from "luc
 import { Button } from "@/components/ui/button";
 import LoadingState from "@/components/LoadingState";
 import ErrorState from "@/components/ErrorState";
-import { formatStellarAddress } from "@/lib/utils";
+import { formatStellarAddress, truncate } from "@/lib/utils";
 import { formatNumber } from "@/lib/format";
 import { useTransactionHistory } from "@/hooks/useTransactionHistory";
 import type { HistoryItem } from "@/hooks/useTransactionHistory";
