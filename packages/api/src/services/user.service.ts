@@ -9,6 +9,7 @@ import { sanitizeUser } from '@/models/user.model.js'
 import { AppError, ErrorCode } from '@/utils/app-error.js'
 import { addUtcMs } from '@/utils/date.js'
 import { createServiceLogger } from '@/utils/logger.js'
+import { config } from '@/config/config.js'
 import { userRepository as defaultUserRepository } from '@/repositories/user.repository.js'
 import type { UserServiceDeps } from '@/container/types.js'
 
@@ -34,7 +35,7 @@ function sanitizeFreeText(value: string): string {
 }
 
 function generateVerificationToken(userId: string) {
-  const raw = jwt.sign({ id: userId, purpose: 'email-verify' }, process.env.JWT_SECRET!, {
+  const raw = jwt.sign({ id: userId, purpose: 'email-verify' }, config.auth.jwtSecret, {
     expiresIn: '24h',
   })
   const hash = crypto.createHash('sha256').update(raw).digest('hex')

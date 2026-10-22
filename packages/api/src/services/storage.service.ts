@@ -7,6 +7,7 @@ import { createReadStream, existsSync } from 'node:fs'
 import { unlink } from 'node:fs/promises'
 import path from 'node:path'
 import { logger } from '@/config/logger.js'
+import { config } from '@/config/config.js'
 import { nowUtc, parseUtcDate, addUtcMs, formatUtcIso } from '@/utils/date.js'
 
 // ── Lazy S3 import (optional dep — graceful fallback) ─────────────────────────
@@ -63,11 +64,11 @@ async function getS3(): Promise<S3Bundle | null> {
     }
     cachedS3 = {
       s3Client: new s3Module.S3Client({
-        region: process.env['S3_REGION'] ?? 'us-east-1',
-        endpoint: process.env['S3_ENDPOINT'],           // for MinIO / R2
-        forcePathStyle: !!process.env['S3_ENDPOINT'],   // required for MinIO
-        credentials: process.env['S3_ACCESS_KEY']
-          ? { accessKeyId: process.env['S3_ACCESS_KEY']!, secretAccessKey: process.env['S3_SECRET_KEY']! }
+        region: config.storage.region,
+        endpoint: config.storage.endpoint,              // for MinIO / R2
+        forcePathStyle: !!config.storage.endpoint,      // required for MinIO
+        credentials: config.storage.accessKey
+          ? { accessKeyId: config.storage.accessKey, secretAccessKey: config.storage.secretKey! }
           : undefined,                                  // falls back to IAM role / env chain
       }),
       PutObjectCommand: s3Module.PutObjectCommand,
@@ -81,8 +82,8 @@ async function getS3(): Promise<S3Bundle | null> {
   }
 }
 
-const BUCKET = process.env['S3_BUCKET'] ?? ''
-const SIGNED_URL_TTL = Number(process.env['S3_SIGNED_URL_TTL'] ?? 3600) // seconds
+const BUCKET = config.storage.bucket
+const SIGNED_URL_TTL = config.storage.signedUrlTtl // seconds
 
 // ── Public API ────────────────────────────────────────────────────────────────
 

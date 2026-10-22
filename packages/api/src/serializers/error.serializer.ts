@@ -1,6 +1,7 @@
 import { AppError, ErrorCode } from '@/utils/app-error.js'
 import { getTraceId } from '@/monitoring/tracing.js'
 import { ErrorMessages, HttpStatus } from '@/constants/index.js'
+import { config } from '@/config/config.js'
 
 export interface ErrorResponse {
   status: 'error'
@@ -74,7 +75,7 @@ export function serializeError(err: unknown): SerializedError {
     code: HttpStatus.INTERNAL_SERVER_ERROR,
     errorCode: ErrorCode.INTERNAL_ERROR,
     traceId,
-    ...(process.env.NODE_ENV === 'development' && { stack: error.stack, originalMessage: error.message }),
+    ...(config.env === 'development' && { stack: error.stack, originalMessage: error.message }),
   }
   return { statusCode: HttpStatus.INTERNAL_SERVER_ERROR, body }
 }
