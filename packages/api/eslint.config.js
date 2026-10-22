@@ -11,7 +11,13 @@ import globals from 'globals'
 import { createRequire } from 'module'
 
 const require = createRequire(import.meta.url)
-const { tsRules, baseRules, productionOnlyRules, filenameRules } = require('../../eslint-base-rules.js')
+const {
+  tsRules,
+  baseRules,
+  productionOnlyRules,
+  filenameRules,
+  deprecationRules,
+} = require('../../eslint-base-rules.js')
 
 export default [
   {
@@ -41,6 +47,7 @@ export default [
       ...baseRules,
       ...productionOnlyRules,
       ...filenameRules,
+      ...deprecationRules,
     },
   },
   {

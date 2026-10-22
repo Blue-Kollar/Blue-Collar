@@ -6,8 +6,8 @@
  * per-package overrides on top.
  *
  * Two ESLint generations coexist in this monorepo:
- *   • ESLint 9 flat config  (packages/api)  — imports this as a plain object
- *   • ESLint 8 legacy       (packages/app, packages/mobile)
+ *   • ESLint 9 flat config  (packages/api, sdk, types) — imports as plain object
+ *   • ESLint 8 legacy       (packages/app, mobile)
  *     — consumed via .eslintrc.js `rules:` spread
  *
  * When the whole monorepo is migrated to ESLint 9 flat config this file can
@@ -23,6 +23,7 @@
  *   packages/api     no-console off for seed, command, script, monitoring and test files
  *   packages/sdk     no-console off and no-explicit-any 'warn' in src/__tests__
  *   packages/types   no-console off and no-explicit-any 'warn' in test files
+ *   packages/*       no-deprecated requires type info; see per-package configs
  */
 
 'use strict'
@@ -46,22 +47,13 @@ const baseRules = {
 
 /**
  * Rules that apply to production code but NOT to scripts / seed files / tests.
- * Each package can opt individual globs back out of this rule when needed.
  */
 const productionOnlyRules = {
   'no-console': 'error',
 }
 
 /**
- * File naming convention rules enforcing kebab-case.
- * See CONTRIBUTING.md for detailed file naming guidelines.
- * 
- * Configuration for unicorn/filename-case rule (#1691):
- * - Enforces kebab-case for all TypeScript/JavaScript files by default
- * - Allows PascalCase for React component files (.tsx)
- * - Allows camelCase for React hooks (use* prefix)
- * - Ignores Next.js special files (page, layout, error, etc.)
- * - Ignores test files, storybook files, and type definition files
+ * File naming convention rules enforcing kebab-case (#1691).
  */
 const filenameRules = {
   'unicorn/filename-case': [
@@ -69,25 +61,38 @@ const filenameRules = {
     {
       case: 'kebabCase',
       ignore: [
-        // React components (PascalCase .tsx files)
         '^[A-Z][a-zA-Z0-9]*\\.tsx$',
-        // React hooks (camelCase with 'use' prefix)
         '^use[A-Z][a-zA-Z0-9]*\\.(ts|tsx)$',
-        // Next.js special files (always lowercase, no hyphens needed)
         '^(page|layout|error|loading|not-found|robots|sitemap|middleware)\\.(ts|tsx)$',
-        // Test files (match source naming)
         '\\.(test|spec)\\.(ts|tsx)$',
-        // Storybook files
         '\\.stories\\.tsx$',
-        // Type definition files with .d.ts
         '\\.d\\.ts$',
-        // Index files
         '^index\\.(ts|tsx)$',
-        // Root config files (e.g., i18n.ts)
         '^[a-z]+\\.(ts|tsx)$',
       ],
     },
   ],
+}
+
+/**
+ * Deprecation detection (#1688).
+ *
+ * Flags usage of anything marked with a JSDoc `@deprecated` tag —
+ * TypeScript/Stellar SDK APIs, React ecosystem APIs, or our own code.
+ *
+ * Uses the built-in `@typescript-eslint/no-deprecated` rule (replaces the
+ * now-superseded `eslint-plugin-deprecation` [citation:1][citation:4]).
+ *
+ * Requires type information: `parserOptions.project` (or `projectService`)
+ * must be configured in every package that spreads these rules.
+ *
+ * Auto-disable for a specific line (with justification):
+ *   // eslint-disable-next-line @typescript-eslint/no-deprecated -- <reason>
+ *
+ * See CONTRIBUTING.md § Deprecation Exceptions.
+ */
+const deprecationRules = {
+  '@typescript-eslint/no-deprecated': 'error',
 }
 
 module.exports = {
@@ -95,4 +100,5 @@ module.exports = {
   baseRules,
   productionOnlyRules,
   filenameRules,
+  deprecationRules,
 }

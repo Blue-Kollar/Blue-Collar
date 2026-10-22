@@ -342,3 +342,16 @@ conventions.
 ## Local security scan
 
 Run `scripts/security-scan.sh` before opening a PR. It runs `gitleaks` for secrets and `pnpm audit --prod` for dependency advisories. Both tools must be installed locally.
+
+---
+
+## Deprecation Exceptions
+
+ESLint flags usage of `@deprecated` code via
+`@typescript-eslint/no-deprecated` (#1688). When a deprecated API must be kept
+temporarily — e.g. no drop-in replacement exists yet, or a migration is
+tracked in a separate issue — annotate the exact line **and justify it**:
+
+```ts
+// eslint-disable-next-line @typescript-eslint/no-deprecated -- <reason> (<tracking-issue>)
+const legacy = oldApi();
