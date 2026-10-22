@@ -6,10 +6,12 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { X, Loader2, CheckCircle2, AlertCircle, ExternalLink, Zap } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useWallet, FreighterNotInstalledError, WalletNotConnectedError } from "@/hooks/useWallet";
+import { useTipSimulation } from "@/hooks/useTipSimulation";
+import { useTipSubmission } from "@/hooks/useTipSubmission";
 import { usePaymentFlow } from "@/context/PaymentFlowContext";
 import { cn } from "@/lib/utils";
 
-import { HORIZON_URL, SOROBAN_RPC_URL, EXPLORER_TX_BASE, NETWORK_PASSPHRASE } from "@/config/stellar";
+import { HORIZON_URL, EXPLORER_TX_BASE, NETWORK_PASSPHRASE } from "@/config/stellar";
 
 const STROOPS_PER_XLM = 10_000_000n;
 const NETWORK_FEE = 0.00001;
@@ -29,6 +31,8 @@ export default function TipModal({ workerName: workerNameProp, walletAddress: wa
   const workerName = workerNameProp ?? paymentFlow?.workerName;
   const walletAddress = walletAddressProp ?? paymentFlow?.walletAddress;
   const { publicKey, networkPassphrase, connect, signTransaction } = useWallet();
+  const simulateTip = useTipSimulation();
+  const submitTip = useTipSubmission();
 
   if (!workerName || !walletAddress) {
     throw new Error(
@@ -88,38 +92,19 @@ export default function TipModal({ workerName: workerNameProp, walletAddress: wa
       const amountInStroops = BigInt(Math.round(Number(amount) * Number(STROOPS_PER_XLM)));
       const txXdr = await buildTipTxXdr(senderAddress, walletAddress, amountInStroops, passphrase);
 
-      const buildRes = await fetch(`${SOROBAN_RPC_URL}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          jsonrpc: "2.0",
-          id: 1,
-          method: "simulateTransaction",
-          params: { transaction: txXdr },
-        }),
-      });
-
-      const simulation = await buildRes.json();
-      if (simulation.error || simulation.result?.error) {
-        const errMsg = simulation.error?.message ?? simulation.result?.error ?? "Simulation failed";
+      try {
+        await simulateTip.mutateAsync(txXdr);
+      } catch (error) {
+        const errMsg = error instanceof Error ? error.message : "Simulation failed";
         failureType = errMsg.includes("insufficient")
           ? "insufficient_balance"
           : "network_error";
-        throw new Error(errMsg);
+        throw error;
       }
 
       const signedTxXdr = await signTransaction(txXdr);
 
-      const submitRes = await fetch(`${HORIZON_URL}/transactions`, {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: `tx=${encodeURIComponent(signedTxXdr)}`,
-      });
-
-      const submitJson = await submitRes.json();
-      if (!submitRes.ok) {
-        throw new Error(submitJson.extras?.result_codes?.transaction ?? "Submission failed");
-      }
+      const submitJson = await submitTip.mutateAsync(signedTxXdr);
 
       setTxHash(submitJson.hash);
       setStatus("success");
