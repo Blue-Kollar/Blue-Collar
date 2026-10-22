@@ -1,9 +1,10 @@
 import { AppError, ErrorCode } from '@/utils/app-error.js';
 import { logger } from '@/config/logger.js';
 import { nowUtc, parseUtcDate, addUtcMs, formatUtcIso } from '@/utils/date.js';
-import { TESTNET_HORIZON_URL, TESTNET_FRIENDBOT_URL } from '@bluecollar/sdk';
+import { TESTNET_FRIENDBOT_URL } from '@bluecollar/sdk';
+import { config } from '@/config/config.js';
 
-const HORIZON_URL = process.env.HORIZON_URL || TESTNET_HORIZON_URL;
+const HORIZON_URL = config.stellar.horizonUrl;
 const FRIENDBOT_URL = TESTNET_FRIENDBOT_URL;
 
 const MAX_RETRIES = 3;

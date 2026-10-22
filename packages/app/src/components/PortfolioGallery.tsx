@@ -91,6 +91,7 @@ export default function PortfolioGallery({
       }
       const reordered = [...images];
       const [moved] = reordered.splice(dragIndex, 1);
+      if (!moved) return;
       reordered.splice(dropIndex, 0, moved);
       onReorder?.(reordered);
       setDragIndex(null);

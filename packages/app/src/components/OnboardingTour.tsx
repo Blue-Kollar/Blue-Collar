@@ -58,6 +58,7 @@ export default function OnboardingTour() {
   if (!visible) return null;
 
   const current = STEPS[step];
+  if (!current) return null;
 
   return (
     /* Backdrop */

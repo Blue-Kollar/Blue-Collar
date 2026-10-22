@@ -70,7 +70,7 @@ export function versionMiddleware(req: Request, res: Response, next: NextFunctio
   }
 
   // Validate version
-  if (!VERSION_CONFIG.supported.includes(version)) {
+  if (!(VERSION_CONFIG.supported as readonly string[]).includes(version)) {
     version = VERSION_CONFIG.current
   }
 
@@ -91,7 +91,7 @@ export function versionMiddleware(req: Request, res: Response, next: NextFunctio
  */
 function extractVersionFromPath(path: string): string | null {
   const match = path.match(/^\/api\/(v\d+)\//)
-  return match ? match[1] : null
+  return match ? (match[1] ?? null) : null
 }
 
 /**
@@ -99,7 +99,7 @@ function extractVersionFromPath(path: string): string | null {
  */
 function extractVersionFromHeaders(req: Request): string | null {
   const acceptVersion = req.get('Accept-Version')
-  if (acceptVersion && VERSION_CONFIG.supported.includes(acceptVersion)) {
+  if (acceptVersion && (VERSION_CONFIG.supported as readonly string[]).includes(acceptVersion)) {
     return acceptVersion
   }
   return null

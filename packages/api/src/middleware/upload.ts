@@ -8,6 +8,7 @@ import { AppError } from '@/utils/app-error.js'
 import { uploadFile, getSignedDownloadUrl } from '@/services/storage.service.js'
 import { processImage } from '@/utils/imageProcessor.js'
 import { db } from '@/db.js'
+import { config } from '@/config/config.js'
 
 declare global {
   namespace Express {
@@ -17,8 +18,8 @@ declare global {
   }
 }
 
-const UPLOAD_DIR = process.env['UPLOAD_DIR'] ?? 'storage/uploads'
-const MAX_FILE_SIZE = Number(process.env['MAX_FILE_SIZE'] ?? 5 * 1024 * 1024) // 5 MB
+const UPLOAD_DIR = config.upload.dir
+const MAX_FILE_SIZE = config.upload.maxFileSize
 
 const uploadPath = path.resolve(UPLOAD_DIR)
 if (!fs.existsSync(uploadPath)) fs.mkdirSync(uploadPath, { recursive: true })

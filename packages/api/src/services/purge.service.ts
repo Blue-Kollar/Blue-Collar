@@ -12,6 +12,7 @@ import fs from 'node:fs/promises'
 import { db } from '@/db.js'
 import { logger } from '@/config/logger.js'
 import { nowUtc, addUtcMs } from '@/utils/date.js'
+import { config } from '@/config/config.js'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -75,7 +76,7 @@ export async function deleteExpiredIdempotencyKeys(): Promise<void> {
  * `olderThanDays` days AND no Worker row references it.
  */
 export async function deleteOrphanedUploads(olderThanDays = 30): Promise<void> {
-  const uploadDir = path.resolve(process.cwd(), process.env.UPLOAD_DIR ?? 'storage/uploads')
+  const uploadDir = path.resolve(process.cwd(), config.upload.dir)
   const cutoffMs = Date.now() - olderThanDays * 24 * 60 * 60 * 1000
 
   let entries: string[]

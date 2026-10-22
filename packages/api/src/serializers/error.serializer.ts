@@ -1,6 +1,7 @@
 import { AppError, ErrorCode } from '@/utils/app-error.js'
 import { getTraceId } from '@/monitoring/tracing.js'
 import { ErrorMessages, HttpStatus } from '@/constants/index.js'
+import { config } from '@/config/config.js'
 
 export interface ErrorResponse {
   status: 'error'
@@ -18,13 +19,11 @@ interface PrismaClientKnownRequestError {
 }
 
 function isPrismaError(err: unknown): err is PrismaClientKnownRequestError {
-  return (
-    typeof err === 'object' &&
-    err !== null &&
-    'code' in err &&
-    typeof (err as Record<string, unknown>).code === 'string' &&
-    (err as Record<string, unknown>).code?.toString().startsWith('P')
-  )
+  if (typeof err !== 'object' || err === null || !('code' in err)) {
+    return false
+  }
+  const code = (err as Record<string, unknown>).code
+  return typeof code === 'string' && code.startsWith('P')
 }
 
 function mapPrismaError(err: PrismaClientKnownRequestError): { statusCode: number; message: string; errorCode: ErrorCode } {
@@ -74,7 +73,7 @@ export function serializeError(err: unknown): SerializedError {
     code: HttpStatus.INTERNAL_SERVER_ERROR,
     errorCode: ErrorCode.INTERNAL_ERROR,
     traceId,
-    ...(process.env.NODE_ENV === 'development' && { stack: error.stack, originalMessage: error.message }),
+    ...(config.env === 'development' && { stack: error.stack, originalMessage: error.message }),
   }
   return { statusCode: HttpStatus.INTERNAL_SERVER_ERROR, body }
 }

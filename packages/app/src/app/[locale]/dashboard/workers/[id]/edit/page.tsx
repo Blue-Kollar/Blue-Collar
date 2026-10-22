@@ -38,8 +38,12 @@ export default function EditWorkerPage({ params }: { params: { id: string } }) {
     Promise.all([getWorker(params.id), getCategories()])
       .then(([workerRes, catRes]) => {
         const w = workerRes.data;
+        if (!w) {
+          toast("Worker not found", "error");
+          return;
+        }
         setWorker(w);
-        setCategories(catRes.data);
+        setCategories(catRes.data ?? []);
         setPortfolioImages(
           (w.portfolioImages ?? []).map((img) => ({
             id: img.id,

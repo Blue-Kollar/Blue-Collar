@@ -57,7 +57,7 @@ export function createJobService(deps: JobServiceDeps) {
         ...(search
           ? { OR: [{ title: { contains: search, mode: 'insensitive' as const } }, { description: { contains: search, mode: 'insensitive' as const } }] }
           : {}),
-        ...(skills && skills.length > 0 ? { skills: { hasSome: skills } } : {}),
+        ...(skills && skills.length > 0 ? { skills: { hasSome: skills as unknown as string[] } } : {}),
       }
 
       const [data, total] = await Promise.all([
@@ -103,7 +103,7 @@ export function createJobService(deps: JobServiceDeps) {
         categoryId: data.categoryId,
         locationId: data.locationId,
         postedById,
-        escrowAmount: data.escrowAmount,
+        escrowAmount: (data as CreateJobRequest & { escrowAmount?: number }).escrowAmount,
         expiresAt: data.expiresAt ? parseUtcDate(data.expiresAt) : undefined,
       })
     },

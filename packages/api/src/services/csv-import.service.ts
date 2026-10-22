@@ -43,7 +43,7 @@ function parseCsv(text: string): { headers: string[]; rows: string[][] } {
     return fields
   }
 
-  const headers = parseRow(lines[0]).map(h => h.toLowerCase())
+  const headers = parseRow(lines[0]!).map(h => h.toLowerCase())
   const rows = lines.slice(1).map(parseRow)
   return { headers, rows }
 }
@@ -68,7 +68,7 @@ export async function importWorkersFromCsv(csvText: string, curatorId: string): 
   const validRows: CsvWorkerRow[] = []
 
   for (let i = 0; i < rows.length; i++) {
-    const row = rows[i]
+    const row = rows[i]!
     const rowNum = i + 2 // 1-indexed, +1 for header
 
     const name = row[idx('name')]?.trim()

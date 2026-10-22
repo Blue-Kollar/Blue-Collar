@@ -27,7 +27,7 @@ function hasWafPattern(value: string): boolean {
   return WAF_RE.test(value)
 }
 
-function sanitizeValue(value: Sanitizable, depth = 0): Sanitizable {
+export function sanitizeValue(value: Sanitizable, depth = 0): Sanitizable {
   if (depth > MAX_DEPTH) return ''
   if (typeof value === 'string') return sanitizeText(value)
   if (Array.isArray(value)) return value.map((v) => sanitizeValue(v, depth + 1))
@@ -35,7 +35,7 @@ function sanitizeValue(value: Sanitizable, depth = 0): Sanitizable {
   return value
 }
 
-function sanitizeObject(obj: { [key: string]: Sanitizable }, depth = 0) {
+export function sanitizeObject(obj: { [key: string]: Sanitizable }, depth = 0) {
   // Guard against prototype pollution via __proto__, constructor, prototype keys
   return Object.fromEntries(
     Object.entries(obj)

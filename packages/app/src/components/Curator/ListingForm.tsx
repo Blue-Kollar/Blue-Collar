@@ -55,9 +55,11 @@ export function ListingForm({ workerId, defaultValues, onSuccess }: ListingFormP
       let resultId: string;
       if (workerId) {
         const res = await updateWorker.mutateAsync(form);
+        if (!res.data) throw new Error("Failed to save worker");
         resultId = res.data.id;
       } else {
         const res = await createWorker.mutateAsync(form);
+        if (!res.data) throw new Error("Failed to save worker");
         resultId = res.data.id;
       }
 

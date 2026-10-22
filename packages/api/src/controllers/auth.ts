@@ -46,7 +46,7 @@ import type {
  */
 export const login = catchAsync(async (req: Request<{}, {}, LoginBody>, res: Response) => {
   const userAgent = req.get('user-agent')
-  const ipAddress = (req.get('x-forwarded-for') || req.ip || '').split(',')[0].trim()
+  const ipAddress = (req.get('x-forwarded-for') || req.ip || '').split(',')[0]?.trim() ?? ''
 
   // Parse device name from user agent (basic heuristic)
   let deviceName = 'Unknown Device'

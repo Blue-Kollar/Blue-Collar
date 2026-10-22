@@ -18,8 +18,8 @@ export default function MessagesPage() {
 
   const fetchConversations = useCallback(async () => {
     try {
-      const res = await getConversations({ limit: "50" });
-      setConversations(res.data);
+      const res = await getConversations({ limit: 50 });
+      setConversations(res.data ?? []);
     } catch {
       toast("Failed to load conversations", "error");
     } finally {
@@ -34,8 +34,8 @@ export default function MessagesPage() {
   const handleSelectConversation = useCallback(async (id: string) => {
     setActiveConversation(id);
     try {
-      const res = await getConversationMessages(id, { limit: "100" });
-      setMessages(res.data);
+      const res = await getConversationMessages(id, { limit: 100 });
+      setMessages(res.data ?? []);
     } catch {
       toast("Failed to load messages", "error");
     }
@@ -45,7 +45,7 @@ export default function MessagesPage() {
     if (!activeConversation) return;
     try {
       const res = await sendMessage(activeConversation, { body });
-      setMessages((prev) => [...prev, res.data]);
+      setMessages((prev) => (res.data ? [...prev, res.data] : prev));
       fetchConversations();
     } catch {
       toast("Failed to send message", "error");

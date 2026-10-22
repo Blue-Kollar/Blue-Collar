@@ -353,7 +353,5 @@ test.describe('Mobile Screen Accessibility (#1037)', () => {
     if (hasOverflow) {
       console.warn('[mobile] Horizontal overflow detected on workers page at 390px viewport')
     }
-    // Soft check — warn, don't hard-fail, as some popovers can cause this
-    // expect(hasOverflow).toBe(false)
   })
 })

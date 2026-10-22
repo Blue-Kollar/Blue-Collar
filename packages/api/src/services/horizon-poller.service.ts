@@ -10,9 +10,10 @@ import { nowUtc, parseUtcDate, addUtcMs, formatUtcIso } from '@/utils/date.js'
 import { publishEvent } from './webhook.service.js'
 import * as indexerService from './indexer.service.js'
 import { stellarRpcClient } from './stellar-rpc.client.js'
+import { config } from '@/config/config.js'
 
-const REGISTRY_CONTRACT_ID = process.env.REGISTRY_CONTRACT_ID ?? ''
-const MARKET_CONTRACT_ID = process.env.MARKET_CONTRACT_ID ?? ''
+const REGISTRY_CONTRACT_ID = config.stellar.registryContractId
+const MARKET_CONTRACT_ID = config.stellar.marketContractId
 const POLL_INTERVAL_MS = 30_000
 
 let pollTimer: ReturnType<typeof setTimeout> | null = null
@@ -45,7 +46,7 @@ export async function fetchContractEvents(contractId: string): Promise<void> {
 
     const records = await stellarRpcClient.getContractEvents(
       contractId,
-      cursor.ledger > 0 ? cursor.ledger : undefined,
+      cursor.ledger > 0 ? Number(cursor.ledger) : undefined,
     )
     let lastLedger = cursor.ledger
     let lastTxIndex = cursor.txIndex

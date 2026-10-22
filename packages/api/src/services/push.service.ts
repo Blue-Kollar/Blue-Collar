@@ -2,9 +2,10 @@ import webpush from 'web-push'
 import { db } from '@/db.js'
 import { logger } from '@/config/logger.js'
 import { nowUtc, parseUtcDate, addUtcMs, formatUtcIso } from '@/utils/date.js'
+import { config } from '@/config/config.js'
 
-const vapidPublicKey = process.env.VAPID_PUBLIC_KEY
-const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY
+const vapidPublicKey = config.push.vapidPublicKey
+const vapidPrivateKey = config.push.vapidPrivateKey
 
 if (vapidPublicKey && vapidPrivateKey) {
   webpush.setVapidDetails('mailto:support@bluecollar.app', vapidPublicKey, vapidPrivateKey)

@@ -32,7 +32,7 @@ export default function JobsPage() {
     setError(null);
     try {
       const res = await getJobs({ search: search || undefined, categoryId: categoryId || undefined, urgency: urgency || undefined, page, limit: 12 });
-      setJobs(res.data);
+      setJobs(res.data ?? []);
       setMeta(res.meta ?? null);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Failed to load jobs");
@@ -42,7 +42,7 @@ export default function JobsPage() {
   }, [search, categoryId, urgency, page]);
 
   useEffect(() => {
-    getCategories().then((r) => setCategories(r.data)).catch(() => {});
+    getCategories().then((r) => setCategories(r.data ?? [])).catch(() => {});
   }, []);
 
   useEffect(() => {

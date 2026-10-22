@@ -52,14 +52,15 @@ export function versionRateLimit(req: Request, res: Response, next: NextFunction
     standardHeaders: false,
     skip: (req) => !req.apiVersion,
     handler: (req, res) => {
-      const retryAfter = req.rateLimit?.resetTime
-        ? Math.ceil((req.rateLimit.resetTime - Date.now()) / 1000)
+      const rateLimitInfo = (req as Request & { rateLimit?: { resetTime?: Date; remaining?: number } }).rateLimit
+      const retryAfter = rateLimitInfo?.resetTime
+        ? Math.ceil((rateLimitInfo.resetTime.getTime() - Date.now()) / 1000)
         : Math.ceil(config.windowMs / 1000)
 
       res.set('Retry-After', String(retryAfter))
       res.set('X-RateLimit-Limit', String(config.requests))
-      res.set('X-RateLimit-Remaining', String(req.rateLimit?.remaining ?? 0))
-      res.set('X-RateLimit-Reset', String(req.rateLimit?.resetTime ?? Date.now() + config.windowMs))
+      res.set('X-RateLimit-Remaining', String(rateLimitInfo?.remaining ?? 0))
+      res.set('X-RateLimit-Reset', String(rateLimitInfo?.resetTime ?? Date.now() + config.windowMs))
 
       res.status(429).json({
         status: 'error',

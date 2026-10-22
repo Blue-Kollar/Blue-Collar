@@ -6,6 +6,7 @@ import { AppError } from '@/utils/app-error.js'
 import { sanitizeUser } from '@/models/user.model.js'
 import { createServiceLogger } from '@/utils/logger.js'
 import { addUtcMs, nowUtc } from '@/utils/date.js'
+import { config } from '@/config/config.js'
 import type { LoginBody } from '@/interfaces/index.js'
 import type { AuthServiceDeps } from '@/container/types.js'
 
@@ -50,7 +51,7 @@ export function createAuthSessionService(deps: Pick<AuthServiceDeps, 'userReposi
         )
       }
 
-      const accessToken = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET!, {
+      const accessToken = jwt.sign({ id: user.id, role: user.role }, config.auth.jwtSecret, {
         expiresIn: ACCESS_TOKEN_TTL,
       })
 
@@ -87,7 +88,7 @@ export function createAuthSessionService(deps: Pick<AuthServiceDeps, 'userReposi
       const user = await userRepository.findById(stored.userId)
       if (!user) throw new AppError('User not found', 404)
 
-      const accessToken = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET!, {
+      const accessToken = jwt.sign({ id: user.id, role: user.role }, config.auth.jwtSecret, {
         expiresIn: ACCESS_TOKEN_TTL,
       })
 

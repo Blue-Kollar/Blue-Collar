@@ -43,7 +43,7 @@ export const listDisputes = catchAsync(async (req: Request, res: Response) => {
 
 /** GET /api/disputes/:id — get a single dispute */
 export const getDispute = catchAsync(async (req: Request, res: Response) => {
-  const dispute = await contractsService.dispute.getDispute(req.params.id, req.user!.id, req.user!.role)
+  const dispute = await contractsService.dispute.getDispute(req.params.id!, req.user!.id, req.user!.role)
   return res.json({ data: dispute, status: 'success', code: 200 })
 })
 
@@ -53,7 +53,7 @@ export const resolveDispute = catchAsync(async (req: Request, res: Response) => 
   const sanitizedResolution =
     typeof resolution === 'string' ? sanitizeText(resolution) : resolution
   const dispute = await contractsService.dispute.resolveDispute(
-    req.params.id,
+    req.params.id!,
     req.user!.id,
     status,
     sanitizedResolution,

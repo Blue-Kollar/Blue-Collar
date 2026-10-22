@@ -69,7 +69,7 @@ export async function getDisputeMetrics(filter: DateRangeFilter = {}) {
   const [total, resolved, pending] = await Promise.all([
     db.dispute.count({ where }),
     db.dispute.count({ where: { ...where, status: 'resolved' } }),
-    db.dispute.count({ where: { ...where, status: 'pending' } }),
+    db.dispute.count({ where: { ...where, status: 'open' } }),
   ])
 
   const resolutionRate = total > 0 ? Math.round((resolved / total) * 100) : 0

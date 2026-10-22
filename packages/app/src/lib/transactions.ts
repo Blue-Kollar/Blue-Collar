@@ -197,7 +197,7 @@ export function buildTransactionSummary(
   xdr: string,
   networkPassphrase: string,
 ): TransactionSummary {
-  const tx = StellarSdk.Transaction.fromXDR(xdr, networkPassphrase);
+  const tx = StellarSdk.TransactionBuilder.fromXDR(xdr, networkPassphrase) as StellarSdk.Transaction;
   const ops = tx.operations;
 
   const networkName =
@@ -207,7 +207,7 @@ export function buildTransactionSummary(
         ? 'MAINNET'
         : 'UNKNOWN';
 
-  const operationSummaries: OperationSummary[] = ops.map((op) => {
+  const operationSummaries: OperationSummary[] = ops.map((op: StellarSdk.Operation) => {
     switch (op.type) {
       case 'payment': {
         const p = op as StellarSdk.Operation.Payment;
@@ -275,8 +275,8 @@ export function assertXdrNotTampered(
   let signed: StellarSdk.Transaction | StellarSdk.FeeBumpTransaction;
 
   try {
-    original = StellarSdk.Transaction.fromXDR(originalXdr, networkPassphrase);
-    signed = StellarSdk.Transaction.fromXDR(signedXdr, networkPassphrase);
+    original = StellarSdk.TransactionBuilder.fromXDR(originalXdr, networkPassphrase);
+    signed = StellarSdk.TransactionBuilder.fromXDR(signedXdr, networkPassphrase);
   } catch {
     throw new TransactionValidationError(
       'Could not parse transaction XDR for tamper check.',
@@ -300,7 +300,7 @@ export function assertXdrNotTampered(
 /** Return the XDR of a transaction without its signature decorators for comparison. */
 function stripSignatures(tx: StellarSdk.Transaction | StellarSdk.FeeBumpTransaction): string {
   // Clone via XDR round-trip, clear signatures, re-serialise
-  const cloned = StellarSdk.Transaction.fromXDR(
+  const cloned = StellarSdk.TransactionBuilder.fromXDR(
     tx.toXDR(),
     tx instanceof StellarSdk.Transaction ? tx.networkPassphrase : NETWORK_PASSPHRASE,
   ) as StellarSdk.Transaction;

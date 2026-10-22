@@ -83,11 +83,11 @@ export default function Navbar() {
 
   const touchStartX = useRef<number | null>(null);
   const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX;
+    touchStartX.current = e.touches[0]!.clientX;
   };
   const handleTouchEnd = (e: React.TouchEvent) => {
     if (touchStartX.current === null) return;
-    const delta = e.changedTouches[0].clientX - touchStartX.current;
+    const delta = e.changedTouches[0]!.clientX - touchStartX.current;
     if (delta > 60) setMobileOpen(false);
     touchStartX.current = null;
   };

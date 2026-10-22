@@ -10,6 +10,9 @@ import { sanitize, sanitizeParams } from './middleware/sanitize.js'
 import { env } from './config/env.js'
 import pinoHttp from 'pino-http'
 import methodOverride from 'method-override'
+import helmet from 'helmet'
+import cors from 'cors'
+import { corsConfig } from './config/cors.js'
 import passport from './config/passport.js'
 import { compress } from './middleware/compress.js'
 import authRoutes from './routes/auth.js'
@@ -38,7 +41,7 @@ app.use(helmet({
       scriptSrc: ["'self'"],
       styleSrc: ["'self'"],
       imgSrc: ["'self'", 'data:'],
-      connectSrc,
+      connectSrc: ["'self'"],
     },
   },
   hsts: {
