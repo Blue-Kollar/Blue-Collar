@@ -13,6 +13,7 @@ export default function WorkersError({
     <ErrorBoundary
       error={error}
       reset={reset}
+      routeContext="worker-search"
       title="Couldn't load workers"
       description="There was a problem fetching the worker listings. Please try again."
     />

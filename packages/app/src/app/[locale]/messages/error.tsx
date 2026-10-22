@@ -13,6 +13,7 @@ export default function MessagesError({
     <ErrorBoundary
       error={error}
       reset={reset}
+      routeContext="messages"
       title="Couldn't load messages"
       description="There was a problem loading your messages. Please try again."
     />

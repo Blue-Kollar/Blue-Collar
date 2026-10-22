@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { AlertTriangle } from "lucide-react";
 
@@ -9,6 +10,7 @@ interface Props {
   reset: () => void;
   title?: string;
   description?: string;
+  routeContext?: string;
 }
 
 export default function ErrorBoundary({
@@ -16,16 +18,26 @@ export default function ErrorBoundary({
   reset,
   title,
   description,
+  routeContext = "unknown",
 }: Props) {
   const t = useTranslations("errors");
+  const pathname = usePathname();
   const [reported, setReported] = useState(false);
 
   useEffect(() => {
-    console.error(error);
-  }, [error]);
+    const context = {
+      routeContext,
+      pathname,
+      digest: error.digest ?? null,
+      occurredAt: new Date().toISOString(),
+    };
+    console.error("[App Router error]", context, error);
+  }, [error, pathname, routeContext]);
 
   const handleReport = () => {
     const report = {
+      routeContext,
+      pathname,
       message: error.message,
       name: error.name,
       stack: error.stack,
@@ -50,12 +62,15 @@ export default function ErrorBoundary({
       </p>
       <div className="mt-5 flex flex-wrap items-center gap-3 justify-center">
         <button
+          type="button"
           onClick={reset}
+          data-testid="route-error-retry"
           className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
         >
           {t("tryAgain")}
         </button>
         <button
+          type="button"
           onClick={handleReport}
           className="rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
         >

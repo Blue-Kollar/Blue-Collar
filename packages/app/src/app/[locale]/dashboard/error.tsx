@@ -13,6 +13,7 @@ export default function DashboardError({
     <ErrorBoundary
       error={error}
       reset={reset}
+      routeContext="dashboard"
       title="Couldn't load dashboard"
       description="There was a problem loading your dashboard. Please try again."
     />

@@ -40,4 +40,22 @@ test.describe('Worker search and discovery', () => {
     await goToHome(page)
     await expectNoServerError(page)
   })
+
+  test('dashboard segment error shows a retry fallback and navigation still works', async ({ page }) => {
+    const errorLogs: string[] = []
+    page.on('console', message => errorLogs.push(message.text()))
+
+    await goToWorkers(page)
+    await page.goto(new URL('/en/dashboard/e2e-error-test', page.url()).toString())
+
+    await expect(page.getByRole('heading', { name: "Couldn't load dashboard" })).toBeVisible()
+    await expect(page.getByTestId('route-error-retry')).toBeVisible()
+    await expect.poll(() => errorLogs.some(message =>
+      message.includes('[App Router error]') && message.includes('dashboard')
+    )).toBe(true)
+
+    await page.goBack()
+    await expect(page).toHaveURL(/\/en\/workers/)
+    await expect(page.locator('body')).toBeVisible()
+  })
 })
