@@ -173,6 +173,9 @@
   },
   "workersDiscovery": {
     "searchPlaceholder": "Rechercher des travailleurs par nom ou compétence...",
+    "viewOptions": "Options d'affichage des travailleurs",
+    "listView": "Liste",
+    "mapView": "Carte",
     "noResults": "Aucun résultat",
     "resultsFound": "{count, plural, one {# travailleur trouvé} other {# travailleurs trouvés}}",
     "errorTitle": "Quelque chose s'est mal passé",

@@ -40,4 +40,29 @@ test.describe('Worker search and discovery', () => {
     await goToHome(page)
     await expectNoServerError(page)
   })
+
+  test('map initializes again after navigating away and back', async ({ page }) => {
+    const navigateUsingNav = async (name: string) => {
+      const link = page.getByRole('navigation').getByRole('link', { name, exact: true })
+      if (await link.isVisible()) {
+        await link.click()
+        return
+      }
+
+      await page.getByRole('button', { name: 'Open menu' }).click()
+      await page.getByRole('dialog').getByRole('link', { name, exact: true }).click()
+    }
+
+    await goToWorkers(page)
+    await page.getByRole('button', { name: 'Map', exact: true }).click()
+    await expect(page.locator('.leaflet-container')).toHaveCount(1)
+
+    await navigateUsingNav('Home')
+    await expect(page).toHaveURL(/\/en\/?$/)
+    await navigateUsingNav('Workers')
+    await expect(page).toHaveURL(/\/en\/workers/)
+    await page.getByRole('button', { name: 'Map', exact: true }).click()
+
+    await expect(page.locator('.leaflet-container')).toHaveCount(1)
+  })
 })

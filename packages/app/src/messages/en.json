@@ -173,6 +173,9 @@
   },
   "workersDiscovery": {
     "searchPlaceholder": "Search workers by name or skill...",
+    "viewOptions": "Worker display options",
+    "listView": "List",
+    "mapView": "Map",
     "noResults": "No results",
     "resultsFound": "{count, plural, one {# worker found} other {# workers found}}",
     "errorTitle": "Something went wrong",

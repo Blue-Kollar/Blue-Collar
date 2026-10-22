@@ -4,9 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Worker } from "@/types";
 import Link from "next/link";
 import { MapPin, X, BadgeCheck } from "lucide-react";
-
-// Leaflet is loaded client-side only
-let L: typeof import("leaflet") | null = null;
+import { createMap } from "@/lib/map/createMap";
 
 interface Props {
   workers: Worker[];
@@ -23,68 +21,52 @@ export default function WorkerMap({ workers }: Props) {
   const mapInstanceRef = useRef<import("leaflet").Map | null>(null);
   const [popup, setPopup] = useState<PopupWorker | null>(null);
   const [ready, setReady] = useState(false);
+  const [mapError, setMapError] = useState(false);
 
   useEffect(() => {
-    if (typeof window === "undefined" || !mapRef.current) return;
-    if (mapInstanceRef.current) return; // already initialised
+    const container = mapRef.current;
+    if (typeof window === "undefined" || !container) return;
+    let cancelled = false;
 
-    // Dynamically import leaflet + markercluster
-    Promise.all([
-      import("leaflet"),
-      import("leaflet.markercluster"),
-    ]).then(([leaflet]) => {
-      L = leaflet.default;
+    const workersWithCoords = workers.filter(
+      (worker): worker is Worker & { latitude: number; longitude: number } =>
+        worker.latitude != null && worker.longitude != null
+    );
 
-      // Fix default icon paths broken by webpack
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      delete (L.Icon.Default.prototype as any)._getIconUrl;
-      L.Icon.Default.mergeOptions({
-        iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-        iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-        shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-      });
-
-      const map = L.map(mapRef.current!, {
-        center: [20, 0],
-        zoom: 2,
-        zoomControl: true,
-      });
-
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-        maxZoom: 19,
-      }).addTo(map);
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const cluster = (L as any).markerClusterGroup({ chunkedLoading: true });
-
-      const workersWithCoords = workers.filter(
-        (w) => w.latitude != null && w.longitude != null
-      ) as (Worker & { latitude: number; longitude: number })[];
-
-      workersWithCoords.forEach((worker) => {
-        const marker = L!.marker([worker.latitude, worker.longitude]);
-        marker.on("click", (e: import("leaflet").LeafletMouseEvent) => {
-          const point = map.latLngToContainerPoint(e.latlng);
+    createMap(
+      container,
+      workersWithCoords.map((worker) => ({
+        latitude: worker.latitude,
+        longitude: worker.longitude,
+        onClick: (event, map) => {
+          const point = map.latLngToContainerPoint(event.latlng);
           setPopup({ worker, x: point.x, y: point.y });
-        });
-        cluster.addLayer(marker);
+        },
+      }))
+    )
+      .then((map) => {
+        if (cancelled) {
+          map.remove();
+          return;
+        }
+
+        map.on("click", () => setPopup(null));
+        map.on("zoom", () => setPopup(null));
+        mapInstanceRef.current = map;
+        setReady(true);
+      })
+      .catch((error: unknown) => {
+        if (cancelled) return;
+        console.error("[WorkerMap] failed to initialize map:", error);
+        setMapError(true);
       });
-
-      map.addLayer(cluster);
-      map.on("click", () => setPopup(null));
-      map.on("zoom", () => setPopup(null));
-
-      mapInstanceRef.current = map;
-      setReady(true);
-    });
 
     return () => {
+      cancelled = true;
       mapInstanceRef.current?.remove();
       mapInstanceRef.current = null;
     };
-  }, []);
-
+  }, [workers]);
 
   return (
     <div className="relative w-full h-full rounded-xl overflow-hidden border shadow-sm">
@@ -157,7 +139,11 @@ export default function WorkerMap({ workers }: Props) {
 
       {!ready && (
         <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
-          <div className="h-8 w-8 rounded-full border-2 border-blue-200 border-t-blue-600 animate-spin" />
+          {mapError ? (
+            <p className="text-sm text-gray-600">Map unavailable. Please try again later.</p>
+          ) : (
+            <div className="h-8 w-8 rounded-full border-2 border-blue-200 border-t-blue-600 animate-spin" />
+          )}
         </div>
       )}
     </div>

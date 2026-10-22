@@ -17,6 +17,7 @@ import MobileFilterSheet from "@/components/Filters/MobileFilterSheet";
 import { useDebounce } from "@/hooks/useDebounce";
 import { getWorkers, getCategories } from "@/lib/api";
 import type { Worker, Category, Meta } from "@/types";
+import WorkerMap from "@/components/WorkerMap";
 
 const LIMIT = 20;
 
@@ -61,6 +62,7 @@ export default function WorkersDiscovery() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [view, setView] = useState<"list" | "map">("list");
 
   const debouncedSearch = useDebounce(search, 350);
 
@@ -169,6 +171,28 @@ export default function WorkersDiscovery() {
             onReset={handleFilterReset}
             loading={loading}
           />
+          <div className="flex shrink-0 gap-2" role="group" aria-label={t("viewOptions")}>
+            <button
+              type="button"
+              aria-pressed={view === "list"}
+              onClick={() => setView("list")}
+              className={`rounded-md border px-3 py-2 text-sm font-medium ${
+                view === "list" ? "border-blue-600 bg-blue-50 text-blue-700" : ""
+              }`}
+            >
+              {t("listView")}
+            </button>
+            <button
+              type="button"
+              aria-pressed={view === "map"}
+              onClick={() => setView("map")}
+              className={`rounded-md border px-3 py-2 text-sm font-medium ${
+                view === "map" ? "border-blue-600 bg-blue-50 text-blue-700" : ""
+              }`}
+            >
+              {t("mapView")}
+            </button>
+          </div>
         </div>
 
         <ActiveFilters
@@ -196,7 +220,13 @@ export default function WorkersDiscovery() {
           />
         )}
 
-        {loading && (
+        {view === "map" && (
+          <div className="h-[500px]">
+            <WorkerMap workers={workers} />
+          </div>
+        )}
+
+        {view === "list" && loading && (
           <div
             className={`grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 ${gridMinHeight}`}
           >
@@ -206,7 +236,7 @@ export default function WorkersDiscovery() {
           </div>
         )}
 
-        {!loading && !error && workers.length === 0 && (
+        {view === "list" && !loading && !error && workers.length === 0 && (
           <div className="flex flex-col items-center justify-center rounded-xl border bg-white py-20 text-center shadow-sm">
             <p className="text-lg font-semibold text-gray-700">
               {t("emptyTitle")}
@@ -227,7 +257,7 @@ export default function WorkersDiscovery() {
           </div>
         )}
 
-        {!loading && !error && workers.length > 0 && (
+        {view === "list" && !loading && !error && workers.length > 0 && (
           <>
             <div
               className={`grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 ${gridMinHeight}`}

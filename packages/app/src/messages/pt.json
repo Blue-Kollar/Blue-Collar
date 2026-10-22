@@ -173,6 +173,9 @@
   },
   "workersDiscovery": {
     "searchPlaceholder": "Buscar trabalhadores por nome ou habilidade...",
+    "viewOptions": "Opções de exibição de trabalhadores",
+    "listView": "Lista",
+    "mapView": "Mapa",
     "noResults": "Sem resultados",
     "resultsFound": "{count, plural, one {# trabalhador encontrado} other {# trabalhadores encontrados}}",
     "errorTitle": "Algo deu errado",
