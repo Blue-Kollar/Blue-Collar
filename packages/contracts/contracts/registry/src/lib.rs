@@ -31,8 +31,7 @@ mod skill_certification;
 mod storage;
 
 use bluecollar_types::events::{
-    ContractPaused, ContractUnpaused, CuratorAdded, CuratorRemoved, ReputationUpdated,
-    ReviewSubmitted, ReputationSlashed, RoleGranted, RoleRevoked, WorkerDeregistered,
+    ContractPaused, ContractUnpaused, CuratorAdded, CuratorRemoved, RoleGranted, RoleRevoked,
     WorkerRegistered, WorkerToggled, WorkerUpdated,
 };
 use bluecollar_types::ContractError;
@@ -1825,7 +1824,7 @@ mod tests {
     extern crate std;
     use super::*;
     use soroban_sdk::{
-        testutils::{Address as _, Ledger, LedgerInfo},
+        testutils::Address as _,
         Address, BytesN, Env, String, Symbol,
     };
 
@@ -1854,7 +1853,7 @@ mod tests {
             TestEnv { env, contract_id, admin, curator, owner }
         }
 
-        fn client(&self) -> RegistryContractClient {
+        fn client(&self) -> RegistryContractClient<'_> {
             RegistryContractClient::new(&self.env, &self.contract_id)
         }
 

@@ -5,46 +5,18 @@ import { ChevronLeft, ChevronRight, ExternalLink, Loader2, RefreshCw } from "luc
 import { Button } from "@/components/ui/button";
 import LoadingState from "@/components/LoadingState";
 import ErrorState from "@/components/ErrorState";
-import { formatStellarAddress } from "@/lib/utils";
+import { formatStellarAddress, truncate } from "@/lib/utils";
 import { formatNumber } from "@/lib/format";
+import { useTransactionHistory } from "@/hooks/useTransactionHistory";
+import type { HistoryItem } from "@/hooks/useTransactionHistory";
 
-import { HORIZON_URL, MARKET_CONTRACT_ID, EXPLORER_NETWORK_SLUG, EXPLORER_TX_BASE } from "@/config/stellar";
+import { MARKET_CONTRACT_ID, EXPLORER_NETWORK_SLUG, EXPLORER_TX_BASE } from "@/config/stellar";
 
-const DEFAULT_LIMIT = 10;
 const EXPLORER_NETWORK = EXPLORER_NETWORK_SLUG;
-
-type HorizonPayment = {
-  id: string;
-  paging_token: string;
-  type: string;
-  created_at: string;
-  from?: string;
-  to?: string;
-  amount?: string;
-  asset_type?: string;
-  transaction_hash: string;
-};
-
-type HistoryItem = {
-  id: string;
-  cursor: string;
-  amount: string;
-  recipient: string;
-  date: string;
-  hash: string;
-};
 
 function formatAmount(amount: string) {
   const parsed = Number(amount);
   return Number.isFinite(parsed) ? formatNumber(parsed, { maximumFractionDigits: 7 }) : amount;
-}
-
-function isMarketPayment(record: HorizonPayment, publicKey: string) {
-  if (record.type !== "payment" || record.from !== publicKey || !record.to || !record.amount) {
-    return false;
-  }
-
-  return !MARKET_CONTRACT_ID || record.to === MARKET_CONTRACT_ID;
 }
 
 const TransactionRow = memo(function TransactionRow({ item }: { item: HistoryItem }) {
@@ -72,9 +44,13 @@ const TransactionRow = memo(function TransactionRow({ item }: { item: HistoryIte
 });
 
 export default function TransactionHistory({ publicKey }: { publicKey: string }) {
-  const [items, setItems] = useState<HistoryItem[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
   const [cursorStack, setCursorStack] = useState<(string | null)[]>([]);
+  const history = useTransactionHistory(publicKey, cursor);
+  const items = history.data?.items ?? [];
+  const nextCursor = history.data?.nextCursor ?? null;
+  const loading = history.isLoading;
+  const error = history.error?.message ?? null;
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -121,8 +97,7 @@ export default function TransactionHistory({ publicKey }: { publicKey: string })
   useEffect(() => {
     setCursor(null);
     setCursorStack([]);
-    void loadPage(null);
-  }, [loadPage]);
+  }, [publicKey]);
 
   const totalTipsSent = useMemo(
     () => items.reduce((sum, item) => sum + (Number(item.amount) || 0), 0),
@@ -133,21 +108,19 @@ export default function TransactionHistory({ publicKey }: { publicKey: string })
     if (!nextCursor) return;
     setCursorStack((stack) => [...stack, cursor]);
     setCursor(nextCursor);
-    void loadPage(nextCursor);
-  }, [nextCursor, cursor, loadPage]);
+  }, [nextCursor, cursor]);
 
   const goPrevious = useCallback(() => {
     setCursorStack((stack) => {
       const previous = stack.at(-1) ?? null;
       setCursor(previous);
-      void loadPage(previous);
       return stack.slice(0, -1);
     });
-  }, [loadPage]);
+  }, []);
 
   const refresh = useCallback(() => {
-    void loadPage(cursor);
-  }, [loadPage, cursor]);
+    void history.refetch();
+  }, [history.refetch]);
 
   return (
     <section className="rounded-xl border bg-white shadow-sm">
