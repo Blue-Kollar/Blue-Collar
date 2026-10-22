@@ -10,8 +10,8 @@ import { formatCompact } from "@/lib/format";
 import type { CuratorAnalytics } from "@/types";
 
 // ── Dynamic import (code splitting) ─────────────────────────────────────────
-const CuratorCharts = dynamic(
-  () => import("@/components/charts/CuratorCharts"),
+const WorkersBarChart = dynamic(
+  () => import("@/components/charts/CuratorCharts").then((m) => m.WorkersBarChart),
   { ssr: false, loading: () => <div className="h-[250px] rounded-lg bg-gray-50 animate-pulse" /> }
 );
 
@@ -180,7 +180,7 @@ export function AnalyticsPanel({ analytics, loading, onExportCsv }: AnalyticsPan
       {analytics.workers.length > 0 && (
         <div className="rounded-xl border bg-white p-6 shadow-sm">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Views by Worker</h3>
-          <CuratorCharts.WorkersBarChart workers={analytics.workers} />
+          <WorkersBarChart workers={analytics.workers} />
         </div>
       )}
     </div>

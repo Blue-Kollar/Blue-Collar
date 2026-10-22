@@ -36,8 +36,8 @@ export class UserSerializer extends BaseSerializer<User, SerializedUser> {
     } = user
     return {
       ...safe,
-      firstName: sanitizeNullableString(safe.firstName),
-      lastName: sanitizeNullableString(safe.lastName),
+      firstName: escapeHtml(safe.firstName),
+      lastName: escapeHtml(safe.lastName),
       bio: sanitizeNullableString(safe.bio),
     }
   }

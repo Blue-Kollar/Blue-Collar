@@ -17,20 +17,20 @@ export function useOfflineActions() {
           "contact"
         );
 
-        toast({
-          title: "Message Queued",
-          description: "Your message will be sent when you're online",
-          type: "success",
-        });
+        toast(
+          "Message Queued",
+          "success",
+          { description: "Your message will be sent when you're online" }
+        );
 
         return actionId;
       } catch (error) {
         console.error("[useOfflineActions] contact request error:", error);
-        toast({
-          title: "Error",
-          description: "Failed to queue contact request",
-          type: "error",
-        });
+        toast(
+          "Error",
+          "error",
+          { description: "Failed to queue contact request" }
+        );
         throw error;
       }
     },
@@ -48,20 +48,20 @@ export function useOfflineActions() {
           "bookmark"
         );
 
-        toast({
-          title: "Bookmark Queued",
-          description: "Your change will be saved when you're online",
-          type: "success",
-        });
+        toast(
+          "Bookmark Queued",
+          "success",
+          { description: "Your change will be saved when you're online" }
+        );
 
         return actionId;
       } catch (error) {
         console.error("[useOfflineActions] bookmark error:", error);
-        toast({
-          title: "Error",
-          description: "Failed to queue bookmark change",
-          type: "error",
-        });
+        toast(
+          "Error",
+          "error",
+          { description: "Failed to queue bookmark change" }
+        );
         throw error;
       }
     },
@@ -78,20 +78,20 @@ export function useOfflineActions() {
           "profile-update"
         );
 
-        toast({
-          title: "Update Queued",
-          description: "Your profile changes will be saved when you're online",
-          type: "success",
-        });
+        toast(
+          "Update Queued",
+          "success",
+          { description: "Your profile changes will be saved when you're online" }
+        );
 
         return actionId;
       } catch (error) {
         console.error("[useOfflineActions] profile update error:", error);
-        toast({
-          title: "Error",
-          description: "Failed to queue profile update",
-          type: "error",
-        });
+        toast(
+          "Error",
+          "error",
+          { description: "Failed to queue profile update" }
+        );
         throw error;
       }
     },

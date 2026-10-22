@@ -67,7 +67,7 @@ for (const { name, path: pagePath } of PAGES) {
               .join('\n  ')}`,
         )
         .join('\n\n')
-      expect.fail(`Accessibility violations on "${name}" (${pagePath}):\n\n${summary}`)
+      throw new Error(`Accessibility violations on "${name}" (${pagePath}):\n\n${summary}`)
     }
 
     expect(blocking).toHaveLength(0)

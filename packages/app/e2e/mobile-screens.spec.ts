@@ -243,6 +243,36 @@ test.describe('Mobile Screen Edge States — Offline & Empty (#1037)', () => {
     await expect(page.locator('body')).not.toContainText('Application error')
   })
 
+  test('worker listing loads optimized avatar images', async ({ page, context }) => {
+    await context.route('**/api/workers*', (route) => {
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          data: [{
+            id: 'worker-image-load',
+            name: 'Photo Test Worker',
+            avatar: '/logo.png',
+            isVerified: false,
+            category: { id: 'category-test', name: 'Test Category' },
+          }],
+          meta: { total: 1, page: 1, pages: 1, limit: 20 },
+          status: 'success',
+        }),
+      })
+    })
+
+    await page.goto(`${BASE}/en/workers`)
+
+    const avatar = page.getByRole('img', { name: 'Photo Test Worker' })
+    await expect(avatar).toBeVisible()
+    await expect(avatar).toHaveAttribute('sizes', '56px')
+    await expect(avatar).toHaveAttribute('src', /\/_next\/image\?url=/)
+    await expect.poll(() => avatar.evaluate((image: HTMLImageElement) => (
+      image.complete && image.naturalWidth > 0
+    ))).toBe(true)
+  })
+
   test('page handles API 500 error gracefully', async ({ page, context }) => {
     // Intercept workers API and return 500
     await context.route('**/api/workers*', (route) => {
@@ -353,7 +383,5 @@ test.describe('Mobile Screen Accessibility (#1037)', () => {
     if (hasOverflow) {
       console.warn('[mobile] Horizontal overflow detected on workers page at 390px viewport')
     }
-    // Soft check — warn, don't hard-fail, as some popovers can cause this
-    // expect(hasOverflow).toBe(false)
   })
 })

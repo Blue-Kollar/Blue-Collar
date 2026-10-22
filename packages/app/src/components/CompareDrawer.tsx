@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
+import Image from "next/image";
 import { X, BadgeCheck, MapPin, Star } from "lucide-react";
 import { useCompare } from "@/context/CompareContext";
 import type { Worker } from "@bluecollar/types";
@@ -79,7 +80,7 @@ export default function CompareDrawer() {
                     <th key={w.id} className="px-4 py-3 border-b" scope="col">
                       <div className="flex flex-col items-center gap-1">
                         {w.avatar ? (
-                          <img src={w.avatar} alt="" className="h-12 w-12 rounded-full object-cover ring-2 ring-blue-100" aria-hidden="true" />
+                          <Image src={w.avatar} alt="" width={48} height={48} sizes="48px" className="h-12 w-12 rounded-full object-cover ring-2 ring-blue-100" aria-hidden="true" />
                         ) : (
                           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-600 font-bold" aria-hidden="true">
                             {w.name.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase()}

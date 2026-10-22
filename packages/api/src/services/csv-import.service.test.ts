@@ -206,7 +206,7 @@ Bob Wilson,cat-2`
     it('should handle quoted CSV fields', async () => {
       const quotedCsv = `name,categoryId,bio
 "Doe, John",cat-1,"Worker with, comma"
-"Smith, Jane",cat-2,"Contractor with ""quotes"""
+"Smith, Jane",cat-2,"Contractor with ""quotes"""`
 
       mockDb.category.findMany.mockResolvedValue([
         { id: 'cat-1' },

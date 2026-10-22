@@ -215,6 +215,7 @@ async function seed() {
 
     const curatorIndex = workerCount % curatorRecords.length
     const curator = curatorRecords[curatorIndex]
+    if (!curator) continue
     const fixtures = workerFixtures(cat.name, curator.id)
 
     for (const fixture of fixtures) {

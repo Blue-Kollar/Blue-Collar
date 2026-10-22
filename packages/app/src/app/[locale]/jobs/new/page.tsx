@@ -29,7 +29,7 @@ export default function NewJobPage() {
 
   useEffect(() => {
     if (!user) { router.replace("/auth/login"); return; }
-    getCategories().then((r) => setCategories(r.data)).catch(() => {});
+    getCategories().then((r) => setCategories(r.data ?? [])).catch(() => {});
   }, [user, router]);
 
   const addSkill = () => {

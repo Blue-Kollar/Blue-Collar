@@ -37,7 +37,7 @@ export const createOrUpgradeSubscription = catchAsync(async (req: Request, res: 
   const sub = await db.subscription.upsert({
     where: { workerId },
     create: {
-      workerId,
+      workerId: workerId!,
       tier,
       stripeCustomerId,
       stripeSubId,

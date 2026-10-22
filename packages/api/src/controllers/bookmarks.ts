@@ -7,7 +7,7 @@ import { catchAsync } from '@/utils/catchAsync.js'
  * Toggle bookmark for the authenticated user on the given worker.
  */
 export const toggleBookmark = catchAsync(async (req: Request, res: Response) => {
-  const result = await bookmarkService.toggleBookmark(req.user!.id, req.params.id)
+  const result = await bookmarkService.toggleBookmark(req.user!.id, req.params.id!)
   return res.json({ data: result, status: 'success', code: 200 })
 })
 

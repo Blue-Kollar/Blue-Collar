@@ -25,7 +25,7 @@ const TransactionRow = memo(function TransactionRow({ item }: { item: HistoryIte
       <td className="whitespace-nowrap px-6 py-4 text-gray-600">
         {new Date(item.date).toLocaleString()}
       </td>
-      <td className="px-6 py-4 font-mono text-gray-700">{truncate(item.recipient)}</td>
+      <td className="px-6 py-4 font-mono text-gray-700">{truncate(item.recipient, 12)}</td>
       <td className="whitespace-nowrap px-6 py-4 font-medium text-gray-900">
         {formatAmount(item.amount)} XLM
       </td>
@@ -51,6 +51,48 @@ export default function TransactionHistory({ publicKey }: { publicKey: string })
   const nextCursor = history.data?.nextCursor ?? null;
   const loading = history.isLoading;
   const error = history.error?.message ?? null;
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadPage = useCallback(
+    async (pageCursor: string | null) => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const url = new URL(`${HORIZON_URL}/accounts/${publicKey}/payments`);
+        url.searchParams.set("order", "desc");
+        url.searchParams.set("limit", String(DEFAULT_LIMIT + 1));
+        if (pageCursor) url.searchParams.set("cursor", pageCursor);
+
+        const res = await fetch(url.toString());
+        if (!res.ok) throw new Error("Unable to load transaction history");
+
+        const json = await res.json();
+        const records = (json._embedded?.records ?? []) as HorizonPayment[];
+        const payments = records.filter((record) => isMarketPayment(record, publicKey));
+        const visible = payments.slice(0, DEFAULT_LIMIT);
+
+        setItems(
+          visible.map((record) => ({
+            id: record.id,
+            cursor: record.paging_token,
+            amount: record.amount ?? "0",
+            recipient: record.to ?? "",
+            date: record.created_at,
+            hash: record.transaction_hash,
+          }))
+        );
+        setNextCursor(payments.length > DEFAULT_LIMIT ? visible.at(-1)?.paging_token ?? null : null);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Something went wrong");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [publicKey]
+  );
 
   useEffect(() => {
     setCursor(null);

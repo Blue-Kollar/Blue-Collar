@@ -72,7 +72,7 @@ export function createBookingService(deps: BookingServiceDeps) {
       const coveredByAvailability = availability.some((avail) => {
         const [ah, am] = avail.startTime.split(':').map(Number)
         const [bh, bm] = avail.endTime.split(':').map(Number)
-        return slotStartMinutes >= ah * 60 + am && slotEndMinutes <= bh * 60 + bm
+        return slotStartMinutes >= ah! * 60 + am! && slotEndMinutes <= bh! * 60 + bm!
       })
 
       if (availability.length > 0 && !coveredByAvailability) {
@@ -92,7 +92,7 @@ export function createBookingService(deps: BookingServiceDeps) {
         endTime,
         timezone,
         note,
-        serviceDescription,
+        serviceDescription: serviceDescription ?? '',
         status: BookingStatus.Pending,
       })
 
@@ -144,7 +144,7 @@ export function createBookingService(deps: BookingServiceDeps) {
       const isWorker = booking.worker.userId === userId
       if (!isRequester && !isWorker) throw new AppError('Unauthorized', 403)
 
-      if ([BookingStatus.Completed, BookingStatus.Cancelled].includes(booking.status)) {
+      if (booking.status === BookingStatus.Completed || booking.status === BookingStatus.Cancelled) {
         throw new AppError(`Cannot cancel a booking with status: ${booking.status}`, 400)
       }
 
@@ -189,7 +189,7 @@ export function createBookingService(deps: BookingServiceDeps) {
 // ── Default service instance (backward-compatible module-level API) ───────────
 
 const _defaultService = createBookingService({
-  bookingRepository: defaultBookingRepository,
+  bookingRepository: defaultBookingRepository as unknown as BookingServiceDeps['bookingRepository'],
 })
 
 export async function createBooking(input: CreateBookingInput) {

@@ -50,6 +50,7 @@ export function CompactWorkerCard({ worker }: WorkerCardVariantProps) {
               alt={worker.name}
               width={40}
               height={40}
+              sizes="40px"
               className="h-10 w-10 rounded-full object-cover ring-1 ring-blue-100"
             />
           ) : (
@@ -118,6 +119,7 @@ export function StandardWorkerCard({ worker }: WorkerCardVariantProps) {
               alt={worker.name}
               width={56}
               height={56}
+              sizes="56px"
               className="h-14 w-14 rounded-full object-cover ring-2 ring-blue-100"
             />
           ) : (
@@ -183,7 +185,7 @@ export function FeaturedWorkerCard({ worker }: WorkerCardVariantProps) {
     <Link href={`/workers/${worker.id}`}>
       <div className="relative group flex flex-col gap-4 rounded-2xl border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-white p-6 shadow-md transition-all duration-200 hover:shadow-xl hover:border-blue-400">
         {/* Status badge */}
-        {worker.isActive && (
+        {worker.isActive !== false && (
           <div className="absolute top-4 right-4 flex items-center gap-1.5 bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-medium">
             <div className="h-2 w-2 rounded-full bg-green-600" />
             Active
@@ -198,6 +200,7 @@ export function FeaturedWorkerCard({ worker }: WorkerCardVariantProps) {
               alt={worker.name}
               width={80}
               height={80}
+              sizes="80px"
               className="h-20 w-20 rounded-full object-cover ring-4 ring-white shadow-md"
             />
           ) : (

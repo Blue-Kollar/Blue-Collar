@@ -42,7 +42,7 @@ const DEFAULT_PREFERENCES = {
 
 function isDuplicate(dedupKey: string): boolean {
   const cached = deliveryCache.get(dedupKey)
-  if (cached && nowUtc().getTime() - cached[0].sentAt.getTime() < DEDUP_WINDOW) {
+  if (cached?.[0] && nowUtc().getTime() - cached[0].sentAt.getTime() < DEDUP_WINDOW) {
     return true
   }
   return false

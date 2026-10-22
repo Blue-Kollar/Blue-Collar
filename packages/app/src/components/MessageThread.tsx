@@ -31,8 +31,8 @@ function formatDate(iso: string) {
 
 function shouldShowDate(messages: Message[], index: number): boolean {
   if (index === 0) return true;
-  const prev = new Date(messages[index - 1].createdAt);
-  const curr = new Date(messages[index].createdAt);
+  const prev = new Date(messages[index - 1]!.createdAt);
+  const curr = new Date(messages[index]!.createdAt);
   return prev.toDateString() !== curr.toDateString();
 }
 
@@ -111,7 +111,7 @@ export default function MessageThread({
                       msg.senderId === currentUserId ? "flex-row-reverse" : "flex-row"
                     )}
                     role="article"
-                    aria-label={`Message from ${msg.sender.name} at ${formatTime(msg.createdAt)}`}
+                    aria-label={`Message from ${msg.sender.firstName} ${msg.sender.lastName} at ${formatTime(msg.createdAt)}`}
                   >
                     <div
                       className={cn(
@@ -122,13 +122,13 @@ export default function MessageThread({
                       {msg.sender.avatar ? (
                         <img
                           src={msg.sender.avatar}
-                          alt={`${msg.sender.name}'s avatar`}
+                          alt={`${msg.sender.firstName} ${msg.sender.lastName}'s avatar`}
                           className="h-6 w-6 shrink-0 rounded-full object-cover"
                         />
                       ) : (
                         <div
                           className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gray-200 dark:bg-gray-700"
-                          aria-label={`${msg.sender.name}'s default avatar`}
+                          aria-label={`${msg.sender.firstName} ${msg.sender.lastName}'s default avatar`}
                         >
                           <User size={12} className="text-gray-500" aria-hidden="true" />
                         </div>

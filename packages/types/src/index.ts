@@ -252,43 +252,15 @@ export interface AppNotification {
 // Canonical status values. Use these const objects / union types instead of
 // raw string literals in the api and app packages.
 
-export const JobStatus = {
-  Open: 'open',
-  Closed: 'closed',
-  Filled: 'filled',
-  Expired: 'expired',
-} as const;
-export type JobStatus = (typeof JobStatus)[keyof typeof JobStatus];
+import type {
+  ApplicationStatus,
+  BookingStatus,
+  JobStatus,
+  JobUrgency,
+  TxStatusValue,
+} from './status.js';
 
-export const JobUrgency = {
-  Low: 'low',
-  Normal: 'normal',
-  Urgent: 'urgent',
-} as const;
-export type JobUrgency = (typeof JobUrgency)[keyof typeof JobUrgency];
-
-export const ApplicationStatus = {
-  Pending: 'pending',
-  Accepted: 'accepted',
-  Rejected: 'rejected',
-  Withdrawn: 'withdrawn',
-} as const;
-export type ApplicationStatus = (typeof ApplicationStatus)[keyof typeof ApplicationStatus];
-
-export const BookingStatus = {
-  Pending: 'pending',
-  Confirmed: 'confirmed',
-  Cancelled: 'cancelled',
-  Completed: 'completed',
-} as const;
-export type BookingStatus = (typeof BookingStatus)[keyof typeof BookingStatus];
-
-export const TxStatusValue = {
-  Pending: 'pending',
-  Confirmed: 'confirmed',
-  Failed: 'failed',
-} as const;
-export type TxStatusValue = (typeof TxStatusValue)[keyof typeof TxStatusValue];
+export * from './status.js';
 
 // ─── Jobs ─────────────────────────────────────────────────────────────────────
 
@@ -516,6 +488,36 @@ export interface BookingQuery {
   status?: BookingStatus;
   workerId?: string;
   clientId?: string;
+}
+
+// ─── Service-layer request aliases ───────────────────────────────────────────
+// These names are used by the API service layer; they alias the wire-level
+// body types above so controllers and services share one definition.
+
+export type CreateJobRequest = CreateJobBody;
+export type UpdateJobRequest = UpdateJobBody;
+export type UpdateApplicationStatusRequest = UpdateJobApplicationBody;
+
+export interface ListJobsQuery {
+  categoryId?: string;
+  status?: JobStatus | 'all';
+  search?: string;
+  skills?: string;
+  urgency?: JobUrgency;
+  minBudget?: number;
+  maxBudget?: number;
+  page?: number;
+  limit?: number;
+}
+
+export interface CreateBookingInput {
+  workerId: string;
+  requesterId: string;
+  startTime: string;
+  endTime: string;
+  timezone?: string;
+  note?: string;
+  serviceDescription?: string;
 }
 
 // ─── Shared Validation Schemas ────────────────────────────────────────────────

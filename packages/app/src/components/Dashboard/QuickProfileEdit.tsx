@@ -18,7 +18,7 @@ const schema = z.object({
 type Fields = z.infer<typeof schema>;
 
 interface Props {
-  user: AuthUser;
+  user: Pick<AuthUser, "firstName" | "lastName" | "email">;
   token: string;
   onSaved?: (updated: Pick<AuthUser, "firstName" | "lastName" | "email">) => void;
 }

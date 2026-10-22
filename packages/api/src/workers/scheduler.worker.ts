@@ -90,15 +90,15 @@ export const schedulerWorker = new Worker<SchedulerJobData>(
  */
 export async function registerRecurringJobs(): Promise<void> {
   // Daily cleanup at 02:00 UTC
-  await cleanupQueue.add(
+  await cleanupQueue.upsertJobScheduler(
     'daily-cleanup',
-    { target: 'expired_sessions' },
-    { repeat: { pattern: '0 2 * * *' } },
+    { pattern: '0 2 * * *' },
+    { name: 'daily-cleanup', data: { target: 'expired_sessions' } },
   )
-  await cleanupQueue.add(
+  await cleanupQueue.upsertJobScheduler(
     'weekly-upload-cleanup',
-    { target: 'orphaned_uploads', olderThanDays: 30 },
-    { repeat: { pattern: '0 3 * * 0' } }, // Sundays 03:00 UTC
+    { pattern: '0 3 * * 0' }, // Sundays 03:00 UTC
+    { name: 'weekly-upload-cleanup', data: { target: 'orphaned_uploads', olderThanDays: 30 } },
   )
 
   logger.info('Recurring jobs registered')

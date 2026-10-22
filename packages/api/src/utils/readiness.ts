@@ -46,7 +46,9 @@ export function checkRedis(): Promise<DependencyStatus> {
 
 /** BullMQ job queue connectivity (shares the Redis connection). */
 export function checkQueue(): Promise<DependencyStatus> {
-  return timed(() => emailQueue.client.then((client) => client.ping()))
+  return timed(() =>
+    (emailQueue as unknown as { client: Promise<{ ping: () => Promise<string> }> }).client.then((client) => client.ping()),
+  )
 }
 
 /** Stellar Horizon RPC connectivity. */
@@ -55,7 +57,7 @@ export function checkHorizonRpc(): Promise<DependencyStatus> {
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), 3_000)
     try {
-      const res = await fetch(config.horizonUrl, { signal: controller.signal })
+      const res = await fetch(config.stellar.horizonUrl, { signal: controller.signal })
       if (!res.ok) throw new Error(`Horizon RPC returned HTTP ${res.status}`)
     } finally {
       clearTimeout(timeout)

@@ -1,5 +1,5 @@
 import type { NotificationChannel, NotificationMessage, DeliveryResult } from './NotificationChannel.js'
-import { mailer } from '@/mailer/index.js'
+import { transporter } from '@/mailer/transport.js'
 import { notificationRepository } from '@/repositories/notification.repository.js'
 import { logger } from '@/config/logger.js'
 import { AppError } from '@/utils/AppError.js'
@@ -47,7 +47,7 @@ export class EmailChannel implements NotificationChannel {
         throw new AppError('User not found', 404)
       }
 
-      await mailer.send({
+      await transporter.sendMail({
         to: user.email,
         subject: message.title,
         text: message.message,
