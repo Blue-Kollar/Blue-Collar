@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express'
 import * as verificationService from '@/services/verification.service.js'
 import { catchAsync } from '@/utils/catchAsync.js'
-import { AppError, ErrorCode } from '@/utils/AppError.js'
+import { AppError, ErrorCode } from '@/utils/app-error.js'
 import { ErrorMessages, HttpStatus } from '@/constants/index.js'
 
 /** POST /api/verifications — submit a verification request */

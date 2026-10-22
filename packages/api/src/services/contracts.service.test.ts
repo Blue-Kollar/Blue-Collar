@@ -24,7 +24,7 @@ import {
   getPaymentFee,
   updatePaymentFee,
 } from './contracts.service.js'
-import { AppError } from '../utils/AppError.js'
+import { AppError } from '../utils/app-error.js'
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
 

@@ -8,7 +8,7 @@
  * all business-rule enforcement in one testable module.
  */
 
-import { AppError, ErrorCode } from '@/utils/AppError.js'
+import { AppError, ErrorCode } from '@/utils/app-error.js'
 import { parseUtcDate } from '@/utils/date.js'
 import * as escrowService from './escrow.service.js'
 import * as disputeService from './dispute.service.js'

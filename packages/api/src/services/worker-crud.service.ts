@@ -1,6 +1,6 @@
 import type { Prisma } from '@prisma/client'
 import { db } from '@/db.js'
-import { AppError } from '@/utils/AppError.js'
+import { AppError } from '@/utils/app-error.js'
 import { formatWorker } from '@/models/worker.model.js'
 import type { CreateWorkerBody, UpdateWorkerBody } from '@/interfaces/index.js'
 import { publishEvent } from './webhook.service.js'

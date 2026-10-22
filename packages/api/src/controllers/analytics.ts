@@ -42,10 +42,7 @@ export const getWorkerPersonalDashboard = catchAsync(async (req: Request, res: R
 export const exportWorkerPersonalCsv = catchAsync(async (req: Request, res: Response) => {
   await analyticsService.assertCanAccessWorkerAnalytics(routeId(req), req.user!.id, req.user!.role)
   const range = analyticsService.parseAnalyticsDateRange(req.query)
-  const csv = await analyticsService.exportPersonalWorkerAnalyticsCsv(routeId(req), range)
-  res.setHeader('Content-Type', 'text/csv')
-  res.setHeader('Content-Disposition', `attachment; filename="worker-${routeId(req)}-analytics.csv"`)
-  return res.send(csv)
+  await analyticsService.exportPersonalWorkerAnalyticsCsv(res, routeId(req), range)
 })
 
 /** GET /api/analytics/curator — curator's aggregated analytics */
@@ -72,18 +69,12 @@ export const getTopWorkers = catchAsync(async (req: Request, res: Response) => {
 
 /** GET /api/analytics/export/curator — CSV export of curator's worker analytics */
 export const exportCuratorCsv = catchAsync(async (req: Request, res: Response) => {
-  const csv = await analyticsService.exportWorkerAnalyticsCsv(req.user!.id)
-  res.setHeader('Content-Type', 'text/csv')
-  res.setHeader('Content-Disposition', 'attachment; filename="worker-analytics.csv"')
-  return res.send(csv)
+  await analyticsService.exportWorkerAnalyticsCsv(res, req.user!.id)
 })
 
 /** GET /api/analytics/export/platform — CSV export of platform analytics (admin) */
 export const exportPlatformCsv = catchAsync(async (req: Request, res: Response) => {
-  const csv = await analyticsService.exportPlatformAnalyticsCsv()
-  res.setHeader('Content-Type', 'text/csv')
-  res.setHeader('Content-Disposition', 'attachment; filename="platform-analytics.csv"')
-  return res.send(csv)
+  await analyticsService.exportPlatformAnalyticsCsv(res)
 })
 
 /** GET /api/analytics/metrics — protocol health metrics */

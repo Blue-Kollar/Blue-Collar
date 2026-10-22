@@ -10,7 +10,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { createEscrowService } from './escrow.service.js'
-import { AppError } from '../utils/AppError.js'
+import { AppError } from '../utils/app-error.js'
 import { db } from '../db.js'
 import { dispatchNotification } from './notification.service.js'
 

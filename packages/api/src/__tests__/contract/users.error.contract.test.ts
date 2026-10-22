@@ -10,7 +10,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { Request, Response, NextFunction } from 'express'
-import { AppError, ErrorCode } from '../../utils/AppError.js'
+import { AppError, ErrorCode } from '../../utils/app-error.js'
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
 

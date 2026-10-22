@@ -1,6 +1,6 @@
 import * as OTPAuth from 'otpauth'
 import crypto from 'node:crypto'
-import { AppError } from '@/utils/AppError.js'
+import { AppError } from '@/utils/app-error.js'
 import { userRepository as defaultUserRepository } from '@/repositories/user.repository.js'
 import { nowUtc, parseUtcDate, addUtcMs, formatUtcIso } from '@/utils/date.js'
 

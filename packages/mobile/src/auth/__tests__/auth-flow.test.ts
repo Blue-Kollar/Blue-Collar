@@ -11,8 +11,8 @@
  * Mocks expo-secure-store and expo-local-authentication at the module level
  * so no real device/simulator interaction occurs.
  */
-import { SecureStorage } from '../SecureStorage'
-import { BiometricAuth, BiometricType } from '../BiometricAuth'
+import { SecureStorage } from '../secure-storage'
+import { BiometricAuth, BiometricType } from '../biometric-auth'
 
 jest.mock('expo-secure-store', () => {
   const store = new Map<string, string>()

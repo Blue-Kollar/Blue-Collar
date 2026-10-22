@@ -3,7 +3,7 @@ import QRCode from 'qrcode'
 import crypto from 'node:crypto'
 import argon2 from 'argon2'
 import { db } from '@/db.js'
-import { AppError } from '@/utils/AppError.js'
+import { AppError } from '@/utils/app-error.js'
 import { nowUtc, parseUtcDate, addUtcMs, formatUtcIso } from '@/utils/date.js'
 
 const ISSUER = 'BlueCollar'

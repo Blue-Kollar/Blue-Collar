@@ -46,7 +46,7 @@ import {
 } from './wallet.service.js'
 import { stellarClient } from '../clients/stellar.client.js'
 import { walletRepository } from '../repositories/wallet.repository.js'
-import { AppError, ErrorCode } from '../utils/AppError.js'
+import { AppError, ErrorCode } from '../utils/app-error.js'
 
 // ── Type helpers ──────────────────────────────────────────────────────────────
 

@@ -8,7 +8,7 @@ import type { Request, Response } from 'express'
 import { BookingStatus } from '@bluecollar/types'
 import { catchAsync } from '@/utils/catchAsync.js'
 import * as bookingService from '@/services/booking.service.js'
-import { AppError } from '@/utils/AppError.js'
+import { AppError } from '@/utils/app-error.js'
 
 /**
  * POST /bookings

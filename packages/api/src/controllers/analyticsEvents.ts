@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express'
 import { catchAsync } from '@/utils/catchAsync.js'
-import { AppError, ErrorCode } from '@/utils/AppError.js'
+import { AppError, ErrorCode } from '@/utils/app-error.js'
 import { createServiceLogger } from '@/utils/logger.js'
 
 const logger = createServiceLogger('AnalyticsEvents')

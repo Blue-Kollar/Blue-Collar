@@ -2,7 +2,7 @@ import React from 'react'
 import { Alert } from 'react-native'
 import { render, waitFor, fireEvent, act } from '@testing-library/react-native'
 import { BiometricSettingsScreen } from '../BiometricSettingsScreen'
-import { BiometricType } from '@/auth/BiometricAuth'
+import { BiometricType } from '@/auth/biometric-auth'
 
 jest.mock('@/auth/BiometricAuth', () => {
   const actual = jest.requireActual('@/auth/BiometricAuth')

@@ -3,11 +3,12 @@
 import js from '@eslint/js'
 import tsPlugin from '@typescript-eslint/eslint-plugin'
 import tsParser from '@typescript-eslint/parser'
+import unicornPlugin from 'eslint-plugin-unicorn'
 import globals from 'globals'
 import { createRequire } from 'module'
 
 const require = createRequire(import.meta.url)
-const { tsRules, baseRules, productionOnlyRules } = require('../../eslint-base-rules.js')
+const { tsRules, baseRules, productionOnlyRules, filenameRules } = require('../../eslint-base-rules.js')
 
 export default [
   {
@@ -32,12 +33,14 @@ export default [
     },
     plugins: {
       '@typescript-eslint': tsPlugin,
+      unicorn: unicornPlugin,
     },
     rules: {
       ...tsPlugin.configs.recommended.rules,
       ...tsRules,
       ...baseRules,
       ...productionOnlyRules,
+      ...filenameRules,
     },
   },
   {

@@ -1,5 +1,6 @@
 import type { NotificationType } from '@prisma/client'
 import { notificationRepository as defaultNotificationRepository } from '@/repositories/notification.repository.js'
+import { AppError } from '@/utils/app-error.js'
 import { logger } from '@/config/logger.js'
 import { nowUtc } from '@/utils/date.js'
 import {

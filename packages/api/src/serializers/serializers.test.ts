@@ -4,7 +4,7 @@ import { categorySerializer } from '../serializers/category.serializer.js'
 import { workerSerializer } from '../serializers/worker.serializer.js'
 import { jobSerializer, jobSummarySerializer } from '../serializers/job.serializer.js'
 import { serializeError } from '../serializers/error.serializer.js'
-import { AppError, ErrorCode } from '../utils/AppError.js'
+import { AppError, ErrorCode } from '../utils/app-error.js'
 
 const mockUser: any = {
   id: 'u1', email: 'a@b.com', firstName: 'Jane', lastName: 'Doe',

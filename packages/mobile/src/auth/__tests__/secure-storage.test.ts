@@ -1,4 +1,4 @@
-import { SecureStorage } from '../SecureStorage'
+import { SecureStorage } from '../secure-storage'
 
 jest.mock('expo-secure-store', () => {
   const store = new Map<string, string>()

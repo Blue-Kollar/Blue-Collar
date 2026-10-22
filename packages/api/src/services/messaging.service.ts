@@ -1,6 +1,5 @@
 import { messagingRepository as defaultMessagingRepository } from '@/repositories/messaging.repository.js'
-import { AppError, ErrorCode } from '@/utils/AppError.js'
-import { parseUtcDate } from '@/utils/date.js'
+import { AppError, ErrorCode } from '@/utils/app-error.js'
 import { sanitizeText } from '@/utils/sanitize.js'
 import type { MessagingServiceDeps } from '@/container/types.js'
 

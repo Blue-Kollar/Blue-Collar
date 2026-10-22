@@ -1,5 +1,5 @@
 import { bookmarkRepository as defaultBookmarkRepository } from '@/repositories/bookmark.repository.js'
-import { AppError } from '@/utils/AppError.js'
+import { AppError } from '@/utils/app-error.js'
 import { updateBookmarkCount } from './analytics/index.js'
 import type { BookmarkServiceDeps } from '@/container/types.js'
 import { nowUtc, parseUtcDate, addUtcMs, formatUtcIso } from '@/utils/date.js'

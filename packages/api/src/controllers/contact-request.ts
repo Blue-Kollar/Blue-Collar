@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express'
 import * as contactRequestService from '@/services/contact-request.service.js'
 import { catchAsync } from '@/utils/catchAsync.js'
-import { AppError, ErrorCode } from '@/utils/AppError.js'
+import { AppError, ErrorCode } from '@/utils/app-error.js'
 import { sanitizeText } from '@/utils/sanitize.js'
 
 export const createContactRequest = catchAsync(async (req: Request, res: Response) => {

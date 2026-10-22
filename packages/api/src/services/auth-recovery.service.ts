@@ -1,7 +1,7 @@
 import argon2 from 'argon2'
 import jwt from 'jsonwebtoken'
 import crypto from 'node:crypto'
-import { AppError } from '@/utils/AppError.js'
+import { AppError } from '@/utils/app-error.js'
 import { sanitizeUser } from '@/models/user.model.js'
 import { createServiceLogger } from '@/utils/logger.js'
 import { nowUtc, addUtcMs } from '@/utils/date.js'

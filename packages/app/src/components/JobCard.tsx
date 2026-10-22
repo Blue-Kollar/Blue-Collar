@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Briefcase, Clock, DollarSign } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatCurrency } from "@/lib/format";
 import type { Job } from "@/types";
 
 interface UrgencyStyle {
@@ -99,7 +100,7 @@ export default function JobCard({ job }: { job: Job }) {
             <span className="flex items-center gap-1">
               <DollarSign size={12} aria-hidden="true" />
               <span className="sr-only">Budget: </span>
-              {job.budget.toLocaleString()}
+              {formatCurrency(job.budget)}
             </span>
           )}
           <span className="flex items-center gap-1">

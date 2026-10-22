@@ -1,5 +1,8 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { getLocale } from './format';
+
+export { formatCurrency, formatNumber, getLocale, setLocale } from './format';
 
 // Stellar-domain helpers now live in the shared SDK. Re-exported here so
 // existing `@/lib/utils` imports keep working without a repo-wide rename.
@@ -12,22 +15,12 @@ export {
 
 import { MAX_DECIMAL_PLACES as _MAX_DECIMAL_PLACES } from '@bluecollar/sdk';
 
-let _locale = 'en-US';
-
-export function setLocale(locale: string) {
-  _locale = locale === 'en' ? 'en-US' : locale === 'pt' ? 'pt-BR' : `${locale}-${locale.toUpperCase()}`;
-}
-
-export function getLocale(): string {
-  return _locale;
-}
-
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
 export function formatDate(date: string | Date, opts?: Intl.DateTimeFormatOptions): string {
-  return new Date(date).toLocaleDateString(_locale, {
+  return new Date(date).toLocaleDateString(getLocale(), {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
@@ -55,18 +48,10 @@ export function formatStellarAddress(
  */
 export function formatXLM(stroops: number | bigint): string {
   const xlm = Number(stroops) / 10_000_000;
-  return `${xlm.toLocaleString(_locale, {
+  return `${xlm.toLocaleString(getLocale(), {
     minimumFractionDigits: 0,
     maximumFractionDigits: _MAX_DECIMAL_PLACES,
   })} XLM`;
-}
-
-export function formatCurrency(amount: number, currency = 'USD'): string {
-  return new Intl.NumberFormat(_locale, { style: 'currency', currency }).format(amount);
-}
-
-export function formatNumber(num: number, opts?: Intl.NumberFormatOptions): string {
-  return num.toLocaleString(_locale, opts);
 }
 
 /**
@@ -75,7 +60,7 @@ export function formatNumber(num: number, opts?: Intl.NumberFormatOptions): stri
  * Closes #1209
  */
 export function formatTime(iso: string | Date, opts?: Intl.DateTimeFormatOptions): string {
-  return new Date(iso).toLocaleTimeString(_locale, {
+  return new Date(iso).toLocaleTimeString(getLocale(), {
     hour: 'numeric',
     minute: '2-digit',
     ...opts,
@@ -101,5 +86,5 @@ export function formatRelativeTime(iso: string | Date, oldAfterDays = 7): string
   if (hrs < 24) return `${hrs}h ago`;
   const days = Math.floor(hrs / 24);
   if (days < oldAfterDays) return `${days}d ago`;
-  return date.toLocaleDateString(_locale, { month: 'short', day: 'numeric', year: 'numeric' });
+  return date.toLocaleDateString(getLocale(), { month: 'short', day: 'numeric', year: 'numeric' });
 }

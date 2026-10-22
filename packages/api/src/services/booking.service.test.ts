@@ -22,7 +22,7 @@ vi.mock('../config/logger.js', () => ({
 }));
 
 import { createBookingService, type CreateBookingInput } from './booking.service.js';
-import { AppError } from '../utils/AppError.js';
+import { AppError } from '../utils/app-error.js';
 import { enqueueNotification } from '../queue/index.js';
 
 // ── Constants ─────────────────────────────────────────────────────────────────

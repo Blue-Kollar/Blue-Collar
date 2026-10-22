@@ -22,12 +22,13 @@ import portfolioRoutes from './routes/portfolio.js'
 import reviewRoutes from './routes/reviews.js'
 import subscriptionRoutes from './routes/subscriptions.js'
 import messagesRoutes from './routes/messages.js'
-import { startAllJobs } from './jobs/index.js'
+import { startAllJobs, stopAllJobs } from './jobs/index.js'
 import { metricsRecorder } from './monitoring/business-metrics.js'
 import { errorHandler } from './middleware/errorHandler.js'
 import { requestId } from './middleware/requestId.js'
 import { logger } from './config/logger.js'
 import { WebSocketServer } from './websocket/server.js'
+import { createGracefulShutdownHandler } from './utils/shutdown.js'
 
 const app = express()
 const PORT = env.PORT || 3000
@@ -75,11 +76,16 @@ if (process.env.NODE_ENV !== 'test') {
   const httpServer = createServer(app)
   new WebSocketServer(httpServer)
   
-  httpServer.listen(PORT, () => {
+  const server = httpServer.listen(PORT, () => {
     logger.info(`BlueCollar API running on port ${PORT}`)
     startAllJobs()
     metricsRecorder.startPeriodicSync()
   })
+
+  // Set up graceful shutdown on SIGTERM and SIGINT (#1642)
+  const shutdownHandler = createGracefulShutdownHandler(server)
+  process.on('SIGTERM', shutdownHandler)
+  process.on('SIGINT', shutdownHandler)
 }
 
 export default app

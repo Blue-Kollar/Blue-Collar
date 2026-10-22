@@ -1,4 +1,4 @@
-import { AppError, ErrorCode } from '@/utils/AppError.js';
+import { AppError, ErrorCode } from '@/utils/app-error.js';
 import { logger } from '@/config/logger.js';
 import { nowUtc, parseUtcDate, addUtcMs, formatUtcIso } from '@/utils/date.js';
 import { TESTNET_FRIENDBOT_URL } from '@bluecollar/sdk';

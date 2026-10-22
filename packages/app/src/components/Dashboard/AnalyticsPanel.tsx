@@ -6,6 +6,7 @@ import { Table, type ColumnDef } from "@/components/Table";
 import { MetricCard } from "./MetricCard";
 import { DashboardTableSkeleton } from "@/components/Skeleton";
 import { cn } from "@/lib/utils";
+import { formatCompact } from "@/lib/format";
 import type { CuratorAnalytics } from "@/types";
 
 // ── Dynamic import (code splitting) ─────────────────────────────────────────
@@ -64,7 +65,7 @@ export function AnalyticsPanel({ analytics, loading, onExportCsv }: AnalyticsPan
       header: "Views",
       className: "text-right",
       cell: (w) => (
-        <span className="tabular-nums text-gray-700">{w.views.toLocaleString()}</span>
+        <span className="tabular-nums text-gray-700">{formatCompact(w.views)}</span>
       ),
     },
     {
@@ -79,7 +80,7 @@ export function AnalyticsPanel({ analytics, loading, onExportCsv }: AnalyticsPan
       header: "Tips",
       className: "text-right",
       cell: (w) => (
-        <span className="tabular-nums text-gray-700">{w.tips.toLocaleString()}</span>
+        <span className="tabular-nums text-gray-700">{formatCompact(w.tips)}</span>
       ),
       hideOnMobile: true,
     },
@@ -137,7 +138,7 @@ export function AnalyticsPanel({ analytics, loading, onExportCsv }: AnalyticsPan
         <div className="rounded-xl border bg-white p-6 shadow-sm">
           <p className="text-sm font-medium text-gray-500">Total Tips Received</p>
           <p className="mt-1 text-2xl font-bold text-gray-900">
-            {analytics.totals.tips.toLocaleString()} XLM
+            {formatCompact(analytics.totals.tips, { maximumFractionDigits: 2 })} XLM
           </p>
           <p className="mt-0.5 text-xs text-gray-400">
             {analytics.totals.tipCount} transactions

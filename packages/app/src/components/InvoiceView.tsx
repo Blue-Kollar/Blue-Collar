@@ -4,6 +4,7 @@ import { useId } from "react";
 import { Download, ExternalLink, FileText } from "lucide-react";
 import { useInvoice } from "@/hooks/queries";
 import { formatErrorMessage } from "@/lib/errors";
+import { formatAssetAmount } from "@/lib/format";
 import { cn, formatDate as sharedFormatDate } from "@/lib/utils";
 import ErrorState from "@/components/ErrorState";
 import type { Invoice, InvoiceStatus } from "@/types";
@@ -43,17 +44,7 @@ export function calculateSubtotal(lineItems: Invoice["lineItems"]): number {
   return lineItems.reduce((sum, item) => sum + item.quantity * item.unitAmount, 0);
 }
 
-/**
- * Format an amount for display. Stellar amounts carry up to 7 decimal places,
- * but trailing zeros beyond 2 are noise, so we show at least 2 and at most 7.
- */
-export function formatAmount(amount: number, currency: string): string {
-  const formatted = amount.toLocaleString("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 7,
-  });
-  return `${formatted} ${currency}`;
-}
+export const formatAmount = formatAssetAmount;
 
 function formatDate(iso: string): string {
   return sharedFormatDate(iso);

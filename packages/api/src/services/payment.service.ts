@@ -1,4 +1,4 @@
-import { AppError, ErrorCode } from '@/utils/AppError.js'
+import { AppError, ErrorCode } from '@/utils/app-error.js'
 import { nowUtc } from '@/utils/date.js'
 import {
   calculateFee as domainCalculateFee,

@@ -1,5 +1,5 @@
-import { BiometricAuth, BiometricType } from '../BiometricAuth'
-import { SecureStorage } from '../SecureStorage'
+import { BiometricAuth, BiometricType } from '../biometric-auth'
+import { SecureStorage } from '../secure-storage'
 
 jest.mock('expo-local-authentication', () => ({
   hasHardwareAsync: jest.fn(),

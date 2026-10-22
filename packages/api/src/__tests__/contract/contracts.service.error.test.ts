@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect } from 'vitest'
-import { AppError, ErrorCode } from '../../utils/AppError.js'
+import { AppError, ErrorCode } from '../../utils/app-error.js'
 import {
   createEscrowRecord,
   activateEscrowRecord,

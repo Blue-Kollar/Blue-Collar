@@ -27,7 +27,7 @@ import * as authService from '@/services/auth.service.js'
 import { db } from '@/db.js'
 import { sanitizeUser } from '@/models/user.model.js'
 import { UserResource } from '@/resources/index.js'
-import { AppError, ErrorCode } from '@/utils/AppError.js'
+import { AppError, ErrorCode } from '@/utils/app-error.js'
 import { catchAsync } from '@/utils/catchAsync.js'
 import { ErrorMessages } from '@/constants/errors.js'
 import type {

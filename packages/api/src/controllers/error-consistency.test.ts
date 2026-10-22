@@ -5,7 +5,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { Request, Response } from 'express'
-import { AppError, ErrorCode } from '../utils/AppError.js'
+import { AppError, ErrorCode } from '../utils/app-error.js'
 import { serializeError } from '../serializers/error.serializer.js'
 import { HttpStatus, ErrorMessages } from '../constants/index.js'
 
