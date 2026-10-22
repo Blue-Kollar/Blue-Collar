@@ -1,26 +1,10 @@
 //! Fee calculation helpers for the BlueCollar Market contract.
 //!
-//! All fee arithmetic is saturating/checked to prevent overflow panics.
+//! The canonical implementation lives in [`bluecollar_types::helpers::split_fee`].
+//! This module re-exports it for backward compatibility so that existing call-sites
+//! inside the market crate (`use fees::split_fee`) do not need to change.
 
-/// Compute the protocol fee and net worker amount from a gross `amount`.
-///
-/// # Parameters
-/// - `amount`: Gross amount before fee deduction.
-/// - `fee_bps`: Protocol fee in basis points (0–500).
-///
-/// # Returns
-/// `(fee, net)` where `fee + net == amount`.
-///
-/// # Panics
-/// Panics with `"Fee overflow"` if the intermediate product overflows `i128`.
-pub fn split_fee(amount: i128, fee_bps: u32) -> (i128, i128) {
-    let fee: i128 = amount
-        .checked_mul(fee_bps as i128)
-        .and_then(|v| v.checked_div(10_000))
-        .expect("Fee overflow");
-    let net = amount.checked_sub(fee).expect("Fee underflow");
-    (fee, net)
-}
+pub use bluecollar_types::helpers::split_fee;
 
 #[cfg(test)]
 mod tests {

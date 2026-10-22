@@ -194,7 +194,7 @@ Multipart update via method override (file upload):
 # HTML forms and multipart/form-data only support GET/POST, so we use POST
 # with the X-HTTP-Method header to indicate PUT semantics.
 # The API's method-override middleware rewrites this to PUT before routing.
-# See DOCUMENTATION.json for detailed explanation.
+# See API_REFERENCE.md for detailed explanation.
 
 curl -X POST "$API_BASE_URL/workers/<worker-id>" \
   -H "Authorization: Bearer $CURATOR_TOKEN" \

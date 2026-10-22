@@ -1,27 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Loader2 } from "lucide-react";
-import { useAuth } from "@/context/AuthContext";
 import { ListingForm } from "@/components/Curator/ListingForm";
-import { getWorker } from "@/lib/api";
-import type { Worker } from "@/types";
+import { useWorker } from "@/hooks/queries";
 
 export default function EditListingPage({ params }: { params: { id: string } }) {
   const router = useRouter();
-  const { token } = useAuth();
-  const [worker, setWorker] = useState<Worker | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    getWorker(params.id)
-      .then((r) => setWorker(r.data))
-      .catch(() => setError("Failed to load listing"))
-      .finally(() => setLoading(false));
-  }, [params.id]);
+  const { data: workerData, isLoading: loading, error } = useWorker(params.id);
+  const worker = workerData?.data ?? null;
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8">
@@ -45,13 +33,12 @@ export default function EditListingPage({ params }: { params: { id: string } }) 
         )}
 
         {error && (
-          <p className="text-sm text-red-600">{error}</p>
+          <p className="text-sm text-red-600">{error instanceof Error ? error.message : "Failed to load listing"}</p>
         )}
 
-        {!loading && !error && worker && token && (
+        {!loading && !error && worker && (
           <ListingForm
             workerId={worker.id}
-            token={token}
             defaultValues={{
               name: worker.name,
               bio: worker.bio ?? "",

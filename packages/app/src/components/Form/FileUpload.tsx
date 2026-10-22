@@ -11,19 +11,62 @@ export interface FileUploadProps {
   error?: string;
   hint?: string;
   disabled?: boolean;
+  /** `image` presets `accept` to images and shows a preview of the picked file. */
+  mode?: "file" | "image";
+  /** Preview to show before any file is picked, e.g. the current avatar. */
+  existingUrl?: string | null;
   onChange?: (files: FileList | null) => void;
   className?: string;
 }
 
-function FileUpload({ label, accept, multiple, error, hint, disabled, onChange, className }: FileUploadProps) {
+function FileUpload({
+  label,
+  accept,
+  multiple,
+  error: propError,
+  hint,
+  disabled,
+  mode = "file",
+  existingUrl,
+  onChange,
+  className,
+}: FileUploadProps) {
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [files, setFiles] = React.useState<File[]>([]);
+  const [typeError, setTypeError] = React.useState<string | null>(null);
   const inputId = React.useId();
   const errorId = `${inputId}-error`;
 
+  const isImage = mode === "image";
+  const error = propError ?? typeError ?? undefined;
+  const selectedPreview = React.useMemo(
+    () => (isImage && files[0] ? URL.createObjectURL(files[0]) : null),
+    [files, isImage],
+  );
+
+  React.useEffect(() => {
+    return () => {
+      if (selectedPreview) URL.revokeObjectURL(selectedPreview);
+    };
+  }, [selectedPreview]);
+
+  const preview = selectedPreview ?? existingUrl ?? null;
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const fl = e.target.files;
-    setFiles(fl ? Array.from(fl) : []);
+    const picked = fl ? Array.from(fl) : [];
+
+    const rejected = isImage ? picked.find((f) => !f.type.startsWith("image/")) : undefined;
+    if (rejected) {
+      setTypeError(`${rejected.name} is not an image.`);
+      setFiles([]);
+      e.target.value = "";
+      onChange?.(null);
+      return;
+    }
+
+    setTypeError(null);
+    setFiles(picked);
     onChange?.(fl);
   };
 
@@ -42,6 +85,13 @@ function FileUpload({ label, accept, multiple, error, hint, disabled, onChange, 
   return (
     <div className={cn("flex flex-col gap-1.5", className)}>
       <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{label}</span>
+      {preview && (
+        <img
+          src={preview}
+          alt=""
+          className="h-24 w-24 rounded-md object-cover"
+        />
+      )}
       <label
         htmlFor={inputId}
         className={cn(
@@ -54,13 +104,15 @@ function FileUpload({ label, accept, multiple, error, hint, disabled, onChange, 
         )}
       >
         <Upload size={20} />
-        <span>Click to upload{multiple ? " files" : " a file"}</span>
-        {accept && <span className="text-xs text-gray-400">{accept}</span>}
+        <span>Click to upload{multiple ? " files" : isImage ? " an image" : " a file"}</span>
+        {(isImage ? accept ?? "image/*" : accept) && (
+          <span className="text-xs text-gray-400">{isImage ? accept ?? "image/*" : accept}</span>
+        )}
         <input
           ref={inputRef}
           id={inputId}
           type="file"
-          accept={accept}
+          accept={isImage ? accept ?? "image/*" : accept}
           multiple={multiple}
           disabled={disabled}
           onChange={handleChange}

@@ -3,12 +3,9 @@
 import { SlidersHorizontal, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { Category } from "@/types";
+import { EMPTY_FILTERS, useFilterState, type FilterValues } from "@/hooks/useFilterState";
 
-export interface FilterValues {
-  category: string;
-  city: string;
-  state: string;
-}
+export { EMPTY_FILTERS, type FilterValues };
 
 interface FilterPanelProps {
   filters: FilterValues;
@@ -18,12 +15,6 @@ interface FilterPanelProps {
   loading?: boolean;
 }
 
-export const EMPTY_FILTERS: FilterValues = {
-  category: "",
-  city: "",
-  state: "",
-};
-
 export default function FilterPanel({
   filters,
   categories,
@@ -32,11 +23,7 @@ export default function FilterPanel({
   loading,
 }: FilterPanelProps) {
   const t = useTranslations("filters");
-  const hasActiveFilters = filters.category || filters.city || filters.state;
-
-  const update = (key: keyof FilterValues, value: string) => {
-    onChange({ ...filters, [key]: value });
-  };
+  const { update, reset, hasActiveFilters } = useFilterState(filters, onChange, onReset);
 
   return (
     <div className="flex flex-col gap-5 rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
@@ -48,7 +35,7 @@ export default function FilterPanel({
         {hasActiveFilters && (
           <button
             type="button"
-            onClick={onReset}
+            onClick={reset}
             className="flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-700"
           >
             <X size={12} />

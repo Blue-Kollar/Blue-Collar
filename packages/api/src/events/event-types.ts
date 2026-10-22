@@ -19,6 +19,7 @@ export interface AppEvents {
 
   // Payments
   'payment.completed': { fromUserId: string; toWorkerId: string; amount: number; token: string }
+  'fee.taken':         { fee: number; recipient: string }
 
   // Jobs
   'job.created':     { jobId: string; postedById: string }

@@ -1,6 +1,7 @@
 import { Request, Response } from 'express'
-import * as messagingService from '../services/messaging.service.js'
-import { catchAsync } from '../utils/catchAsync.js'
+import * as messagingService from '@/services/messaging.service.js'
+import { catchAsync } from '@/utils/catchAsync.js'
+import { sanitizeString } from '@/utils/sanitize.js'
 
 interface AuthRequest extends Request {
   user?: { id: string }
@@ -23,9 +24,25 @@ export const getConversation = catchAsync(async (req: AuthRequest, res: Response
 
 export const createConversation = catchAsync(async (req: AuthRequest, res: Response) => {
   const { participantIds, subject } = req.body
+
+  if (!Array.isArray(participantIds) || participantIds.length === 0) {
+    res.status(400).json({ status: 'error', message: 'participantIds must be a non-empty array' })
+    return
+  }
+  if (!participantIds.every((id: unknown) => typeof id === 'string' && id.length > 0)) {
+    res.status(400).json({ status: 'error', message: 'participantIds must contain valid ids' })
+    return
+  }
+
+  const sanitizedSubject = sanitizeString(subject)
+  if (sanitizedSubject.length > 200) {
+    res.status(400).json({ status: 'error', message: 'subject must be 200 characters or fewer' })
+    return
+  }
+
   const conversation = await messagingService.createConversation(
     [req.user!.id, ...participantIds],
-    subject
+    sanitizedSubject
   )
   res.status(201).json({ status: 'success', data: conversation })
 })
@@ -33,9 +50,10 @@ export const createConversation = catchAsync(async (req: AuthRequest, res: Respo
 export const searchMessages = catchAsync(async (req: AuthRequest, res: Response) => {
   const { conversationId } = req.params
   const { q } = req.query
+  const sanitizedQuery = sanitizeString(q as string)
   const messages = await messagingService.searchMessages(
     conversationId,
-    q as string,
+    sanitizedQuery,
     req.user!.id
   )
   res.json({ status: 'success', data: messages })

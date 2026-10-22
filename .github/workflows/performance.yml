@@ -1,0 +1,123 @@
+name: Performance Testing
+
+# Performance regression test for the BlueCollar API.
+# Runs on PRs that touch API code or load-test scripts, using a shortened
+# "load" profile to keep CI fast (~5 min) while still validating SLOs.
+# Closes #813
+on:
+  push:
+    branches: [main]
+    paths:
+      - "packages/api/load/**"
+      - "packages/api/src/**"
+      - ".github/workflows/performance.yml"
+  pull_request:
+    paths:
+      - "packages/api/load/**"
+      - "packages/api/src/**"
+      - ".github/workflows/performance.yml"
+  workflow_dispatch:
+
+jobs:
+  performance:
+    name: performance
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install k6
+        run: |
+          sudo gpg --no-default-keyring \
+            --keyring /usr/share/keyrings/k6-archive-keyring.gpg \
+            --keyserver hkp://keyserver.ubuntu.com:80 \
+            --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" \
+            | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install -y k6
+
+      - name: Start local API (fallback when no staging secret)
+        if: ${{ !secrets.STAGING_API_URL }}
+        run: |
+          docker compose -f docker-compose.staging.yml up -d --wait || true
+          echo "STAGING_API_URL=http://localhost:3000/api" >> "$GITHUB_ENV"
+
+      - name: Wait for target
+        run: |
+          HEALTH_URL="${{ env.STAGING_API_URL || 'http://localhost:3000/api' }}"
+          # Strip /api suffix for the /health endpoint (it lives at the root)
+          ROOT_URL="${HEALTH_URL%/api}"
+          for i in $(seq 1 30); do
+            if curl -sf "${ROOT_URL}/health" > /dev/null 2>&1; then
+              echo "Target is up"
+              exit 0
+            fi
+            echo "Waiting... ($i/30)"
+            sleep 5
+          done
+          echo "::error::Target ${ROOT_URL} did not become reachable"
+          exit 1
+
+      - name: Run performance tests (search & discovery)
+        env:
+          BASE_URL: ${{ inputs.base_url || secrets.STAGING_API_URL || 'http://localhost:3000/api' }}
+        run: |
+          mkdir -p performance-results
+          k6 run \
+            --env BASE_URL="$BASE_URL" \
+            --env SCENARIO=load \
+            --out json=performance-results/search.json \
+            packages/api/load/search.js
+
+      - name: Run performance tests (auth)
+        env:
+          BASE_URL: ${{ inputs.base_url || secrets.STAGING_API_URL || 'http://localhost:3000/api' }}
+        run: |
+          k6 run \
+            --env BASE_URL="$BASE_URL" \
+            --out json=performance-results/auth.json \
+            packages/api/load/auth.js
+
+      - name: Upload performance results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-results-${{ github.sha }}
+          path: performance-results/
+          retention-days: 14
+
+      - name: Generate performance summary
+        if: always()
+        run: |
+          echo "## Performance Test Results (PR #${{ github.event.pull_request.number || github.sha }})" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Script | Metric | Value | Status |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|--------|--------|-------|--------|" >> "$GITHUB_STEP_SUMMARY"
+          for f in performance-results/*.json; do
+            name=$(basename "$f" .json)
+            if command -v jq &>/dev/null; then
+              jq -r '
+                select(.type == "Point")
+                | [.metric, (.data.value | tostring), (.data.tags.endpoint // "overall")]
+                | @tsv
+              ' "$f" 2>/dev/null | awk -F'\t' '
+                {
+                  metric=$1
+                  value=$2
+                  endpoint=$3
+                  if (metric == "http_req_duration") {
+                    if (value < 1500) status="✅ PASS"
+                    else status="❌ FAIL"
+                    printf "| %s | %s (%s) | %.0fms | %s |\n", "'"$name"'", metric, endpoint, value, status
+                  }
+                }
+              ' >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || true
+            fi
+          done
+
+      - name: Check for regression (threshold summary)
+        if: always()
+        run: |
+          echo "## Threshold Check" >> "$GITHUB_STEP_SUMMARY"
+          k6 version

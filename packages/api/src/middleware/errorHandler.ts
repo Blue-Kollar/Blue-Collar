@@ -1,8 +1,8 @@
 import type { Request, Response, NextFunction } from 'express'
-import { AppError, ErrorCode } from '../utils/AppError.js'
-import { logger } from '../config/logger.js'
-import { serializeError } from '../serializers/error.serializer.js'
-import { ErrorMessages } from '../constants/index.js'
+import { AppError, ErrorCode } from '@/utils/app-error.js'
+import { logger } from '@/config/logger.js'
+import { serializeError } from '@/serializers/error.serializer.js'
+import { ErrorMessages } from '@/constants/index.js'
 
 /**
  * Global error handling middleware for Express.
@@ -23,6 +23,7 @@ export function errorHandler(
 
   if (statusCode >= 500) {
     const error = err instanceof Error ? err : new Error(String(err))
+    // PII SAFETY: only sanitized fields logged — no headers, body, or query params
     logger.error({ message: error.message, stack: error.stack, url: req.url, method: req.method }, '[ERROR]')
   }
 

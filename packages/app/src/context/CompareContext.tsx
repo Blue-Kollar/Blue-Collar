@@ -1,9 +1,20 @@
 "use client";
 
-import { createContext, useContext, useState, useCallback } from "react";
+import { createContext, useContext, useState, useCallback, useEffect } from "react";
 import type { Worker } from "@/types";
 
-const MAX = 4;
+const MAX = 3;
+const STORAGE_KEY = "bc_compare_selection";
+
+/** Reads the saved selection; storage can be blocked, so any failure means an empty list. */
+function readStoredSelection(): Worker[] {
+  try {
+    const raw = window.sessionStorage.getItem(STORAGE_KEY);
+    return raw ? (JSON.parse(raw) as Worker[]).slice(0, MAX) : [];
+  } catch {
+    return [];
+  }
+}
 
 interface CompareContextValue {
   selected: Worker[];
@@ -18,6 +29,22 @@ const CompareContext = createContext<CompareContextValue | null>(null);
 
 export function CompareProvider({ children }: { children: React.ReactNode }) {
   const [selected, setSelected] = useState<Worker[]>([]);
+  const [loaded, setLoaded] = useState(false);
+
+  // Read storage after mount so the server and client first render match.
+  useEffect(() => {
+    setSelected(readStoredSelection());
+    setLoaded(true);
+  }, []);
+
+  useEffect(() => {
+    if (!loaded) return;
+    try {
+      window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(selected));
+    } catch {
+      // Storage unavailable (private mode, quota): the selection still works in memory.
+    }
+  }, [selected, loaded]);
 
   const toggle = useCallback((worker: Worker) => {
     setSelected((prev) => {

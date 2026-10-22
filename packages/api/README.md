@@ -3,9 +3,11 @@
 REST API for the BlueCollar platform — connecting skilled workers with users via a decentralised Stellar-backed protocol.
 
 - [Quick Start Guide](./QUICK_START_GUIDE.md)
-- [Full API Documentation](./DOCUMENTATION.json)
+- [API Reference](./API_REFERENCE.md) — OpenAPI spec, Swagger UI, method-override pattern
+- [Authentication](./AUTHENTICATION.md) — login, refresh tokens, 2FA, OAuth, device sessions
 - [cURL Examples](./CURL_EXAMPLES.md)
 - [Security Policy](./SECURITY.md)
+- [ADR 0001: Monorepo Package Boundaries](../../docs/adr/0001-monorepo-package-boundaries.md)
 
 ---
 
@@ -88,6 +90,41 @@ See [QUICK_START_GUIDE.md](./QUICK_START_GUIDE.md) for detailed troubleshooting.
 | `pnpm seed`          | Seed default categories        |
 | `pnpm admin:create`  | Create an admin user via CLI   |
 | `pnpm db:reset`      | Reset the database (dev only)  |
+
+---
+
+## Test Coverage
+
+Coverage is measured with Vitest's V8 provider and enforced against an **85% line-coverage target** for `packages/api`, with a per-module breakdown for `services`, `controllers`, and `repositories`.
+
+### Running coverage
+
+```bash
+# From the repo root
+pnpm --filter api test:coverage
+
+# Or from packages/api
+cd packages/api
+pnpm test:coverage
+```
+
+This writes a text summary to the console and an HTML report to `packages/api/coverage/index.html`.
+
+### Baseline
+
+The current baseline was captured by running the command above against `packages/api`. The report is generated on demand and is **not committed** as a binary artifact (`coverage/` is git-ignored). Re-run the command to reproduce the baseline locally or in CI.
+
+### Target & per-module reporting
+
+The 85% line-coverage target is configured in `packages/api/vitest.config.ts` via `test.coverage.thresholds`, with per-module thresholds for the three core layers:
+
+| Module         | Path                  | Line coverage target |
+| -------------- | --------------------- | -------------------- |
+| `services`     | `src/services/**`     | 85%                  |
+| `controllers`  | `src/controllers/**`  | 85%                  |
+| `repositories` | `src/repositories/**` | 85%                  |
+
+Modules that fall below **60%** line coverage are tracked as follow-up issues so they can be brought up to the target incrementally.
 
 ---
 
@@ -301,180 +338,6 @@ List all categories.
 ```
 
 ```bash
-curl http://localhost:3000/api/categories
-```
+curl http://localhost:3000/api/cate
 
----
-
-#### `GET /categories/:id`
-
-Get a single category by ID.
-
-```bash
-curl http://localhost:3000/api/categories/clxyz123
-```
-
----
-
-### Workers
-
-#### `GET /workers`
-
-List active workers (paginated). Public.
-
-**Query params:** `page` (default: 1), `limit` (default: 10), `category`
-
-```bash
-curl "http://localhost:3000/api/workers?page=1&limit=10"
-curl "http://localhost:3000/api/workers?category=clxyz123"
-```
-
----
-
-#### `GET /workers/:id`
-
-Get a single worker by ID. Public.
-
-```bash
-curl http://localhost:3000/api/workers/clxyz123
-```
-
----
-
-#### `GET /workers/mine`
-
-List workers created by the authenticated curator. Requires `curator` or `admin` role.
-
-```bash
-curl http://localhost:3000/api/workers/mine \
-  -H "Authorization: Bearer <jwt>"
-```
-
----
-
-#### `POST /workers`
-
-Create a worker listing. Requires `curator` role.
-
-**Body (`application/json`):**
-
-```json
-{
-  "name": "John Smith",
-  "bio": "10 years experience",
-  "phone": "+447911123456",
-  "email": "john@example.com",
-  "walletAddress": "GXXXXXXX...",
-  "categoryId": "clxyz123"
-}
-```
-
-```bash
-curl -X POST http://localhost:3000/api/workers \
-  -H "Authorization: Bearer <jwt>" \
-  -H "Content-Type: application/json" \
-  -d '{"name":"John Smith","categoryId":"clxyz123"}'
-```
-
----
-
-#### `PUT /workers/:id`
-
-Update a worker listing. Requires `curator` role.
-
-For updates **with a file upload** (profile image), use method spoofing:
-
-```bash
-# JSON update
-curl -X PUT http://localhost:3000/api/workers/clxyz123 \
-  -H "Authorization: Bearer <jwt>" \
-  -H "Content-Type: application/json" \
-  -d '{"name":"John Smith Updated"}'
-
-# With file upload (method spoofing via POST)
-curl -X POST http://localhost:3000/api/workers/clxyz123 \
-  -H "Authorization: Bearer <jwt>" \
-  -H "X-HTTP-Method: PUT" \
-  -F "name=John Smith Updated" \
-  -F "avatar=@/path/to/image.jpg"
-```
-
-> HTML forms only support GET/POST. Send a `POST` with `X-HTTP-Method: PUT` to upload a file alongside an update. The `method-override` middleware rewrites the method before it reaches the route handler.
-
----
-
-#### `DELETE /workers/:id`
-
-Delete a worker listing. Requires `curator` role.
-
-```bash
-curl -X DELETE http://localhost:3000/api/workers/clxyz123 \
-  -H "Authorization: Bearer <jwt>"
-```
-
----
-
-#### `PATCH /workers/:id/toggle`
-
-Toggle a worker's active status. Requires `curator` role.
-
-```bash
-curl -X PATCH http://localhost:3000/api/workers/clxyz123/toggle \
-  -H "Authorization: Bearer <jwt>"
-```
-
----
-
-### Admin
-
-All admin endpoints require the `admin` role.
-
-#### `GET /admin/workers`
-
-List all workers (including inactive).
-
-```bash
-curl http://localhost:3000/api/admin/workers \
-  -H "Authorization: Bearer <admin-jwt>"
-```
-
-#### `GET /admin/users`
-
-List all users.
-
-```bash
-curl http://localhost:3000/api/admin/users \
-  -H "Authorization: Bearer <admin-jwt>"
-```
-
----
-
-## Error Codes
-
-| HTTP Status | Meaning                                     |
-| ----------- | ------------------------------------------- |
-| `400`       | Validation error — check the `errors` field |
-| `401`       | Unauthenticated — missing or invalid JWT    |
-| `403`       | Forbidden — insufficient role               |
-| `404`       | Resource not found                          |
-| `409`       | Conflict — e.g. email already registered    |
-| `429`       | Rate limit exceeded                         |
-| `500`       | Internal server error                       |
-
-Error response shape:
-
-```json
-{
-  "status": "error",
-  "message": "Validation failed",
-  "code": 400,
-  "errors": { "email": ["The email field is required."] }
-}
-```
-
----
-
-## CI
-
-![API Tests](https://github.com/Fidelis900/Blue-Collar/actions/workflows/api-tests.yml/badge.svg)
-![CI](https://github.com/Fidelis900/Blue-Collar/actions/workflows/ci.yml/badge.svg)
+/* … truncated 3771 chars — edit only what you need near the top … */

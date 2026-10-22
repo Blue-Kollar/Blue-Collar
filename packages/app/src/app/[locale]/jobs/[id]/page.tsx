@@ -8,12 +8,14 @@ import {
   Send, CheckCircle, XCircle, AlertTriangle, MessageSquare, RefreshCw,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
-import { cn } from "@/lib/utils";
+import { cn, formatDate } from "@/lib/utils";
+import { formatCurrency } from "@/lib/format";
+import LoadingState from "@/components/LoadingState";
 import {
   getJob, applyToJob, withdrawJobApplication, getJobApplications,
   updateJobApplicationStatus, getJobMessages, sendJobMessage, renewJob,
   getMyApplications,
-} from "@/lib/api";
+} from "@/lib/api/jobs";
 import type { Job, JobApplication, JobMessage } from "@/types";
 
 const STATUS_STYLE: Record<string, string> = {
@@ -147,11 +149,7 @@ export default function JobDetailPage() {
   };
 
   if (loading) {
-    return (
-      <div className="flex justify-center py-32">
-        <Loader2 className="animate-spin text-gray-400" size={28} />
-      </div>
-    );
+    return <LoadingState className="py-32" />;
   }
 
   if (!job) {
@@ -190,7 +188,7 @@ export default function JobDetailPage() {
 
         <div className="mt-4 flex flex-wrap gap-4 text-sm text-gray-500">
           {job.budget != null && (
-            <span className="flex items-center gap-1.5"><DollarSign size={14} /> Budget: <strong className="text-gray-700">${job.budget.toLocaleString()}</strong></span>
+            <span className="flex items-center gap-1.5"><DollarSign size={14} /> Budget: <strong className="text-gray-700">{formatCurrency(job.budget)}</strong></span>
           )}
           {daysLeft !== null && (
             <span className="flex items-center gap-1.5"><Clock size={14} /> {daysLeft === 0 ? "Expires today" : `${daysLeft} days left`}</span>
@@ -316,7 +314,7 @@ export default function JobDetailPage() {
                   <div>
                     <p className="font-medium text-gray-800">{app.worker?.name ?? "Worker"}</p>
                     {app.worker?.category && <p className="text-xs text-gray-400">{app.worker.category.name}</p>}
-                    {app.proposedRate != null && <p className="mt-1 text-xs text-gray-500">Proposed rate: <strong>${app.proposedRate.toLocaleString()}</strong></p>}
+                    {app.proposedRate != null && <p className="mt-1 text-xs text-gray-500">Proposed rate: <strong>{formatCurrency(app.proposedRate)}</strong></p>}
                   </div>
                   <span className={cn("rounded-full px-2.5 py-0.5 text-xs font-medium capitalize", APP_STATUS_STYLE[app.status])}>
                     {app.status}
@@ -360,7 +358,7 @@ export default function JobDetailPage() {
                         {!mine && <p className="mb-1 text-xs font-medium text-gray-500">{m.sender.firstName}</p>}
                         <p>{m.body}</p>
                         <p className={cn("mt-1 text-[10px]", mine ? "text-blue-200" : "text-gray-400")}>
-                          {new Date(m.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                          {formatDate(m.createdAt, { hour: "2-digit", minute: "2-digit" })}
                         </p>
                       </div>
                     </div>

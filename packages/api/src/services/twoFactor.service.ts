@@ -2,8 +2,9 @@ import * as OTPAuth from 'otpauth'
 import QRCode from 'qrcode'
 import crypto from 'node:crypto'
 import argon2 from 'argon2'
-import { db } from '../db.js'
-import { AppError } from '../services/AppError.js'
+import { db } from '@/db.js'
+import { AppError } from '@/utils/app-error.js'
+import { nowUtc, parseUtcDate, addUtcMs, formatUtcIso } from '@/utils/date.js'
 
 const ISSUER = 'BlueCollar'
 const BACKUP_CODE_COUNT = 8

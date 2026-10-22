@@ -1,10 +1,11 @@
 import * as dotenv from 'dotenv';
 import ContractMonitor from './monitor';
+import { TESTNET_SOROBAN_RPC_URL } from '@bluecollar/sdk';
 
 dotenv.config();
 
 const config = {
-  rpcUrl: process.env.STELLAR_RPC_URL || 'https://soroban-testnet.stellar.org',
+  rpcUrl: process.env.STELLAR_RPC_URL || TESTNET_SOROBAN_RPC_URL,
   registryContractId: process.env.REGISTRY_CONTRACT_ID || '',
   marketContractId: process.env.MARKET_CONTRACT_ID || '',
   alertWebhook: process.env.ALERT_WEBHOOK_URL,

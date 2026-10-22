@@ -1,8 +1,9 @@
 import crypto from 'node:crypto'
 import jwt from 'jsonwebtoken'
-import { db } from '../db.js'
-import { logger } from '../config/logger.js'
-import { sendVerificationReminderEmail } from '../mailer/index.js'
+import { db } from '@/db.js'
+import { logger } from '@/config/logger.js'
+import { sendVerificationReminderEmail } from '@/mailer/index.js'
+import { nowUtc, addUtcMs } from '@/utils/date.js'
 
 const HOUR = 60 * 60 * 1000
 const DAY = 24 * HOUR
@@ -10,7 +11,7 @@ const DAY = 24 * HOUR
 function generateVerificationToken(userId: string) {
   const raw = jwt.sign({ id: userId, purpose: 'email-verify' }, process.env.JWT_SECRET!, { expiresIn: '7d' })
   const hash = crypto.createHash('sha256').update(raw).digest('hex')
-  const expiry = new Date(Date.now() + 7 * DAY)
+  const expiry = addUtcMs(nowUtc(), 7 * DAY)
   return { raw, hash, expiry }
 }
 
@@ -25,10 +26,10 @@ function generateUnsubscribeToken(userId: string) {
  * - Delete unverified accounts older than 30 days
  */
 export async function runVerificationReminderJob() {
-  const now = new Date()
+  const now = nowUtc()
 
   // --- First reminder: 24h after creation, not yet reminded ---
-  const firstReminderCutoff = new Date(now.getTime() - DAY)
+  const firstReminderCutoff = addUtcMs(now, -DAY)
   const firstBatch = await db.user.findMany({
     where: {
       verified: false,
@@ -55,7 +56,7 @@ export async function runVerificationReminderJob() {
   }
 
   // --- Second reminder: 7 days after creation, already sent first reminder ---
-  const secondReminderCutoff = new Date(now.getTime() - 7 * DAY)
+  const secondReminderCutoff = addUtcMs(now, -7 * DAY)
   const secondBatch = await db.user.findMany({
     where: {
       verified: false,
@@ -82,7 +83,7 @@ export async function runVerificationReminderJob() {
   }
 
   // --- Delete unverified accounts older than 30 days ---
-  const deleteCutoff = new Date(now.getTime() - 30 * DAY)
+  const deleteCutoff = addUtcMs(now, -30 * DAY)
   const deleted = await db.user.deleteMany({
     where: { verified: false, createdAt: { lte: deleteCutoff } },
   })

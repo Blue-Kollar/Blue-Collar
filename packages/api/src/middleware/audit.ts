@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from 'express'
-import { log } from '../services/audit.service.js'
+import { log } from '@/services/audit.service.js'
 
 // Map HTTP method + route pattern to an audit action
 const ACTION_MAP: Array<{ method: string; pattern: RegExp; action: string; resource: string }> = [
@@ -25,10 +25,12 @@ export function auditMiddleware(req: Request, res: Response, next: NextFunction)
   if (!match) return next()
 
   const originalJson = res.json.bind(res)
-  res.json = function (body: any) {
+  res.json = function (body: unknown) {
     // Only log on success (2xx)
     if (res.statusCode >= 200 && res.statusCode < 300) {
-      const resourceId = req.params?.id ?? body?.data?.id ?? undefined
+      const payload = body as { data?: { id?: string } } | null | undefined
+      const rawId = req.params?.id ?? payload?.data?.id
+      const resourceId = typeof rawId === 'string' ? rawId : undefined
       log({
         userId: req.user?.id,
         action: match.action,

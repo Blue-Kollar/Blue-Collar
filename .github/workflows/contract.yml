@@ -28,7 +28,7 @@ jobs:
       - name: Install Rust stable with wasm32 target
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: wasm32-unknown-unknown
+          targets: wasm32v1-none
           components: rustfmt, clippy
 
       - name: Cache cargo registry & target
@@ -41,8 +41,14 @@ jobs:
           key: ${{ runner.os }}-contracts-${{ hashFiles('packages/contracts/**/Cargo.toml', 'packages/contracts/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-contracts-
 
+      # Issue #1679: enforce rustfmt across contract crates.
+      # This step must run before clippy/test so formatting failures surface first.
       - name: cargo fmt --check
         run: cargo fmt --all -- --check
+
+      # Issue #1680: fail CI on unused (dead) functions in contract crates.
+      - name: cargo clippy dead_code -D warnings
+        run: cargo clippy --workspace --all-targets -- -D dead_code -D warnings
 
       - name: cargo clippy -D warnings
         run: cargo clippy --workspace --all-targets -- -D warnings
@@ -51,5 +57,6 @@ jobs:
         run: cargo test --workspace
 
       - name: WASM build (release)
-        run: cargo build --release --target wasm32-unknown-unknown --workspace \
-          --exclude bluecollar-fuzz
+        run: |
+          cargo build --release --target wasm32v1-none --workspace \
+            --exclude bluecollar-fuzz --exclude bluecollar-integration

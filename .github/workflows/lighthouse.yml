@@ -1,0 +1,92 @@
+name: Lighthouse CI
+
+on:
+  pull_request:
+    paths:
+      - "packages/app/**"
+  push:
+    branches: [main]
+    paths:
+      - "packages/app/**"
+
+jobs:
+  lighthouse:
+    name: Core Web Vitals Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: pnpm/action-setup@v4
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build app
+        run: pnpm --filter @bluecollar/app build
+        env:
+          CI: true
+
+      - name: Start preview server
+        run: |
+          pnpm --filter @bluecollar/app start &
+          npx wait-on http://localhost:3000 --timeout 60000
+
+      - name: Run Lighthouse CI
+        run: |
+          npm install -g @lhci/cli@0.14.x
+          lhci autorun \
+            --collect.staticDistDir=packages/app/.next \
+            --collect.url=http://localhost:3000 \
+            --collect.url=http://localhost:3000/workers \
+            --collect.url=http://localhost:3000/en/workers/ \
+            --collect.numberOfRuns=3 \
+            --assert.preset=lighthouse:recommended \
+            --assert.budgetPath=./lighthouse-budget.json \
+            --upload.target=temporary-public-storage \
+            --upload.githubToken=${{ secrets.GITHUB_TOKEN }} \
+            --upload.githubStatusContextSuffix="lhci"
+        continue-on-error: true
+
+      - name: Post results to PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const reportPath = '.lighthouseci/';
+            if (!fs.existsSync(reportPath)) {
+              core.warning('No Lighthouse CI report found');
+              return;
+            }
+            const reports = fs.readdirSync(reportPath)
+              .filter(f => f.endsWith('.json') && f.includes('manifest'));
+            if (reports.length > 0) {
+              const report = JSON.parse(fs.readFileSync(reportPath + reports[0], 'utf8'));
+              const summary = report.categories || {};
+              const scores = Object.entries(summary)
+                .map(([key, val]) => `- **${key}**: ${Math.round(val.score * 100)}`)
+                .join('\n');
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: `## Lighthouse Report\n${scores}\n\n[Full report](${report.lhr?.finalUrl || '#'})`
+              });
+            }

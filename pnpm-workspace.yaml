@@ -1,8 +1,12 @@
 packages:
-  - packages/api
-  - packages/app
-  - packages/contracts
-  - packages/sdk
+  - "packages/api"
+  - "packages/app"
+  - "packages/contracts"
+  - "packages/mobile"
+  - "packages/monitoring"
+  - "packages/sdk"
+  - "packages/test-utils"
+  - "packages/types"
 
 overrides:
   '@babel/core@<=7.29.0': '>=7.29.6'
@@ -195,8 +199,3 @@ overrides:
   webpack-dev-middleware@<7.4.5: '>=7.4.6'
   ws@>=8.0.0 <8.20.1: '>=8.20.1'
   ws@>=8.0.0 <8.21.0: '>=8.21.0'
-
-# Security overrides (#1687)
-overrides:
-  "sharp@<0.35.5": ">=0.35.5"
-  "vite@<=6.4.3": ">=6.4.4"

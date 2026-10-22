@@ -7,7 +7,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import { resetPasswordSchema, type ResetPasswordInput, authApi } from "@/lib/auth";
-import FormField from "@/components/FormField";
+import FormField from "@/components/Form/FormField";
+import FormError from "@/components/Form/FormError";
 import PasswordStrength from "@/components/PasswordStrength";
 import { cn } from "@/lib/utils";
 
@@ -97,9 +98,7 @@ function ResetPasswordForm() {
 
             <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4" noValidate>
               {apiError && (
-                <div className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">
-                  {apiError}
-                </div>
+                <FormError message={apiError} />
               )}
 
               <FormField

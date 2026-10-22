@@ -1,4 +1,10 @@
-import { AppError } from '../utils/AppError.js'
+import { AppError, ErrorCode } from '@/utils/app-error.js'
+import { nowUtc } from '@/utils/date.js'
+import {
+  calculateFee as domainCalculateFee,
+  validateBasisPoints,
+  MAX_BASIS_POINTS,
+} from '@/domain/fees.js'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -15,7 +21,7 @@ export interface EscrowParams {
   expiryDate: Date
 }
 
-export interface FeeConfig {
+interface FeeConfig {
   fee_bps: number // basis points, e.g. 250 = 2.5%
 }
 
@@ -61,11 +67,21 @@ export interface MultiSigEscrowResult {
 
 // ── Standalone helpers (kept for backward-compat & Stryker coverage) ─────────
 
+/**
+ * Calculate the platform fee for a given amount and basis points.
+ * Delegates to the domain module which contains the canonical implementation.
+ *
+ * @see @/domain/fees.ts
+ */
 export function calculateFee(amount: number, fee_bps: number): number {
-  if (fee_bps < 0 || fee_bps > 10_000) {
-    throw new AppError('fee_bps must be between 0 and 10000', 400)
+  try {
+    return domainCalculateFee(amount, fee_bps)
+  } catch (error) {
+    if (error instanceof RangeError) {
+      throw new AppError('fee_bps must be between 0 and 10000', 400, true, ErrorCode.VALIDATION_ERROR)
+    }
+    throw error
   }
-  return Math.floor((amount * fee_bps) / 10_000)
 }
 
 // Module-level fee state (shared with PaymentService singleton)
@@ -77,48 +93,53 @@ export function getFeeBps(): number {
 
 export function updateFeeBps(callerRole: string, fee_bps: number): void {
   if (callerRole !== 'admin') {
-    throw new AppError('Only admins can update the fee', 403)
+    throw new AppError('Only admins can update the fee', 403, true, ErrorCode.FORBIDDEN)
   }
-  if (fee_bps < 0 || fee_bps > 10_000) {
-    throw new AppError('fee_bps must be between 0 and 10000', 400)
+  try {
+    validateBasisPoints(fee_bps)
+  } catch (error) {
+    if (error instanceof RangeError) {
+      throw new AppError('fee_bps must be between 0 and 10000', 400, true, ErrorCode.VALIDATION_ERROR)
+    }
+    throw error
   }
   _feeBps = fee_bps
 }
 
 export function tip({ from, to, amount }: TipParams): TipResult {
   if (amount <= 0) {
-    throw new AppError('Tip amount must be greater than 0', 400)
+    throw new AppError('Tip amount must be greater than 0', 400, true, ErrorCode.VALIDATION_ERROR)
   }
   if (from === to) {
-    throw new AppError('Sender and recipient must be different', 400)
+    throw new AppError('Sender and recipient must be different', 400, true, ErrorCode.VALIDATION_ERROR)
   }
   const fee = calculateFee(amount, _feeBps)
   return { from, to, grossAmount: amount, fee, netAmount: amount - fee }
 }
 
 export function createEscrow({ from, to, amount, expiryDate }: EscrowParams): EscrowResult {
-  if (expiryDate <= new Date()) {
-    throw new AppError('Escrow expiry must be in the future', 400)
+  if (expiryDate <= nowUtc()) {
+    throw new AppError('Escrow expiry must be in the future', 400, true, ErrorCode.VALIDATION_ERROR)
   }
   if (amount <= 0) {
-    throw new AppError('Escrow amount must be greater than 0', 400)
+    throw new AppError('Escrow amount must be greater than 0', 400, true, ErrorCode.VALIDATION_ERROR)
   }
   return { from, to, amount, expiryDate, status: 'pending' }
 }
 
 export function createMultiSigEscrow(params: MultiSigEscrowParams): MultiSigEscrowResult {
   const { from, to, amount, expiryDate, signers, threshold } = params
-  if (expiryDate <= new Date()) {
-    throw new AppError('Escrow expiry must be in the future', 400)
+  if (expiryDate <= nowUtc()) {
+    throw new AppError('Escrow expiry must be in the future', 400, true, ErrorCode.VALIDATION_ERROR)
   }
   if (amount <= 0) {
-    throw new AppError('Escrow amount must be greater than 0', 400)
+    throw new AppError('Escrow amount must be greater than 0', 400, true, ErrorCode.VALIDATION_ERROR)
   }
   if (signers.length === 0) {
-    throw new AppError('At least one signer is required', 400)
+    throw new AppError('At least one signer is required', 400, true, ErrorCode.VALIDATION_ERROR)
   }
   if (threshold < 1 || threshold > signers.length) {
-    throw new AppError('threshold must be between 1 and signers.length', 400)
+    throw new AppError('threshold must be between 1 and signers.length', 400, true, ErrorCode.VALIDATION_ERROR)
   }
   return { from, to, amount, expiryDate, signers, threshold, approvals: [], status: 'pending' }
 }
@@ -145,10 +166,15 @@ export class PaymentService {
 
   setFeeBps(callerRole: string, fee_bps: number): void {
     if (callerRole !== 'admin') {
-      throw new AppError('Only admins can update the fee', 403)
+      throw new AppError('Only admins can update the fee', 403, true, ErrorCode.FORBIDDEN)
     }
-    if (fee_bps < 0 || fee_bps > 10_000) {
-      throw new AppError('fee_bps must be between 0 and 10000', 400)
+    try {
+      validateBasisPoints(fee_bps)
+    } catch (error) {
+      if (error instanceof RangeError) {
+        throw new AppError('fee_bps must be between 0 and 10000', 400, true, ErrorCode.VALIDATION_ERROR)
+      }
+      throw error
     }
     this.feeBps = fee_bps
   }
@@ -166,10 +192,10 @@ export class PaymentService {
   tip(params: TipParams): TipResult {
     const { from, to, amount } = params
     if (amount <= 0) {
-      throw new AppError('Tip amount must be greater than 0', 400)
+      throw new AppError('Tip amount must be greater than 0', 400, true, ErrorCode.VALIDATION_ERROR)
     }
     if (from === to) {
-      throw new AppError('Sender and recipient must be different', 400)
+      throw new AppError('Sender and recipient must be different', 400, true, ErrorCode.VALIDATION_ERROR)
     }
     const fee = this.calculateFee(amount)
     return { from, to, grossAmount: amount, fee, netAmount: amount - fee }
@@ -184,11 +210,11 @@ export class PaymentService {
    */
   createEscrow(params: EscrowParams): EscrowResult {
     const { from, to, amount, expiryDate } = params
-    if (expiryDate <= new Date()) {
-      throw new AppError('Escrow expiry must be in the future', 400)
+    if (expiryDate <= nowUtc()) {
+      throw new AppError('Escrow expiry must be in the future', 400, true, ErrorCode.VALIDATION_ERROR)
     }
     if (amount <= 0) {
-      throw new AppError('Escrow amount must be greater than 0', 400)
+      throw new AppError('Escrow amount must be greater than 0', 400, true, ErrorCode.VALIDATION_ERROR)
     }
     return { from, to, amount, expiryDate, status: 'pending' }
   }

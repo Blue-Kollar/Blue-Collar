@@ -5,7 +5,8 @@ import { SlidersHorizontal } from "lucide-react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useTranslations } from "next-intl";
 import type { Category } from "@/types";
-import FilterPanel, { type FilterValues } from "./FilterPanel";
+import FilterPanel from "./FilterPanel";
+import { useFilterState, type FilterValues } from "@/hooks/useFilterState";
 
 interface MobileFilterSheetProps {
   filters: FilterValues;
@@ -25,9 +26,7 @@ export default function MobileFilterSheet({
   const t = useTranslations("filters");
   const [open, setOpen] = useState(false);
 
-  const activeCount = [filters.category, filters.city, filters.state].filter(
-    Boolean
-  ).length;
+  const { activeCount } = useFilterState(filters, onChange, onReset);
 
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>

@@ -21,10 +21,10 @@ export function validate(schema: ZodSchema, target: 'body' | 'query' | 'params' 
         acc[field].push(err.message)
         return acc
       }, {})
-      return res.status(400).json({
+      return res.status(422).json({
         status: 'error',
         message: 'Validation failed',
-        code: 400,
+        code: 422,
         errors,
       })
     }
@@ -62,16 +62,54 @@ export const stellarAmountSchema = z
 export const boundedString = z.string().max(MAX_FIELD_LENGTH, `Field exceeds maximum length of ${MAX_FIELD_LENGTH}`)
 
 /**
+ * Matches script-tag payloads (including obfuscated variants) and other
+ * dangerous HTML constructs that must never be stored from free-text input.
+ */
+const SCRIPT_TAG_RE = /<\s*\/?\s*(script|iframe|object|embed|svg|math)\b[^>]*>/i
+const DANGEROUS_PROTOCOL_RE = /(javascript|vbscript|data)\s*:/i
+const EVENT_HANDLER_RE = /\bon[a-z]+\s*=/i
+
+/**
+ * Reusable free-text field builder (#1685).
+ * Trims input, enforces the maximum field length, and rejects script tags /
+ * other dangerous HTML constructs so free-text fields are sanitised
+ * consistently across validation schemas.
+ *
+ * @param maxLength - Optional per-field maximum length (defaults to MAX_FIELD_LENGTH)
+ */
+export function sanitizedString(maxLength: number = MAX_FIELD_LENGTH) {
+  return z
+    .string()
+    .trim()
+    .max(maxLength, `Field exceeds maximum length of ${maxLength}`)
+    .refine((value) => !SCRIPT_TAG_RE.test(value), {
+      message: 'Field contains disallowed HTML/script content',
+    })
+    .refine((value) => !DANGEROUS_PROTOCOL_RE.test(value), {
+      message: 'Field contains a disallowed protocol',
+    })
+    .refine((value) => !EVENT_HANDLER_RE.test(value), {
+      message: 'Field contains disallowed inline event handlers',
+    })
+}
+
+/**
+ * Alias for {@link sanitizedString} — use for free-text fields such as
+ * worker bios and messages.
+ */
+export const freeText = sanitizedString
+
+/**
  * Middleware: validate that req.body.walletAddress is a well-formed Stellar address.
  * Use on any route that accepts a wallet address to prevent blockchain-specific injection.
  */
 export function validateWalletAddress(req: Request, res: Response, next: NextFunction) {
   const result = walletAddressSchema.safeParse(req.body?.walletAddress)
   if (!result.success) {
-    return res.status(400).json({
+    return res.status(422).json({
       status: 'error',
       message: 'Invalid wallet address',
-      code: 400,
+      code: 422,
       errors: { walletAddress: result.error.errors.map((e) => e.message) },
     })
   }

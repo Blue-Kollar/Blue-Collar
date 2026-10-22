@@ -1,0 +1,31 @@
+{{- if and .Values.api.enabled .Values.api.hpa.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "blue-collar.fullname" . }}-api
+  labels:
+    app.kubernetes.io/name: {{ include "blue-collar.name" . }}-api
+    helm.sh/chart: {{ include "blue-collar.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "blue-collar.fullname" . }}-api
+  minReplicas: {{ .Values.api.hpa.minReplicas }}
+  maxReplicas: {{ .Values.api.hpa.maxReplicas }}
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: {{ .Values.api.hpa.targetCPUUtilizationPercentage }}
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: {{ .Values.api.hpa.targetMemoryUtilizationPercentage }}
+{{- end }}

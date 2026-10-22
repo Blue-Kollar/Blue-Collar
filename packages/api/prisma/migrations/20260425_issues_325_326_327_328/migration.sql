@@ -1,8 +1,14 @@
--- CreateEnum
-CREATE TYPE "ReviewStatus" AS ENUM ('pending', 'approved', 'rejected');
+-- CreateEnum: ReviewStatus (if not exists)
+-- 20260425_issue_321_availability_enhancements sorts ahead of this migration and
+-- creates the same two enums, so guard them the way that migration already does.
+DO $$ BEGIN
+  CREATE TYPE "ReviewStatus" AS ENUM ('pending', 'approved', 'rejected');
+EXCEPTION WHEN duplicate_object THEN null; END $$;
 
--- CreateEnum
-CREATE TYPE "SubscriptionTier" AS ENUM ('free', 'pro', 'premium');
+-- CreateEnum: SubscriptionTier (if not exists)
+DO $$ BEGIN
+  CREATE TYPE "SubscriptionTier" AS ENUM ('free', 'pro', 'premium');
+EXCEPTION WHEN duplicate_object THEN null; END $$;
 
 -- AlterTable: add geolocation columns to Worker
 ALTER TABLE "Worker" ADD COLUMN "latitude" DOUBLE PRECISION;

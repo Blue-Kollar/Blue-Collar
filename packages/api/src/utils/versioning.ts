@@ -1,5 +1,5 @@
 import type { Request } from 'express'
-import { VERSION_CONFIG } from '../middleware/version.js'
+import { VERSION_CONFIG } from '@/middleware/version.js'
 
 /**
  * Utility functions for API versioning

@@ -1,8 +1,20 @@
-name: Load Tests
+name: Load Testing
 
 # Nightly load tests against staging (#813).
 # Runs at 02:00 UTC every day. Can also be triggered manually.
+# A lightweight smoke test runs on every PR that touches the API or load scripts.
 on:
+  push:
+    branches: [main]
+    paths:
+      - "packages/api/load/**"
+      - "packages/api/src/**"
+      - ".github/workflows/load.yml"
+  pull_request:
+    paths:
+      - "packages/api/load/**"
+      - "packages/api/src/**"
+      - ".github/workflows/load.yml"
   schedule:
     - cron: "0 2 * * *"
   workflow_dispatch:
@@ -16,8 +28,104 @@ on:
         required: false
 
 jobs:
+  # ---------------------------------------------------------------------------
+  # Smoke test — fast, runs on every PR to catch regressions early.
+  # ---------------------------------------------------------------------------
+  smoke-test:
+    name: Smoke Test (PR Only)
+    # Only run on PRs (skip scheduled and pushed runs)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install k6
+        run: |
+          sudo gpg --no-default-keyring \
+            --keyring /usr/share/keyrings/k6-archive-keyring.gpg \
+            --keyserver hkp://keyserver.ubuntu.com:80 \
+            --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" \
+            | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install -y k6
+
+      - name: Start local API (fallback when no staging secret)
+        if: ${{ !secrets.STAGING_API_URL }}
+        run: |
+          docker compose -f docker-compose.staging.yml up -d --wait || true
+          echo "STAGING_API_URL=http://localhost:3000/api" >> "$GITHUB_ENV"
+
+      - name: Wait for target
+        run: |
+          HEALTH_URL="${{ secrets.STAGING_API_URL || 'http://localhost:3000/api' }}"
+          # Strip /api suffix for the /health endpoint (it lives at the root)
+          ROOT_URL="${HEALTH_URL%/api}"
+          for i in $(seq 1 30); do
+            if curl -sf "${ROOT_URL}/health" > /dev/null 2>&1; then
+              echo "Target is up"
+              exit 0
+            fi
+            echo "Waiting... ($i/30)"
+            sleep 5
+          done
+          echo "::error::Target ${ROOT_URL} did not become reachable"
+          exit 1
+
+      - name: Run smoke test (search)
+        env:
+          BASE_URL: ${{ inputs.base_url || secrets.STAGING_API_URL || 'http://localhost:3000/api' }}
+        run: |
+          mkdir -p load-results
+          k6 run \
+            --env BASE_URL="$BASE_URL" \
+            --env SCENARIO=smoke \
+            --out json=load-results/smoke-search.json \
+            packages/api/load/search.js
+
+      - name: Run smoke test (auth)
+        env:
+          BASE_URL: ${{ inputs.base_url || secrets.STAGING_API_URL || 'http://localhost:3000/api' }}
+        run: |
+          k6 run \
+            --env BASE_URL="$BASE_URL" \
+            --out json=load-results/smoke-auth.json \
+            packages/api/load/auth.js
+
+      - name: Upload smoke test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-test-results-${{ github.sha }}
+          path: load-results/
+          retention-days: 7
+
+      - name: Summarise smoke results
+        if: always()
+        run: |
+          echo "## Smoke Test Results (PR #${{ github.event.pull_request.number }})" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          for f in load-results/smoke-*.json; do
+            name=$(basename "$f" .json)
+            echo "### $name" >> "$GITHUB_STEP_SUMMARY"
+            if command -v jq &>/dev/null; then
+              jq -r '
+                select(.type == "Point" and .metric == "http_req_duration")
+                | [.data.tags.endpoint // "overall", .data.value]
+                | @tsv
+              ' "$f" | awk '
+                { sum[$1]+=$2; count[$1]++ }
+                END { for(k in sum) printf "| %s | %.0f ms avg |\n", k, sum[k]/count[k] }
+              ' >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || true
+            fi
+          done
+
+  # ---------------------------------------------------------------------------
+  # Nightly full load test suite — search, auth, workers CRUD.
+  # ---------------------------------------------------------------------------
   load-test:
-    name: k6 – ${{ inputs.scenario || 'load' }}
+    name: Nightly Load Test
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -55,6 +163,17 @@ jobs:
             --out json=load-results/auth.json \
             packages/api/load/auth.js
 
+      - name: Worker CRUD endpoints
+        env:
+          BASE_URL: ${{ inputs.base_url || secrets.STAGING_API_URL || 'http://localhost:3000/api' }}
+          AUTH_TOKEN: ${{ secrets.LOAD_TEST_AUTH_TOKEN || '' }}
+        run: |
+          k6 run \
+            --env BASE_URL="$BASE_URL" \
+            --env AUTH_TOKEN="$AUTH_TOKEN" \
+            --out json=load-results/workers.json \
+            packages/api/load/workers.js
+
       - name: Upload results
         if: always()
         uses: actions/upload-artifact@v4
@@ -66,12 +185,11 @@ jobs:
       - name: Summarise results
         if: always()
         run: |
-          echo "## Load Test Results" >> "$GITHUB_STEP_SUMMARY"
+          echo "## Load Test Results (Nightly #${{ github.run_number }})" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           for f in load-results/*.json; do
             name=$(basename "$f" .json)
             echo "### $name" >> "$GITHUB_STEP_SUMMARY"
-            # Extract key metrics from k6 JSON output
             if command -v jq &>/dev/null; then
               jq -r '
                 select(.type == "Point" and .metric == "http_req_duration")

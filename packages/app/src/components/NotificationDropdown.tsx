@@ -3,9 +3,10 @@
 import { useRef, useState, useEffect } from "react";
 import { Bell, Check, CheckCheck, Trash2 } from "lucide-react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useNotifications } from "@/context/NotificationContext";
 import type { NotificationType } from "@/types";
-import { cn } from "@/lib/utils";
+import { cn, formatRelativeTime } from "@/lib/utils";
 
 const TYPE_STYLES: Record<NotificationType, string> = {
   tip: "bg-yellow-100 text-yellow-700",
@@ -21,19 +22,11 @@ const TYPE_LABELS: Record<NotificationType, string> = {
   system: "System",
 };
 
-function timeAgo(iso: string) {
-  const diff = Date.now() - new Date(iso).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  return `${Math.floor(hrs / 24)}d ago`;
-}
 
 export default function NotificationDropdown() {
   const { notifications, unreadCount, markRead, markAllRead, clearAll } =
     useNotifications();
+  const t = useTranslations("notifications");
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -61,7 +54,11 @@ export default function NotificationDropdown() {
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen((o) => !o)}
-        aria-label={`Notifications${unreadCount > 0 ? `, ${unreadCount} unread` : ""}`}
+        aria-label={
+          unreadCount > 0
+            ? t("buttonUnread", { count: unreadCount })
+            : t("button")
+        }
         className="relative flex h-9 w-9 items-center justify-center rounded-md text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 transition-colors"
       >
         <Bell size={18} />
@@ -83,7 +80,8 @@ export default function NotificationDropdown() {
               {unreadCount > 0 && (
                 <button
                   onClick={markAllRead}
-                  title="Mark all as read"
+                  title={t("markAllRead")}
+                  aria-label={t("markAllRead")}
                   className="flex h-7 w-7 items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                 >
                   <CheckCheck size={15} />
@@ -92,7 +90,8 @@ export default function NotificationDropdown() {
               {notifications.length > 0 && (
                 <button
                   onClick={clearAll}
-                  title="Clear all"
+                  title={t("clearAllShort")}
+                  aria-label={t("clearAll")}
                   className="flex h-7 w-7 items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                 >
                   <Trash2 size={14} />
@@ -142,12 +141,13 @@ export default function NotificationDropdown() {
                     <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 mt-0.5">
                       {n.message}
                     </p>
-                    <p className="text-[10px] text-gray-400 mt-1">{timeAgo(n.createdAt)}</p>
+                    <p className="text-[10px] text-gray-400 mt-1">{formatRelativeTime(n.createdAt)}</p>
                   </div>
                   {!n.read && (
                     <button
                       onClick={() => markRead(n.id)}
-                      title="Mark as read"
+                      title={t("markRead")}
+                      aria-label={t("markRead")}
                       className="mt-0.5 shrink-0 text-blue-400 hover:text-blue-600 transition-colors"
                     >
                       <Check size={14} />

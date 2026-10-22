@@ -1,0 +1,8 @@
+pnpm format:check
+pnpm lint-staged
+pnpm type-check
+
+# Enforce rustfmt across contract crates when Rust files are staged (issue #1679)
+if git diff --cached --name-only --diff-filter=ACMR | grep -qE '^packages/contracts/.*\.rs$'; then
+  (cd packages/contracts && cargo fmt --all -- --check)
+fi

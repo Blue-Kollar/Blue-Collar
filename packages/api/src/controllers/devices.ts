@@ -1,7 +1,7 @@
 import { Request, Response } from 'express'
-import * as deviceService from '../services/device.service.js'
-import { AppError } from '../services/AppError.js'
-import { catchAsync } from '../utils/catchAsync.js'
+import * as deviceService from '@/services/device.service.js'
+import { AppError, ErrorCode } from '@/utils/app-error.js'
+import { catchAsync } from '@/utils/catchAsync.js'
 
 /**
  * List all active devices for the authenticated user
@@ -28,7 +28,7 @@ export const revokeDevice = catchAsync(async (req: Request, res: Response) => {
 export const revokeAllOtherDevices = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user!.id
   const { currentDeviceId } = req.body
-  if (!currentDeviceId) throw new AppError('currentDeviceId is required', 400)
+  if (!currentDeviceId) throw new AppError('currentDeviceId is required', 400, true, ErrorCode.VALIDATION_ERROR)
   await deviceService.revokeAllOtherDevices(userId, currentDeviceId)
   res.json({ data: { success: true }, status: 'success', message: 'All other devices revoked' })
 })

@@ -6,7 +6,10 @@
 
 <!-- Link to the issue this PR addresses using "Closes #123". -->
 
-Closes #
+Closes #1440
+Closes #1439
+Closes #1438
+Closes #1437
 
 ## Type of Change
 

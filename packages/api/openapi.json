@@ -257,6 +257,231 @@
           "meta"
         ]
       },
+      "WebhookSubscription": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "createdAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "url",
+          "events",
+          "createdAt"
+        ]
+      },
+      "Conversation": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "participantIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "subject": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "participantIds",
+          "subject",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "PortfolioItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "workerId": {
+            "type": "string"
+          },
+          "imageUrl": {
+            "type": "string"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "order": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "workerId",
+          "imageUrl",
+          "description",
+          "order"
+        ]
+      },
+      "Escrow": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "jobId": {
+            "type": "string"
+          },
+          "payeeId": {
+            "type": "string"
+          },
+          "amountXlm": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "jobId",
+          "payeeId",
+          "amountXlm",
+          "status",
+          "createdAt"
+        ]
+      },
+      "Booking": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "workerId": {
+            "type": "string"
+          },
+          "requesterId": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "confirmed",
+              "cancelled",
+              "completed"
+            ]
+          },
+          "startTime": {
+            "type": "string"
+          },
+          "endTime": {
+            "type": "string"
+          },
+          "timezone": {
+            "type": "string"
+          },
+          "note": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "serviceDescription": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "workerId",
+          "requesterId",
+          "status",
+          "startTime",
+          "endTime",
+          "timezone",
+          "note",
+          "serviceDescription"
+        ]
+      },
+      "NotificationPreferences": {
+        "type": "object",
+        "properties": {
+          "newWorkerNearby": {
+            "type": "boolean"
+          },
+          "statusChange": {
+            "type": "boolean"
+          },
+          "reviewReply": {
+            "type": "boolean"
+          },
+          "announcements": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "newWorkerNearby",
+          "statusChange",
+          "reviewReply",
+          "announcements"
+        ]
+      },
+      "Notification": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "read": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "message",
+          "read",
+          "createdAt"
+        ]
+      },
       "Job": {
         "type": "object",
         "properties": {
@@ -320,6 +545,4472 @@
     "parameters": {}
   },
   "paths": {
+    "/api/v1/webhooks": {
+      "post": {
+        "tags": [
+          "Webhooks"
+        ],
+        "summary": "Create a webhook subscription",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "events": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "url",
+                  "events"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Subscription created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/WebhookSubscription"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Webhooks"
+        ],
+        "summary": "List webhook subscriptions for the authenticated user",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Subscriptions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/WebhookSubscription"
+                      }
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/webhooks/{id}": {
+      "delete": {
+        "tags": [
+          "Webhooks"
+        ],
+        "summary": "Delete a webhook subscription",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Success"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/webhooks/{id}/logs": {
+      "get": {
+        "tags": [
+          "Webhooks"
+        ],
+        "summary": "Get delivery logs for a webhook subscription",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Delivery logs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": {}
+                      }
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/audit": {
+      "get": {
+        "tags": [
+          "Audit"
+        ],
+        "summary": "Query audit log entries (admin)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "userId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "action",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "resource",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "from",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "to",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Audit log entries",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": {}
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "total": {
+                          "type": "number"
+                        },
+                        "page": {
+                          "type": "number"
+                        },
+                        "limit": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "total",
+                        "page",
+                        "limit"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data",
+                    "meta"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/recommendations": {
+      "get": {
+        "tags": [
+          "Recommendations"
+        ],
+        "summary": "Get personalized worker recommendations",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Recommendations",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": {}
+                      }
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/recommendations/interactions": {
+      "post": {
+        "tags": [
+          "Recommendations"
+        ],
+        "summary": "Track an interaction with a recommended worker",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "workerId": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "workerId",
+                  "type"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Interaction recorded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Success"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/events": {
+      "get": {
+        "tags": [
+          "Indexer"
+        ],
+        "summary": "Query indexed on-chain events",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "contractId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "eventName",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "offset",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Indexed events",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": {}
+                      }
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/events/worker-registrations/{contractId}/{ownerAddress}": {
+      "get": {
+        "tags": [
+          "Indexer"
+        ],
+        "summary": "Get indexed worker registration events for an owner address",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "contractId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "ownerAddress",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Worker registration events",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": {}
+                      }
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/events/cursor/{contractId}": {
+      "get": {
+        "tags": [
+          "Indexer"
+        ],
+        "summary": "Get the current indexing cursor for a contract",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "contractId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Indexing cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": {}
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/referrals/my/code": {
+      "get": {
+        "tags": [
+          "Referrals"
+        ],
+        "summary": "Get the authenticated user's referral code",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Referral code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/referrals/apply": {
+      "post": {
+        "tags": [
+          "Referrals"
+        ],
+        "summary": "Apply a referral code to the authenticated user",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "code"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Referral applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Success"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or already-used code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/referrals/my/stats": {
+      "get": {
+        "tags": [
+          "Referrals"
+        ],
+        "summary": "Get the authenticated user's referral stats",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Referral stats",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": {}
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/referrals/leaderboard": {
+      "get": {
+        "tags": [
+          "Referrals"
+        ],
+        "summary": "Get the public referral leaderboard",
+        "responses": {
+          "200": {
+            "description": "Leaderboard",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": {}
+                      }
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/referrals/{id}/reward": {
+      "patch": {
+        "tags": [
+          "Referrals"
+        ],
+        "summary": "Mark a referral as rewarded (admin)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Referral rewarded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Success"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workers/{id}/response-stats": {
+      "get": {
+        "tags": [
+          "ResponseTime"
+        ],
+        "summary": "Get response-time stats for a worker (public)",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response stats",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": {}
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workers/{id}/contacts/{requestId}/respond": {
+      "patch": {
+        "tags": [
+          "ResponseTime"
+        ],
+        "summary": "Respond to a contact request (curator/admin)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "requestId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "status"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Response recorded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Success"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/analytics/response-times": {
+      "get": {
+        "tags": [
+          "ResponseTime"
+        ],
+        "summary": "Get platform-wide response-time analytics (admin)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response time analytics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": {}
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/messages": {
+      "get": {
+        "tags": [
+          "Messages"
+        ],
+        "summary": "List the authenticated user's conversations",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Conversations",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Conversation"
+                      }
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Messages"
+        ],
+        "summary": "Create a new conversation",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "participantIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "subject": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "participantIds"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Conversation created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Conversation"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/messages/unread": {
+      "get": {
+        "tags": [
+          "Messages"
+        ],
+        "summary": "Get the unread message count",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Unread count",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "count": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "count"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/messages/{conversationId}": {
+      "get": {
+        "tags": [
+          "Messages"
+        ],
+        "summary": "Get a conversation with its messages",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "conversationId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Conversation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": {}
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/messages/{conversationId}/read": {
+      "put": {
+        "tags": [
+          "Messages"
+        ],
+        "summary": "Mark a conversation as read",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "conversationId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Marked as read",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Success"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/messages/{conversationId}/search": {
+      "get": {
+        "tags": [
+          "Messages"
+        ],
+        "summary": "Search messages within a conversation",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "conversationId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "q",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Matching messages",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": {}
+                      }
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/messages/{messageId}": {
+      "delete": {
+        "tags": [
+          "Messages"
+        ],
+        "summary": "Delete a message",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "messageId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Success"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/devices": {
+      "get": {
+        "tags": [
+          "Devices"
+        ],
+        "summary": "List active devices/sessions for the authenticated user",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Devices",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": {}
+                      }
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/devices/{deviceId}": {
+      "delete": {
+        "tags": [
+          "Devices"
+        ],
+        "summary": "Revoke a specific device/session",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "deviceId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Device revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Success"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/devices/revoke-others": {
+      "post": {
+        "tags": [
+          "Devices"
+        ],
+        "summary": "Revoke all other active devices (log out other sessions)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "currentDeviceId": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "currentDeviceId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Other devices revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Success"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/wallet/account/{publicKey}": {
+      "get": {
+        "tags": [
+          "Wallet"
+        ],
+        "summary": "Get Stellar account info for a public key (public)",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "publicKey",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Account info",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": {}
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Account not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/wallet/testnet-fund": {
+      "post": {
+        "tags": [
+          "Wallet"
+        ],
+        "summary": "Fund a testnet account via Friendbot (public)",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "publicKey": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "publicKey"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Account funded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": {}
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/wallet/transactions/{publicKey}": {
+      "get": {
+        "tags": [
+          "Wallet"
+        ],
+        "summary": "Get recent transactions for a public key (public)",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "publicKey",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            },
+            "required": false,
+            "name": "order",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Transactions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": {}
+                      }
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/wallet/balance": {
+      "get": {
+        "tags": [
+          "Wallet"
+        ],
+        "summary": "Get the authenticated user's linked wallet balance",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Balance",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": {}
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/wallet/link": {
+      "post": {
+        "tags": [
+          "Wallet"
+        ],
+        "summary": "Link a Stellar public key to the authenticated user",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "publicKey": {
+                    "type": "string",
+                    "minLength": 56,
+                    "maxLength": 56
+                  }
+                },
+                "required": [
+                  "publicKey"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Wallet linked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "code": {
+                      "type": "number"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": {}
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/wallet/build-tx": {
+      "post": {
+        "tags": [
+          "Wallet"
+        ],
+        "summary": "Build an unsigned Stellar transaction envelope",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "sourcePublicKey": {
+                    "type": "string"
+                  },
+                  "destinationPublicKey": {
+                    "type": "string"
+                  },
+                  "amount": {
+                    "type": "string"
+                  },
+                  "memo": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "sourcePublicKey",
+                  "destinationPublicKey",
+                  "amount"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Unsigned transaction XDR",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": {}
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/wallet/broadcast": {
+      "post": {
+        "tags": [
+          "Wallet"
+        ],
+        "summary": "Submit a signed transaction to the network",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "signedXdr": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "signedXdr"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Submission result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": {}
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/wallet/tx-status/{txHash}": {
+      "get": {
+        "tags": [
+          "Wallet"
+        ],
+        "summary": "Poll the status of a submitted transaction",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "txHash",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Transaction status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": {}
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workers/{id}/insurance": {
+      "post": {
+        "tags": [
+          "Insurance"
+        ],
+        "summary": "Upload an insurance document for a worker (curator/admin)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "expiresAt": {
+                    "type": "string"
+                  },
+                  "provider": {
+                    "type": "string"
+                  },
+                  "policyNumber": {
+                    "type": "string"
+                  },
+                  "document": {
+                    "type": "string",
+                    "description": "Insurance document file"
+                  }
+                },
+                "required": [
+                  "expiresAt",
+                  "provider",
+                  "policyNumber",
+                  "document"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Document uploaded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": {}
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Insurance"
+        ],
+        "summary": "List insurance documents for a worker (curator/admin)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Insurance documents",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": {}
+                      }
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workers/{id}/insurance/{docId}": {
+      "patch": {
+        "tags": [
+          "Insurance"
+        ],
+        "summary": "Verify or reject an insurance document (admin)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "docId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "verified",
+                      "rejected"
+                    ]
+                  }
+                },
+                "required": [
+                  "status"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Document status updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Success"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workers/insurance/reminders": {
+      "post": {
+        "tags": [
+          "Insurance"
+        ],
+        "summary": "Manually trigger insurance renewal reminders (admin)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reminders triggered",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Success"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/subscriptions/webhook": {
+      "post": {
+        "tags": [
+          "Subscriptions"
+        ],
+        "summary": "Stripe webhook receiver (raw body, Stripe-signature verified, no bearer auth)",
+        "responses": {
+          "200": {
+            "description": "Event processed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Success"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/subscriptions/{workerId}": {
+      "get": {
+        "tags": [
+          "Subscriptions"
+        ],
+        "summary": "Get a worker's subscription (curator/admin)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workerId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Subscription",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": {}
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Subscriptions"
+        ],
+        "summary": "Create or upgrade a worker's subscription (curator/admin)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workerId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "tier": {
+                    "type": "string"
+                  },
+                  "stripeCustomerId": {
+                    "type": "string"
+                  },
+                  "stripeSubId": {
+                    "type": "string"
+                  },
+                  "currentPeriodEnd": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "tier"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Subscription created/upgraded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": {}
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Subscriptions"
+        ],
+        "summary": "Cancel a worker's subscription (curator/admin)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workerId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Subscription cancelled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Success"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/workers/{workerId}/portfolio": {
+      "get": {
+        "tags": [
+          "Portfolio"
+        ],
+        "summary": "List a worker's portfolio items (public)",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workerId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Portfolio items",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/PortfolioItem"
+                      }
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Portfolio"
+        ],
+        "summary": "Add a portfolio item (curator/admin)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workerId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "description": {
+                    "type": "string"
+                  },
+                  "order": {
+                    "type": "number"
+                  },
+                  "image": {
+                    "type": "string",
+                    "description": "Image file"
+                  }
+                },
+                "required": [
+                  "image"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Portfolio item added",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/PortfolioItem"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/workers/{workerId}/portfolio/{id}": {
+      "post": {
+        "tags": [
+          "Portfolio"
+        ],
+        "summary": "Update a portfolio item (curator/admin). Method-spoofed PUT via X-HTTP-Method-Override for file uploads.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workerId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "description": {
+                    "type": "string"
+                  },
+                  "order": {
+                    "type": "number"
+                  },
+                  "image": {
+                    "type": "string",
+                    "description": "Image file"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Portfolio item updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/PortfolioItem"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Portfolio"
+        ],
+        "summary": "Delete a portfolio item (curator/admin)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workerId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Success"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/workers/{workerId}/portfolio/reorder": {
+      "patch": {
+        "tags": [
+          "Portfolio"
+        ],
+        "summary": "Reorder portfolio items (curator/admin)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workerId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "order": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "order"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "items"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Reordered",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Success"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/escrow": {
+      "get": {
+        "tags": [
+          "Escrow"
+        ],
+        "summary": "List the authenticated user's escrow records",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Escrow records",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Escrow"
+                      }
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Escrow"
+        ],
+        "summary": "Create an escrow payment",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "jobId": {
+                    "type": "string"
+                  },
+                  "payeeId": {
+                    "type": "string"
+                  },
+                  "amountXlm": {
+                    "type": "string"
+                  },
+                  "expiresAt": {
+                    "type": "string"
+                  },
+                  "txId": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "jobId",
+                  "payeeId",
+                  "amountXlm",
+                  "txId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Escrow created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Escrow"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/escrow/{id}": {
+      "get": {
+        "tags": [
+          "Escrow"
+        ],
+        "summary": "Get an escrow record",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Escrow record",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Escrow"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/escrow/{id}/activate": {
+      "patch": {
+        "tags": [
+          "Escrow"
+        ],
+        "summary": "Activate an escrow once funded on-chain",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "txId": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "txId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Escrow activated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Escrow"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/escrow/{id}/release": {
+      "patch": {
+        "tags": [
+          "Escrow"
+        ],
+        "summary": "Release escrowed funds to the payee",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Escrow released",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Escrow"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/escrow/{id}/cancel": {
+      "patch": {
+        "tags": [
+          "Escrow"
+        ],
+        "summary": "Cancel an escrow",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Escrow cancelled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Escrow"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/escrow/{id}/disputes": {
+      "post": {
+        "tags": [
+          "Escrow"
+        ],
+        "summary": "File a dispute against an escrow",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "type": "string"
+                  },
+                  "evidence": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "reason"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Dispute filed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": {}
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/escrow/{id}/disputes/{disputeId}": {
+      "patch": {
+        "tags": [
+          "Escrow"
+        ],
+        "summary": "Resolve an escrow dispute (admin)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "disputeId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string"
+                  },
+                  "resolution": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "status",
+                  "resolution"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Dispute resolved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Success"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/analytics/events": {
+      "post": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Record client analytics events (public)",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "events": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": {}
+                    }
+                  }
+                },
+                "required": [
+                  "events"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Events accepted"
+          }
+        }
+      }
+    },
+    "/api/analytics/curator": {
+      "get": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Get curator dashboard analytics (curator/admin)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Curator dashboard data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": {}
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/analytics/export/curator": {
+      "get": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Export curator analytics as CSV (curator/admin)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "CSV export (text/csv)"
+          }
+        }
+      }
+    },
+    "/api/analytics/platform": {
+      "get": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Get platform-wide dashboard analytics (admin)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Platform dashboard data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": {}
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/analytics/export/platform": {
+      "get": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Export platform analytics as CSV (admin)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "CSV export (text/csv)"
+          }
+        }
+      }
+    },
+    "/api/analytics/admin/dashboard": {
+      "get": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Get admin dashboard analytics for a date range (admin)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "startDate",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "endDate",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Admin dashboard data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": {}
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/analytics/admin/export": {
+      "get": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Export admin analytics as CSV for a date range (admin)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "startDate",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "endDate",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "CSV export (text/csv)"
+          }
+        }
+      }
+    },
+    "/api/analytics/metrics": {
+      "get": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Get protocol health metrics",
+        "responses": {
+          "200": {
+            "description": "Protocol metrics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": {}
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/analytics/metrics/timeseries": {
+      "get": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Get protocol health metrics as a time series",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "days",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Time series metrics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": {}
+                      }
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/analytics/top-workers": {
+      "get": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Get top workers leaderboard by a metric",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "metric",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Top workers",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": {}
+                      }
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/bookings": {
+      "post": {
+        "tags": [
+          "Bookings"
+        ],
+        "summary": "Create a booking request (rate-limited to 10/hr per user)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "workerId": {
+                    "type": "string"
+                  },
+                  "startTime": {
+                    "type": "string"
+                  },
+                  "endTime": {
+                    "type": "string"
+                  },
+                  "timezone": {
+                    "type": "string"
+                  },
+                  "note": {
+                    "type": "string"
+                  },
+                  "serviceDescription": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "workerId",
+                  "startTime",
+                  "endTime"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Booking created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Booking"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          }
+        }
+      }
+    },
+    "/api/bookings/mine": {
+      "get": {
+        "tags": [
+          "Bookings"
+        ],
+        "summary": "List bookings for the authenticated user",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "worker",
+                "requester"
+              ]
+            },
+            "required": false,
+            "name": "role",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "pending",
+                "confirmed",
+                "cancelled",
+                "completed"
+              ]
+            },
+            "required": false,
+            "name": "status",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Bookings",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Booking"
+                      }
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/bookings/{id}/confirm": {
+      "patch": {
+        "tags": [
+          "Bookings"
+        ],
+        "summary": "Confirm a pending booking (worker only)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Booking confirmed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Booking"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/bookings/{id}/cancel": {
+      "patch": {
+        "tags": [
+          "Bookings"
+        ],
+        "summary": "Cancel a booking (worker or requester)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Booking cancelled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Success"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notifications/preferences": {
+      "get": {
+        "tags": [
+          "Notifications"
+        ],
+        "summary": "Get the authenticated user's notification preferences",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Notification preferences",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationPreferences"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Notifications"
+        ],
+        "summary": "Update the authenticated user's notification preferences",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "newWorkerNearby": {
+                    "type": "boolean"
+                  },
+                  "statusChange": {
+                    "type": "boolean"
+                  },
+                  "reviewReply": {
+                    "type": "boolean"
+                  },
+                  "announcements": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Preferences updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationPreferences"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/notifications": {
+      "get": {
+        "tags": [
+          "Notifications"
+        ],
+        "summary": "List the authenticated user's notifications",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Notifications",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Notification"
+                      }
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/notifications/unread-count": {
+      "get": {
+        "tags": [
+          "Notifications"
+        ],
+        "summary": "Get the unread notification count",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Unread count",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "count": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "count"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/notifications/preferences": {
+      "get": {
+        "tags": [
+          "Notifications"
+        ],
+        "summary": "Get the authenticated user's notification channel preferences",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Preferences",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": {}
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Notifications"
+        ],
+        "summary": "Update the authenticated user's notification channel preferences",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Preferences updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Success"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/notifications/dispatch": {
+      "post": {
+        "tags": [
+          "Notifications"
+        ],
+        "summary": "Dispatch a multi-channel notification",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": {}
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Dispatched",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Success"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/notifications/{notificationId}/delivery-log": {
+      "get": {
+        "tags": [
+          "Notifications"
+        ],
+        "summary": "Get the delivery log for a notification",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "notificationId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Delivery log",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": {}
+                      }
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/notifications/{id}/read": {
+      "patch": {
+        "tags": [
+          "Notifications"
+        ],
+        "summary": "Mark a notification as read",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Marked as read",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Success"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/notifications/read-all": {
+      "patch": {
+        "tags": [
+          "Notifications"
+        ],
+        "summary": "Mark all notifications as read",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "All marked as read",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Success"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/notifications/{id}": {
+      "delete": {
+        "tags": [
+          "Notifications"
+        ],
+        "summary": "Delete a notification",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Success"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/verifications": {
+      "post": {
+        "tags": [
+          "Verifications"
+        ],
+        "summary": "Request a verification",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": {}
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Verification requested",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": {}
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Verifications"
+        ],
+        "summary": "List pending verification requests (admin)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Verification requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": {}
+                      }
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/verifications/{id}/review": {
+      "patch": {
+        "tags": [
+          "Verifications"
+        ],
+        "summary": "Approve or reject a verification request (admin)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "action": {
+                    "type": "string",
+                    "enum": [
+                      "approve",
+                      "reject"
+                    ]
+                  }
+                },
+                "required": [
+                  "action"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Reviewed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Success"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/vitals": {
+      "post": {
+        "tags": [
+          "System"
+        ],
+        "summary": "Report a Web Vitals measurement from the client (public, fire-and-forget)",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "value": {
+                    "type": "number"
+                  },
+                  "rating": {
+                    "type": "string"
+                  },
+                  "id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name",
+                  "value"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Accepted, no content"
+          }
+        }
+      }
+    },
+    "/api/workers/events": {
+      "get": {
+        "tags": [
+          "Realtime"
+        ],
+        "summary": "Subscribe to live worker status changes via Server-Sent Events",
+        "description": "Long-lived `text/event-stream` connection. Emits a `workerStatus` event `{ workerId, isActive, ts }` whenever a worker is toggled, plus periodic `: heartbeat` comments every 25s.",
+        "responses": {
+          "200": {
+            "description": "SSE stream of worker status events",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/auth/register": {
       "post": {
         "tags": [
@@ -647,6 +5338,36 @@
         }
       }
     },
+    "/api/v1/auth/unsubscribe-reminders": {
+      "get": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "One-click unsubscribe from reminder emails (via emailed link token)",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "token",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Unsubscribed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Success"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/auth/forgot-password": {
       "post": {
         "tags": [
@@ -800,6 +5521,65 @@
             }
           }
         }
+      },
+      "post": {
+        "tags": [
+          "Categories"
+        ],
+        "summary": "Create a category (admin)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "slug": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name",
+                  "slug"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Category created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Category"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/v1/categories/{id}": {
@@ -850,6 +5630,104 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Categories"
+        ],
+        "summary": "Update a category (admin)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "slug": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Category updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Category"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Categories"
+        ],
+        "summary": "Delete a category (admin)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Success"
                 }
               }
             }
@@ -2178,6 +7056,360 @@
         "responses": {
           "200": {
             "description": "Deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Success"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/audit": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "List audit log entries (admin)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Audit log entries",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": {}
+                      }
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/users/{id}/suspend": {
+      "patch": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Suspend a user (admin)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User suspended",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Success"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/users/{id}/unsuspend": {
+      "patch": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Unsuspend a user (admin)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User unsuspended",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Success"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/users/{id}/ban": {
+      "patch": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Ban a user (admin)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User banned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Success"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/users/{id}/role": {
+      "patch": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Change a user's role (admin)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "role": {
+                    "type": "string",
+                    "enum": [
+                      "user",
+                      "curator",
+                      "admin"
+                    ]
+                  }
+                },
+                "required": [
+                  "role"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Role changed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Success"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/users/bulk-suspend": {
+      "patch": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Bulk suspend users (admin)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "minItems": 1
+                  }
+                },
+                "required": [
+                  "ids"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Suspended",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Success"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/users/bulk-unsuspend": {
+      "patch": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Bulk unsuspend users (admin)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "minItems": 1
+                  }
+                },
+                "required": [
+                  "ids"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Unsuspended",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Success"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/workers/{id}/moderate": {
+      "patch": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Moderate a worker listing (admin)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "action": {
+                    "type": "string",
+                    "enum": [
+                      "approve",
+                      "reject"
+                    ]
+                  }
+                },
+                "required": [
+                  "action"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Worker moderated",
             "content": {
               "application/json": {
                 "schema": {
@@ -3663,7 +8895,159 @@
         }
       }
     },
-    "/api/v1/workers/reviews/{id}/flag": {
+    "/api/reviews/helpful": {
+      "get": {
+        "tags": [
+          "Reviews"
+        ],
+        "summary": "List reviews",
+        "responses": {
+          "200": {
+            "description": "Reviews",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": {}
+                      }
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Reviews"
+        ],
+        "summary": "Create a review",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "workerId": {
+                    "type": "string"
+                  },
+                  "rating": {
+                    "type": "number",
+                    "minimum": 1,
+                    "maximum": 5
+                  },
+                  "comment": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "workerId",
+                  "rating"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Review created (pending moderation)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": {}
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reviews/helpful/{id}": {
+      "delete": {
+        "tags": [
+          "Reviews"
+        ],
+        "summary": "Delete a review (owner only)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted"
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reviews/helpful/{id}/flag": {
       "patch": {
         "tags": [
           "Reviews"
@@ -3698,7 +9082,7 @@
         }
       }
     },
-    "/api/v1/workers/reviews/moderation/queue": {
+    "/api/reviews/helpful/moderation/queue": {
       "get": {
         "tags": [
           "Reviews"
@@ -3742,7 +9126,7 @@
         }
       }
     },
-    "/api/v1/workers/reviews/{id}/moderate": {
+    "/api/reviews/helpful/{id}/moderate": {
       "patch": {
         "tags": [
           "Reviews"
@@ -3798,6 +9182,41 @@
         }
       }
     },
+    "/api/v1/reviews/{reviewId}/helpful": {
+      "post": {
+        "tags": [
+          "Reviews"
+        ],
+        "summary": "Toggle \"helpful\" vote on a review",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "reviewId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Vote toggled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Success"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/disputes": {
       "post": {
         "tags": [
@@ -3815,16 +9234,19 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "jobId": {
+                  "workerId": {
                     "type": "string"
                   },
                   "reason": {
                     "type": "string",
                     "minLength": 10
+                  },
+                  "evidence": {
+                    "type": "string"
                   }
                 },
                 "required": [
-                  "jobId",
+                  "workerId",
                   "reason"
                 ]
               }
@@ -3848,10 +9270,28 @@
         "tags": [
           "Disputes"
         ],
-        "summary": "List disputes (admin)",
+        "summary": "List disputes for the authenticated user (or all, for admins)",
         "security": [
           {
             "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "limit",
+            "in": "query"
           }
         ],
         "responses": {
@@ -3888,6 +9328,77 @@
       }
     },
     "/api/v1/disputes/{id}": {
+      "get": {
+        "tags": [
+          "Disputes"
+        ],
+        "summary": "Get a single dispute",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Dispute",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": {}
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/disputes/{id}/resolve": {
       "patch": {
         "tags": [
           "Disputes"
@@ -3914,11 +9425,15 @@
               "schema": {
                 "type": "object",
                 "properties": {
+                  "status": {
+                    "type": "string"
+                  },
                   "resolution": {
                     "type": "string"
                   }
                 },
                 "required": [
+                  "status",
                   "resolution"
                 ]
               }
@@ -3932,6 +9447,60 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Success"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workers/search": {
+      "get": {
+        "tags": [
+          "Workers"
+        ],
+        "summary": "Search workers",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "q",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "category",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Search results",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedWorkers"
                 }
               }
             }
@@ -4069,7 +9638,7 @@
         "tags": [
           "Workers"
         ],
-        "summary": "Set worker availability (curator)",
+        "summary": "Replace worker availability (curator)",
         "security": [
           {
             "bearerAuth": []
@@ -4113,6 +9682,230 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Success"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Workers"
+        ],
+        "summary": "Add a single availability slot (curator)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": {}
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Slot added",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Success"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workers/{id}/availability/{slotId}": {
+      "delete": {
+        "tags": [
+          "Workers"
+        ],
+        "summary": "Delete an availability slot (curator)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "slotId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Slot deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Success"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workers/{id}/analytics/dashboard": {
+      "get": {
+        "tags": [
+          "Workers"
+        ],
+        "summary": "Get a worker's personal analytics dashboard (curator/admin)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Dashboard data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": {}
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workers/{id}/analytics/export": {
+      "get": {
+        "tags": [
+          "Workers"
+        ],
+        "summary": "Export a worker's personal analytics as CSV (curator/admin)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "CSV export (text/csv)"
+          }
+        }
+      }
+    },
+    "/api/v1/workers/{id}/analytics/trends": {
+      "get": {
+        "tags": [
+          "Workers"
+        ],
+        "summary": "Get a worker's profile-view trends (curator/admin)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "days",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "View trends",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": {}
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
                 }
               }
             }

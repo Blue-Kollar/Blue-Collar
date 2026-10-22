@@ -1,0 +1,37 @@
+# Normalize line endings to LF on commit; check out as LF on every OS.
+#
+# This prevents CRLF/LF churn in PRs. Editors configured by .editorconfig
+# will also write LF, so the two work together.
+
+* text=auto eol=lf
+
+# Source
+*.rs        text eol=lf
+*.toml      text eol=lf
+*.ts        text eol=lf
+*.tsx       text eol=lf
+*.js        text eol=lf
+*.jsx       text eol=lf
+*.mjs       text eol=lf
+*.cjs       text eol=lf
+*.json      text eol=lf
+*.md        text eol=lf
+*.yml       text eol=lf
+*.yaml      text eol=lf
+*.sh        text eol=lf
+
+# Windows-specific (check out as CRLF on Windows)
+*.bat       text eol=crlf
+*.cmd       text eol=crlf
+*.ps1       text eol=crlf
+
+# Binary — no normalization
+*.png       binary
+*.jpg       binary
+*.jpeg      binary
+*.gif       binary
+*.ico       binary
+*.svg       text eol=lf
+*.woff      binary
+*.woff2     binary
+*.pdf       binary

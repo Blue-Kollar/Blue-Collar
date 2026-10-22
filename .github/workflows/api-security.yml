@@ -1,0 +1,55 @@
+name: API Security Tests
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "packages/api/src/**"
+      - "packages/api/package.json"
+      - ".github/workflows/api-security.yml"
+  pull_request:
+    branches:
+      - main
+      - develop
+    paths:
+      - "packages/api/src/**"
+      - "packages/api/package.json"
+  workflow_dispatch:
+
+jobs:
+  security-test:
+    name: Security regression
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/api
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        working-directory: .
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Run security tests
+        run: |
+          npx vitest run \
+            src/middleware/security.test.ts \
+            src/middleware/sanitize.test.ts \
+            src/__tests__/security/regression.test.ts \
+            src/__tests__/security.headers.test.ts \
+            --no-coverage --reporter verbose
+
+      - name: Run CORS tests
+        run: npx vitest run src/__tests__/cors.test.ts --no-coverage --reporter verbose

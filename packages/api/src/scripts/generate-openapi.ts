@@ -1,7 +1,7 @@
 import { writeFileSync } from 'node:fs'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { buildSpec } from '../openapi/spec.js'
+import { buildSpec } from '@/openapi/spec.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const out = join(__dirname, '..', '..', 'openapi.json')

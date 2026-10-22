@@ -4,7 +4,7 @@ import { useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { X, Loader2, CheckCircle2, MessageSquare } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { sendContactRequest } from "@/lib/api";
+import { useContactForm } from "@/hooks/useContactForm";
 
 interface Props {
   workerId: string;
@@ -14,45 +14,21 @@ interface Props {
 export default function ContactModal({ workerId, workerName }: Props) {
   const t = useTranslations("contact");
   const [open, setOpen] = useState(false);
-  const [message, setMessage] = useState("");
-  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
-  const [error, setError] = useState<string | null>(null);
-
-  const reset = () => {
-    setMessage("");
-    setStatus("idle");
-    setError(null);
-  };
+  const { message, setMessage, status, error, setError, reset, handleSubmit } = useContactForm(
+    workerId,
+    (key) => t(key as never),
+  );
 
   const handleOpenChange = (val: boolean) => {
     setOpen(val);
     if (!val) reset();
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const trimmed = message.trim();
-    if (!trimmed) return setError(t("errorEmpty"));
-    if (trimmed.length < 10) return setError(t("errorTooShort"));
-    if (trimmed.length > 1000) return setError(t("errorTooLong"));
-
-    setStatus("loading");
-    setError(null);
-    try {
-      await sendContactRequest(workerId, trimmed);
-      setStatus("success");
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : t("errorGeneric");
-      setError(msg.includes("429") ? t("errorRateLimit") : msg);
-      setStatus("error");
-    }
-  };
-
   return (
     <Dialog.Root open={open} onOpenChange={handleOpenChange}>
       <Dialog.Trigger asChild>
-        <button className="flex items-center gap-2 rounded-lg border border-blue-600 px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors">
-          <MessageSquare size={15} />
+        <button className="flex items-center gap-2 rounded-lg border border-blue-600 px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors" aria-label={t("title", { name: workerName })}>
+          <MessageSquare size={15} aria-hidden="true" />
           {t("title", { name: workerName }).split(" ")[0]}
         </button>
       </Dialog.Trigger>
@@ -77,7 +53,7 @@ export default function ContactModal({ workerId, workerName }: Props) {
             </Dialog.Close>
           </div>
 
-          {status === "success" ? (
+          {status === ContactRequestStatus.Success ? (
             <div role="status" className="mt-6 flex flex-col items-center gap-3 py-4 text-center">
               <CheckCircle2 size={36} className="text-green-500" aria-hidden="true" />
               <p className="text-sm font-medium text-gray-800">{t("messageSent")}</p>
@@ -123,10 +99,10 @@ export default function ContactModal({ workerId, workerName }: Props) {
                 </Dialog.Close>
                 <button
                   type="submit"
-                  disabled={status === "loading"}
+                  disabled={status === ContactRequestStatus.Loading}
                   className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-blue-600 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60 transition-colors"
                 >
-                  {status === "loading" && <Loader2 size={14} className="animate-spin" />}
+                  {status === ContactRequestStatus.Loading && <Loader2 size={14} className="animate-spin" />}
                   {t("sendMessage")}
                 </button>
               </div>

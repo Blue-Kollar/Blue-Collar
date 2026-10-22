@@ -1,0 +1,49 @@
+name: Type Check
+
+# Ensures the shared types package and both consumers (api, app) have no
+# TypeScript errors, catching type drift between API and App early.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "packages/types/**"
+      - "packages/api/src/**"
+      - "packages/app/src/**"
+      - ".github/workflows/type-check.yml"
+  pull_request:
+    paths:
+      - "packages/types/**"
+      - "packages/api/src/**"
+      - "packages/app/src/**"
+      - ".github/workflows/type-check.yml"
+  workflow_dispatch:
+
+env:
+  CI: "true"
+
+jobs:
+  type-check:
+    name: TypeScript type check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Type-check shared types package
+        run: pnpm --filter @bluecollar/types type-check
+
+      - name: Type-check app
+        run: pnpm --filter @bluecollar/app type-check
+
+      - name: Type-check api
+        run: pnpm --filter @bluecollar/api exec tsc --noEmit

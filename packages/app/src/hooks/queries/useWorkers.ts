@@ -25,6 +25,40 @@ export function useWorkers(params?: Record<string, string>) {
   });
 }
 
+/** The curator/admin's own worker listings ("/workers/mine"). */
+export function useMyWorkers(params?: Record<string, string>) {
+  return useQuery({
+    queryKey: queryKeys.workers.mine(params),
+    queryFn: () => api.getMyWorkers(params),
+  });
+}
+
+export function useCuratorAnalytics() {
+  return useQuery({
+    queryKey: queryKeys.analytics.curator(),
+    queryFn: () => api.getCuratorAnalytics(),
+  });
+}
+
+export function useWorkerViewTrends(workerId: string, days = 30) {
+  return useQuery({
+    queryKey: queryKeys.workers.trends(workerId, days),
+    queryFn: () => api.getWorkerViewTrends(workerId, days),
+    enabled: !!workerId,
+  });
+}
+
+export function useWorkerPersonalDashboard(
+  workerId: string,
+  params?: { startDate?: string; endDate?: string; days?: number },
+) {
+  return useQuery({
+    queryKey: queryKeys.workers.dashboard(workerId, params),
+    queryFn: () => api.getWorkerPersonalDashboard(workerId, params),
+    enabled: !!workerId,
+  });
+}
+
 export function useWorkersInfinite(params?: Omit<Record<string, string>, "cursor">) {
   return useInfiniteQuery({
     queryKey: queryKeys.workers.list({ ...params, infinite: true }),
@@ -82,22 +116,53 @@ export function useUpdateWorker(id: string) {
   });
 }
 
+type MyWorkersPage = ApiResponse<Worker[]> & { meta: Meta };
+const MINE_KEY = ["workers", "mine"] as const;
+
+/** Deletes a worker, optimistically removing it from the "my workers" list with rollback on failure. */
 export function useDeleteWorker() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => api.deleteWorker(id),
-    onSuccess: () => {
+    onMutate: async (id: string) => {
+      await qc.cancelQueries({ queryKey: MINE_KEY });
+      const previous = qc.getQueriesData<MyWorkersPage>({ queryKey: MINE_KEY });
+      qc.setQueriesData<MyWorkersPage>({ queryKey: MINE_KEY }, (old) =>
+        old?.data ? { ...old, data: old.data.filter((w) => w.id !== id) } : old
+      );
+      return { previous };
+    },
+    onError: (_err, _id, context) => {
+      context?.previous?.forEach(([key, data]) => qc.setQueryData(key, data));
+    },
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: MINE_KEY });
       qc.invalidateQueries({ queryKey: queryKeys.workers.all() });
     },
   });
 }
 
+/** Toggles a worker's active state, optimistically flipping it in the "my workers" list with rollback on failure. */
 export function useToggleWorker() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => api.toggleWorker(id),
-    onSuccess: (_data, id) => {
+    onMutate: async (id: string) => {
+      await qc.cancelQueries({ queryKey: MINE_KEY });
+      const previous = qc.getQueriesData<MyWorkersPage>({ queryKey: MINE_KEY });
+      qc.setQueriesData<MyWorkersPage>({ queryKey: MINE_KEY }, (old) =>
+        old?.data
+          ? { ...old, data: old.data.map((w) => (w.id === id ? { ...w, isActive: !w.isActive } : w)) }
+          : old
+      );
+      return { previous };
+    },
+    onError: (_err, _id, context) => {
+      context?.previous?.forEach(([key, data]) => qc.setQueryData(key, data));
+    },
+    onSettled: (_data, _err, id) => {
       qc.invalidateQueries({ queryKey: queryKeys.workers.detail(id) });
+      qc.invalidateQueries({ queryKey: MINE_KEY });
       qc.invalidateQueries({ queryKey: queryKeys.workers.all() });
     },
   });

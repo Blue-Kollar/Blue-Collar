@@ -1,0 +1,45 @@
+# Smart Contract Alerts
+groups:
+  - name: contract-alerts
+    interval: 30s
+    rules:
+      # Contract Failure Alert
+      - alert: ContractFailure
+        expr: |
+          rate(contract_transactions_failed[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: critical
+          team: blockchain
+          service: contracts
+        annotations:
+          summary: "Contract transaction failure rate exceeds 10%"
+          description: "{{ $value }}% of transactions are failing"
+          runbook: "https://github.com/Blue-Kollar/Blue-Collar/docs/INCIDENT_RUNBOOK.md#contract-failures"
+
+      # Contract Gas Spike Alert
+      - alert: ContractGasSpike
+        expr: |
+          contract_gas_used > 1000000
+        for: 5m
+        labels:
+          severity: warning
+          team: blockchain
+          service: contracts
+        annotations:
+          summary: "Contract gas usage exceeds 1M"
+          description: "Gas used is {{ $value }} in the last 5 minutes"
+
+      # Contract Balance Low Alert
+      - alert: ContractBalanceLow
+        expr: |
+          contract_balance < 1000
+        for: 5m
+        labels:
+          severity: warning
+          team: blockchain
+          service: contracts
+        annotations:
+          summary: "Contract balance is low"
+          description: "Contract balance is {{ $value }} (min: 1000)"
+          runbook: "https://github.com/Blue-Kollar/Blue-Collar/docs/INCIDENT_RUNBOOK.md#contract-balance-low"

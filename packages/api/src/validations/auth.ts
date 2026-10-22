@@ -1,37 +1,12 @@
-import { z } from 'zod'
-import { emailField, passwordField, nameField, tokenField } from './shared.js'
-
-// POST /auth/register
-export const registerRules = z.object({
-  email: emailField,
-  password: passwordField,
-  firstName: nameField,
-  lastName: nameField,
-})
-
-// POST /auth/login
-export const loginRules = z.object({
-  email: emailField,
-  password: z.string().min(1),
-})
-
-// POST /auth/forgot-password
-export const forgotPasswordRules = z.object({
-  email: emailField,
-})
-
-// PUT /auth/reset-password
-export const resetPasswordRules = z.object({
-  token: tokenField,
-  password: passwordField,
-})
-
-// PUT /auth/verify-account
-export const verifyAccountRules = z.object({
-  token: tokenField,
-})
-
-// POST /auth/resend-verification
-export const resendVerificationRules = z.object({
-  email: emailField,
-})
+/**
+ * Auth validation schemas for the API.
+ * Core schemas are imported from @bluecollar/types to stay in sync with the App.
+ */
+export {
+  loginSchema as loginRules,
+  registerSchema as registerRules,
+  forgotPasswordSchema as forgotPasswordRules,
+  resetPasswordSchema as resetPasswordRules,
+  verifyAccountSchema as verifyAccountRules,
+  resendVerificationSchema as resendVerificationRules,
+} from '@bluecollar/types'

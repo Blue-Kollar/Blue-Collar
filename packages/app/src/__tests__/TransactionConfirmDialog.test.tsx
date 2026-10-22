@@ -6,7 +6,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
-import TransactionConfirmDialog from "@/components/Payment/TransactionConfirmDialog";
+import TransactionConfirmDialog from "@/features/payments/components/TransactionConfirmDialog";
 import type { TransactionSummary } from "@/lib/transactions";
 
 vi.mock("@/lib/utils", () => ({ cn: (...a: unknown[]) => a.filter(Boolean).join(" ") }));
