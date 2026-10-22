@@ -9,6 +9,18 @@ vi.mock('next/link', () => ({
   ),
 }))
 
+vi.mock('next-intl', () => ({
+  useTranslations: () => (key: string) => key,
+}))
+
+vi.mock('@/context/CompareContext', () => ({
+  useCompare: () => ({ toggle: vi.fn(), isSelected: () => false, isFull: false }),
+}))
+
+vi.mock('@/components/BookmarkButton', () => ({
+  default: () => null,
+}))
+
 // lucide-react icons aren't critical to test — stub them out
 vi.mock('lucide-react', () => ({
   BadgeCheck: ({ 'aria-label': label }: any) => <span aria-label={label} />,
@@ -41,7 +53,11 @@ describe('WorkerCard', () => {
 
   it('shows img when avatar is provided', () => {
     render(<WorkerCard worker={{ ...baseWorker, avatar: 'https://example.com/avatar.jpg' }} />)
-    expect(screen.getByRole('img')).toHaveAttribute('src', 'https://example.com/avatar.jpg')
+    expect(screen.getByRole('img')).toHaveAttribute(
+      'src',
+      expect.stringContaining('url=https%3A%2F%2Fexample.com%2Favatar.jpg'),
+    )
+    expect(screen.getByRole('img')).toHaveAttribute('sizes', '56px')
   })
 
   it('shows verified badge when isVerified is true', () => {

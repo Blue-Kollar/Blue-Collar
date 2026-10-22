@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
+import Image from "next/image";
 import { GripVertical, Plus, Trash2, X, ImageIcon, AlertCircle } from "lucide-react";
 import ImageLightbox from "@/components/ImageLightbox";
 
@@ -151,10 +152,11 @@ export default function PortfolioGallery({
               overIndex === i && dragIndex !== i ? "ring-2 ring-blue-500 opacity-70" : ""
             }`}
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <Image
               src={img.url}
               alt={img.caption ?? `Portfolio image ${i + 1}`}
+              fill
+              sizes="(min-width: 1024px) 320px, (min-width: 640px) 33vw, 50vw"
               className="h-full w-full object-cover cursor-pointer"
               onClick={() => setLightbox(img)}
             />

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { Eye, EyeOff, Star, MapPin, Phone, Mail, Wallet } from "lucide-react";
 import { cn, formatStellarAddress } from "@/lib/utils";
 import type { PortfolioImage } from "@/components/PortfolioGallery";
@@ -57,10 +58,12 @@ export default function ProfilePreview({
             <div className="flex items-start gap-3">
               <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full bg-gray-100">
                 {avatarUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
+                  <Image
                     src={avatarUrl}
                     alt={name || "Profile"}
+                    width={64}
+                    height={64}
+                    sizes="64px"
                     className="h-full w-full object-cover"
                   />
                 ) : (
@@ -139,10 +142,12 @@ export default function ProfilePreview({
                       key={img.id}
                       className="h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-gray-100"
                     >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
+                      <Image
                         src={img.url}
                         alt={img.caption ?? "Portfolio"}
+                        width={48}
+                        height={48}
+                        sizes="48px"
                         className="h-full w-full object-cover"
                       />
                     </div>
