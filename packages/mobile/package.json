@@ -29,7 +29,7 @@
     "@tanstack/react-query": "^5.17.0",
     "react-native-mmkv": "^2.11.0",
     "@react-native-community/netinfo": "^11.3.0",
-    "react-hook-form": "^7.51.0",
+    "react-hook-form": "^7.90.0",
     "zod": "^3.22.0"
   },
   "devDependencies": {
