@@ -61,6 +61,9 @@ export default defineConfig({
       // required by issue #1449.
       reporter: ['text', 'html', 'json-summary'],
       reportsDirectory: './coverage',
+      // `src/components/**` covers the standardized Modal (src/components/ui/**)
+      // and `src/hooks/**` covers the debounce/submit-guard hooks added for
+      // issues #1801 and #1804, so the new code is measured by these thresholds.
       include: ['src/components/**', 'src/hooks/**', 'src/lib/**', 'src/utils/**', 'src/context/**'],
       exclude: [
         'src/app/**',

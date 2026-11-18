@@ -74,10 +74,7 @@ export default function EmptyState({
       </div>
       <p className="text-xl font-semibold text-gray-900">{title}</p>
       <p className="mt-2 max-w-sm text-sm text-gray-600">{description}</p>
-      <Link
-        href={href}
-        className="mt-6 rounded-md bg-blue-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
-      >
+      <Link href={href} className="btn-primary mt-6 focus-ring">
         {buttonText}
       </Link>
     </div>

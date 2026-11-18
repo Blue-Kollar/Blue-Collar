@@ -90,12 +90,42 @@
   }
 }
 
-@layer utilities {
-  @keyframes fade-in {
-    from { opacity: 0; }
-    to   { opacity: 1; }
+@layer components {
+  /* Muted footer/nav link: replaces repeated
+     "text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 transition-colors". */
+  .link-muted {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: #6b7280; /* gray-500 */
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
   }
-  .animate-fade-in {
-    animation: fade-in 0.2s ease;
+  .link-muted:hover {
+    color: #2563eb; /* blue-600 */
+  }
+  .dark .link-muted {
+    color: #9ca3af; /* gray-400 */
+  }
+
+  /* Primary blue button: replaces repeated
+     "bg-blue-600 text-white hover:bg-blue-700 transition-colors". */
+  .btn-primary {
+    background-color: #2563eb; /* blue-600 */
+    color: #ffffff;
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
+  }
+  .btn-primary:hover {
+    background-color: #1d4ed8; /* blue-700 */
+  }
+
+  /* Shared focus ring: replaces repeated
+     "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2". */
+  .focus-ring:focus {
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px #3b82f6; /* blue-500 */
   }
 }

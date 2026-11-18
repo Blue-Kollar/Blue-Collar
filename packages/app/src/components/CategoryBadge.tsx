@@ -14,6 +14,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { getCategoryConfig } from "@/config/categoryConfig";
+import { badgeBaseClasses } from "@/lib/componentClasses";
 
 const ICON_MAP: Record<string, LucideIcon> = {
   Droplets,
@@ -53,8 +54,7 @@ export function CategoryBadge({
 
   return (
     <span
-      className={`inline-flex items-center rounded-full border font-medium
-        ${config.bg} ${config.text} ${config.border} ${badge}`}
+      className={`${badgeBaseClasses} ${config.bg} ${config.text} ${config.border} ${badge}`}
     >
       <Icon size={iconSize} className={config.icon} aria-hidden="true" />
       {showLabel ? (
@@ -77,7 +77,7 @@ export function CategoryIcon({ slug, size = 24, className = "" }: CategoryIconPr
   const Icon = ICON_MAP[config.iconName] ?? Wrench;
   return (
     <span
-      className={`inline-flex items-center justify-center rounded-full p-2 ${config.bg} ${className}`}
+      className={`${badgeBaseClasses} justify-center p-2 ${config.bg} ${className}`}
       aria-hidden="true"
     >
       <Icon size={size} className={config.icon} aria-label={config.ariaLabel} />
