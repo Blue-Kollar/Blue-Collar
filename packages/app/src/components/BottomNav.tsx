@@ -37,6 +37,7 @@ export default function BottomNav() {
               href={href}
               className={cn(
                 "flex flex-1 flex-col items-center justify-center gap-1 py-2 min-h-[56px] text-xs font-medium transition-all duration-200",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-900",
                 isActive
                   ? "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/30"
                   : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
@@ -47,6 +48,8 @@ export default function BottomNav() {
                 size={24} 
                 strokeWidth={isActive ? 2.5 : 1.75}
                 fill={isActive ? "currentColor" : "none"}
+                aria-hidden="true"
+                focusable="false"
               />
               <span className="text-[10px]">{t(key)}</span>
             </Link>
