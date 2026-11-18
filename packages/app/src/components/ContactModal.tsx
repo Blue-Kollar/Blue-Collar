@@ -29,7 +29,7 @@ export default function ContactModal({ workerId, workerName }: Props) {
       <Dialog.Trigger asChild>
         <button className="flex items-center gap-2 rounded-lg border border-blue-600 px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors" aria-label={t("title", { name: workerName })}>
           <MessageSquare size={15} aria-hidden="true" />
-          {t("title", { name: workerName }).split(" ")[0]}
+          {t("trigger")}
         </button>
       </Dialog.Trigger>
 
@@ -102,7 +102,7 @@ export default function ContactModal({ workerId, workerName }: Props) {
                   disabled={status === "loading"}
                   className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-blue-600 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60 transition-colors"
                 >
-                  {status === "loading" && <Loader2 size={14} className="animate-spin" />}
+                  {status === "loading" && <Loader2 size={14} className="animate-spin" aria-hidden="true" />}
                   {t("sendMessage")}
                 </button>
               </div>

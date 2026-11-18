@@ -6,12 +6,13 @@ import { Compass, Search, Wallet, User } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
+import { routes, isActivePath } from "@/lib/routes";
 
 const BOTTOM_NAV_ITEMS = [
-  { href: "/", key: "discover", icon: Compass },
-  { href: "/workers", key: "search", icon: Search },
-  { href: "/wallet", key: "wallet", icon: Wallet },
-  { href: "/profile", key: "profile", icon: User },
+  { href: routes.discover(), key: "discover", icon: Compass },
+  { href: routes.workers(), key: "search", icon: Search },
+  { href: routes.wallet(), key: "wallet", icon: Wallet },
+  { href: routes.profile(), key: "profile", icon: User },
 ];
 
 export default function BottomNav() {
@@ -30,7 +31,7 @@ export default function BottomNav() {
     >
       <div className="flex items-stretch">
         {BOTTOM_NAV_ITEMS.map(({ href, key, icon: Icon }) => {
-          const isActive = pathname === href || (href !== "/" && pathname.startsWith(href));
+          const isActive = isActivePath(pathname, href);
           return (
             <Link
               key={href}

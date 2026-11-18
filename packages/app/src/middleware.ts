@@ -1,7 +1,7 @@
 import createMiddleware from 'next-intl/middleware'
 import { NextRequest, NextResponse } from "next/server";
+import { ROUTES, isProtectedPath, getLoginPath } from "./routes";
 
-const PROTECTED = ["/dashboard"];
 const locales = ['en', 'fr', 'es', 'pt']
 const defaultLocale = 'en'
 
@@ -13,12 +13,12 @@ const intlMiddleware = createMiddleware({
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  
+
   // Apply i18n middleware
   const intlResponse = intlMiddleware(req)
-  
+
   // Check protected routes
-  const isProtected = PROTECTED.some((p) => pathname.includes(p));
+  const isProtected = isProtectedPath(pathname);
   if (!isProtected) return intlResponse;
 
   const token =
@@ -28,7 +28,7 @@ export function middleware(req: NextRequest) {
   if (!token) {
     const loginUrl = req.nextUrl.clone();
     const locale = pathname.split('/')[1] || defaultLocale
-    loginUrl.pathname = `/${locale}/auth/login`;
+    loginUrl.pathname = getLoginPath(locale);
     loginUrl.searchParams.set("redirect", pathname);
     return NextResponse.redirect(loginUrl);
   }

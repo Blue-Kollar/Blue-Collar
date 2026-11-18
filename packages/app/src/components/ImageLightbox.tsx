@@ -110,7 +110,7 @@ export default function ImageLightbox({ src, alt, onClose }: Props) {
     <div
       role="dialog"
       aria-modal="true"
-      aria-label={`${alt}`}
+      aria-label={alt}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 animate-fade-in"
       onClick={onClose}
     >

@@ -61,7 +61,21 @@ export default defineConfig({
       // required by issue #1449.
       reporter: ['text', 'html', 'json-summary'],
       reportsDirectory: './coverage',
-      include: ['src/components/**', 'src/hooks/**', 'src/lib/**', 'src/utils/**', 'src/context/**'],
+      // Explicitly include the centralized routing config (routes.ts), the
+      // shared logger (logger.ts), the transaction status map (tx-status-map.ts)
+      // and the split TxStatus components so they are held to the coverage
+      // thresholds below (issues #1797, #1798, #1799, #1800).
+      include: [
+        'src/components/**',
+        'src/hooks/**',
+        'src/lib/**',
+        'src/utils/**',
+        'src/context/**',
+        'src/routes.ts',
+        'src/lib/logger.ts',
+        'src/lib/tx-status-map.ts',
+        'src/components/tx-status/**',
+      ],
       exclude: [
         'src/app/**',
         '**/*.stories.tsx',
