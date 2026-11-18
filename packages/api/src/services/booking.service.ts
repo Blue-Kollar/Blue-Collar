@@ -183,6 +183,27 @@ export function createBookingService(deps: BookingServiceDeps) {
       const { page = 1, limit = 20, status } = options
       return repo.findRequesterBookings(requesterId, { page, limit, status })
     },
+
+    /**
+     * Resolve the current user's bookings for GET /bookings/mine.
+     *
+     * The route previously decided between worker and requester listings based
+     * on the authenticated user's role. That branching now lives here so the
+     * route stays a thin HTTP adapter.
+     */
+    async getMyBookings(
+      userId: string,
+      role: string,
+      options: { page?: number; limit?: number; status?: BookingStatus } = {},
+    ) {
+      const { page = 1, limit = 20, status } = options
+
+      if (role === 'WORKER') {
+        return repo.findWorkerBookings(userId, { page, limit, status })
+      }
+
+      return repo.findRequesterBookings(userId, { page, limit, status })
+    },
   }
 }
 
@@ -216,4 +237,12 @@ export async function getRequesterBookings(
   options: { page?: number; limit?: number; status?: BookingStatus } = {},
 ) {
   return _defaultService.getRequesterBookings(requesterId, options)
+}
+
+export async function getMyBookings(
+  userId: string,
+  role: string,
+  options: { page?: number; limit?: number; status?: BookingStatus } = {},
+) {
+  return _defaultService.getMyBookings(userId, role, options)
 }

@@ -41,6 +41,26 @@ export interface EscrowResult {
   status: 'pending'
 }
 
+export interface ReleaseEscrowParams {
+  escrow: EscrowResult
+  caller: string
+}
+
+export interface CancelEscrowParams {
+  escrow: EscrowResult
+  caller: string
+}
+
+export interface ApproveMultiSigParams {
+  escrow: MultiSigEscrowResult
+  signer: string
+}
+
+export interface ReleaseMultiSigParams {
+  escrow: MultiSigEscrowResult
+  caller: string
+}
+
 // ── Multi-sig escrow types ────────────────────────────────────────────────────
 
 export interface MultiSigEscrowParams {
@@ -62,7 +82,7 @@ export interface MultiSigEscrowResult {
   signers: string[]
   threshold: number
   approvals: string[]
-  status: 'pending'
+  status: 'pending' | 'released' | 'cancelled'
 }
 
 // ── Standalone helpers (kept for backward-compat & Stryker coverage) ─────────
@@ -225,6 +245,87 @@ export class PaymentService {
    */
   createMultiSigEscrow(params: MultiSigEscrowParams): MultiSigEscrowResult {
     return createMultiSigEscrow(params)
+  }
+
+  /**
+   * Release a standard escrow to the recipient.
+   * Only the sender may release, and only after the expiry date has passed.
+   */
+  releaseEscrow({ escrow, caller }: ReleaseEscrowParams): EscrowResult {
+    if (escrow.status !== 'pending') {
+      throw new AppError('Escrow is not pending', 400, true, ErrorCode.VALIDATION_ERROR)
+    }
+    if (caller !== escrow.from) {
+      throw new AppError('Only the sender can release the escrow', 403, true, ErrorCode.FORBIDDEN)
+    }
+    if (escrow.expiryDate > nowUtc()) {
+      throw new AppError('Escrow has not expired yet', 400, true, ErrorCode.VALIDATION_ERROR)
+    }
+    return { ...escrow, status: 'pending' }
+  }
+
+  /**
+   * Cancel a pending escrow, returning funds to the sender.
+   * Either the sender or the recipient may cancel.
+   */
+  cancelEscrow({ escrow, caller }: CancelEscrowParams): EscrowResult {
+    if (escrow.status !== 'pending') {
+      throw new AppError('Escrow is not pending', 400, true, ErrorCode.VALIDATION_ERROR)
+    }
+    if (caller !== escrow.from && caller !== escrow.to) {
+      throw new AppError('Only the sender or recipient can cancel the escrow', 403, true, ErrorCode.FORBIDDEN)
+    }
+    return { ...escrow, status: 'pending' }
+  }
+
+  /**
+   * Record an approval from an authorised signer on a multi-sig escrow.
+   * Duplicate approvals are ignored; the returned escrow reflects the new state.
+   */
+  approveMultiSigEscrow({ escrow, signer }: ApproveMultiSigParams): MultiSigEscrowResult {
+    if (escrow.status !== 'pending') {
+      throw new AppError('Escrow is not pending', 400, true, ErrorCode.VALIDATION_ERROR)
+    }
+    if (!escrow.signers.includes(signer)) {
+      throw new AppError('Caller is not an authorised signer', 403, true, ErrorCode.FORBIDDEN)
+    }
+    if (escrow.approvals.includes(signer)) {
+      return { ...escrow, approvals: [...escrow.approvals] }
+    }
+    return { ...escrow, approvals: [...escrow.approvals, signer] }
+  }
+
+  /**
+   * Release a multi-sig escrow once the approval threshold is met and the
+   * expiry date has passed.
+   */
+  releaseMultiSigEscrow({ escrow, caller }: ReleaseMultiSigParams): MultiSigEscrowResult {
+    if (escrow.status !== 'pending') {
+      throw new AppError('Escrow is not pending', 400, true, ErrorCode.VALIDATION_ERROR)
+    }
+    if (!escrow.signers.includes(caller)) {
+      throw new AppError('Caller is not an authorised signer', 403, true, ErrorCode.FORBIDDEN)
+    }
+    if (escrow.approvals.length < escrow.threshold) {
+      throw new AppError('Approval threshold not met', 400, true, ErrorCode.VALIDATION_ERROR)
+    }
+    if (escrow.expiryDate > nowUtc()) {
+      throw new AppError('Escrow has not expired yet', 400, true, ErrorCode.VALIDATION_ERROR)
+    }
+    return { ...escrow, status: 'released' }
+  }
+
+  /**
+   * Cancel a pending multi-sig escrow. Only the sender may cancel.
+   */
+  cancelMultiSigEscrow({ escrow, caller }: ReleaseMultiSigParams): MultiSigEscrowResult {
+    if (escrow.status !== 'pending') {
+      throw new AppError('Escrow is not pending', 400, true, ErrorCode.VALIDATION_ERROR)
+    }
+    if (caller !== escrow.from) {
+      throw new AppError('Only the sender can cancel the escrow', 403, true, ErrorCode.FORBIDDEN)
+    }
+    return { ...escrow, status: 'cancelled' }
   }
 }
 

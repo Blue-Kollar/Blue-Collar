@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { AuthProvider } from "@/context/AuthContext";
 import { WalletProvider } from "@/context/WalletContext";
 import { OnboardingProvider } from "@/context/OnboardingContext";
+import QueryProvider from "@/components/providers/QueryProvider";
 import PushNotificationPrompt from "@/components/PushNotificationPrompt";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 
@@ -51,18 +52,20 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <a href="#main-content" className="skip-to-main">
           Skip to main content
         </a>
-        {/* Theme, locale, query and toast providers live in the locale layout (components/Providers) */}
-        <AuthProvider>
-          <WalletProvider>
-            <OnboardingProvider>
-              <ServiceWorkerRegister />
-              <div id="main-content" tabIndex={-1}>
-                {children}
-              </div>
-              <PushNotificationPrompt />
-            </OnboardingProvider>
-          </WalletProvider>
-        </AuthProvider>
+        {/* Theme, locale and toast providers live in the locale layout (components/Providers) */}
+        <QueryProvider>
+          <AuthProvider>
+            <WalletProvider>
+              <OnboardingProvider>
+                <ServiceWorkerRegister />
+                <div id="main-content" tabIndex={-1}>
+                  {children}
+                </div>
+                <PushNotificationPrompt />
+              </OnboardingProvider>
+            </WalletProvider>
+          </AuthProvider>
+        </QueryProvider>
       </body>
     </html>
   );
