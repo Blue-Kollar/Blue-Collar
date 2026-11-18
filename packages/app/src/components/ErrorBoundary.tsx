@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useEffect, useState } from "react";
+import { Component, type ErrorInfo, type ReactNode, useEffect, useState } from "react";
 import ErrorState from "@/components/ErrorState";
 
 interface Props {
@@ -11,29 +11,33 @@ interface Props {
   description?: string;
 }
 
-export default function ErrorBoundary({
-  error,
-  reset,
-  title,
-  description,
-}: Props) {
+interface FallbackProps {
+  error: Error & { digest?: string };
+  reset: () => void;
+  title?: string;
+  description?: string;
+}
+
+function buildReport(error: Error & { digest?: string }) {
+  return {
+    message: error.message,
+    name: error.name,
+    stack: error.stack,
+    digest: error.digest,
+    url: typeof window !== "undefined" ? window.location.href : "",
+    timestamp: new Date().toISOString(),
+  };
+}
+
+function ErrorFallback({ error, reset, title, description }: FallbackProps) {
   const t = useTranslations("errors");
   const [reported, setReported] = useState(false);
 
-  useEffect(() => {
-    console.error(error);
-  }, [error]);
-
   const handleReport = () => {
-    const report = {
-      message: error.message,
-      name: error.name,
-      stack: error.stack,
-      digest: error.digest,
-      url: typeof window !== "undefined" ? window.location.href : "",
-      timestamp: new Date().toISOString(),
-    };
-    navigator.clipboard.writeText(JSON.stringify(report, null, 2)).catch(() => {});
+    const report = buildReport(error);
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      navigator.clipboard.writeText(JSON.stringify(report, null, 2)).catch(() => {});
+    }
     setReported(true);
   };
 
@@ -58,4 +62,67 @@ export default function ErrorBoundary({
       )}
     </div>
   );
+}
+
+export default function ErrorBoundary({
+  error,
+  reset,
+  title,
+  description,
+}: Props) {
+  useEffect(() => {
+    console.error(error);
+  }, [error]);
+
+  return (
+    <ErrorFallback
+      error={error}
+      reset={reset}
+      title={title}
+      description={description}
+    />
+  );
+}
+
+interface WrapperProps {
+  children: ReactNode;
+  title?: string;
+  description?: string;
+  onError?: (error: Error, info: ErrorInfo) => void;
+}
+
+interface WrapperState {
+  error: (Error & { digest?: string }) | null;
+}
+
+export class ErrorBoundaryWrapper extends Component<WrapperProps, WrapperState> {
+  state: WrapperState = { error: null };
+
+  static getDerivedStateFromError(error: Error): WrapperState {
+    return { error };
+  }
+
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    console.error(error, info);
+    this.props.onError?.(error, info);
+  }
+
+  reset = () => {
+    this.setState({ error: null });
+  };
+
+  render() {
+    const { error } = this.state;
+    if (error) {
+      return (
+        <ErrorFallback
+          error={error}
+          reset={this.reset}
+          title={this.props.title}
+          description={this.props.description}
+        />
+      );
+    }
+    return this.props.children;
+  }
 }
