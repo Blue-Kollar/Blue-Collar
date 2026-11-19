@@ -41,6 +41,11 @@ module.exports = {
     // ── Deprecation detection (#1688) ──────────────────────────────────────
     ...deprecationRules,
 
+    // ── Type safety (#1795) ────────────────────────────────────────────────
+    // Disallow explicit `any` in app components; use the types package
+    // instead of ad-hoc `any` annotations.
+    '@typescript-eslint/no-explicit-any': 'error',
+
     // ── App-specific rules ─────────────────────────────────────────────────
     'jsx-a11y/control-has-associated-label': 'warn',
   },
