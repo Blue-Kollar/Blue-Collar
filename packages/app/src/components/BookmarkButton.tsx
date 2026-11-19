@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Heart } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useToggleBookmark } from "@/hooks/queries";
+import { useSubmitGuard } from "@/hooks/useSubmitGuard";
 import { cn } from "@/lib/utils";
 
 interface BookmarkButtonProps {
@@ -24,27 +25,35 @@ export default function BookmarkButton({
   const t = useTranslations("workerCard");
   const [bookmarked, setBookmarked] = useState(initialBookmarked);
   const toggleBookmark = useToggleBookmark();
+  const { isSubmitting, guard } = useSubmitGuard();
 
   const handleClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (toggleBookmark.isPending) return;
-    // Optimistic update
-    setBookmarked((prev) => !prev);
-    try {
-      const res = await toggleBookmark.mutateAsync(workerId);
-      if (res.data) setBookmarked(res.data.bookmarked);
-    } catch {
-      setBookmarked((prev) => !prev); // revert on error
-    }
+    if (isSubmitting) return;
+    await guard(async () => {
+      // Optimistic update
+      setBookmarked((prev) => !prev);
+      try {
+        const res = await toggleBookmark.mutateAsync(workerId);
+        if (res.data) setBookmarked(res.data.bookmarked);
+      } catch {
+        setBookmarked((prev) => !prev); // revert on error
+      }
+    });
   };
 
   return (
     <button
+      type="button"
       onClick={handleClick}
+      disabled={isSubmitting}
+      aria-busy={isSubmitting}
       aria-label={bookmarked ? t("bookmarkRemove") : t("bookmarkAdd")}
+      aria-pressed={bookmarked}
       className={cn(
         "rounded-full p-1.5 transition-colors",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-500",
         bookmarked
           ? "text-red-500 hover:text-red-600"
           : "text-gray-300 hover:text-red-400",

@@ -26,6 +26,7 @@ export default function ErrorState({
   className,
 }: ErrorStateProps) {
   const t = useTranslations("common");
+  const resolvedTitle = title ?? t("somethingWentWrong");
   const resolvedRetryLabel = retryLabel ?? t("tryAgain");
   if (variant === "inline") {
     return (
@@ -59,9 +60,7 @@ export default function ErrorState({
       )}
     >
       <AlertTriangle size={22} className="text-red-500" aria-hidden="true" />
-      {title && (
-        <p className="mt-3 text-lg font-semibold text-red-700 dark:text-red-300">{title}</p>
-      )}
+      <p className="mt-3 text-lg font-semibold text-red-700 dark:text-red-300">{resolvedTitle}</p>
       <p className="mt-1 text-sm text-red-600 dark:text-red-400">{message}</p>
       {onRetry && (
         <button

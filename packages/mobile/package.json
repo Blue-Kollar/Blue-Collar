@@ -16,6 +16,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@bluecollar/sdk": "workspace:*",
     "@bluecollar/types": "workspace:*",
     "expo": "~51.0.0",
     "expo-router": "~3.5.0",

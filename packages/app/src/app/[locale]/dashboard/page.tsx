@@ -3,7 +3,6 @@
 import { useEffect } from "react";
 import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
-import FriendbotBanner from "@/components/FriendbotBanner";
 import { DashboardTableSkeleton } from "@/components/Skeleton";
 import {
   DashboardHeader,
@@ -12,6 +11,8 @@ import {
   DeleteWorkerDialog,
 } from "@/components/Dashboard";
 import type { DashboardTabType } from "@/components/Dashboard";
+import { DashboardWalletBanner } from "@/components/dashboard/DashboardWalletBanner";
+import { DashboardErrorBanner } from "@/components/dashboard/DashboardErrorBanner";
 
 // The analytics panel is only needed on its tab, so it loads on demand.
 const AnalyticsPanel = dynamic(
@@ -19,15 +20,15 @@ const AnalyticsPanel = dynamic(
   { loading: () => null },
 );
 import { useCuratorDashboard } from "@/hooks/useCuratorDashboard";
+import { useWallet } from "@/hooks/useWallet";
 
 export default function DashboardPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { publicKey, xlmBalance } = useWallet();
   const {
     user,
     authLoading,
-    publicKey,
-    xlmBalance,
     workers,
     loading,
     error,
@@ -74,9 +75,7 @@ export default function DashboardPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
-      {publicKey && xlmBalance !== null && (
-        <FriendbotBanner walletAddress={publicKey} xlmBalance={xlmBalance} />
-      )}
+      <DashboardWalletBanner publicKey={publicKey} xlmBalance={xlmBalance} />
 
       {/* Header */}
       <DashboardHeader />
@@ -91,11 +90,7 @@ export default function DashboardPage() {
       />
 
       {/* Error banner */}
-      {error && (
-        <div className="mb-6 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">
-          {error}
-        </div>
-      )}
+      <DashboardErrorBanner error={error} />
 
       {/* Tab panels */}
       {activeTab === "workers" && (

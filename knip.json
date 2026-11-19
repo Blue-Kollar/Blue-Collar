@@ -27,23 +27,14 @@
         "**/build/**"
       ]
     },
-    "app": {
-      "entry": ["src/index.{ts,tsx,js,jsx}", "src/main.{ts,tsx,js,jsx}"],
-      "project": ["src/**/*.{ts,tsx,js,jsx}"],
-      "ignore": [
-        "**/*.test.{ts,tsx,js,jsx}",
-        "**/*.spec.{ts,tsx,js,jsx}",
-        "**/__tests__/**",
-        "**/*.d.ts",
-        "**/dist/**",
-        "**/build/**"
-      ]
-    },
-    "frontend": {
+    "packages/app": {
       "entry": [
-        "src/main.{ts,tsx,js,jsx}",
+        "src/app/**/{page,layout,route,error,loading,not-found,template,default}.{ts,tsx,js,jsx}",
+        "src/middleware.{ts,tsx,js,jsx}",
+        "src/instrumentation.{ts,tsx,js,jsx}",
+        "next.config.{js,mjs,cjs,ts}",
         "src/index.{ts,tsx,js,jsx}",
-        "index.html"
+        "src/main.{ts,tsx,js,jsx}"
       ],
       "project": ["src/**/*.{ts,tsx,js,jsx}"],
       "ignore": [
@@ -53,6 +44,8 @@
         "**/*.d.ts",
         "**/dist/**",
         "**/build/**",
+        "**/.next/**",
+        "**/storybook-static/**",
         "e2e/**"
       ]
     },
@@ -97,7 +90,9 @@
     "**/coverage/**",
     "**/.turbo/**",
     "**/.next/**",
-    "**/.expo/**"
+    "**/.expo/**",
+    "**/storybook-static/**",
+    "**/public/**"
   ],
   "ignoreDependencies": [
     "@types/*",

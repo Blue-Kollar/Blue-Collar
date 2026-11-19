@@ -9,6 +9,8 @@ export const ErrorMessages = {
   // ── Generic ──────────────────────────────────────────────────────────────
   INTERNAL_SERVER_ERROR: 'Internal Server Error',
   NOT_FOUND: 'Not found',
+  BAD_REQUEST: 'Bad request',
+  VALIDATION_FAILED: 'Validation failed',
   ROUTE_NOT_FOUND: (method: string, url: string) => `Route ${method} ${url} not found`,
 
   // ── Auth ─────────────────────────────────────────────────────────────────

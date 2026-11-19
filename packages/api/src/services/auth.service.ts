@@ -30,6 +30,10 @@ export function createAuthService(deps: AuthServiceDeps) {
     resendVerificationEmail: recovery.resendVerificationEmail,
     requestPasswordReset: recovery.requestPasswordReset,
     resetPassword: recovery.resetPassword,
+    exchangeRefreshToken: session.rotateRefreshToken,
+    handleOAuthCallback: session.handleOAuthCallback,
+    completeVerificationFlow: recovery.verifyAccount,
+    completePasswordResetFlow: recovery.resetPassword,
   }
 }
 
@@ -75,4 +79,40 @@ export async function requestPasswordReset(email: string) {
 
 export async function resetPassword(token: string, password: string) {
   return _defaultService.resetPassword(token, password)
+}
+
+/**
+ * Exchange a refresh token for a new access/refresh token pair.
+ * Thin wrapper around rotateRefreshToken used by the auth route.
+ */
+export async function exchangeRefreshToken(rawToken: string) {
+  return _defaultService.exchangeRefreshToken(rawToken)
+}
+
+/**
+ * Handle an OAuth provider callback: exchange the provider code for a
+ * session. Delegates to the session service's OAuth handler.
+ */
+export async function handleOAuthCallback(
+  provider: string,
+  code: string,
+  deviceName?: string,
+  userAgent?: string,
+  ipAddress?: string,
+) {
+  return _defaultService.handleOAuthCallback(provider, code, deviceName, userAgent, ipAddress)
+}
+
+/**
+ * Complete the account verification flow (route-level alias).
+ */
+export async function completeVerificationFlow(token: string): Promise<boolean> {
+  return _defaultService.completeVerificationFlow(token)
+}
+
+/**
+ * Complete the password reset flow (route-level alias).
+ */
+export async function completePasswordResetFlow(token: string, password: string) {
+  return _defaultService.completePasswordResetFlow(token, password)
 }

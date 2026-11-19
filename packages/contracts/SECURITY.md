@@ -186,7 +186,83 @@ Running it again will panic with `"Wrong schema version"`.
 
 ---
 
-## 9. Known Limitations / Out of Scope
+## 9. Deployment Key Handling
+
+Deployment and administration keys are the highest-value secrets in the system: a
+compromised `ROLE_UPGRADER` or `ROLE_ADMIN` key can replace contract logic or drain
+escrowed funds. The full deployment walkthrough lives in
+[`docs/CONTRACTS.md`](../../docs/CONTRACTS.md); the security-relevant rules are
+summarised here.
+
+### 9.1 Key storage
+
+- **Never commit secret keys.** `stellar keys` identities are stored under
+  `~/.config/stellar/identity/` (or the path given by `STELLAR_KEYS_DIR`); this
+  directory must never be inside the repository or a synced/shared folder.
+- **Production keys must be hardware-backed or multisig.** `ROLE_ADMIN`,
+  `ROLE_UPGRADER`, `ROLE_PAUSER` and `ROLE_FEE_MANAGER` should be held by a
+  multisig account or governance contract (see §6), not a single EOA.
+- **Separate keys per environment.** Testnet deployer/admin keys must be distinct
+  from mainnet keys, and distinct from the keys used for day-to-day operations.
+- **Encrypted backups only.** If a key must be backed up, store it in an encrypted
+  vault (e.g. `age`/GPG-encrypted file or a secrets manager), never in plaintext
+  notes, chat or CI logs.
+
+### 9.2 Environment variable usage
+
+Scripts under `scripts/` read configuration from the environment rather than
+hard-coded values. Typical variables:
+
+| Variable | Purpose |
+|---|---|
+| `STELLAR_NETWORK` | `testnet` or `mainnet` target |
+| `STELLAR_RPC_URL` / `STELLAR_NETWORK_PASSPHRASE` | RPC endpoint and network passphrase |
+| `STELLAR_SOURCE_ACCOUNT` | public key of the deployer/admin identity |
+| `STELLAR_SECRET_KEY` | secret key, **only** for ephemeral CI/testnet use |
+| `REGISTRY_CONTRACT_ID` / `MARKET_CONTRACT_ID` | existing contract IDs for upgrades |
+
+Rules:
+
+- Prefer `stellar keys` identities (which sign via the CLI) over passing
+  `STELLAR_SECRET_KEY` directly; the secret-key variable exists only for
+  throwaway testnet automation.
+- Never `echo` or `set -x` around commands that consume secrets; disable shell
+  tracing in any script that handles them.
+- CI secrets must be scoped to the testnet environment and masked in logs. Mainnet
+  deployments should require manual approval and should not run from CI-held keys.
+- `.env` files must be listed in `.gitignore`; only `.env.example` (with empty
+  values) is committed.
+
+### 9.3 Rotation
+
+- Rotate any key immediately if it may have been exposed (leaked log, shared
+  screen, compromised machine).
+- Rotation procedure: grant the new key the relevant role via
+  `grant_role`/`add_curator`, verify it can perform the operation, then
+  `revoke_role` the old key. For `ROLE_UPGRADER`/`ROLE_ADMIN`, perform the swap
+  through the multisig so no single party controls the transition.
+- Rotate testnet keys on a regular schedule and before any public demo; testnet
+  keys are frequently pasted into issues and should be treated as public.
+- After rotation, re-run the post-deployment verification steps in
+  `docs/CONTRACTS.md` to confirm the old key no longer has authority.
+
+### 9.4 Rollback authorization
+
+- Rolling back (re-installing a previous WASM and calling `upgrade`) requires
+  `ROLE_UPGRADER`; any storage-schema change also requires `ROLE_ADMIN` for
+  `migrate`. Both must be satisfied by the multisig/governance holder.
+- A rollback must be explicitly approved by the same authority that approved the
+  original upgrade; it is not a unilateral operator action.
+- Rollback of a schema-changing upgrade is **not** automatic: `migrate` only moves
+  forward (`expected_version` must match the current version), so reverting data
+  requires a new forward migration. Plan and review the rollback path before
+  deploying any schema change.
+- Record every upgrade and rollback (WASM hash, version, approver, timestamp) in
+  the deployment log described in `docs/CONTRACTS.md`.
+
+---
+
+## 10. Known Limitations / Out of Scope
 
 - **Oracle / price feeds**: not used; no external data dependency.
 - **Flash loans**: not applicable (no lending pool).

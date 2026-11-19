@@ -5,6 +5,7 @@ import type {
   ListJobsQuery,
   UpdateApplicationStatusRequest,
 } from '@bluecollar/types'
+import { z } from 'zod'
 import { jobRepository as defaultJobRepository } from '@/repositories/job.repository.js'
 import { AppError } from '@/utils/app-error.js'
 import { nowUtc, parseUtcDate, addUtcMs } from '@/utils/date.js'
@@ -12,6 +13,54 @@ import { dispatchNotification } from '@/services/notification.service.js'
 import { buildPaginationMeta } from '@/utils/pagination.js'
 import { sanitizeText } from '@/utils/sanitize.js'
 import type { JobServiceDeps } from '@/container/types.js'
+
+// ── Query validation / normalization (moved out of the route) ─────────────────
+
+const listJobsQuerySchema = z.object({
+  categoryId: z.string().min(1).optional(),
+  status: z.string().optional(),
+  search: z.string().trim().min(1).optional(),
+  skills: z
+    .union([z.string(), z.array(z.string())])
+    .optional()
+    .transform((value) => {
+      if (value === undefined) return undefined
+      const list = Array.isArray(value) ? value : value.split(',')
+      const cleaned = list.map((s) => s.trim()).filter((s) => s.length > 0)
+      return cleaned.length > 0 ? cleaned : undefined
+    }),
+  urgency: z.string().optional(),
+  minBudget: z.coerce.number().nonnegative().optional(),
+  maxBudget: z.coerce.number().nonnegative().optional(),
+  page: z.coerce.number().int().min(1).optional(),
+  limit: z.coerce.number().int().min(1).max(100).optional(),
+})
+
+const paginationQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).optional(),
+  limit: z.coerce.number().int().min(1).max(100).optional(),
+})
+
+/**
+ * Validate and normalize raw query params for the job list endpoint.
+ * Throws a 400 AppError on invalid input so the route can stay thin.
+ */
+export function normalizeListJobsQuery(raw: unknown): ListJobsQuery {
+  const result = listJobsQuerySchema.safeParse(raw ?? {})
+  if (!result.success) {
+    throw new AppError('Invalid query parameters', 400)
+  }
+  return result.data as ListJobsQuery
+}
+
+/** Validate and normalize pagination query params. */
+export function normalizePaginationQuery(raw: unknown): { page: number; limit: number } {
+  const result = paginationQuerySchema.safeParse(raw ?? {})
+  if (!result.success) {
+    throw new AppError('Invalid pagination parameters', 400)
+  }
+  return { page: result.data.page ?? 1, limit: result.data.limit ?? 20 }
+}
 
 // ── Factory ───────────────────────────────────────────────────────────────────
 
@@ -46,8 +95,9 @@ export function createJobService(deps: JobServiceDeps) {
   return {
     // ── List / Search ────────────────────────────────────────────────────────
 
-    async listJobs(opts: ListJobsQuery) {
+    async listJobs(rawOpts: ListJobsQuery | unknown) {
       await expireJobs()
+      const opts = normalizeListJobsQuery(rawOpts)
       const { categoryId, status = JobStatus.Open, search, skills, urgency, minBudget, maxBudget, page = 1, limit = 20 } = opts
 
       const where = {
@@ -157,7 +207,11 @@ export function createJobService(deps: JobServiceDeps) {
 
     // ── My posted jobs ────────────────────────────────────────────────────────
 
-    async myPostedJobs(userId: string, page = 1, limit = 20) {
+    async myPostedJobs(userId: string, rawPagination?: unknown, legacyLimit?: number) {
+      const { page, limit } =
+        typeof rawPagination === 'number' || rawPagination === undefined
+          ? { page: (rawPagination as number | undefined) ?? 1, limit: legacyLimit ?? 20 }
+          : normalizePaginationQuery(rawPagination)
       const where = { postedById: userId }
       const [data, total] = await Promise.all([
         repo.findJobs(where, { skip: (page - 1) * limit, take: limit }),
@@ -169,7 +223,11 @@ export function createJobService(deps: JobServiceDeps) {
 
     // ── Worker's own applications ─────────────────────────────────────────────
 
-    async myApplications(workerId: string, page = 1, limit = 20) {
+    async myApplications(workerId: string, rawPagination?: unknown, legacyLimit?: number) {
+      const { page, limit } =
+        typeof rawPagination === 'number' || rawPagination === undefined
+          ? { page: (rawPagination as number | undefined) ?? 1, limit: legacyLimit ?? 20 }
+          : normalizePaginationQuery(rawPagination)
       const { data, total } = await repo.findApplicationsByWorker(workerId, { skip: (page - 1) * limit, take: limit })
       const lastRecord = data.length > 0 ? data[data.length - 1] : null
       return { data, meta: buildPaginationMeta(total, page, limit, lastRecord) }
@@ -291,7 +349,7 @@ const _defaultService = createJobService({
   jobRepository: defaultJobRepository,
 })
 
-export async function listJobs(opts: ListJobsQuery) {
+export async function listJobs(opts: ListJobsQuery | unknown) {
   return _defaultService.listJobs(opts)
 }
 
@@ -326,12 +384,12 @@ export async function renewJob(id: string, userId: string, daysFromNow = 30) {
   return _defaultService.renewJob(id, userId, daysFromNow)
 }
 
-export async function myPostedJobs(userId: string, page = 1, limit = 20) {
-  return _defaultService.myPostedJobs(userId, page, limit)
+export async function myPostedJobs(userId: string, rawPagination?: unknown, legacyLimit?: number) {
+  return _defaultService.myPostedJobs(userId, rawPagination, legacyLimit)
 }
 
-export async function myApplications(workerId: string, page = 1, limit = 20) {
-  return _defaultService.myApplications(workerId, page, limit)
+export async function myApplications(workerId: string, rawPagination?: unknown, legacyLimit?: number) {
+  return _defaultService.myApplications(workerId, rawPagination, legacyLimit)
 }
 
 export async function applyToJob(jobId: string, workerId: string, coverLetter?: string, proposedRate?: number) {

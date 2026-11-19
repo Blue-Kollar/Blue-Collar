@@ -7,6 +7,11 @@ import {
 import { importWorkersFromCsvController } from '@/controllers/csv-import.js'
 import { exportWorkers, exportUsers } from '@/controllers/export.js'
 import { authenticate, authorize } from '@/middleware/auth.js'
+import { validate } from '@/middleware/validate.js'
+import {
+  bulkToggleWorkersSchema, bulkDeleteWorkersSchema, bulkSuspendUsersSchema,
+  bulkUnsuspendUsersSchema,
+} from '@/schemas/admin.js'
 import multer from 'multer'
 import rateLimit from 'express-rate-limit'
 
@@ -33,14 +38,14 @@ router.get('/users', listUsers)
 router.get('/export/workers', exportRateLimit, exportWorkers)
 router.get('/export/users', exportRateLimit, exportUsers)
 router.post('/workers/import', csvUpload.single('file'), importWorkersFromCsvController)
-router.post('/workers/bulk-toggle', bulkToggleWorkers)
-router.delete('/workers/bulk-delete', bulkDeleteWorkers)
+router.post('/workers/bulk-toggle', validate(bulkToggleWorkersSchema), bulkToggleWorkers)
+router.delete('/workers/bulk-delete', validate(bulkDeleteWorkersSchema), bulkDeleteWorkers)
 router.patch('/users/:id/suspend', suspendUser)
 router.patch('/users/:id/unsuspend', unsuspendUser)
 router.patch('/users/:id/ban', banUser)
 router.patch('/users/:id/role', changeRole)
-router.patch('/users/bulk-suspend', bulkSuspendUsers)
-router.patch('/users/bulk-unsuspend', bulkUnsuspendUsers)
+router.patch('/users/bulk-suspend', validate(bulkSuspendUsersSchema), bulkSuspendUsers)
+router.patch('/users/bulk-unsuspend', validate(bulkUnsuspendUsersSchema), bulkUnsuspendUsers)
 router.patch('/workers/:id/moderate', moderateWorker)
 router.get('/audit', listAuditLogs)
 

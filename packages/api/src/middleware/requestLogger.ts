@@ -49,37 +49,17 @@
  */
 
 import pinoHttp from 'pino-http'
-import pino from 'pino'
-import fs from 'node:fs'
-import path from 'node:path'
 import type { Request } from 'express'
 import type { IncomingMessage } from 'node:http'
-import { config } from '@/config/config.js'
+import { logger } from '@/config/logger.js'
 
 /** Request augmented with the authenticated user attached by auth middleware. */
 type LoggedRequest = IncomingMessage & { user?: { id?: string }; id?: string }
 
-const LOG_DIR = config.logDir
-fs.mkdirSync(path.resolve(LOG_DIR), { recursive: true })
-
-const isDev = config.env !== 'production'
-
 export const requestLogger = pinoHttp({
-  logger: isDev
-    ? pino({
-        level: 'info',
-        transport: {
-          target: 'pino-pretty',
-          options: { colorize: true, ignore: 'pid,hostname' },
-        },
-      })
-    : pino(
-        { level: 'info' },
-        pino.destination({
-          dest: path.resolve(LOG_DIR, `api-${new Date().toISOString().slice(0, 10)}.log`),
-          sync: false,
-        }),
-      ),
+  // Use the shared, centrally-configured pino logger so log level, redaction,
+  // transports, and destination are consistent across the whole service.
+  logger,
 
   /**
    * Use the UUID already attached by the `requestId` middleware so every log
@@ -93,7 +73,10 @@ export const requestLogger = pinoHttp({
 
   // PII SAFETY: Only method, url, and statusCode are logged.
   // No headers, body, query params, or IP addresses are persisted.
+  // `requestId` and `userId` are promoted to the root of every log line so
+  // aggregators can filter without navigating nested objects.
   customProps: (req: IncomingMessage) => ({
+    requestId: (req as LoggedRequest).id ?? null,
     userId: (req as LoggedRequest).user?.id ?? null,
   }),
 
@@ -123,11 +106,10 @@ export const requestLogger = pinoHttp({
  * }
  * ```
  */
-import { logger } from '@/config/logger.js'
-
 export function childLogger(req: Request) {
   return logger.child({
     requestId: req.id,
+    userId: req.user?.id ?? null,
     service: 'bluecollar-api',
   })
 }
