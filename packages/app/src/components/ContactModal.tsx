@@ -5,6 +5,9 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { X, Loader2, CheckCircle2, MessageSquare } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useContactForm } from "@/hooks/useContactForm";
+import { useSubmitGuard } from "@/hooks/useSubmitGuard";
+import { useDebouncedCallback } from "@/hooks/useDebouncedCallback";
+import Modal from "@/components/ui/Modal";
 
 interface Props {
   workerId: string;
@@ -20,15 +23,39 @@ export default function ContactModal({ workerId, workerName }: Props) {
     workerId,
     (key) => t(key as never),
   );
+  const { guard, isActive } = useSubmitGuard();
+  const [inputValue, setInputValue] = useState(message);
+
+  const debouncedSetMessage = useDebouncedCallback((value: string) => {
+    setMessage(value);
+  }, 200);
 
   const handleOpenChange = (val: boolean) => {
     setOpen(val);
-    if (!val) reset();
+    if (!val) {
+      reset();
+      setInputValue("");
+    }
   };
 
+  const handleChange = (value: string) => {
+    setInputValue(value);
+    setError(null);
+    debouncedSetMessage(value);
+  };
+
+  const onSubmit = guard(async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    await handleSubmit(e);
+  });
+
+  const isSubmitting = status === "loading" || isActive;
+
   return (
-    <Dialog.Root open={open} onOpenChange={handleOpenChange}>
-      <Dialog.Trigger asChild>
+    <Modal
+      open={open}
+      onOpenChange={handleOpenChange}
+      trigger={
         <button className="flex items-center gap-2 rounded-lg border border-blue-600 px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors" aria-label={t("title", { name: workerName })}>
           <MessageSquare size={15} aria-hidden="true" />
           {t("trigger")}

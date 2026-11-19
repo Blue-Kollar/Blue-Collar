@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import * as Dialog from "@radix-ui/react-dialog";
 import Image from "next/image";
 import { X, BadgeCheck, MapPin, Star } from "lucide-react";
 import { useCompare } from "@/context/CompareContext";
@@ -44,7 +43,7 @@ export default function CompareDrawer() {
   ];
 
   return (
-    <Dialog.Root open={open} onOpenChange={setOpen}>
+    <>
       <div className="fixed bottom-0 inset-x-0 z-40 bg-white border-t shadow-lg px-4 py-3 flex items-center gap-3">
         <div className="flex items-center gap-2 flex-1 flex-wrap">
           {selected.map((w) => (
@@ -59,11 +58,12 @@ export default function CompareDrawer() {
         <button onClick={clear} className="text-xs text-gray-500 hover:text-gray-700 shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded px-2 py-1">
           {t("clearAll")}
         </button>
-        <Dialog.Trigger asChild>
-          <button className="shrink-0 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
-            {t("compareWorkers", { count: selected.length })}
-          </button>
-        </Dialog.Trigger>
+        <button
+          onClick={() => setOpen(true)}
+          className="shrink-0 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+        >
+          {t("compareWorkers", { count: selected.length })}
+        </button>
       </div>
 
       <Dialog.Portal>
@@ -95,7 +95,7 @@ export default function CompareDrawer() {
                     <th key={w.id} className="px-4 py-3 border-b" scope="col" aria-label={w.name}>
                       <div className="flex flex-col items-center gap-1">
                         {w.avatar ? (
-                          <Image src={w.avatar} alt="" width={48} height={48} sizes="48px" className="h-12 w-12 rounded-full object-cover ring-2 ring-blue-100" aria-hidden="true" />
+                          <Image src={w.avatar} alt="" width={48} height={48} sizes="48px" loading="lazy" className="h-12 w-12 rounded-full object-cover ring-2 ring-blue-100" aria-hidden="true" />
                         ) : (
                           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-600 font-bold" aria-hidden="true">
                             {w.name.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase()}
@@ -136,8 +136,7 @@ export default function CompareDrawer() {
               </tbody>
             </table>
           </div>
-        </Dialog.Content>
-      </Dialog.Portal>
-    </Dialog.Root>
+      </Modal>
+    </>
   );
 }
