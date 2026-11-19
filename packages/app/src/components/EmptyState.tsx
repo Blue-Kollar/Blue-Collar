@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { Search, Bookmark, Star, Users, Wallet } from "lucide-react";
 import { colors, spacing, radius, typography } from "@blue-collar/design-tokens";
 
@@ -16,9 +17,9 @@ const config: Record<
   Variant,
   {
     icon: React.ReactNode;
-    title: string;
-    description: string;
-    cta: string;
+    titleKey: string;
+    descriptionKey: string;
+    ctaKey: string;
     defaultHref: string;
   }
 > = {
@@ -64,9 +65,10 @@ export default function EmptyState({
   ctaHref,
   ctaText,
 }: EmptyStateProps) {
-  const { icon, title, description, cta, defaultHref } = config[variant];
+  const t = useTranslations("emptyState");
+  const { icon, titleKey, descriptionKey, ctaKey, defaultHref } = config[variant];
   const href = ctaHref ?? defaultHref;
-  const buttonText = ctaText ?? cta;
+  const buttonText = ctaText ?? t(ctaKey);
 
   return (
     <div

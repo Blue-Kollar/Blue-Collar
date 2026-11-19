@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { Component, type ErrorInfo, type ReactNode, useEffect, useState } from "react";
 import ErrorState from "@/components/ErrorState";
+import { logger } from "@/lib/logger";
 
 interface Props {
   error: Error & { digest?: string };
@@ -54,11 +55,13 @@ function ErrorFallback({ error, reset, title, description }: FallbackProps) {
           onClick={handleReport}
           className="rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
         >
-          {reported ? "Copied to clipboard" : t("reportError")}
+          {reported ? t("copiedToClipboard") : t("reportError")}
         </button>
       </div>
       {error.digest && (
-        <p className="mt-4 text-xs text-gray-400 font-mono">Error ID: {error.digest}</p>
+        <p className="mt-4 text-xs text-gray-400 font-mono">
+          {t("errorId", { digest: error.digest })}
+        </p>
       )}
     </div>
   );

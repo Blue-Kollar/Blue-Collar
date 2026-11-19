@@ -7,6 +7,7 @@ import { X, BadgeCheck, MapPin, Star } from "lucide-react";
 import { useCompare } from "@/context/CompareContext";
 import type { Worker } from "@bluecollar/types";
 import { useTranslations } from "next-intl";
+import { routes } from "@/lib/routes";
 
 function Cell({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return <td className={`px-4 py-3 text-sm text-gray-700 border-b ${className}`}>{children}</td>;
@@ -15,7 +16,8 @@ function Cell({ children, className = "" }: { children: React.ReactNode; classNa
 const TITLE_ID = "compare-drawer-title";
 
 function Rating({ value }: { value?: number | null }) {
-  if (value == null) return <span className="text-gray-400">&mdash;</span>;
+  const t = useTranslations("componentText");
+  if (value == null) return <span className="text-gray-400">{t("notAvailable")}</span>;
   return (
     <span className="flex items-center gap-1">
       <Star size={13} className="fill-yellow-400 text-yellow-400" aria-hidden="true" />
@@ -35,10 +37,10 @@ export default function CompareDrawer() {
   const rows: { label: string; render: (w: Worker) => React.ReactNode }[] = [
     { label: t("category"), render: (w) => w.category.name },
     { label: t("rating"), render: (w) => <Rating value={w.averageRating} /> },
-    { label: t("reviews"), render: (w) => w.reviewCount ?? "—" },
-    { label: t("location"), render: (w) => w.location ? <span className="flex items-center gap-1"><MapPin size={12} aria-hidden="true" />{w.location}</span> : "—" },
-    { label: t("verified"), render: (w) => w.isVerified ? <BadgeCheck size={16} className="text-blue-500" aria-label={t("verified")} /> : "—" },
-    { label: t("contact"), render: (w) => w.email ?? w.phone ?? "—" },
+    { label: t("reviews"), render: (w) => w.reviewCount ?? t("notAvailable") },
+    { label: t("location"), render: (w) => w.location ? <span className="flex items-center gap-1"><MapPin size={12} aria-hidden="true" />{w.location}</span> : t("notAvailable") },
+    { label: t("verified"), render: (w) => w.isVerified ? <BadgeCheck size={16} className="text-blue-500" aria-label={t("verified")} /> : t("notAvailable") },
+    { label: t("contact"), render: (w) => w.email ?? w.phone ?? t("notAvailable") },
   ];
 
   return (

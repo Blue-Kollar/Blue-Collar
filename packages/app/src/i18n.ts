@@ -1,14 +1,15 @@
 import { getRequestConfig } from 'next-intl/server'
+import { logger } from './lib/logger'
 
 export default getRequestConfig(async ({ locale }) => ({
   locale: locale ?? 'en',
   messages: (await import(`./messages/${locale}.json`)).default,
   onError(error) {
     if (error.code === 'MISSING_MESSAGE') {
-      console.warn(`[i18n] Missing message: ${error.message}`)
+      logger.warn(`[i18n] Missing message: ${error.message}`)
       return
     }
-    console.error(error)
+    logger.error(error)
   },
   getMessageFallback({ namespace, key, error }) {
     const path = [namespace, key].filter(Boolean).join('.')

@@ -48,9 +48,12 @@ export const CategoryBadge = memo(function CategoryBadge({
   size = "md",
   showLabel = true,
 }: CategoryBadgeProps) {
+  const { t } = useTranslation("categories");
   const config = getCategoryConfig(slug);
   const Icon = ICON_MAP[config.iconName] ?? Wrench;
   const { badge, icon: iconSize } = SIZE_CLASSES[size];
+  const label = t(config.labelKey);
+  const ariaLabel = t(config.ariaLabelKey);
 
   return (
     <span
@@ -59,9 +62,9 @@ export const CategoryBadge = memo(function CategoryBadge({
     >
       <Icon size={iconSize} className={config.icon} aria-hidden="true" />
       {showLabel ? (
-        <span aria-label={config.ariaLabel}>{config.label}</span>
+        <span aria-label={ariaLabel}>{label}</span>
       ) : (
-        <span className="sr-only">{config.ariaLabel}</span>
+        <span className="sr-only">{ariaLabel}</span>
       )}
     </span>
   );
@@ -85,7 +88,7 @@ export const CategoryIcon = memo(function CategoryIcon({
       className={`inline-flex items-center justify-center rounded-full p-2 ${config.bg} ${className}`}
       aria-hidden="true"
     >
-      <Icon size={size} className={config.icon} aria-label={config.ariaLabel} />
+      <Icon size={size} className={config.icon} aria-label={t(config.ariaLabelKey)} />
     </span>
   );
 });

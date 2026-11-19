@@ -97,7 +97,10 @@ function ConversationList({
     <div className="flex w-80 flex-col border-r dark:border-gray-800">
       <div className="flex items-center justify-between border-b px-4 py-3 dark:border-gray-800">
         <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">{t("messages")}</h2>
-        <button className="flex h-8 w-8 items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+        <button
+          aria-label={t("newConversation")}
+          className="flex h-8 w-8 items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+        >
           <Plus size={16} />
         </button>
       </div>

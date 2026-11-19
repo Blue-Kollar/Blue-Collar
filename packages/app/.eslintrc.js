@@ -22,7 +22,7 @@ const {
 /** @type {import('eslint').Linter.Config} */
 module.exports = {
   extends: ['next/core-web-vitals', 'next/typescript'],
-  plugins: ['unicorn'],
+  plugins: ['unicorn', 'i18next'],
   parserOptions: {
     // Required by @typescript-eslint/no-deprecated (#1688).
     project: './tsconfig.json',
@@ -32,10 +32,10 @@ module.exports = {
     // ── Shared baseline ────────────────────────────────────────────────────
     ...tsRules,
     ...baseRules,
-    // Allow console.warn / console.error in the app layer (same relaxation
-    // as before; strict no-console would be too noisy for client-side code).
     ...productionOnlyRules,
-    'no-console': ['error', { allow: ['warn', 'error'] }],
+    // Disallow all console usage (#1798). The logger module is the single
+    // sanctioned place for console output; see the override below.
+    'no-console': 'error',
     ...filenameRules,
 
     // ── Deprecation detection (#1688) ──────────────────────────────────────
