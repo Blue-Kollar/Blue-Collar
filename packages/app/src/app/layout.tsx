@@ -5,6 +5,7 @@ import { getTranslations } from "next-intl/server";
 import { AuthProvider } from "@/context/AuthContext";
 import { WalletProvider } from "@/context/WalletContext";
 import { OnboardingProvider } from "@/context/OnboardingContext";
+import QueryProvider from "@/components/providers/QueryProvider";
 import PushNotificationPrompt from "@/components/PushNotificationPrompt";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 

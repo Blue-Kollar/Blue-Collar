@@ -4,9 +4,11 @@ import {
   applyToJob, listApplications, updateApplicationStatus, withdrawApplication,
   sendMessage, listMessages,
   myPostedJobs, myApplications, recommendedJobs,
+} from '@/controllers/jobs.js'
+import {
   validateCreateJob, validateUpdateJob, validateApply,
   validateAppStatus, validateSendMessage, validateListQuery,
-} from '@/controllers/jobs.js'
+} from '@/services/job.service.js'
 import { authenticate } from '@/middleware/auth.js'
 import { publicReadRateLimiter } from '@/config/rateLimiter.js'
 import { jobsWriteRateLimiter } from '@/middleware/rateLimit.js'
