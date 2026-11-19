@@ -1,3 +1,4 @@
+import { ZodError } from 'zod'
 import { AppError, ErrorCode } from '@/utils/app-error.js'
 import { getTraceId } from '@/monitoring/tracing.js'
 import { ErrorMessages, HttpStatus } from '@/constants/index.js'
@@ -9,8 +10,13 @@ export interface ErrorResponse {
   code: number
   errorCode: ErrorCode
   traceId?: string
+  details?: unknown
   stack?: string
   originalMessage?: string
+}
+
+function isZodError(err: unknown): err is ZodError {
+  return err instanceof ZodError || (typeof err === 'object' && err !== null && (err as { name?: unknown }).name === 'ZodError')
 }
 
 interface PrismaClientKnownRequestError {
@@ -50,16 +56,39 @@ export function serializeError(err: unknown): SerializedError {
     }
   }
 
+  if (isZodError(err)) {
+    // PII SAFETY: only field paths and validation messages are exposed — no raw input values
+    return {
+      statusCode: HttpStatus.BAD_REQUEST,
+      body: {
+        status: 'error',
+        message: ErrorMessages.VALIDATION_ERROR,
+        code: HttpStatus.BAD_REQUEST,
+        errorCode: ErrorCode.VALIDATION_ERROR,
+        traceId,
+        details: err.flatten(),
+      },
+    }
+  }
+
   if (isPrismaError(err)) {
     const { statusCode, message, errorCode } = mapPrismaError(err)
     return { statusCode, body: { status: 'error', message, code: statusCode, errorCode, traceId } }
   }
 
   if (err instanceof AppError && err.isOperational) {
-    // PII SAFETY: operational errors only expose the error message and code — no user data
+    // PII SAFETY: operational errors only expose the error message, code and
+    // explicitly provided details — no user data
     return {
       statusCode: err.statusCode,
-      body: { status: 'error', message: err.message, code: err.statusCode, errorCode: err.errorCode, traceId },
+      body: {
+        status: 'error',
+        message: err.message,
+        code: err.statusCode,
+        errorCode: err.errorCode,
+        traceId,
+        ...(err.details !== undefined && { details: err.details }),
+      },
     }
   }
 
