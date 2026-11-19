@@ -14,6 +14,41 @@
   outline: none;
 }
 
+/*
+ * Shared focus ring for all interactive elements. Applied via :focus-visible
+ * so mouse users don't see it, but keyboard users always do.
+ */
+a:focus-visible,
+button:focus-visible,
+[role="button"]:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible,
+[tabindex]:focus-visible {
+  outline: 3px solid #2563eb;
+  outline-offset: 2px;
+}
+
+/* Reusable utility class for custom widgets that need an explicit ring. */
+.focus-ring:focus-visible {
+  outline: 3px solid #2563eb;
+  outline-offset: 2px;
+}
+
+/* Visually hidden but available to screen readers. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* Skip link: hidden until focused, then revealed at the top-left. */
 .skip-to-main {
   position: absolute;
