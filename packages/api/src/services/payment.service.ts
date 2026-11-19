@@ -5,6 +5,8 @@ import {
   validateBasisPoints,
   MAX_BASIS_POINTS,
 } from '@/domain/fees.js'
+import type { PaymentRepository, TransactionContext } from '@/repositories/payment.repository.js'
+import { PrismaPaymentRepository } from '@/repositories/payment.repository.js'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -153,9 +155,14 @@ export function createMultiSigEscrow(params: MultiSigEscrowParams): MultiSigEscr
  */
 export class PaymentService {
   private feeBps: number
+  private readonly repository: PaymentRepository
 
-  constructor(initialFeeBps = 250) {
+  constructor(
+    initialFeeBps = 250,
+    repository: PaymentRepository = new PrismaPaymentRepository(),
+  ) {
     this.feeBps = initialFeeBps
+    this.repository = repository
   }
 
   // ── Fee management ──────────────────────────────────────────────────────────
@@ -188,8 +195,11 @@ export class PaymentService {
   /**
    * Process a tip from one wallet to another.
    * Validates inputs, deducts the platform fee, and returns the breakdown.
+   *
+   * The debit, credit and fee-ledger writes are performed atomically inside a
+   * single database transaction so a partial write can never occur.
    */
-  tip(params: TipParams): TipResult {
+  async tip(params: TipParams): Promise<TipResult> {
     const { from, to, amount } = params
     if (amount <= 0) {
       throw new AppError('Tip amount must be greater than 0', 400, true, ErrorCode.VALIDATION_ERROR)
@@ -198,7 +208,18 @@ export class PaymentService {
       throw new AppError('Sender and recipient must be different', 400, true, ErrorCode.VALIDATION_ERROR)
     }
     const fee = this.calculateFee(amount)
-    return { from, to, grossAmount: amount, fee, netAmount: amount - fee }
+    const netAmount = amount - fee
+
+    await this.repository.transaction(async (tx: TransactionContext) => {
+      await this.repository.debitWallet(tx, from, amount)
+      await this.repository.creditWallet(tx, to, netAmount)
+      if (fee > 0) {
+        await this.repository.recordFee(tx, fee)
+      }
+      await this.repository.recordTip(tx, { from, to, grossAmount: amount, fee, netAmount })
+    })
+
+    return { from, to, grossAmount: amount, fee, netAmount }
   }
 
   // ── Escrow ──────────────────────────────────────────────────────────────────
@@ -207,8 +228,10 @@ export class PaymentService {
    * Create a time-locked escrow payment.
    * The escrow is held until the expiry date, after which it can be released
    * or cancelled by the appropriate party.
+   *
+   * The escrow record and the wallet debit are written atomically.
    */
-  createEscrow(params: EscrowParams): EscrowResult {
+  async createEscrow(params: EscrowParams): Promise<EscrowResult> {
     const { from, to, amount, expiryDate } = params
     if (expiryDate <= nowUtc()) {
       throw new AppError('Escrow expiry must be in the future', 400, true, ErrorCode.VALIDATION_ERROR)
@@ -216,15 +239,40 @@ export class PaymentService {
     if (amount <= 0) {
       throw new AppError('Escrow amount must be greater than 0', 400, true, ErrorCode.VALIDATION_ERROR)
     }
+
+    await this.repository.transaction(async (tx: TransactionContext) => {
+      await this.repository.debitWallet(tx, from, amount)
+      await this.repository.createEscrow(tx, { from, to, amount, expiryDate, status: 'pending' })
+    })
+
     return { from, to, amount, expiryDate, status: 'pending' }
   }
 
   /**
    * Create a multi-signature escrow requiring threshold approvals before release.
    * Validates all inputs and returns the initial escrow state with an empty approvals list.
+   *
+   * The escrow record, signer rows and wallet debit are written atomically.
    */
-  createMultiSigEscrow(params: MultiSigEscrowParams): MultiSigEscrowResult {
-    return createMultiSigEscrow(params)
+  async createMultiSigEscrow(params: MultiSigEscrowParams): Promise<MultiSigEscrowResult> {
+    const result = createMultiSigEscrow(params)
+    const { from, to, amount, expiryDate, signers, threshold } = result
+
+    await this.repository.transaction(async (tx: TransactionContext) => {
+      await this.repository.debitWallet(tx, from, amount)
+      await this.repository.createMultiSigEscrow(tx, {
+        from,
+        to,
+        amount,
+        expiryDate,
+        signers,
+        threshold,
+        approvals: [],
+        status: 'pending',
+      })
+    })
+
+    return result
   }
 }
 

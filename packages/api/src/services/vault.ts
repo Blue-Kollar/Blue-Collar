@@ -2,6 +2,7 @@ import NodeVault from 'node-vault';
 import { logger } from '@/config/logger.js'
 import { config } from '@/config/config.js'
 
+// All Vault connection settings come from the centralized, boot-validated config.
 const vault = NodeVault({
   endpoint: config.vault.addr,
   token: config.vault.token,

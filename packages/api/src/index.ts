@@ -7,7 +7,7 @@ import express from 'express'
 import { createServer } from 'http'
 import { applySecurity, depthLimiter } from './middleware/security.js'
 import { sanitize, sanitizeParams } from './middleware/sanitize.js'
-import { env } from './config/env.js'
+import { config } from './config/config.js'
 import pinoHttp from 'pino-http'
 import methodOverride from 'method-override'
 import helmet from 'helmet'
@@ -31,7 +31,7 @@ import { WebSocketServer } from './websocket/server.js'
 import { createGracefulShutdownHandler } from './utils/shutdown.js'
 
 const app = express()
-const PORT = env.PORT || 3000
+const PORT = config.port
 
 app.disable('x-powered-by')
 app.use(helmet({
@@ -72,7 +72,7 @@ app.use('/api/messages', messagesRoutes)
 // Global error handler - must be last
 app.use(errorHandler)
 
-if (process.env.NODE_ENV !== 'test') {
+if (config.nodeEnv !== 'test') {
   const httpServer = createServer(app)
   new WebSocketServer(httpServer)
   

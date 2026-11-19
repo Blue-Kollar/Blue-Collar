@@ -5,12 +5,12 @@ import { db } from '@/db.js'
 // ── Interface ─────────────────────────────────────────────────────────────────
 
 export interface IMessagingRepository extends IRepository<Conversation, Prisma.ConversationCreateInput, Prisma.ConversationUpdateInput> {
-  createConversation(data: Prisma.ConversationCreateInput): Promise<Conversation & { participants: ConversationParticipant[] }>
+  createConversation(data: Prisma.ConversationCreateInput, tx?: Prisma.TransactionClient): Promise<Conversation & { participants: ConversationParticipant[] }>
   findConversation(id: string, userId: string): Promise<(Conversation & { participants: ConversationParticipant[]; messages: Message[] }) | null>
   findUserConversations(userId: string, opts: { skip: number; take: number }): Promise<{ data: Conversation[]; total: number }>
   findMessage(id: string): Promise<Message | null>
-  updateMessage(id: string, data: Prisma.MessageUpdateInput): Promise<Message>
-  updateParticipantReadAt(conversationId: string, userId: string): Promise<ConversationParticipant>
+  updateMessage(id: string, data: Prisma.MessageUpdateInput, tx?: Prisma.TransactionClient): Promise<Message>
+  updateParticipantReadAt(conversationId: string, userId: string, tx?: Prisma.TransactionClient): Promise<ConversationParticipant>
   findConversationsForUnreadCount(userId: string): Promise<(Conversation & { participants: ConversationParticipant[]; messages: Message[] })[]>
   searchMessages(conversationId: string, searchQuery: string): Promise<Message[]>
 }
@@ -26,24 +26,24 @@ export class MessagingRepository implements IMessagingRepository {
     return db.conversation.findMany({ skip: opts.skip, take: opts.take, orderBy: { updatedAt: 'desc' } })
   }
 
-  async create(data: Prisma.ConversationCreateInput): Promise<Conversation> {
-    return db.conversation.create({ data })
+  async create(data: Prisma.ConversationCreateInput, tx?: Prisma.TransactionClient): Promise<Conversation> {
+    return (tx ?? db).conversation.create({ data })
   }
 
-  async update(id: string, data: Prisma.ConversationUpdateInput): Promise<Conversation> {
-    return db.conversation.update({ where: { id }, data })
+  async update(id: string, data: Prisma.ConversationUpdateInput, tx?: Prisma.TransactionClient): Promise<Conversation> {
+    return (tx ?? db).conversation.update({ where: { id }, data })
   }
 
-  async delete(id: string): Promise<Conversation> {
-    return db.conversation.delete({ where: { id } })
+  async delete(id: string, tx?: Prisma.TransactionClient): Promise<Conversation> {
+    return (tx ?? db).conversation.delete({ where: { id } })
   }
 
   async count(where?: Prisma.ConversationWhereInput): Promise<number> {
     return db.conversation.count({ where })
   }
 
-  async createConversation(data: Prisma.ConversationCreateInput) {
-    return db.conversation.create({ data, include: { participants: true } })
+  async createConversation(data: Prisma.ConversationCreateInput, tx?: Prisma.TransactionClient) {
+    return (tx ?? db).conversation.create({ data, include: { participants: true } })
   }
 
   async findConversation(id: string, userId: string) {
@@ -82,12 +82,12 @@ export class MessagingRepository implements IMessagingRepository {
     return db.message.findUnique({ where: { id } })
   }
 
-  async updateMessage(id: string, data: Prisma.MessageUpdateInput): Promise<Message> {
-    return db.message.update({ where: { id }, data })
+  async updateMessage(id: string, data: Prisma.MessageUpdateInput, tx?: Prisma.TransactionClient): Promise<Message> {
+    return (tx ?? db).message.update({ where: { id }, data })
   }
 
-  async updateParticipantReadAt(conversationId: string, userId: string): Promise<ConversationParticipant> {
-    return db.conversationParticipant.update({
+  async updateParticipantReadAt(conversationId: string, userId: string, tx?: Prisma.TransactionClient): Promise<ConversationParticipant> {
+    return (tx ?? db).conversationParticipant.update({
       where: { conversationId_userId: { conversationId, userId } },
       data: { lastReadAt: new Date() },
     })
@@ -98,7 +98,16 @@ export class MessagingRepository implements IMessagingRepository {
       where: { participants: { some: { userId } } },
       include: {
         participants: { where: { userId } },
-        messages: true,
+        messages: {
+          select: {
+            id: true,
+            conversationId: true,
+            senderId: true,
+            body: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        },
       },
     })
   }

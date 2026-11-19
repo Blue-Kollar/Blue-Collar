@@ -43,6 +43,23 @@ export interface BaseRepositoryOptions {
 }
 
 /**
+ * Minimal shape of a Prisma interactive transaction client. Only the
+ * `$transaction` entry point is required here; the transaction-scoped
+ * model delegates are resolved by the caller via `txFor`.
+ */
+export interface PrismaTransactionClient {
+  $transaction<R>(fn: (tx: unknown) => Promise<R>): Promise<R>
+}
+
+/**
+ * Resolves the transaction-scoped delegate for a given model from a
+ * transaction client (e.g. `(tx) => (tx as any).user`).
+ */
+export type DelegateResolver<T, CreateInput, UpdateInput, WhereInput> = (
+  tx: unknown,
+) => PrismaDelegate<T, CreateInput, UpdateInput, WhereInput>
+
+/**
  * Base repository implementing the common find/create/update/delete/count
  * boilerplate that was previously copy-pasted across every repository in
  * this directory. Entity repositories should extend this class and add
@@ -62,9 +79,50 @@ export abstract class BaseRepository<
   constructor(
     protected readonly delegate: PrismaDelegate<T, CreateInput, UpdateInput, WhereInput>,
     options: BaseRepositoryOptions = {},
+    /**
+     * Optional Prisma transaction client. When provided, every query issued
+     * by this repository instance runs inside that interactive transaction,
+     * so multi-step writes either commit together or roll back together.
+     */
+    protected readonly tx?: PrismaTransactionClient,
   ) {
     this.softDelete = options.softDelete ?? false
     this.defaultSortField = options.defaultSortField ?? 'createdAt'
+  }
+
+  /**
+   * Returns a repository bound to the given transaction client, reusing the
+   * same delegate resolver and options. Subclasses should override
+   * `withDelegate` so the returned instance keeps its concrete type.
+   */
+  withTransaction(tx: PrismaTransactionClient): this {
+    const Ctor = this.constructor as new (
+      delegate: PrismaDelegate<T, CreateInput, UpdateInput, WhereInput>,
+      options: BaseRepositoryOptions,
+      tx?: PrismaTransactionClient,
+    ) => this
+    return new Ctor(this.delegate, this.options(), tx)
+  }
+
+  /** Snapshot of the options this repository was constructed with. */
+  protected options(): BaseRepositoryOptions {
+    return { softDelete: this.softDelete, defaultSortField: this.defaultSortField }
+  }
+
+  /**
+   * Runs `fn` inside a single interactive transaction. The callback receives
+   * a transaction-scoped repository (via `withTransaction`) so all writes it
+   * performs are atomic: if `fn` throws, Prisma rolls back every write.
+   */
+  async withTransactionCallback<R>(
+    fn: (repo: this) => Promise<R>,
+  ): Promise<R> {
+    if (!this.tx) {
+      throw new Error(
+        'withTransactionCallback requires a PrismaTransactionClient; construct the repository with one or use runInTransaction',
+      )
+    }
+    return this.tx.$transaction(async (tx) => fn(this.withTransaction(tx as PrismaTransactionClient)))
   }
 
   /** Excludes soft-deleted rows when the model supports soft-delete. */

@@ -1,4 +1,3 @@
-import { db as defaultDb } from '@/db.js'
 import { sendVerificationEmail, sendPasswordResetEmail } from '@/mailer/index.js'
 import { userRepository as defaultUserRepository } from '@/repositories/user.repository.js'
 import type { AuthServiceDeps } from '@/container/types.js'
@@ -39,7 +38,6 @@ export function createAuthService(deps: AuthServiceDeps) {
 const _defaultService = createAuthService({
   userRepository: defaultUserRepository,
   mailer: { sendVerificationEmail, sendPasswordResetEmail },
-  db: defaultDb,
 })
 
 export async function loginUser(

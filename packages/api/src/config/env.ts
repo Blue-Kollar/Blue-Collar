@@ -16,6 +16,9 @@ export const env = {
   MAIL_PASS:            config.mail.pass,
   APP_URL:              config.appUrl,
   REDIS_URL:            config.redis.url,
+  HORIZON_URL:          config.horizon.url,
+  ALLOWED_ORIGINS:      config.allowedOrigins,
+  LOG_LEVEL:            config.logLevel,
 } as const
 
 export default env

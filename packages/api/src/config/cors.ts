@@ -1,8 +1,7 @@
 import type { CorsOptions } from 'cors'
+import { config } from './index'
 
-const allowedOrigins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(',').map((o) => o.trim()).filter(Boolean)
-  : []
+const allowedOrigins = config.allowedOrigins
 
 export const corsConfig: CorsOptions = {
   origin(origin, callback) {
@@ -10,7 +9,7 @@ export const corsConfig: CorsOptions = {
     if (!origin) return callback(null, true)
 
     // In development with no allowlist configured, allow all origins
-    if (process.env.NODE_ENV !== 'production' && allowedOrigins.length === 0) {
+    if (config.nodeEnv !== 'production' && allowedOrigins.length === 0) {
       return callback(null, true)
     }
 

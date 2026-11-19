@@ -25,28 +25,19 @@
  *   DB_READ_POOL_SIZE  — max connections for replica  (default: 20)
  */
 
-import dotenv from 'dotenv'
-import path from 'path'
-import { PrismaClient } from '@prisma/client'
+import { Prisma, PrismaClient } from '@prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
+import { config } from './config.js'
 
-// Explicitly load env from the api package directory so this file can also be
-// run standalone (e.g. `tsx src/db.ts` for quick debugging).
-dotenv.config({ path: path.resolve(process.cwd(), '.env') })
-
-// ── Validation ────────────────────────────────────────────────────────────────
-
-if (!process.env.DATABASE_URL) {
-  throw new Error('DATABASE_URL is required')
-}
-
-// ── Pool sizes ────────────────────────────────────────────────────────────────
+// ── Configuration ─────────────────────────────────────────────────────────────
+// All env access is centralized in config.ts (#1816), which validates at boot
+// and fails fast on missing/invalid values.
 
 /** Max connections for the primary (write) pool. */
-const DB_POOL_SIZE = parseInt(process.env.DB_POOL_SIZE ?? '10', 10)
+const DB_POOL_SIZE = config.DB_POOL_SIZE
 
 /** Max connections for the read-replica pool (can be larger for read-heavy workloads). */
-const DB_READ_POOL_SIZE = parseInt(process.env.DB_READ_POOL_SIZE ?? '20', 10)
+const DB_READ_POOL_SIZE = config.DB_READ_POOL_SIZE
 
 // ── Shared Prisma transaction options ─────────────────────────────────────────
 
@@ -66,7 +57,7 @@ const BASE_TRANSACTION_OPTIONS = {
  */
 export const db = new PrismaClient({
   adapter: new PrismaPg({
-    connectionString: process.env.DATABASE_URL,
+    connectionString: config.DATABASE_URL,
     max: DB_POOL_SIZE,
   }),
   transactionOptions: BASE_TRANSACTION_OPTIONS,
@@ -89,7 +80,7 @@ export const db = new PrismaClient({
  */
 export const readDb = new PrismaClient({
   adapter: new PrismaPg({
-    connectionString: process.env.DATABASE_READ_URL ?? process.env.DATABASE_URL,
+    connectionString: config.DATABASE_READ_URL ?? config.DATABASE_URL,
     max: DB_READ_POOL_SIZE,
   }),
   transactionOptions: BASE_TRANSACTION_OPTIONS,
@@ -113,6 +104,35 @@ export type DbMode = 'read' | 'write'
  */
 export function getDb(mode: DbMode = 'write'): PrismaClient {
   return mode === 'read' ? readDb : db
+}
+
+// ── Transaction helper ────────────────────────────────────────────────────────
+
+/**
+ * Runs `fn` inside a single database transaction on the primary (write) client.
+ *
+ * All writes performed through the provided `tx` client are committed
+ * atomically; if `fn` throws, the transaction is rolled back and the error is
+ * re-thrown to the caller.  Use this for any multi-step write flow so partial
+ * writes are impossible (#1814).
+ *
+ * @example
+ * import { runInTransaction } from '../db.js'
+ *
+ * const worker = await runInTransaction(async (tx) => {
+ *   const created = await tx.worker.create({ data: { ... } })
+ *   await tx.auditLog.create({ data: { workerId: created.id, action: 'created' } })
+ *   return created
+ * })
+ */
+export async function runInTransaction<T>(
+  fn: (tx: Prisma.TransactionClient) => Promise<T>,
+  options?: { maxWait?: number; timeout?: number },
+): Promise<T> {
+  return db.$transaction(fn, {
+    maxWait: options?.maxWait ?? BASE_TRANSACTION_OPTIONS.maxWait,
+    timeout: options?.timeout ?? BASE_TRANSACTION_OPTIONS.timeout,
+  })
 }
 
 // ── Graceful shutdown ─────────────────────────────────────────────────────────

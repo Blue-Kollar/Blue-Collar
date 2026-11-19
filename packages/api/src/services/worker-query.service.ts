@@ -1,5 +1,4 @@
 import type { Prisma } from '@prisma/client'
-import { db } from '@/db.js'
 import { formatWorker } from '@/models/worker.model.js'
 import { workerRepository } from '@/repositories/worker.repository.js'
 import { WorkerCollection } from '@/resources/index.js'
@@ -88,12 +87,8 @@ export async function listWorkers(opts: {
     const havingClause: { gte?: number; lte?: number } = {}
     if (minRating !== undefined) havingClause.gte = minRating
     if (maxRating !== undefined) havingClause.lte = maxRating
-    const qualifiedIds = await db.review.groupBy({
-      by: ['workerId'],
-      _avg: { rating: true },
-      having: { rating: { _avg: havingClause } },
-    })
-    where.id = { in: qualifiedIds.map((r: { workerId: string }) => r.workerId) }
+    const qualifiedIds = await workerRepository.findWorkerIdsByAvgRating(havingClause)
+    where.id = { in: qualifiedIds }
   }
 
   // Build orderBy
@@ -104,8 +99,8 @@ export async function listWorkers(opts: {
   // 'rating' sort is handled post-query since it requires aggregation
 
   const [data, total] = await Promise.all([
-    db.worker.findMany({ where, skip: (page - 1) * limit, take: limit, include: workerInclude, orderBy }),
-    db.worker.count({ where }),
+    workerRepository.findMany({ where, skip: (page - 1) * limit, take: limit, include: workerInclude, orderBy }),
+    workerRepository.count(where),
   ])
 
   return {
@@ -177,15 +172,11 @@ export async function listWorkersCursor(opts: {
     const havingClause: { gte?: number; lte?: number } = {}
     if (minRating !== undefined) havingClause.gte = minRating
     if (maxRating !== undefined) havingClause.lte = maxRating
-    const qualifiedIds = await db.review.groupBy({
-      by: ['workerId'],
-      _avg: { rating: true },
-      having: { rating: { _avg: havingClause } },
-    })
-    where.id = { in: qualifiedIds.map((r: { workerId: string }) => r.workerId) }
+    const qualifiedIds = await workerRepository.findWorkerIdsByAvgRating(havingClause)
+    where.id = { in: qualifiedIds }
   }
 
-  const rows = await db.worker.findMany({
+  const rows = await workerRepository.findMany({
     where,
     ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
     take: limit + 1,
@@ -214,7 +205,7 @@ export async function listWorkersGeo(opts: {
 
   // Bounding box pre-filter (1 degree ≈ 111 km)
   const delta = radiusKm / 111
-  const workers = await db.worker.findMany({
+  const workers = await workerRepository.findMany({
     where: {
       isActive: true,
       location: {
@@ -352,8 +343,8 @@ async function listWorkersFullText(opts: FtsOpts) {
   ].join('\n')
 
   const [rows, countResult] = await Promise.all([
-    db.$queryRawUnsafe<Record<string, unknown>[]>(dataSQL, search, lang, limit, offset, ...extraParams),
-    db.$queryRawUnsafe<[{ count: bigint }]>(countSQL, search, lang, ...extraParams),
+    workerRepository.queryRaw<Record<string, unknown>[]>(dataSQL, search, lang, limit, offset, ...extraParams),
+    workerRepository.queryRaw<[{ count: bigint }]>(countSQL, search, lang, ...extraParams),
   ])
 
   const total = Number(countResult[0]?.count ?? 0)
@@ -379,10 +370,10 @@ async function listWorkersFullText(opts: FtsOpts) {
 export async function listMyWorkers(curatorId: string, page: number, limit: number) {
   const where = { curatorId }
   const [data, total] = await Promise.all([
-    db.worker.findMany({
+    workerRepository.findMany({
       where, skip: (page - 1) * limit, take: limit, include: { category: true }, orderBy: { createdAt: 'desc' },
     }),
-    db.worker.count({ where }),
+    workerRepository.count(where),
   ])
   return { data, meta: { total, page, limit, pages: Math.ceil(total / limit) } }
 }
@@ -394,8 +385,8 @@ export async function trackSearchAnalytics(
   hasFilters: boolean,
   ipAddress: string,
 ) {
-  await db.searchAnalytics?.create?.({
-    data: { query, resultsCount, hasFilters, ipAddress },
+  await workerRepository.createSearchAnalytics({
+    query, resultsCount, hasFilters, ipAddress,
   }).catch(() => {
     // Silently fail if analytics table doesn't exist
   })

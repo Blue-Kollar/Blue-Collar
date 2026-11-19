@@ -1,7 +1,8 @@
 import Redis from 'ioredis'
 import { logger } from './logger.js'
+import { config } from './config.js'
 
-const REDIS_URL = process.env.REDIS_URL ?? 'redis://localhost:6379'
+const REDIS_URL = config.redis.url
 
 export const redis = new Redis(REDIS_URL, {
   lazyConnect: true,

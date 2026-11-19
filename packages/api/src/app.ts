@@ -56,11 +56,16 @@ import { getRolloutStatusEndpoint, updateRolloutEndpoint } from './utils/version
 import { readFileSync } from 'node:fs'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { config } from './config.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const { version: API_VERSION } = JSON.parse(
   readFileSync(join(__dirname, '..', 'package.json'), 'utf-8')
 )
+
+// Fail fast: validate configuration before the app is constructed so that a
+// misconfigured environment aborts boot rather than surfacing later at runtime.
+config.validate()
 
 const app = express()
 
@@ -290,7 +295,7 @@ app.get('/metrics', metricsEndpoint)
 // Swagger UI — development only. Imported lazily (and skipped in test) so that
 // OpenAPI spec generation, which runs eagerly on import, never runs as a side
 // effect of booting the app for tests.
-if (process.env['NODE_ENV'] !== 'production' && process.env['NODE_ENV'] !== 'test') {
+if (config.env.nodeEnv !== 'production' && config.env.nodeEnv !== 'test') {
   const { default: docsRouter } = await import('./openapi/docs.js')
   app.use('/api', docsRouter)
 }
