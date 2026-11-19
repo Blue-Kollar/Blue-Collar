@@ -2,20 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Scale, Loader2 } from "lucide-react";
+import { ArrowLeft, Scale } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
 import { useDisputes, useResolveDispute } from "@/hooks/queries";
-import { formatDate } from "@/lib/utils";
 import LoadingState from "@/components/LoadingState";
-
-const STATUS_COLORS: Record<string, string> = {
-  open: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
-  under_review: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-  resolved: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-  dismissed: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400",
-};
+import DisputeCard from "@/components/dashboard/admin/disputes/DisputeCard";
+import DisputesPagination from "@/components/dashboard/admin/disputes/DisputesPagination";
 
 export default function AdminDisputesPage() {
   const { user } = useAuth();
@@ -80,85 +74,17 @@ export default function AdminDisputesPage() {
         <>
           <div className="space-y-4">
             {disputes.map((d) => (
-              <div key={d.id} className="rounded-xl border bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <h3 className="font-semibold text-gray-900 dark:text-gray-100">
-                        Dispute against {d.worker.name}
-                      </h3>
-                      <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_COLORS[d.status] ?? ""}`}>
-                        {d.status.replace("_", " ")}
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
-                      <span className="font-medium">Filed by:</span> {d.filedBy.firstName} {d.filedBy.lastName}
-                    </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      <span className="font-medium">Reason:</span> {d.reason}
-                    </p>
-                    {d.evidence && (
-                      <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                        <span className="font-medium">Evidence:</span> {d.evidence}
-                      </p>
-                    )}
-                    {d.resolution && (
-                      <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                        <span className="font-medium">Resolution:</span> {d.resolution}
-                      </p>
-                    )}
-                    <p className="mt-1 text-xs text-gray-400">{formatDate(new Date(d.createdAt))}</p>
-                  </div>
-                  {d.status !== "resolved" && d.status !== "dismissed" && (
-                    <div className="flex flex-col gap-1">
-                      <button
-                        onClick={() => handleResolve(d.id, "resolved")}
-                        disabled={actionLoading === d.id}
-                        className="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-green-700 disabled:opacity-50 transition-colors"
-                      >
-                        {actionLoading === d.id ? <Loader2 size={12} className="animate-spin" /> : "Resolve"}
-                      </button>
-                      <button
-                        onClick={() => handleResolve(d.id, "dismissed")}
-                        disabled={actionLoading === d.id}
-                        className="rounded-lg border px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 disabled:opacity-50 transition-colors"
-                      >
-                        Dismiss
-                      </button>
-                      <button
-                        onClick={() => handleResolve(d.id, "under_review")}
-                        disabled={actionLoading === d.id}
-                        className="rounded-lg border px-3 py-1.5 text-xs font-medium text-blue-600 hover:bg-blue-50 dark:border-gray-700 dark:text-blue-400 dark:hover:bg-blue-950 disabled:opacity-50 transition-colors"
-                      >
-                        Review
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
+              <DisputeCard
+                key={d.id}
+                dispute={d}
+                actionLoading={actionLoading === d.id}
+                onResolve={handleResolve}
+              />
             ))}
           </div>
 
           {meta && meta.pages > 1 && (
-            <div className="mt-4 flex items-center justify-between text-sm text-gray-500">
-              <span>Page {page} of {meta.pages}</span>
-              <div className="flex gap-2">
-                <button
-                  disabled={page <= 1}
-                  onClick={() => setPage(page - 1)}
-                  className="rounded border px-3 py-1 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800 disabled:opacity-40"
-                >
-                  Previous
-                </button>
-                <button
-                  disabled={page >= meta.pages}
-                  onClick={() => setPage(page + 1)}
-                  className="rounded border px-3 py-1 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800 disabled:opacity-40"
-                >
-                  Next
-                </button>
-              </div>
-            </div>
+            <DisputesPagination page={page} totalPages={meta.pages} onPageChange={setPage} />
           )}
         </>
       )}

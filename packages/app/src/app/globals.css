@@ -3,8 +3,15 @@
 @import "../styles/contrast-tokens.css";
 @import "../styles/accessibility.css";
 
+/*
+ * Shared design tokens (see packages/app/src/styles/README.md).
+ * These CSS custom properties mirror the canonical token values so that
+ * components can consume them via CSS variables (e.g. var(--color-primary),
+ * var(--space-4), var(--radius-md), var(--shadow-sm), var(--transition-fast)).
+ */
 @layer base {
   :root {
+    /* Brand colors (HSL channels for hsl(var(--...))) */
     --background: 0 0% 100%;
     --foreground: 222 47% 11%;
     --card: 0 0% 100%;
@@ -24,7 +31,78 @@
     --border: 214 32% 91%;
     --input: 214 32% 91%;
     --ring: 221 83% 53%;
+
+    /* Semantic color aliases */
+    --color-background: hsl(var(--background));
+    --color-foreground: hsl(var(--foreground));
+    --color-card: hsl(var(--card));
+    --color-card-foreground: hsl(var(--card-foreground));
+    --color-popover: hsl(var(--popover));
+    --color-popover-foreground: hsl(var(--popover-foreground));
+    --color-primary: hsl(var(--primary));
+    --color-primary-foreground: hsl(var(--primary-foreground));
+    --color-secondary: hsl(var(--secondary));
+    --color-secondary-foreground: hsl(var(--secondary-foreground));
+    --color-muted: hsl(var(--muted));
+    --color-muted-foreground: hsl(var(--muted-foreground));
+    --color-accent: hsl(var(--accent));
+    --color-accent-foreground: hsl(var(--accent-foreground));
+    --color-destructive: hsl(var(--destructive));
+    --color-destructive-foreground: hsl(var(--destructive-foreground));
+    --color-border: hsl(var(--border));
+    --color-input: hsl(var(--input));
+    --color-ring: hsl(var(--ring));
+
+    /* Neutral scale */
+    --color-neutral-50: hsl(210 40% 98%);
+    --color-neutral-100: hsl(214 32% 91%);
+    --color-neutral-200: hsl(214 20% 82%);
+    --color-neutral-300: hsl(215 16% 65%);
+    --color-neutral-400: hsl(215 16% 47%);
+    --color-neutral-500: hsl(217 19% 35%);
+    --color-neutral-600: hsl(217 33% 24%);
+    --color-neutral-700: hsl(217 33% 17%);
+    --color-neutral-800: hsl(222 47% 14%);
+    --color-neutral-900: hsl(222 47% 11%);
+
+    /* Spacing scale */
+    --space-0: 0px;
+    --space-1: 0.25rem;
+    --space-2: 0.5rem;
+    --space-3: 0.75rem;
+    --space-4: 1rem;
+    --space-5: 1.25rem;
+    --space-6: 1.5rem;
+    --space-8: 2rem;
+    --space-10: 2.5rem;
+    --space-12: 3rem;
+    --space-16: 4rem;
+
+    /* Radii */
     --radius: 0.5rem;
+    --radius-none: 0px;
+    --radius-sm: 0.25rem;
+    --radius-md: 0.5rem;
+    --radius-lg: 0.75rem;
+    --radius-xl: 1rem;
+    --radius-full: 9999px;
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 hsl(222 47% 11% / 0.05);
+    --shadow-md: 0 4px 6px -1px hsl(222 47% 11% / 0.1);
+    --shadow-lg: 0 10px 15px -3px hsl(222 47% 11% / 0.1);
+
+    /* Transitions */
+    --transition-fast: 0.2s ease;
+    --transition-base: 0.25s cubic-bezier(0.32, 0.72, 0, 1);
+
+    /* Z-index scale */
+    --z-base: 0;
+    --z-dropdown: 1000;
+    --z-sticky: 1100;
+    --z-overlay: 1200;
+    --z-modal: 1300;
+    --z-toast: 1400;
   }
 
   .dark {
@@ -47,6 +125,27 @@
     --border: 217 33% 17%;
     --input: 217 33% 17%;
     --ring: 217 91% 60%;
+
+    /* Semantic color aliases (dark) */
+    --color-background: hsl(var(--background));
+    --color-foreground: hsl(var(--foreground));
+    --color-card: hsl(var(--card));
+    --color-card-foreground: hsl(var(--card-foreground));
+    --color-popover: hsl(var(--popover));
+    --color-popover-foreground: hsl(var(--popover-foreground));
+    --color-primary: hsl(var(--primary));
+    --color-primary-foreground: hsl(var(--primary-foreground));
+    --color-secondary: hsl(var(--secondary));
+    --color-secondary-foreground: hsl(var(--secondary-foreground));
+    --color-muted: hsl(var(--muted));
+    --color-muted-foreground: hsl(var(--muted-foreground));
+    --color-accent: hsl(var(--accent));
+    --color-accent-foreground: hsl(var(--accent-foreground));
+    --color-destructive: hsl(var(--destructive));
+    --color-destructive-foreground: hsl(var(--destructive-foreground));
+    --color-border: hsl(var(--border));
+    --color-input: hsl(var(--input));
+    --color-ring: hsl(var(--ring));
   }
 }
 
@@ -55,9 +154,9 @@
     border-color: hsl(var(--border));
   }
   body {
-    background-color: hsl(var(--background));
-    color: hsl(var(--foreground));
-    transition: background-color 0.2s ease, color 0.2s ease;
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    transition: background-color var(--transition-fast), color var(--transition-fast);
   }
   /* Reserve space for mobile bottom nav */
   @media (max-width: 767px) {
@@ -80,22 +179,12 @@
     to   { opacity: 1; }
   }
   .animate-slide-in-right {
-    animation: slide-in-right 0.25s cubic-bezier(0.32, 0.72, 0, 1);
+    animation: slide-in-right var(--transition-base);
   }
   .animate-fade-in {
-    animation: fade-in 0.2s ease;
+    animation: fade-in var(--transition-fast);
   }
   .safe-area-pb {
     padding-bottom: env(safe-area-inset-bottom, 0px);
-  }
-}
-
-@layer utilities {
-  @keyframes fade-in {
-    from { opacity: 0; }
-    to   { opacity: 1; }
-  }
-  .animate-fade-in {
-    animation: fade-in 0.2s ease;
   }
 }

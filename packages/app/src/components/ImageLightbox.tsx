@@ -22,15 +22,68 @@ export default function ImageLightbox({ src, alt, onClose }: Props) {
   const dragging = useRef(false);
   const dragStart = useRef({ x: 0, y: 0 });
   const offsetAtDragStart = useRef({ x: 0, y: 0 });
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const previouslyFocused = useRef<HTMLElement | null>(null);
 
-  // ESC to close
+  // Focus management: move focus into the dialog on open, trap it, and
+  // restore focus to the triggering element on close.
+  useEffect(() => {
+    previouslyFocused.current = document.activeElement as HTMLElement | null;
+    const dialog = dialogRef.current;
+    const focusables = () =>
+      dialog
+        ? Array.from(
+            dialog.querySelectorAll<HTMLElement>(
+              'button:not([disabled]), [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+            )
+          )
+        : [];
+    const first = focusables()[0];
+    if (first) first.focus();
+    else dialog?.focus();
+
+    return () => {
+      previouslyFocused.current?.focus?.();
+    };
+  }, []);
+
+  // ESC to close + Tab focus trap
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") {
+        onClose();
+        return;
+      }
+      if (e.key !== "Tab") return;
+      const dialog = dialogRef.current;
+      if (!dialog) return;
+      const focusables = Array.from(
+        dialog.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        )
+      );
+      if (focusables.length === 0) {
+        e.preventDefault();
+        dialog.focus();
+        return;
+      }
+      const firstEl = focusables[0]!;
+      const lastEl = focusables[focusables.length - 1]!;
+      const active = document.activeElement;
+      if (e.shiftKey) {
+        if (active === firstEl || active === dialog) {
+          e.preventDefault();
+          lastEl.focus();
+        }
+      } else if (active === lastEl) {
+        e.preventDefault();
+        firstEl.focus();
+      }
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [onClose]);
+=======
 
   // Prevent body scroll while open
   useEffect(() => {
@@ -108,10 +161,12 @@ export default function ImageLightbox({ src, alt, onClose }: Props) {
 
   return (
     <div
+      ref={dialogRef}
       role="dialog"
       aria-modal="true"
-      aria-label={`${alt}`}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 animate-fade-in"
+      aria-label={alt}
+      tabIndex={-1}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 animate-fade-in focus:outline-none"
       onClick={onClose}
     >
       {/* Controls */}
@@ -120,34 +175,38 @@ export default function ImageLightbox({ src, alt, onClose }: Props) {
         onClick={(e) => e.stopPropagation()}
       >
         <button
+          type="button"
           onClick={() => zoom(ZOOM_STEP)}
           disabled={scale >= MAX_SCALE}
           aria-label={t("zoomIn")}
-          className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 disabled:opacity-40 transition-colors"
+          className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 disabled:opacity-40 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
         >
-          <ZoomIn size={18} />
+          <ZoomIn size={18} aria-hidden="true" />
         </button>
         <button
+          type="button"
           onClick={() => zoom(-ZOOM_STEP)}
           disabled={scale <= MIN_SCALE}
           aria-label={t("zoomOut")}
-          className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 disabled:opacity-40 transition-colors"
+          className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 disabled:opacity-40 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
         >
-          <ZoomOut size={18} />
+          <ZoomOut size={18} aria-hidden="true" />
         </button>
         <button
+          type="button"
           onClick={reset}
           aria-label={t("resetZoom")}
-          className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors"
+          className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
         >
-          <RotateCcw size={16} />
+          <RotateCcw size={16} aria-hidden="true" />
         </button>
         <button
+          type="button"
           onClick={onClose}
           aria-label={t("closeImageViewer")}
-          className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors"
+          className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
         >
-          <X size={18} />
+          <X size={18} aria-hidden="true" />
         </button>
       </div>
 

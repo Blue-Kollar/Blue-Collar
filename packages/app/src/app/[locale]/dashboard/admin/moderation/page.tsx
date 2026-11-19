@@ -3,12 +3,12 @@
 import LoadingState from "@/components/LoadingState";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Search, Star, Loader2 } from "lucide-react";
+import { ArrowLeft, Search } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/useToast";
 import { useModerationQueue, useModerateReview } from "@/hooks/queries";
-import { formatDate } from "@/lib/utils";
+import ModerationReviewCard from "@/components/dashboard/admin/moderation/ModerationReviewCard";
 
 export default function AdminModerationPage() {
   const { user } = useAuth();
@@ -66,43 +66,12 @@ export default function AdminModerationPage() {
       ) : (
         <div className="space-y-4">
           {reviews.map((review) => (
-            <div key={review.id} className="rounded-xl border bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-medium text-gray-900 dark:text-gray-100">{review.author.firstName} {review.author.lastName}</span>
-                    <span className="text-xs text-gray-400">reviewed</span>
-                    <span className="font-medium text-gray-900 dark:text-gray-100">{review.worker.name}</span>
-                  </div>
-                  <div className="flex items-center gap-1 mb-1">
-                    {[1, 2, 3, 4, 5].map((s) => (
-                      <Star key={s} size={12} className={s <= review.rating ? "text-yellow-400" : "text-gray-200"} fill={s <= review.rating ? "currentColor" : "none"} />
-                    ))}
-                  </div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">{review.comment ?? review.body}</p>
-                  {review.flagged && review.flagReason && (
-                    <p className="mt-1 text-xs text-red-500">Flagged: {review.flagReason}</p>
-                  )}
-                  <p className="mt-1 text-xs text-gray-400">{formatDate(new Date(review.createdAt))}</p>
-                </div>
-                <div className="flex flex-col gap-1">
-                  <button
-                    onClick={() => handleModerate(review.id, "approve")}
-                    disabled={actionLoading === review.id}
-                    className="rounded-lg bg-green-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50 transition-colors"
-                  >
-                    {actionLoading === review.id ? <Loader2 size={14} className="animate-spin" /> : "Approve"}
-                  </button>
-                  <button
-                    onClick={() => handleModerate(review.id, "reject")}
-                    disabled={actionLoading === review.id}
-                    className="rounded-lg bg-red-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50 transition-colors"
-                  >
-                    Reject
-                  </button>
-                </div>
-              </div>
-            </div>
+            <ModerationReviewCard
+              key={review.id}
+              review={review}
+              isActionLoading={actionLoading === review.id}
+              onModerate={handleModerate}
+            />
           ))}
         </div>
       )}

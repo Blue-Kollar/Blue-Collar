@@ -2,12 +2,13 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Tags } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/useToast";
-import { getCategories } from "@/lib/api";
+import { apiClient } from "@/lib/apiClient";
 import type { Category } from "@/types";
+import { CategoryList } from "@/components/dashboard/admin/categories/CategoryList";
 
 export default function AdminCategoriesPage() {
   const { user } = useAuth();
@@ -19,7 +20,7 @@ export default function AdminCategoriesPage() {
   const fetchCategories = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await getCategories();
+      const res = await apiClient.getCategories();
       setCategories(res.data ?? []);
     } catch {
       toast("Failed to load categories", "error");
@@ -55,25 +56,7 @@ export default function AdminCategoriesPage() {
           <div className="h-6 w-6 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
         </div>
       ) : (
-        <div className="rounded-xl border bg-white dark:border-gray-800 dark:bg-gray-900">
-          <div className="border-b px-4 py-3 dark:border-gray-800">
-            <h2 className="font-semibold text-gray-900 dark:text-gray-100">Categories ({categories.length})</h2>
-          </div>
-          <div className="divide-y dark:divide-gray-800">
-            {categories.map((cat) => (
-              <div key={cat.id} className="flex items-center gap-3 px-4 py-3">
-                {cat.icon && <span className="text-xl">{cat.icon}</span>}
-                <span className="font-medium text-gray-800 dark:text-gray-200">{cat.name}</span>
-              </div>
-            ))}
-            {categories.length === 0 && (
-              <div className="flex flex-col items-center justify-center gap-3 py-16 text-gray-400">
-                <Tags size={40} className="opacity-30" />
-                <p className="text-sm">No categories found</p>
-              </div>
-            )}
-          </div>
-        </div>
+        <CategoryList categories={categories} />
       )}
     </div>
   );

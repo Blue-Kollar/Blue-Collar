@@ -8,6 +8,13 @@ interface IconButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   "aria-label": string;
 }
 
+/**
+ * Icon-only button.
+ *
+ * This component intentionally contains no hardcoded user-facing strings.
+ * Callers MUST pass a translated `aria-label` (e.g. via `useTranslations`/`t(...)`)
+ * so that icon-only controls have an accessible, localized name.
+ */
 export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
   function IconButton(
     {
@@ -39,3 +46,4 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
     );
   }
 );
+</｜｜DSML｜｜ parameter>

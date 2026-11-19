@@ -262,6 +262,14 @@ import type {
 
 export * from './status.js';
 
+// ─── Shared Validation Schemas (#1788) ────────────────────────────────────────
+//
+// Zod schemas and their inferred input types live in ./validations.ts and are
+// re-exported here so both the api and app packages can import them from
+// `@bluecollar/types` (or the `@bluecollar/types/validations` subpath).
+
+export * from './validations.js';
+
 // ─── Jobs ─────────────────────────────────────────────────────────────────────
 
 export interface Job {
@@ -520,137 +528,4 @@ export interface CreateBookingInput {
   serviceDescription?: string;
 }
 
-// ─── Offline cache / queue domain types (#1805) ──────────────────────────────
-//
-// Moved from packages/mobile so the mobile app and other clients share a single
-// source of truth for offline caching and the action queue. These types are
-// internal (never serialised directly to the API), so optional fields use `?`
-// rather than `| null` per docs/NULL_UNDEFINED_CONVENTIONS.md.
 
-/** Connectivity state of the device. */
-export type NetworkState = 'online' | 'offline' | 'unknown';
-
-/** Lifecycle state of a background sync run. */
-export type SyncStatus = 'idle' | 'syncing' | 'success' | 'error';
-
-/** A single cached value with its expiry metadata. */
-export interface CacheEntry<T = unknown> {
-  key: string;
-  value: T;
-  /** Epoch milliseconds after which the entry is considered stale. */
-  expiresAt: number;
-  /** Epoch milliseconds when the entry was written. */
-  cachedAt: number;
-}
-
-/** Configuration for the offline cache layer. */
-export interface CacheConfig {
-  /** Default time-to-live for entries, in milliseconds. */
-  ttl: number;
-  /** Maximum number of entries retained before eviction. */
-  maxEntries?: number;
-  /** Storage namespace/prefix used to avoid key collisions. */
-  namespace?: string;
-}
-
-/** Cached worker profile payload. */
-export interface WorkerProfileCache {
-  id: string;
-  name: string;
-  bio?: string;
-  avatar?: string;
-  categoryId?: string;
-  categoryName?: string;
-  averageRating?: number;
-  reviewCount?: number;
-  isVerified?: boolean;
-  cachedAt: number;
-}
-
-/** Cached category list payload. */
-export interface CategoryCache {
-  id: string;
-  name: string;
-  icon?: string;
-  cachedAt: number;
-}
-
-/** Cached authenticated user profile payload. */
-export interface UserProfileCache {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  role: User['role'];
-  avatar?: string;
-  onboardingCompleted?: boolean;
-  cachedAt: number;
-}
-
-/** Discriminator for queued offline actions. */
-export type QueuedActionType =
-  | 'bookmark'
-  | 'unbookmark'
-  | 'contact'
-  | 'review'
-  | 'tip'
-  | 'escrow';
-
-/** Payload for a queued bookmark toggle action. */
-export interface BookmarkActionPayload {
-  workerId: string;
-  bookmarked: boolean;
-}
-
-/** Payload for a queued contact request action. */
-export interface ContactActionPayload {
-  workerId: string;
-  message?: string;
-  contactMethod?: 'phone' | 'email' | 'message';
-}
-
-/** Payload for a queued review submission action. */
-export interface ReviewActionPayload {
-  workerId: string;
-  rating: number;
-  comment?: string;
-}
-
-/** Payload for a queued tip action. */
-export interface TipActionPayload {
-  workerWallet: string;
-  amount: string;
-  memo?: string;
-}
-
-/** Payload for a queued escrow action. */
-export interface EscrowActionPayload {
-  jobId: string;
-  amount: string;
-  workerId?: string;
-  memo?: string;
-}
-
-/** Union of all supported queued action payloads. */
-export type QueuedActionPayload =
-  | BookmarkActionPayload
-  | ContactActionPayload
-  | ReviewActionPayload
-  | TipActionPayload
-  | EscrowActionPayload;
-
-/** An action persisted while offline, to be replayed once back online. */
-export interface QueuedAction<P = QueuedActionPayload> {
-  id: string;
-  type: QueuedActionType;
-  payload: P;
-  /** Epoch milliseconds when the action was enqueued. */
-  createdAt: number;
-  /** Number of replay attempts made so far. */
-  attempts: number;
-  /** Last error message, if a replay attempt failed. */
-  lastError?: string;
-}
-
-// ─── Shared Validation Schemas ────────────────────────────────────────────────
-export * from './validations.js';

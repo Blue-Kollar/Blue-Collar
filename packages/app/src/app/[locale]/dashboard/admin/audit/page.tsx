@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ClipboardList, Loader2 } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
 import { useAuditLogs } from "@/hooks/queries";
-import { formatDate } from "@/lib/utils";
+import { AuditLogTable } from "@/components/dashboard/admin/audit/AuditLogTable";
+import { AuditLogPagination } from "@/components/dashboard/admin/audit/AuditLogPagination";
 
 export default function AdminAuditLogPage() {
   const { user } = useAuth();
@@ -57,78 +58,15 @@ export default function AdminAuditLogPage() {
         />
       </div>
 
-      {loading ? (
-        <div className="flex justify-center py-12">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
-        </div>
-      ) : logs.length === 0 ? (
-        <div className="flex flex-col items-center justify-center gap-3 py-20 text-gray-400">
-          <ClipboardList size={40} className="opacity-30" />
-          <p className="text-sm">No audit log entries found</p>
-        </div>
-      ) : (
-        <>
-          <div className="overflow-x-auto rounded-xl border dark:border-gray-800">
-            <table className="w-full text-sm">
-              <thead className="border-b bg-gray-50 text-left text-xs font-medium uppercase text-gray-500 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400">
-                <tr>
-                  <th className="px-4 py-3">Timestamp</th>
-                  <th className="px-4 py-3">User</th>
-                  <th className="px-4 py-3">Action</th>
-                  <th className="px-4 py-3">Resource</th>
-                  <th className="px-4 py-3">Resource ID</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y dark:divide-gray-800 font-mono text-xs">
-                {logs.map((log) => (
-                  <tr key={log.id} className="hover:bg-gray-50 dark:hover:bg-gray-900/50">
-                    <td className="whitespace-nowrap px-4 py-3 text-gray-500 dark:text-gray-400">
-                      {formatDate(new Date(log.createdAt), {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </td>
-                    <td className="px-4 py-3 text-gray-700 dark:text-gray-300">
-                      {log.user ? `${log.user.firstName} ${log.user.lastName}` : "—"}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className="rounded bg-blue-50 px-2 py-0.5 font-medium text-blue-700 dark:bg-blue-950 dark:text-blue-400">
-                        {log.action}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{log.resource ?? "—"}</td>
-                    <td className="px-4 py-3 text-gray-400 dark:text-gray-500">{log.resourceId ?? "—"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+      <AuditLogTable logs={logs} loading={loading} />
 
-          {meta && meta.pages > 1 && (
-            <div className="mt-4 flex items-center justify-between text-sm text-gray-500">
-              <span>Page {page} of {meta.pages}</span>
-              <div className="flex gap-2">
-                <button
-                  disabled={page <= 1}
-                  onClick={() => setPage(page - 1)}
-                  className="rounded border px-3 py-1 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800 disabled:opacity-40"
-                >
-                  Previous
-                </button>
-                <button
-                  disabled={page >= meta.pages}
-                  onClick={() => setPage(page + 1)}
-                  className="rounded border px-3 py-1 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800 disabled:opacity-40"
-                >
-                  Next
-                </button>
-              </div>
-            </div>
-          )}
-        </>
+      {meta && meta.pages > 1 && (
+        <AuditLogPagination
+          page={page}
+          totalPages={meta.pages}
+          onPrevious={() => setPage(page - 1)}
+          onNext={() => setPage(page + 1)}
+        />
       )}
     </div>
   );
