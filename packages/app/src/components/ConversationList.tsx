@@ -2,6 +2,7 @@
 
 import LoadingState from "@/components/LoadingState";
 import { MessageSquare, Plus, User } from "lucide-react";
+import { memo, useCallback } from "react";
 import { cn, formatRelativeTime } from "@/lib/utils";
 import type { Conversation } from "@bluecollar/types";
 import { useTranslations } from "next-intl";
@@ -15,7 +16,74 @@ interface Props {
 }
 
 
-export default function ConversationList({
+interface ConversationItemProps {
+  conv: Conversation;
+  isActive: boolean;
+  onSelect: (id: string) => void;
+  currentUserId: string;
+  youPrefix: string;
+}
+
+const ConversationItem = memo(function ConversationItem({
+  conv,
+  isActive,
+  onSelect,
+  currentUserId,
+  youPrefix,
+}: ConversationItemProps) {
+  const other = conv.participants.find((p) => p.userId !== currentUserId);
+  const lastMsg = conv.messages?.[0];
+  return (
+    <button
+      onClick={() => onSelect(conv.id)}
+      className={cn(
+        "flex w-full items-center gap-3 border-b px-4 py-3 text-left transition-colors dark:border-gray-800",
+        isActive
+          ? "bg-blue-50 dark:bg-blue-950/30"
+          : "hover:bg-gray-50 dark:hover:bg-gray-800"
+      )}
+    >
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-500 dark:bg-gray-800">
+        {other?.user.avatar ? (
+          <img
+            src={other.user.avatar}
+            alt=""
+            className="h-full w-full rounded-full object-cover"
+          />
+        ) : (
+          <User size={16} />
+        )}
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center justify-between gap-2">
+          <span className="truncate text-sm font-medium text-gray-900 dark:text-gray-100">
+            {other?.user.firstName} {other?.user.lastName}
+          </span>
+          {lastMsg && (
+            <span className="shrink-0 text-[10px] text-gray-400">
+              {formatRelativeTime(lastMsg.createdAt)}
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          {lastMsg && (
+            <p className="truncate text-xs text-gray-500 dark:text-gray-400">
+              {lastMsg.senderId === currentUserId ? youPrefix : ""}
+              {lastMsg.body}
+            </p>
+          )}
+          {(conv.unreadCount ?? 0) > 0 && (
+            <span className="ml-auto shrink-0 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-blue-600 px-1 text-[10px] font-bold text-white">
+              {conv.unreadCount! > 9 ? "9+" : conv.unreadCount}
+            </span>
+          )}
+        </div>
+      </div>
+    </button>
+  );
+});
+
+function ConversationList({
   conversations,
   activeId,
   onSelect,
@@ -23,6 +91,8 @@ export default function ConversationList({
   currentUserId,
 }: Props) {
   const t = useTranslations("componentText");
+  const youPrefix = t("youPrefix");
+  const handleSelect = useCallback((id: string) => onSelect(id), [onSelect]);
   return (
     <div className="flex w-80 flex-col border-r dark:border-gray-800">
       <div className="flex items-center justify-between border-b px-4 py-3 dark:border-gray-800">
@@ -41,61 +111,20 @@ export default function ConversationList({
             <p className="text-xs">{t("noConversations")}</p>
           </div>
         ) : (
-          conversations.map((conv) => {
-            const other = conv.participants.find((p) => p.userId !== currentUserId);
-            const lastMsg = conv.messages?.[0];
-            return (
-              <button
-                key={conv.id}
-                onClick={() => onSelect(conv.id)}
-                className={cn(
-                  "flex w-full items-center gap-3 border-b px-4 py-3 text-left transition-colors dark:border-gray-800",
-                  activeId === conv.id
-                    ? "bg-blue-50 dark:bg-blue-950/30"
-                    : "hover:bg-gray-50 dark:hover:bg-gray-800"
-                )}
-              >
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-500 dark:bg-gray-800">
-                  {other?.user.avatar ? (
-                    <img
-                      src={other.user.avatar}
-                      alt=""
-                      className="h-full w-full rounded-full object-cover"
-                    />
-                  ) : (
-                    <User size={16} />
-                  )}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="truncate text-sm font-medium text-gray-900 dark:text-gray-100">
-                      {other?.user.firstName} {other?.user.lastName}
-                    </span>
-                    {lastMsg && (
-                      <span className="shrink-0 text-[10px] text-gray-400">
-                        {formatRelativeTime(lastMsg.createdAt)}
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {lastMsg && (
-                      <p className="truncate text-xs text-gray-500 dark:text-gray-400">
-                        {lastMsg.senderId === currentUserId ? t("youPrefix") : ""}
-                        {lastMsg.body}
-                      </p>
-                    )}
-                    {(conv.unreadCount ?? 0) > 0 && (
-                      <span className="ml-auto shrink-0 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-blue-600 px-1 text-[10px] font-bold text-white">
-                        {conv.unreadCount! > 9 ? "9+" : conv.unreadCount}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </button>
-            );
-          })
+          conversations.map((conv) => (
+            <ConversationItem
+              key={conv.id}
+              conv={conv}
+              isActive={activeId === conv.id}
+              onSelect={handleSelect}
+              currentUserId={currentUserId}
+              youPrefix={youPrefix}
+            />
+          ))
         )}
       </div>
     </div>
   );
 }
+
+export default memo(ConversationList);

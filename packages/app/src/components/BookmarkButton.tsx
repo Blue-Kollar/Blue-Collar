@@ -41,10 +41,13 @@ export default function BookmarkButton({
 
   return (
     <button
+      type="button"
       onClick={handleClick}
       aria-label={bookmarked ? t("bookmarkRemove") : t("bookmarkAdd")}
+      aria-pressed={bookmarked}
       className={cn(
         "rounded-full p-1.5 transition-colors",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-500",
         bookmarked
           ? "text-red-500 hover:text-red-600"
           : "text-gray-300 hover:text-red-400",

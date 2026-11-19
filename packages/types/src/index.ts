@@ -262,6 +262,14 @@ import type {
 
 export * from './status.js';
 
+// ─── Shared Validation Schemas (#1788) ────────────────────────────────────────
+//
+// Zod schemas and their inferred input types live in ./validations.ts and are
+// re-exported here so both the api and app packages can import them from
+// `@bluecollar/types` (or the `@bluecollar/types/validations` subpath).
+
+export * from './validations.js';
+
 // ─── Jobs ─────────────────────────────────────────────────────────────────────
 
 export interface Job {
@@ -520,58 +528,4 @@ export interface CreateBookingInput {
   serviceDescription?: string;
 }
 
-// ─── Generic helpers (#1795) ─────────────────────────────────────────────────
-//
-// Reusable generic shapes so app components can avoid `any` when handling
-// API responses, paginated lists and loosely-typed payloads.
 
-/** Unwraps the `data` payload of an {@link ApiResponse}. */
-export type ApiData<T> = T extends ApiResponse<infer U> ? U : never;
-
-/** A list endpoint result with optional pagination metadata. */
-export interface ListResult<T> {
-  data: T[];
-  meta?: Meta;
-}
-
-/** Query params shared by paginated list endpoints. */
-export interface PaginationQuery {
-  page?: number;
-  limit?: number;
-}
-
-/** A key/value record with unknown values (safe replacement for `any`). */
-export type UnknownRecord = Record<string, unknown>;
-
-/** A value that may be `null` or `undefined`. */
-export type Nullable<T> = T | null;
-
-/** A value that may be `undefined`. */
-export type Maybe<T> = T | undefined;
-
-/** Generic async state used by data-fetching hooks/components. */
-export interface AsyncState<T> {
-  data: T | null;
-  loading: boolean;
-  error: string | null;
-}
-
-/** Generic option shape for select/autocomplete components. */
-export interface SelectOption<T = string> {
-  label: string;
-  value: T;
-  disabled?: boolean;
-}
-
-/** Generic handler type for callbacks receiving a value. */
-export type ValueHandler<T> = (value: T) => void;
-
-/** Generic error shape surfaced to the UI. */
-export interface AppError {
-  message: string;
-  code?: number | string;
-  details?: UnknownRecord;
-}
-
-// ─── Shared Validation Schemas ────────────────────────────────────────────────
-export * from './validations.js';

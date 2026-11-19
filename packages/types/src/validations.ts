@@ -168,6 +168,142 @@ export const createReviewSchema = z.object({
   comment: z.string().optional(),
 })
 
+// ── Booking schemas ──────────────────────────────────────────────────────────
+
+/** POST /bookings — create a booking request. */
+export const createBookingSchema = z.object({
+  workerId: z.string().min(1, 'Worker is required'),
+  jobId: z.string().min(1).optional(),
+  scheduledAt: z.string().min(1, 'Please select a date').optional(),
+  notes: z.string().max(1000, 'Notes must be under 1000 characters').optional(),
+  amount: z.number().positive('Amount must be greater than 0').optional(),
+})
+
+/** GET /bookings — list/filter bookings. */
+export const listBookingsSchema = z.object({
+  status: bookingStatusSchema.optional(),
+  page: z.coerce.number().int().min(1).optional(),
+  limit: z.coerce.number().int().min(1).max(100).optional(),
+})
+
+/** PATCH /bookings/:id — update booking status. */
+export const updateBookingStatusSchema = z.object({
+  status: bookingStatusSchema,
+})
+
+// ── Job schemas ──────────────────────────────────────────────────────────────
+
+/** POST /jobs — create a job posting. */
+export const createJobSchema = z.object({
+  title: z.string().min(3, 'Title must be at least 3 characters').max(120),
+  description: z.string().min(10, 'Description must be at least 10 characters').max(5000),
+  categoryId: z.string().min(1, 'Please select a category'),
+  budget: z.number().positive('Budget must be greater than 0').optional(),
+  urgency: jobUrgencySchema.optional(),
+  location: z.string().max(200).optional(),
+})
+
+/** PUT /jobs/:id — update a job posting (all fields optional). */
+export const updateJobSchema = z.object({
+  title: z.string().min(3, 'Title must be at least 3 characters').max(120).optional(),
+  description: z.string().min(10, 'Description must be at least 10 characters').max(5000).optional(),
+  categoryId: z.string().min(1).optional(),
+  budget: z.number().positive('Budget must be greater than 0').optional(),
+  urgency: jobUrgencySchema.optional(),
+  location: z.string().max(200).optional(),
+  status: jobStatusSchema.optional(),
+})
+
+/** GET /jobs — list/filter jobs. */
+export const listJobsSchema = z.object({
+  status: jobStatusSchema.optional(),
+  categoryId: z.string().optional(),
+  urgency: jobUrgencySchema.optional(),
+  page: z.coerce.number().int().min(1).optional(),
+  limit: z.coerce.number().int().min(1).max(100).optional(),
+})
+
+/** POST /jobs/:id/apply — apply to a job. */
+export const applyToJobSchema = z.object({
+  coverLetter: z.string().max(2000, 'Cover letter must be under 2000 characters').optional(),
+  proposedRate: z.number().positive('Proposed rate must be greater than 0').optional(),
+})
+
+/** PATCH /jobs/:id/applications/:applicationId — update application status. */
+export const updateApplicationStatusSchema = z.object({
+  status: applicationStatusSchema,
+})
+
+// ── Wallet schemas ───────────────────────────────────────────────────────────
+
+/** POST /wallet/link — link a Stellar wallet to the account. */
+export const linkWalletSchema = z.object({
+  address: z
+    .string()
+    .regex(/^G[A-Z2-7]{55}$/, 'Must be a valid Stellar public key (starts with G)'),
+})
+
+/** POST /wallet/build — build an unsigned transaction. */
+export const buildTransactionSchema = z.object({
+  destination: z
+    .string()
+    .regex(/^G[A-Z2-7]{55}$/, 'Must be a valid Stellar public key (starts with G)'),
+  amount: z.string().min(1, 'Amount is required'),
+  asset: z.string().optional(),
+  memo: z.string().max(28, 'Memo must be 28 characters or less').optional(),
+})
+
+/** POST /wallet/broadcast — broadcast a signed transaction. */
+export const broadcastTransactionSchema = z.object({
+  signedXdr: z.string().min(1, 'Signed transaction is required'),
+})
+
+/** POST /wallet/fund — fund an account via friendbot/testnet. */
+export const fundWalletSchema = z.object({
+  address: z
+    .string()
+    .regex(/^G[A-Z2-7]{55}$/, 'Must be a valid Stellar public key (starts with G)'),
+  amount: z.string().optional(),
+})
+
+// ── Device schemas ───────────────────────────────────────────────────────────
+
+/** DELETE /devices/:id — revoke a device session. */
+export const revokeDeviceSchema = z.object({
+  deviceId: z.string().min(1, 'Device ID is required'),
+})
+
+// ── Admin schemas ────────────────────────────────────────────────────────────
+
+/** POST /admin/bulk — bulk operations on users/workers. */
+export const adminBulkActionSchema = z.object({
+  action: z.enum(['suspend', 'activate', 'delete', 'verify']),
+  ids: z.array(z.string().min(1)).min(1, 'Select at least one item'),
+  reason: z.string().max(500).optional(),
+})
+
+// ── Payment schemas ──────────────────────────────────────────────────────────
+
+/** POST /payments/tip — send a tip. */
+export const tipPaymentSchema = z.object({
+  recipientId: z.string().min(1, 'Recipient is required'),
+  amount: z.number().positive('Amount must be greater than 0'),
+  message: z.string().max(280, 'Message must be 280 characters or less').optional(),
+})
+
+/** POST /payments/escrow — create an escrow payment. */
+export const escrowPaymentSchema = z.object({
+  workerId: z.string().min(1, 'Worker is required'),
+  amount: z.number().positive('Amount must be greater than 0'),
+  terms: z.string().min(1, 'Terms are required').max(2000),
+})
+
+/** POST /payments/fee — calculate a platform fee. */
+export const feeCalculationSchema = z.object({
+  amount: z.number().positive('Amount must be greater than 0'),
+  method: z.string().optional(),
+})
+
 // ── Imperative validation helpers ────────────────────────────────────────────
 // Plain functions that validate individual values and return an error string or
 // undefined. Useful in non-Zod contexts (imperative form handlers, unit tests,
@@ -374,3 +510,20 @@ export type ChangePasswordInput = z.infer<typeof changePasswordSchema>
 export type CreateWorkerInput = z.infer<typeof createWorkerSchema>
 export type UpdateWorkerInput = z.infer<typeof updateWorkerSchema>
 export type CreateReviewInput = z.infer<typeof createReviewSchema>
+export type CreateBookingInput = z.infer<typeof createBookingSchema>
+export type ListBookingsInput = z.infer<typeof listBookingsSchema>
+export type UpdateBookingStatusInput = z.infer<typeof updateBookingStatusSchema>
+export type CreateJobInput = z.infer<typeof createJobSchema>
+export type UpdateJobInput = z.infer<typeof updateJobSchema>
+export type ListJobsInput = z.infer<typeof listJobsSchema>
+export type ApplyToJobInput = z.infer<typeof applyToJobSchema>
+export type UpdateApplicationStatusInput = z.infer<typeof updateApplicationStatusSchema>
+export type LinkWalletInput = z.infer<typeof linkWalletSchema>
+export type BuildTransactionInput = z.infer<typeof buildTransactionSchema>
+export type BroadcastTransactionInput = z.infer<typeof broadcastTransactionSchema>
+export type FundWalletInput = z.infer<typeof fundWalletSchema>
+export type RevokeDeviceInput = z.infer<typeof revokeDeviceSchema>
+export type AdminBulkActionInput = z.infer<typeof adminBulkActionSchema>
+export type TipPaymentInput = z.infer<typeof tipPaymentSchema>
+export type EscrowPaymentInput = z.infer<typeof escrowPaymentSchema>
+export type FeeCalculationInput = z.infer<typeof feeCalculationSchema>

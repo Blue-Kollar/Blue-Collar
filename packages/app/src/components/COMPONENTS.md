@@ -36,21 +36,7 @@ Located in `ui/` directory - reusable design system components:
 - **StarRating**: Rating component
 
 ### Utility Components
-- **ErrorBoundary**: Error handling wrapper
-- **Skeleton**: Shared loading placeholder for skeletons and loading states. Use `variant="text"` (default) for text lines, `variant="block"` for rectangular blocks, or `variant="circle"` for avatars/icons. Accepts `width`, `height`, and `className` for sizing.
-  ```tsx
-  <Skeleton />
-  <Skeleton variant="circle" width={40} height={40} />
-  <Skeleton variant="block" height={120} />
-  ```
-- **EmptyState**: Shared empty-state display for screens with no data. Accepts `title`, optional `message`, optional `icon`, and optional `action` (e.g. a Button). Prefer this over ad hoc "no results" markup.
-  ```tsx
-  <EmptyState
-    title="No workers found"
-    message="Try adjusting your search filters."
-    action={<Button onClick={resetFilters}>Clear filters</Button>}
-  />
-  ```
+- **Skeleton**: Loading placeholder
 - **Toast**: Notification messages
 - **ZoomableAvatar**: Interactive avatar component
 - **LoadingState**: Shared loading indicator for client-side data fetching. Use `variant="block"` (default) for a centered full-area spinner, or `variant="inline"` for a compact in-flow spinner (e.g. "load more" rows). Accepts an optional `message`.
@@ -65,6 +51,50 @@ Located in `ui/` directory - reusable design system components:
   ```
   Prefer these over ad hoc `Loader2`/`AlertTriangle` + hand-rolled markup for any screen that fetches data client-side.
 
+## State Management
+
+All shared/global state lives in a single store pattern. Do not introduce new state libraries or ad hoc global state.
+
+### Store Location
+- Stores live in `src/stores/` (one file per domain slice, e.g. `workerStore.ts`, `notificationStore.ts`).
+- Each slice is created with the same factory/pattern and exported as a typed hook.
+- Local, component-only UI state (e.g. an open/closed toggle) may stay in `useState`; anything shared across routes or components belongs in a store slice.
+
+### Reading and Writing State
+- Components read state via **selectors**, not by receiving props drilled down from parents:
+  ```tsx
+  const workers = useWorkerStore((s) => s.workers);
+  const isLoading = useWorkerStore((s) => s.isLoading);
+  ```
+- Components write state via **actions** exposed on the store:
+  ```tsx
+  const setWorkers = useWorkerStore((s) => s.setWorkers);
+  ```
+- Select narrowly (one value per selector call) to avoid unnecessary re-renders.
+- Do not pass store values or setters through multiple component layers. If a deep child needs shared state, it should read the store directly.
+
+### Migrating Away from Prop Drilling
+- When refactoring, move shared state into the appropriate slice and replace prop chains with selector reads.
+- Keep components that are genuinely presentational (no shared state) prop-driven.
+
+## Error Boundaries
+
+Route-level crashes are contained by an `ErrorBoundary` so a single failing route does not blank the whole app.
+
+### Usage
+- `ErrorBoundary` is a class component that catches render/lifecycle errors in its subtree and renders a fallback UI.
+- Wrap each route element with `ErrorBoundary` (typically in the router configuration or a shared route layout):
+  ```tsx
+  <ErrorBoundary fallback={<RouteErrorFallback />}>
+    <WorkersRoute />
+  </ErrorBoundary>
+  ```
+- The fallback should offer a recovery action (e.g. "Try again" that resets the boundary, or a link back to a safe route).
+- Boundaries do not catch errors in event handlers or async code; handle those with local error state (see `ErrorState`).
+
+### Testing
+- Fallback UI tests live alongside the boundary in `__tests__/`. Render a child that throws and assert the fallback renders and the recovery action works.
+
 ## Recent Refactoring
 
 ### ImageUpload Component
@@ -77,31 +107,9 @@ Located in `ui/` directory - reusable design system components:
 - **After**: 101 lines, decomposed into sub-components
 - **Benefits**: Better maintainability, reusable form sections
 
-## Design Tokens
-
-All colors, spacings, radii, and typography values must come from the shared design-token module at `design-system/tokens.ts`. Do not hardcode hex colors, `rgb()`/`hsl()` values, or raw `px`/`rem` spacing literals in components or styles.
-
-- **Colors**: use `tokens.colors.*` (e.g. `tokens.colors.primary`, `tokens.colors.text.muted`).
-- **Spacing**: use `tokens.spacing.*` (e.g. `tokens.spacing.md`).
-- **Radii / typography**: use `tokens.radii.*` and `tokens.typography.*`.
-- **Tailwind**: prefer Tailwind utility classes that are backed by these tokens (configured in `tailwind.config`). Avoid arbitrary values like `bg-[#1a2b3c]` or `p-[13px]`.
-
-```tsx
-import { tokens } from "@/design-system/tokens";
-
-const styles = {
-  color: tokens.colors.text.primary,
-  padding: tokens.spacing.md,
-  borderRadius: tokens.radii.md,
-};
-```
-
-```tsx
-// Preferred: token-backed Tailwind classes
-<div className="bg-primary text-foreground p-4 rounded-md" />
-```
-
-**Disallowed**: hardcoded hex/rgb/hsl color literals and raw pixel spacing values in component code. If a value is missing, add it to `design-system/tokens.ts` rather than inlining it.
+### Dead Code Cleanup
+- Removed unused components and assets identified by `knip`.
+- Run `knip` before adding new components to catch dead exports early.
 
 ## Component Guidelines
 
@@ -109,8 +117,8 @@ const styles = {
 2. **Composition over Inheritance**: Use composition for complex UIs
 3. **Custom Hooks**: Extract complex logic into reusable hooks
 4. **Shared Library**: Use `ui/` components for consistent design
-5. **Design Tokens**: Source all colors/spacings from `design-system/tokens.ts`; no hardcoded literals
-6. **Loading & Empty States**: Use shared `LoadingState`, `Skeleton`, and `EmptyState` instead of ad hoc spinners/placeholders
+5. **State**: Use store slices with selectors; avoid prop drilling for shared state
+6. **Resilience**: Wrap routes with `ErrorBoundary`
 7. **Documentation**: Update this file when adding new components
 
 ## Testing
