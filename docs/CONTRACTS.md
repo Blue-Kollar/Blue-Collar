@@ -645,11 +645,85 @@ executes the transfer per the recorded decision).
 
 ---
 
+## Contract Deployment Guide
+
+This section walks through deploying the contracts to Stellar testnet and mainnet, rolling back a bad deployment, and the security rules that apply to every deployment.
+
+> **Scripts**: `packages/contracts/scripts/deploy-registry.sh` and `packages/contracts/scripts/deploy-market.sh`
+> **Related**: [packages/contracts/SECURITY.md](../packages/contracts/SECURITY.md) · [MAINNET_LAUNCH_CHECKLIST.md](./MAINNET_LAUNCH_CHECKLIST.md) · [contract-upgrade-guide.md](./contract-upgrade-guide.md)
+
+### Deployment Steps (scripts/)
+
+Deployments are driven by the shell scripts in `packages/contracts/scripts/`. Each script builds the WASM, uploads it, deploys an instance, and prints the resulting contract ID.
+
+**Required environment variables** (set in your shell or a local, git-ignored `.env`):
+
+| Variable | Description | Example |
+|---|---|---|
+| `NETWORK` | Target network: `testnet` or `mainnet` | `testnet` |
+| `RPC_URL` | Soroban RPC endpoint for the target network | `https://soroban-testnet.stellar.org` |
+| `NETWORK_PASSPHRASE` | Passphrase matching `NETWORK` | `Test SDF Network ; September 2015` |
+| `SOURCE_ACCOUNT` | Public key (G...) of the deployer account | `GABC...` |
+| `SOURCE_SECRET_KEY` | Secret key (S...) of the deployer — **never commit** | `SABC...` |
+
+**Deployment order** (dependencies flow top to bottom):
+
+1. **Registry** — `./packages/contracts/scripts/deploy-registry.sh`
+   - Builds `registry.wasm`, uploads it, deploys the instance, calls `initialize(admin)`.
+   - Prints `REGISTRY_CONTRACT_ID` — record it for the next steps.
+2. **Market** — `./packages/contracts/scripts/deploy-market.sh`
+   - Builds `market.wasm`, uploads it, deploys the instance, calls `initialize(admin, fee_bps, fee_recipient)`.
+   - Prints `MARKET_CONTRACT_ID`.
+3. **Dispute, FeeDistribution, InsurancePool** — deploy after Market using the same pattern (build → upload → deploy → `initialize`), since they reference the Market/FeeDistribution addresses.
+
+**Running against testnet vs mainnet**:
+
+```bash
+# Testnet
+NETWORK=testnet \
+RPC_URL=https://soroban-testnet.stellar.org \
+NETWORK_PASSPHRASE="Test SDF Network ; September 2015" \
+SOURCE_ACCOUNT=G... SOURCE_SECRET_KEY=S... \
+./packages/contracts/scripts/deploy-registry.sh
+
+# Mainnet (only after MAINNET_LAUNCH_CHECKLIST.md is fully signed off)
+NETWORK=mainnet \
+RPC_URL=https://soroban-mainnet.stellar.org \
+NETWORK_PASSPHRASE="Public Global Stellar Network ; September 2015" \
+SOURCE_ACCOUNT=G... SOURCE_SECRET_KEY=S... \
+./packages/contracts/scripts/deploy-registry.sh
+```
+
+After each script completes, copy the printed contract ID into the app's contract ID configuration (see [Rollback](#rollback) for where those values live) and verify with a read-only call (e.g. `get_admin()`, `get_schema_version()`) before proceeding to the next contract.
+
+### Rollback
+
+A rollback restores the previously known-good contract ID and/or WASM hash. Because Soroban contract IDs are immutable, "rolling back" means pointing the app back at the prior deployment (or upgrading the current instance back to the prior WASM hash).
+
+1. **Identify the previous values.** Keep a deployment log (contract ID + WASM hash + schema version + timestamp) per network. The prior entry is your rollback target.
+2. **Revert the contract ID config.** Update the app's contract ID configuration (environment variables / config files consumed by `@bluecollar/sdk`) to the previous contract ID for the affected contract. Do not mix IDs across contracts — roll back the whole set if the deployment was atomic.
+3. **Or revert the WASM hash.** If the instance must stay at the same contract ID, use the upgrade flow (`propose_upgrade` → `execute_upgrade` on Registry, or `upgrade(new_wasm_hash)` where supported) with the previous WASM hash. See [Upgrade Flow](#upgrade-flow).
+4. **Verify.** Call read-only functions (`get_admin()`, `get_schema_version()`, `get_config()`) and confirm the returned values match the pre-deployment state. Run the smoke tests in [CONTRACT_TESTING.md](./CONTRACT_TESTING.md).
+5. **Record the rollback** in the deployment log with the reason and timestamp.
+
+### Security Notes
+
+- **Never commit secret keys.** `SOURCE_SECRET_KEY` and any admin/upgrader keys must never be committed, logged, or pasted into issues. Use a local, git-ignored `.env` or a secrets manager.
+- **Use dedicated deployer accounts.** Deploy from an account created solely for deployments — not a personal or treasury account — so its permissions and history are easy to audit and revoke.
+- **Prefer hardware wallets or CI-managed keys.** For mainnet, sign with a Ledger hardware wallet or a CI secret store (e.g. GitHub Actions secrets) rather than a plaintext key on disk.
+- **Least-privilege admin keys.** Grant `ROLE_ADMIN`, `ROLE_UPGRADER`, and `ROLE_FEE_MANAGER` only to the addresses that need them. Prefer a Stellar multisig for the admin/upgrader roles on mainnet.
+- **Rotate keys.** Rotate deployer and admin keys on a schedule and immediately after any suspected exposure; transfer admin via `set_admin(new_admin)` and revoke stale roles with `revoke_role`.
+- **Full policy**: see [packages/contracts/SECURITY.md](../packages/contracts/SECURITY.md) and the pre-launch sign-off in [MAINNET_LAUNCH_CHECKLIST.md](./MAINNET_LAUNCH_CHECKLIST.md).
+
+---
+
 ## Cross-References
 
 | Document | Link |
 |---|---|
 | Contract Integration Guide (client-side SDK usage) | [CONTRACT_INTEGRATION.md](./CONTRACT_INTEGRATION.md) |
+| Contract Security Policy | [packages/contracts/SECURITY.md](../packages/contracts/SECURITY.md) |
+| Mainnet Launch Checklist | [MAINNET_LAUNCH_CHECKLIST.md](./MAINNET_LAUNCH_CHECKLIST.md) |
 | In-repo TypeScript SDK (`@bluecollar/sdk`) | [packages/sdk/README.md](../packages/sdk/README.md) |
 | Interface Versioning Policy | [packages/contracts/VERSIONING.md](../packages/contracts/VERSIONING.md) |
 | Contracts Package Overview | [packages/contracts/README.md](../packages/contracts/README.md) |
