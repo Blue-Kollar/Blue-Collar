@@ -8,7 +8,6 @@ import { createServer } from 'http'
 import { applySecurity, depthLimiter } from './middleware/security.js'
 import { sanitize, sanitizeParams } from './middleware/sanitize.js'
 import { env } from './config/env.js'
-import pinoHttp from 'pino-http'
 import methodOverride from 'method-override'
 import helmet from 'helmet'
 import cors from 'cors'
@@ -26,6 +25,7 @@ import { startAllJobs, stopAllJobs } from './jobs/index.js'
 import { metricsRecorder } from './monitoring/business-metrics.js'
 import { errorHandler } from './middleware/errorHandler.js'
 import { requestId } from './middleware/requestId.js'
+import { requestLogger } from './middleware/requestLogger.js'
 import { logger } from './config/logger.js'
 import { WebSocketServer } from './websocket/server.js'
 import { createGracefulShutdownHandler } from './utils/shutdown.js'
@@ -57,7 +57,7 @@ app.use(cors(corsConfig))
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use(requestId)      // generate/propagate X-Request-ID before logging
-app.use(pinoHttp())
+app.use(requestLogger)  // structured request logging with request IDs
 app.use(methodOverride('X-HTTP-Method'))
 app.use(passport.initialize())
 
@@ -77,7 +77,7 @@ if (process.env.NODE_ENV !== 'test') {
   new WebSocketServer(httpServer)
   
   const server = httpServer.listen(PORT, () => {
-    logger.info(`BlueCollar API running on port ${PORT}`)
+    logger.info({ port: PORT }, 'BlueCollar API running')
     startAllJobs()
     metricsRecorder.startPeriodicSync()
   })

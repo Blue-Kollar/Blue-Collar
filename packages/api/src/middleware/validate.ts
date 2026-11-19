@@ -17,7 +17,7 @@ import {
  * @param target - Which part of the request to validate ('body' | 'query' | 'params')
  */
 export function validate(schema: ZodSchema, target: 'body' | 'query' | 'params' = 'body') {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: Request, _res: Response, next: NextFunction) => {
     const result = schema.safeParse(req[target])
     if (!result.success) {
       const errors = result.error.errors.reduce<Record<string, string[]>>((acc, err) => {
@@ -26,12 +26,9 @@ export function validate(schema: ZodSchema, target: 'body' | 'query' | 'params' 
         acc[field].push(err.message)
         return acc
       }, {})
-      return res.status(422).json({
-        status: 'error',
-        message: 'Validation failed',
-        code: 422,
-        errors,
-      })
+      return next(
+        new AppError('Validation failed', 400, true, ErrorCode.VALIDATION_ERROR, errors),
+      )
     }
     req[target] = result.data
     next()

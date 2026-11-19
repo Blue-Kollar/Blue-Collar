@@ -78,7 +78,9 @@ app.use(express.urlencoded({ extended: true, limit: '100kb' }))
 // job descriptions, review comments, dispute messages, contact requests,
 // user profiles, and direct messages — is sanitised before storage.
 app.use(sanitize)
-app.use(requestId)          // generate/propagate X-Request-ID before logging
+// requestId must run before requestLogger so every log line carries the
+// correlation ID (#1811). It also propagates X-Request-ID to the response.
+app.use(requestId)
 app.use(sanitizeParams)
 app.use(depthLimiter)
 app.use(metricsMiddleware)
@@ -298,7 +300,8 @@ if (process.env['NODE_ENV'] !== 'production' && process.env['NODE_ENV'] !== 'tes
 // 404 handler — must come after all routes
 app.use(notFoundHandler)
 
-// Global error handler — must be last
+// Central error handler — must be the last middleware registered so it can
+// catch errors from every route and middleware above it (#1809).
 app.use(errorHandler)
 
 // ── Graceful shutdown (#836) ───────────────────────────────────────────────────

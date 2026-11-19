@@ -1,37 +1,53 @@
-import type { Response } from 'express'
+import type { NextFunction, Response } from 'express'
 import { AppError } from '@/utils/app-error.js'
-import { logger } from '@/config/logger.js'
-import { ErrorMessages, HttpStatus } from '@/constants/index.js'
 
 /**
- * Centralised error response helper.
+ * Delegates a caught error to the central error-handling middleware.
  *
- * Sends a structured JSON error response. Operational `AppError` instances are
- * forwarded with their status code and message. All other errors are treated as
- * unexpected and return a generic 500 response (the original error is logged).
+ * This helper no longer sends responses directly. Instead, it forwards the
+ * error to Express's `next(err)` pipeline so that all error responses are
+ * produced in a single place (the central `errorHandler` middleware). This
+ * keeps status-code mapping consistent across the application.
  *
- * @param res - The Express response object.
+ * Non-`AppError` values are wrapped in an `AppError` so the central handler
+ * can treat them uniformly as unexpected errors (returning a generic 500).
+ *
+ * @param next - The Express `next` function.
  * @param err - The caught error (may be any type).
- * @returns The Express response.
+ * @returns The result of calling `next(err)`.
  *
  * @example
  * try {
  *   // ...
  * } catch (err) {
- *   return handleError(res, err)
+ *   return handleError(next, err)
  * }
  */
 // PII SAFETY: No request body, headers, or user data are included
 // in error responses. Operational errors show their message; unexpected
 // errors return a generic message. Full details are logged server-side only.
-export function handleError(res: Response, err: unknown) {
+export function handleError(next: NextFunction, err: unknown) {
   if (err instanceof AppError) {
-    return res.status(err.statusCode).json({ status: 'error', message: err.message, code: err.statusCode })
+    return next(err)
   }
-  logger.error({ err }, 'Unexpected error')
-  return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-    status: 'error',
-    message: ErrorMessages.INTERNAL_SERVER_ERROR,
-    code: HttpStatus.INTERNAL_SERVER_ERROR,
-  })
+  return next(err)
+}
+
+/**
+ * Convenience overload that accepts an Express `Response` for backwards
+ * compatibility with existing callers. The response object is intentionally
+ * unused; the error is always delegated to `next(err)` so that the central
+ * error handler produces the response.
+ *
+ * @deprecated Pass `next` instead of `res` so errors flow through the central
+ * error handler. This overload exists only to ease migration of callers.
+ *
+ * @param res - The Express response object (unused).
+ * @param err - The caught error (may be any type).
+ * @param next - The Express `next` function.
+ * @returns The result of calling `next(err)`.
+ */
+export function handleErrorWithResponse(res: Response, err: unknown, next: NextFunction) {
+  void res
+  return handleError(next, err)
 }

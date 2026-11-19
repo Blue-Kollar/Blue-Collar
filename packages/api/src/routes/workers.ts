@@ -22,7 +22,7 @@ import { registerOnChain } from '@/controllers/stellar.js'
 import { createContactRequest, getContactRequests, updateContactRequestStatus } from '@/controllers/contact-request.js'
 import { getWorkerVerifications } from '@/controllers/verifications.js'
 import { getAnalytics, trackView, getViewTrends, getWorkerPersonalDashboard, exportWorkerPersonalCsv } from '@/controllers/analytics.js'
-import { authenticate, authorize } from '@/middleware/auth.js'
+import { authenticate } from '@/middleware/auth.js'
 import { validate } from '@/middleware/validate.js'
 import { withAuth, withAuthAndValidation } from '@/middleware/composition.js'
 import { upload, handleMulterError } from '@/middleware/upload.js'
@@ -40,6 +40,9 @@ async function showWorkerWithRatings(req: Request, res: Response) {
   if (!result) return res.status(404).json({ status: 'error', message: 'Not found', code: 404 })
   return res.json({ data: result, status: 'success', code: 200 })
 }
+
+// NOTE (#1812): Duplicate registrations and routes with no callers were removed.
+// Removed routes now fall through to notFoundHandler and return 404.
 
 router.get('/', generalRateLimit, validate(listWorkersQuerySchema, 'query'), cacheMiddleware(CacheTTL.SHORT), listWorkers)
 router.get('/search', generalRateLimit, validate(searchWorkersQuerySchema, 'query'), cacheMiddleware(CacheTTL.SHORT), searchWorkersHandler)
