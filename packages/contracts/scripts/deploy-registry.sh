@@ -5,7 +5,33 @@
 #   ./scripts/deploy-registry.sh --network testnet|mainnet --source <secret-key-or-alias> \
 #                                 --admin <admin-address>
 #
+# Arguments:
+#   --network  Target network: "testnet" or "mainnet". Selects the Stellar
+#              network passed to the `stellar` CLI (via --network) and the key
+#              under which the deployment is recorded in deployments.json.
+#   --source   Stellar identity used to sign the deploy and initialize
+#              transactions. Prefer a named alias configured with
+#              `stellar keys add <alias>` (or `stellar keys generate <alias>`)
+#              so the secret key never appears in shell history or process
+#              listings. A raw secret key is accepted but discouraged.
+#   --admin    Address granted admin rights during `initialize`.
+#
+# Environment variables:
+#   None are required. The script relies on the `stellar` CLI configuration
+#   (network passphrases, RPC/Horizon endpoints) and on the key store managed
+#   by `stellar keys`. Set STELLAR_NETWORK / STELLAR_RPC_URL etc. through the
+#   CLI config rather than exporting secrets in the environment.
+#
+# Security notes:
+#   - Never commit secret keys, seed phrases, or funded key material. Use the
+#     `stellar keys` store or a hardware/remote signer; pass only the alias.
+#   - Run with `set -euo pipefail` (already enabled) and review the printed
+#     contract ID before initializing on mainnet.
+#   - deployments.json records only public data (contract ID, admin address,
+#     timestamp); it must never contain secret keys.
+#
 # Outputs the deployed contract ID and appends it to deployments.json.
+=======
 
 set -euo pipefail
 

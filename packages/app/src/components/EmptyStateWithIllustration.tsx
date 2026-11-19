@@ -1,6 +1,6 @@
 import Link from 'next/link'
-import { Search, Bookmark, Star, Users, TrendingUp } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { routes } from '@/lib/routes'
 
 type Variant = 'no-workers' | 'no-bookmarks' | 'no-reviews' | 'no-search-results' | 'no-transactions'
 
@@ -10,11 +10,11 @@ interface EmptyStateProps {
 }
 
 const illustrations: Record<Variant, { icon: React.ReactNode; defaultHref: string }> = {
-  'no-workers': { icon: <UsersIllustration />, defaultHref: '/dashboard/workers/new' },
-  'no-bookmarks': { icon: <BookmarksIllustration />, defaultHref: '/workers' },
+  'no-workers': { icon: <UsersIllustration />, defaultHref: routes.dashboard.workers.new() },
+  'no-bookmarks': { icon: <BookmarksIllustration />, defaultHref: routes.workers.list() },
   'no-reviews': { icon: <ReviewsIllustration />, defaultHref: '#review-form' },
-  'no-search-results': { icon: <SearchIllustration />, defaultHref: '/workers' },
-  'no-transactions': { icon: <TransactionsIllustration />, defaultHref: '/workers' },
+  'no-search-results': { icon: <SearchIllustration />, defaultHref: routes.workers.list() },
+  'no-transactions': { icon: <TransactionsIllustration />, defaultHref: routes.workers.list() },
 }
 
 function UsersIllustration() {

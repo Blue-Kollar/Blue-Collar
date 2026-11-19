@@ -1,10 +1,11 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { ArrowLeft, Loader2 } from "lucide-react";
-import { ListingForm } from "@/components/Curator/ListingForm";
 import { useWorker } from "@/hooks/queries";
+import { EditListingHeader } from "@/components/curator/edit/EditListingHeader";
+import { EditListingLoading } from "@/components/curator/edit/EditListingLoading";
+import { EditListingError } from "@/components/curator/edit/EditListingError";
+import { EditListingForm } from "@/components/curator/edit/EditListingForm";
 
 export default function EditListingPage({ params }: { params: { id: string } }) {
   const router = useRouter();
@@ -13,40 +14,20 @@ export default function EditListingPage({ params }: { params: { id: string } }) 
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8">
-      <Link
-        href="/curator"
-        className="mb-6 inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-brand-600 transition-colors"
-      >
-        <ArrowLeft size={15} />
-        Back to console
-      </Link>
+      <EditListingHeader />
 
       <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-8 shadow-sm">
         <h1 className="mb-6 text-xl font-bold text-gray-900 dark:text-gray-100">
           Edit Listing
         </h1>
 
-        {loading && (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 size={24} className="animate-spin text-gray-400" />
-          </div>
-        )}
+        {loading && <EditListingLoading />}
 
-        {error && (
-          <p className="text-sm text-red-600">{error instanceof Error ? error.message : "Failed to load listing"}</p>
-        )}
+        {error && <EditListingError error={error} />}
 
         {!loading && !error && worker && (
-          <ListingForm
-            workerId={worker.id}
-            defaultValues={{
-              name: worker.name,
-              bio: worker.bio ?? "",
-              categoryId: worker.category.id,
-              phone: worker.phone ?? "",
-              email: worker.email ?? "",
-              walletAddress: worker.walletAddress ?? "",
-            }}
+          <EditListingForm
+            worker={worker}
             onSuccess={() => router.push("/curator")}
           />
         )}

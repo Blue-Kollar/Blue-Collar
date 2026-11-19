@@ -34,7 +34,7 @@ export default function FriendbotBanner({ walletAddress, xlmBalance }: Friendbot
       showToast(t("friendbotFunded"));
       setDismissed(true);
     } catch {
-      showToast("Friendbot funding failed. Please try again.");
+      showToast(t("friendbotFundingFailed"));
     }
   };
 
@@ -64,7 +64,7 @@ export default function FriendbotBanner({ walletAddress, xlmBalance }: Friendbot
               disabled={funding.isPending}
               className="rounded-lg bg-yellow-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-yellow-600 disabled:opacity-50"
             >
-              {funding.isPending ? "Funding..." : "Fund with Friendbot"}
+              {funding.isPending ? t("friendbotFunding") : t("friendbotFundButton")}
             </button>
             <button
               type="button"

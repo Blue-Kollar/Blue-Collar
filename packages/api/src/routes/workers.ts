@@ -27,32 +27,18 @@ import { validate } from '@/middleware/validate.js'
 import { withAuth, withAuthAndValidation } from '@/middleware/composition.js'
 import { upload, handleMulterError } from '@/middleware/upload.js'
 import { createWorkerRules, listWorkersQuerySchema, searchWorkersQuerySchema, advancedSearchRules } from '@/validations/index.js'
-import { cacheMiddleware, invalidateCachePattern, CacheTTL } from '@/middleware/cache.js'
+import { cacheMiddleware, CacheTTL } from '@/middleware/cache.js'
 import { contactRateLimit, generalRateLimit } from '@/middleware/rateLimit.js'
-import { db } from '@/db.js'
+import { getWorkerWithRatings } from '@/services/worker.service.js'
 
 import { idempotency } from '@/middleware/idempotency.js'
 
 const router = Router()
 
 async function showWorkerWithRatings(req: Request, res: Response) {
-  const [worker, rating] = await Promise.all([
-    db.worker.findUnique({
-      where: { id: req.params.id },
-      include: { category: true, portfolioItems: { orderBy: { order: 'asc' } } },
-    }),
-    db.review.aggregate({
-      where: { workerId: req.params.id },
-      _avg: { rating: true },
-      _count: { rating: true },
-    }),
-  ])
-  if (!worker) return res.status(404).json({ status: 'error', message: 'Not found', code: 404 })
-  return res.json({
-    data: { ...worker, avgRating: rating._avg.rating ?? 0, reviewCount: rating._count.rating },
-    status: 'success',
-    code: 200,
-  })
+  const result = await getWorkerWithRatings(req.params.id)
+  if (!result) return res.status(404).json({ status: 'error', message: 'Not found', code: 404 })
+  return res.json({ data: result, status: 'success', code: 200 })
 }
 
 // NOTE (#1812): Duplicate registrations and routes with no callers were removed.

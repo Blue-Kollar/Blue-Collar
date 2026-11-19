@@ -40,6 +40,28 @@ jobs:
       - name: Run accessibility unit tests
         run: pnpm --filter @bluecollar/app test:a11y
 
+      - name: Fail on axe violations (unit)
+        run: |
+          if [ -f packages/app/a11y-reports/unit-violations.json ]; then
+            node -e '
+              const fs = require("fs");
+              const report = JSON.parse(fs.readFileSync("packages/app/a11y-reports/unit-violations.json", "utf8"));
+              const violations = Array.isArray(report) ? report : report.violations || [];
+              if (violations.length > 0) {
+                console.error(`Found ${violations.length} axe violation(s) in component tests.`);
+                process.exit(1);
+              }
+            '
+          fi
+
+      - name: Upload unit accessibility report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: accessibility-unit-report
+          path: packages/app/a11y-reports
+          if-no-files-found: ignore
+
   # ---------------------------------------------------------------------------
   # Full-page accessibility scan (axe-core via Playwright). Non-blocking; the
   # scan report is uploaded as an artifact for review.
@@ -47,7 +69,6 @@ jobs:
   a11y-e2e:
     name: Full-page a11y scan
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
 
@@ -80,6 +101,31 @@ jobs:
         env:
           PLAYWRIGHT_BASE_URL: http://localhost:3001
         run: pnpm exec playwright test accessibility
+
+      - name: Fail on axe violations (full-page)
+        working-directory: packages/app
+        run: |
+          if [ -d a11y-reports ]; then
+            node -e '
+              const fs = require("fs");
+              const path = require("path");
+              const dir = "a11y-reports";
+              let total = 0;
+              for (const file of fs.readdirSync(dir)) {
+                if (!file.endsWith(".json")) continue;
+                const report = JSON.parse(fs.readFileSync(path.join(dir, file), "utf8"));
+                const violations = Array.isArray(report) ? report : report.violations || [];
+                if (violations.length > 0) {
+                  console.error(`${file}: ${violations.length} axe violation(s)`);
+                  total += violations.length;
+                }
+              }
+              if (total > 0) {
+                console.error(`Found ${total} axe violation(s) in full-page scans.`);
+                process.exit(1);
+              }
+            '
+          fi
 
       - name: Upload accessibility report
         if: always()
