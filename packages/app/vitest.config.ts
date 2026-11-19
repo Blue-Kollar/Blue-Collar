@@ -22,6 +22,13 @@
  *    a mock configured in one test cannot leak into the next.
  *  - `unstubGlobals` restores globals stubbed via `vi.stubGlobal` (e.g. fetch,
  *    matchMedia) so network/timer stubs do not bleed across files.
+ *
+ * Accessibility (issue #1790):
+ *  - `vitest-axe` matchers are registered in the shared setup file so
+ *    component tests can assert `toHaveNoViolations()` on rendered output.
+ *  - `deps.inline` includes `vitest-axe` (and its `axe-core` dependency) so
+ *    the matcher package is transformed by Vite rather than externalized,
+ *    which is required for it to work under the jsdom environment.
  */
 import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
@@ -32,7 +39,12 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: true,
+    // setup.ts registers jest-dom + vitest-axe matchers (issue #1790).
     setupFiles: ['./src/__tests__/setup.ts'],
+    // Transform vitest-axe/axe-core so a11y matchers work in jsdom.
+    deps: {
+      inline: ['vitest-axe', 'axe-core'],
+    },
     // Only unit tests live under src/. e2e/ and visual/ are Playwright suites
     // run by `pnpm test:e2e`; picking them up here makes vitest fail on
     // Playwright-only globals.
@@ -61,10 +73,21 @@ export default defineConfig({
       // required by issue #1449.
       reporter: ['text', 'html', 'json-summary'],
       reportsDirectory: './coverage',
-      // `src/components/**` covers the standardized Modal (src/components/ui/**)
-      // and `src/hooks/**` covers the debounce/submit-guard hooks added for
-      // issues #1801 and #1804, so the new code is measured by these thresholds.
-      include: ['src/components/**', 'src/hooks/**', 'src/lib/**', 'src/utils/**', 'src/context/**'],
+      // Explicitly include the centralized routing config (routes.ts), the
+      // shared logger (logger.ts), the transaction status map (tx-status-map.ts)
+      // and the split TxStatus components so they are held to the coverage
+      // thresholds below (issues #1797, #1798, #1799, #1800).
+      include: [
+        'src/components/**',
+        'src/hooks/**',
+        'src/lib/**',
+        'src/utils/**',
+        'src/context/**',
+        'src/routes.ts',
+        'src/lib/logger.ts',
+        'src/lib/tx-status-map.ts',
+        'src/components/tx-status/**',
+      ],
       exclude: [
         'src/app/**',
         '**/*.stories.tsx',

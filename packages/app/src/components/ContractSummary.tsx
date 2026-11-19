@@ -4,6 +4,7 @@ import type { TipDTO } from "@/types";
 import { TrendingUp, Calendar, DollarSign } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { useTranslations } from "next-intl";
+import { getTransactionStatusMeta } from "@/lib/transactionStatus";
 
 interface ContractSummaryProps {
   tip: TipDTO;
@@ -25,6 +26,7 @@ export default function ContractSummary({ tip, isLoading = false }: ContractSumm
   }
 
   const date = formatDate(tip.createdAt);
+  const statusMeta = getTransactionStatusMeta(tip.status);
 
   return (
     <div className="rounded-lg border bg-white shadow-sm overflow-hidden">
@@ -51,8 +53,10 @@ export default function ContractSummary({ tip, isLoading = false }: ContractSumm
           </div>
 
           <div className="flex items-center gap-2 pt-2">
-            <TrendingUp size={14} className="text-green-600" />
-            <span className="text-xs font-medium text-green-600">{t("confirmed")}</span>
+            <TrendingUp size={14} className={statusMeta.colorClass} />
+            <span className={`text-xs font-medium ${statusMeta.colorClass}`}>
+              {t(statusMeta.labelKey)}
+            </span>
           </div>
         </div>
       </div>

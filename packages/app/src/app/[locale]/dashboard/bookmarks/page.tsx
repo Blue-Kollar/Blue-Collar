@@ -2,13 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Bookmark } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
-import { getMyBookmarks } from "@/lib/api";
-import WorkerCard from "@/components/WorkerCard";
-import EmptyState from "@/components/EmptyState";
+import { apiClient } from "@/lib/apiClient";
 import { BookmarksSkeleton } from "@/components/Skeleton";
-import ErrorState from "@/components/ErrorState";
+import {
+  BookmarksHeader,
+  BookmarksList,
+} from "@/components/dashboard/bookmarks";
 import type { Worker } from "@/types";
 
 export default function SavedWorkersPage() {
@@ -24,7 +24,8 @@ export default function SavedWorkersPage() {
 
   useEffect(() => {
     if (authLoading || !user) return;
-    getMyBookmarks()
+    apiClient
+      .getMyBookmarks()
       .then((res) => setWorkers(res.data ?? []))
       .catch((err: unknown) =>
         setError(err instanceof Error ? err.message : "Failed to load bookmarks")
@@ -38,25 +39,8 @@ export default function SavedWorkersPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
-      <div className="mb-8 flex items-center gap-3">
-        <Bookmark size={22} className="text-blue-600" />
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Saved Workers</h1>
-          <p className="mt-0.5 text-sm text-gray-500">Workers you&apos;ve bookmarked</p>
-        </div>
-      </div>
-
-      {error && <ErrorState variant="inline" message={error} className="mb-6" />}
-
-      {workers.length === 0 ? (
-        <EmptyState variant="no-bookmarks" />
-      ) : (
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {workers.map((worker) => (
-            <WorkerCard key={worker.id} worker={worker} />
-          ))}
-        </div>
-      )}
+      <BookmarksHeader />
+      <BookmarksList workers={workers} error={error} />
     </div>
   );
 }

@@ -13,6 +13,7 @@ import {
   Wrench,
   type LucideIcon,
 } from "lucide-react";
+import { memo } from "react";
 import { getCategoryConfig } from "@/config/categoryConfig";
 import { badgeBaseClasses } from "@/lib/componentClasses";
 
@@ -43,14 +44,17 @@ const SIZE_CLASSES: Record<BadgeSize, { badge: string; icon: number }> = {
   lg: { badge: "px-3 py-1.5 text-base gap-2", icon: 18 },
 };
 
-export function CategoryBadge({
+export const CategoryBadge = memo(function CategoryBadge({
   slug,
   size = "md",
   showLabel = true,
 }: CategoryBadgeProps) {
+  const { t } = useTranslation("categories");
   const config = getCategoryConfig(slug);
   const Icon = ICON_MAP[config.iconName] ?? Wrench;
   const { badge, icon: iconSize } = SIZE_CLASSES[size];
+  const label = t(config.labelKey);
+  const ariaLabel = t(config.ariaLabelKey);
 
   return (
     <span
@@ -58,13 +62,13 @@ export function CategoryBadge({
     >
       <Icon size={iconSize} className={config.icon} aria-hidden="true" />
       {showLabel ? (
-        <span aria-label={config.ariaLabel}>{config.label}</span>
+        <span aria-label={ariaLabel}>{label}</span>
       ) : (
-        <span className="sr-only">{config.ariaLabel}</span>
+        <span className="sr-only">{ariaLabel}</span>
       )}
     </span>
   );
-}
+});
 
 interface CategoryIconProps {
   slug: string;
@@ -72,7 +76,11 @@ interface CategoryIconProps {
   className?: string;
 }
 
-export function CategoryIcon({ slug, size = 24, className = "" }: CategoryIconProps) {
+export const CategoryIcon = memo(function CategoryIcon({
+  slug,
+  size = 24,
+  className = "",
+}: CategoryIconProps) {
   const config = getCategoryConfig(slug);
   const Icon = ICON_MAP[config.iconName] ?? Wrench;
   return (
@@ -80,7 +88,7 @@ export function CategoryIcon({ slug, size = 24, className = "" }: CategoryIconPr
       className={`${badgeBaseClasses} justify-center p-2 ${config.bg} ${className}`}
       aria-hidden="true"
     >
-      <Icon size={size} className={config.icon} aria-label={config.ariaLabel} />
+      <Icon size={size} className={config.icon} aria-label={t(config.ariaLabelKey)} />
     </span>
   );
-}
+});

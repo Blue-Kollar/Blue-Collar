@@ -248,6 +248,8 @@
     "apiUnauthorized": "Your session has expired. Please log in again.",
     "apiNotFound": "The requested resource was not found.",
     "apiValidation": "Please check your input and try again.",
+    "apiRateLimit": "Too many requests. Please wait a moment and try again.",
+    "apiServer": "The server encountered an error. Please try again later.",
     "tryAgain": "Try again"
   },
   "languageSwitcher": {
@@ -257,7 +259,66 @@
     "pt": "Português"
   },
   "accessibility": {
-    "skipToMain": "Skip to main content"
+    "skipToMain": "Skip to main content",
+    "mainContent": "Main content"
+  },
+  "transactionStatus": {
+    "pending": "Pending",
+    "processing": "Processing",
+    "broadcasting": "Broadcasting",
+    "confirmed": "Confirmed",
+    "failed": "Failed",
+    "cancelled": "Cancelled",
+    "waitingForSignature": "Waiting for signature",
+    "signing": "Signing…",
+    "success": "Transaction successful",
+    "error": "Transaction failed",
+    "unknown": "Unknown status",
+    "viewOnExplorer": "View on Stellar Expert",
+    "statusLabel": "Transaction status: {status}"
+  },
+  "emptyStates": {
+    "noWorkersTitle": "No workers found",
+    "noWorkersDescription": "Try adjusting your search or filters.",
+    "noBookmarksTitle": "No saved workers yet",
+    "noBookmarksDescription": "Bookmark workers you like to find them quickly later.",
+    "noReviewsTitle": "No reviews yet",
+    "noReviewsDescription": "Be the first to share your experience with this worker.",
+    "noTransactionsTitle": "No transaction history",
+    "noTransactionsDescription": "Your transactions will appear here once you start tipping workers.",
+    "noMessagesTitle": "No messages yet",
+    "noMessagesDescription": "Start a conversation to see your messages here.",
+    "noNotificationsTitle": "No notifications yet",
+    "noNotificationsDescription": "You're all caught up. New notifications will appear here."
+  },
+  "friendbot": {
+    "noBalanceTitle": "Your testnet wallet has no XLM",
+    "noBalanceDescription": "Fund it instantly with Stellar Friendbot to start testing.",
+    "funding": "Funding...",
+    "fundWithFriendbot": "Fund with Friendbot",
+    "funded": "Wallet funded with 10,000 XLM testnet tokens!",
+    "failed": "Friendbot funding failed. Please try again.",
+    "dismissBanner": "Dismiss banner"
+  },
+  "errorBoundary": {
+    "title": "Something went wrong",
+    "description": "An unexpected error occurred. Please try again.",
+    "reportError": "Report this error",
+    "reportDescription": "Help us fix this issue by submitting a report.",
+    "reload": "Reload page"
+  },
+  "categoryLabels": {
+    "plumber": "Plumber",
+    "electrician": "Electrician",
+    "carpenter": "Carpenter",
+    "painter": "Painter",
+    "mason": "Mason",
+    "mechanic": "Mechanic",
+    "welder": "Welder",
+    "roofer": "Roofer",
+    "gardener": "Gardener",
+    "cleaner": "Cleaner",
+    "other": "Other"
   },
   "notifications": {
     "button": "Notifications",
@@ -275,6 +336,11 @@
     "friendbotFunded": "Wallet funded with 10,000 XLM testnet tokens!",
     "friendbotFailed": "Friendbot funding failed. Please try again.",
     "dismissBanner": "Dismiss banner",
+    "transactionStatus": "Transaction status",
+    "statusPending": "Pending",
+    "statusProcessing": "Processing",
+    "statusConfirmed": "Confirmed",
+    "statusFailed": "Failed",
     "notificationsTitle": "Notifications",
     "noNotifications": "No notifications yet",
     "notificationPreferences": "Notification preferences",

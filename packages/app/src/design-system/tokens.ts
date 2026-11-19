@@ -204,6 +204,11 @@ export const breakpoints = {
 // Aggregated Tokens
 // ============================================================================
 
+/**
+ * The complete, authoritative token set.
+ * Prefer importing individual groups (colors, spacing, ...) when only one is
+ * needed; use `tokens` when passing the whole set around (e.g. theming).
+ */
 export const tokens = {
   colors,
   typography,
@@ -214,5 +219,13 @@ export const tokens = {
   zIndex,
   breakpoints,
 } as const
+
+export type Tokens = typeof tokens
+export type ColorToken = keyof typeof colors
+export type SpacingToken = keyof typeof spacing
+export type RadiusToken = keyof typeof radii
+export type ShadowToken = keyof typeof shadows
+export type ZIndexToken = keyof typeof zIndex
+export type BreakpointToken = keyof typeof breakpoints
 
 export default tokens

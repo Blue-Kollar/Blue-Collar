@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+import { routes } from "@/lib/routes";
 
 function GithubIcon() {
   return (
@@ -34,17 +35,17 @@ export default async function Footer() {
           <div>
             <h3 className="mb-3 text-sm font-semibold text-gray-700 dark:text-gray-300">{t("quickLinks")}</h3>
             <ul className="flex flex-col gap-2">
-              <li><Link href="/workers" className="link-muted">{t("workers")}</Link></li>
-              <li><Link href="/categories" className="link-muted">{t("categories")}</Link></li>
-              <li><Link href="/how-it-works" className="link-muted">{t("howItWorks")}</Link></li>
+              <li><Link href={routes.workers} className="text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 transition-colors">{t("workers")}</Link></li>
+              <li><Link href={routes.categories} className="text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 transition-colors">{t("categories")}</Link></li>
+              <li><Link href={routes.howItWorks} className="text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 transition-colors">{t("howItWorks")}</Link></li>
             </ul>
           </div>
 
           <div>
             <h3 className="mb-3 text-sm font-semibold text-gray-700 dark:text-gray-300">{t("legal")}</h3>
             <ul className="flex flex-col gap-2">
-              <li><Link href="/privacy" className="link-muted">{t("privacyPolicy")}</Link></li>
-              <li><Link href="/terms" className="link-muted">{t("termsOfService")}</Link></li>
+              <li><Link href={routes.privacy} className="text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 transition-colors">{t("privacyPolicy")}</Link></li>
+              <li><Link href={routes.terms} className="text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 transition-colors">{t("termsOfService")}</Link></li>
             </ul>
           </div>
 
@@ -55,7 +56,7 @@ export default async function Footer() {
                 href="https://t.me/bluecollar"
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="Telegram"
+                aria-label={t("telegram")}
                 className="text-gray-400 hover:text-blue-500 transition-colors"
               >
                 <TelegramIcon />
@@ -64,7 +65,7 @@ export default async function Footer() {
                 href="https://github.com/summer-0ma/Blue-Collar"
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="GitHub"
+                aria-label={t("github")}
                 className="text-gray-400 dark:hover:text-gray-200 hover:text-gray-800 transition-colors"
               >
                 <GithubIcon />
