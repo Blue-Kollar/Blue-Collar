@@ -29,4 +29,4 @@ export {
   validateUserProfile,
   validateEscrowForm,
   validateContactMessage,
-} from '@bluecollar/types'
+} from '@bluecollar/types/validations'

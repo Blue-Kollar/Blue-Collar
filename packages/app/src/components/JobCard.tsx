@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import Link from "next/link";
 import { Briefcase, Clock, DollarSign } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -27,7 +28,7 @@ export const URGENCY_LABEL: Record<string, UrgencyStyle> = {
 
 const MAX_VISIBLE_SKILLS = 4;
 
-export default function JobCard({ job }: { job: Job }) {
+function JobCard({ job }: { job: Job }) {
   const t = useTranslations("componentText");
   const urg = URGENCY_LABEL[job.urgency] ?? DEFAULT_URGENCY;
   const daysLeft = job.expiresAt
@@ -120,3 +121,9 @@ export default function JobCard({ job }: { job: Job }) {
     </article>
   );
 }
+
+/**
+ * Memoized so that re-renders of the parent list (e.g. pagination or filter
+ * state changes) do not re-render cards whose `job` prop is unchanged.
+ */
+export default memo(JobCard);

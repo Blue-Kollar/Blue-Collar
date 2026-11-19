@@ -22,8 +22,12 @@ Thanks for your interest in contributing! This guide covers everything you need 
 
 ## Getting Started
 
-1. Fork the repository and clone your fork:
-   ```bash
-   git clone https://github.com/<your-username>/Blue-Collar.git
-   cd Blue-Collar
-   pnpm install
+For full environment setup — including pnpm workspace installation, docker-compose services, and environment variables — see the single authoritative onboarding guide: **[docs/setup.md](docs/setup.md)**.
+
+In short:
+
+1. Fork the repository and clone your fork.
+2. Install dependencies with `pnpm install` from the repo root.
+3. Configure environment variables and start local services as described in [docs/setup.md](docs/setup.md).
+
+Once your environment is ready, come back here for contribution conventions below.

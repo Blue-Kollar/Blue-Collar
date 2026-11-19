@@ -1,7 +1,17 @@
 /**
  * Local-calendar date helpers. They compare calendar days in the user's own time zone, so a date
  * picked in one place matches the same day in another.
+ *
+ * Date formatting lives in `lib/format.ts`; this module re-exports those formatters so existing
+ * imports from `lib/date` keep working while there is a single formatting source.
  */
+
+export {
+  formatDate,
+  formatDateTime,
+  formatTime,
+  formatRelativeDate,
+} from './format';
 
 /** The given date at local midnight. */
 export function startOfDay(date: Date): Date {

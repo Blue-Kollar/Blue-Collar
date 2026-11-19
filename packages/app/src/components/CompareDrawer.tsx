@@ -13,6 +13,8 @@ function Cell({ children, className = "" }: { children: React.ReactNode; classNa
   return <td className={`px-4 py-3 text-sm text-gray-700 border-b ${className}`}>{children}</td>;
 }
 
+const TITLE_ID = "compare-drawer-title";
+
 function Rating({ value }: { value?: number | null }) {
   const t = useTranslations("componentText");
   if (value == null) return <span className="text-gray-400">{t("notAvailable")}</span>;
@@ -66,9 +68,14 @@ export default function CompareDrawer() {
 
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50" />
-        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-4xl max-h-[90vh] -translate-x-1/2 -translate-y-1/2 overflow-auto rounded-2xl bg-white shadow-xl outline-none">
+        <Dialog.Content
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={TITLE_ID}
+          className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-4xl max-h-[90vh] -translate-x-1/2 -translate-y-1/2 overflow-auto rounded-2xl bg-white shadow-xl outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+        >
           <div className="flex items-center justify-between border-b px-6 py-4">
-            <Dialog.Title className="text-lg font-semibold text-gray-900">
+            <Dialog.Title id={TITLE_ID} className="text-lg font-semibold text-gray-900">
               {t("compareWorkersTitle")}
             </Dialog.Title>
             <Dialog.Close aria-label={t("closeComparison")} className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
@@ -78,11 +85,14 @@ export default function CompareDrawer() {
 
           <div className="overflow-x-auto p-4">
             <table className="w-full border-collapse">
+              <caption className="sr-only">{t("compareWorkersTitle")}</caption>
               <thead>
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-28 border-b" scope="col" />
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-28 border-b" scope="col">
+                    <span className="sr-only">{t("compareWorkersTitle")}</span>
+                  </th>
                   {selected.map((w) => (
-                    <th key={w.id} className="px-4 py-3 border-b" scope="col">
+                    <th key={w.id} className="px-4 py-3 border-b" scope="col" aria-label={w.name}>
                       <div className="flex flex-col items-center gap-1">
                         {w.avatar ? (
                           <Image src={w.avatar} alt="" width={48} height={48} sizes="48px" className="h-12 w-12 rounded-full object-cover ring-2 ring-blue-100" aria-hidden="true" />
@@ -103,16 +113,19 @@ export default function CompareDrawer() {
               <tbody>
                 {rows.map(({ label, render }) => (
                   <tr key={label}>
-                    <td className="px-4 py-3 text-xs font-medium text-gray-500 uppercase border-b">{label}</td>
+                    <th scope="row" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase border-b">{label}</th>
                     {selected.map((w) => <Cell key={w.id}>{render(w)}</Cell>)}
                   </tr>
                 ))}
                 <tr>
-                  <td className="px-4 py-3 border-b" />
+                  <td className="px-4 py-3 border-b">
+                    <span className="sr-only">{workerCardT("viewProfile")}</span>
+                  </td>
                   {selected.map((w) => (
                     <td key={w.id} className="px-4 py-3 border-b">
                       <a
-                        href={routes.worker(w.id)}
+                        href={`/workers/${w.id}`}
+                        aria-label={`${workerCardT("viewProfile")}: ${w.name}`}
                         className="block rounded-md bg-blue-600 py-1.5 text-center text-sm font-medium text-white hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
                       >
                         {workerCardT("viewProfile")}

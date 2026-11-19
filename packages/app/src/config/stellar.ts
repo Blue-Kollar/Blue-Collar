@@ -12,19 +12,27 @@
  * Closes #1207, updated for #1295.
  */
 
-import {
-  TESTNET_HORIZON_URL,
-  MAINNET_HORIZON_URL,
-  TESTNET_SOROBAN_RPC_URL,
-  MAINNET_SOROBAN_RPC_URL,
-  TESTNET_PASSPHRASE,
-  MAINNET_PASSPHRASE,
-  TESTNET_FRIENDBOT_URL,
-  TESTNET_EXPLORER_TX_BASE,
-  MAINNET_EXPLORER_TX_BASE,
-  TESTNET_EXPLORER_CONTRACT_BASE,
-  MAINNET_EXPLORER_CONTRACT_BASE,
-} from '@bluecollar/sdk';
+/**
+ * Lightweight network constants.
+ *
+ * These values are inlined here (rather than imported from `@bluecollar/sdk`)
+ * so that this config module does not pull the full Stellar SDK into the
+ * initial bundle.  The SDK is heavy and is only needed by code paths that
+ * actually build/sign transactions, which are lazy-loaded (issue #1791).
+ *
+ * Keep these in sync with `@bluecollar/sdk/constants` (issue #1295).
+ */
+const TESTNET_HORIZON_URL = 'https://horizon-testnet.stellar.org';
+const MAINNET_HORIZON_URL = 'https://horizon.stellar.org';
+const TESTNET_SOROBAN_RPC_URL = 'https://soroban-testnet.stellar.org';
+const MAINNET_SOROBAN_RPC_URL = 'https://soroban.stellar.org';
+const TESTNET_PASSPHRASE = 'Test SDF Network ; September 2015';
+const MAINNET_PASSPHRASE = 'Public Global Stellar Network ; September 2015';
+const TESTNET_FRIENDBOT_URL = 'https://friendbot.stellar.org';
+const TESTNET_EXPLORER_TX_BASE = 'https://stellar.expert/explorer/testnet/tx';
+const MAINNET_EXPLORER_TX_BASE = 'https://stellar.expert/explorer/public/tx';
+const TESTNET_EXPLORER_CONTRACT_BASE = 'https://stellar.expert/explorer/testnet/contract';
+const MAINNET_EXPLORER_CONTRACT_BASE = 'https://stellar.expert/explorer/public/contract';
 
 export type StellarNetworkName = 'TESTNET' | 'MAINNET';
 

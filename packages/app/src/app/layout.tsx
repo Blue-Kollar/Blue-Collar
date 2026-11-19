@@ -62,7 +62,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           <WalletProvider>
             <OnboardingProvider>
               <ServiceWorkerRegister />
-              <div id="main-content" tabIndex={-1}>
+              <div id="main-content" role="main" tabIndex={-1}>
                 {children}
               </div>
               <PushNotificationPrompt />

@@ -13,7 +13,7 @@ import {
   Wrench,
   type LucideIcon,
 } from "lucide-react";
-import { useTranslation } from "react-i18next";
+import { memo } from "react";
 import { getCategoryConfig } from "@/config/categoryConfig";
 
 const ICON_MAP: Record<string, LucideIcon> = {
@@ -43,7 +43,7 @@ const SIZE_CLASSES: Record<BadgeSize, { badge: string; icon: number }> = {
   lg: { badge: "px-3 py-1.5 text-base gap-2", icon: 18 },
 };
 
-export function CategoryBadge({
+export const CategoryBadge = memo(function CategoryBadge({
   slug,
   size = "md",
   showLabel = true,
@@ -68,7 +68,7 @@ export function CategoryBadge({
       )}
     </span>
   );
-}
+});
 
 interface CategoryIconProps {
   slug: string;
@@ -76,8 +76,11 @@ interface CategoryIconProps {
   className?: string;
 }
 
-export function CategoryIcon({ slug, size = 24, className = "" }: CategoryIconProps) {
-  const { t } = useTranslation("categories");
+export const CategoryIcon = memo(function CategoryIcon({
+  slug,
+  size = 24,
+  className = "",
+}: CategoryIconProps) {
   const config = getCategoryConfig(slug);
   const Icon = ICON_MAP[config.iconName] ?? Wrench;
   return (
@@ -88,4 +91,4 @@ export function CategoryIcon({ slug, size = 24, className = "" }: CategoryIconPr
       <Icon size={size} className={config.icon} aria-label={t(config.ariaLabelKey)} />
     </span>
   );
-}
+});

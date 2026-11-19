@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { X, Loader2, CheckCircle2, MessageSquare } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -14,6 +14,8 @@ interface Props {
 export default function ContactModal({ workerId, workerName }: Props) {
   const t = useTranslations("contact");
   const [open, setOpen] = useState(false);
+  const titleId = useId();
+  const descriptionId = useId();
   const { message, setMessage, status, error, setError, reset, handleSubmit } = useContactForm(
     workerId,
     (key) => t(key as never),
@@ -35,19 +37,25 @@ export default function ContactModal({ workerId, workerName }: Props) {
 
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
-        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-white p-6 shadow-xl data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95">
+        <Dialog.Content
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={titleId}
+          aria-describedby={descriptionId}
+          className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-white p-6 shadow-xl data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95"
+        >
           <div className="flex items-start justify-between">
             <div>
-              <Dialog.Title className="text-lg font-semibold text-gray-900">
+              <Dialog.Title id={titleId} className="text-lg font-semibold text-gray-900">
                 {t("title", { name: workerName })}
               </Dialog.Title>
-              <Dialog.Description className="mt-0.5 text-sm text-gray-500">
+              <Dialog.Description id={descriptionId} className="mt-0.5 text-sm text-gray-500">
                 {t("description")}
               </Dialog.Description>
             </div>
             <Dialog.Close
               aria-label={t("ariaClose")}
-              className="rounded-md p-1 text-gray-400 hover:text-gray-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+              className="rounded-md p-1 text-gray-400 hover:text-gray-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
             >
               <X size={18} aria-hidden="true" />
             </Dialog.Close>
@@ -60,7 +68,7 @@ export default function ContactModal({ workerId, workerName }: Props) {
               <p className="text-xs text-gray-500">
                 {t("messageSentDescription", { name: workerName })}
               </p>
-              <Dialog.Close className="mt-2 rounded-lg bg-gray-100 px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors">
+              <Dialog.Close className="mt-2 rounded-lg bg-gray-100 px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
                 {t("close")}
               </Dialog.Close>
             </div>
@@ -94,13 +102,13 @@ export default function ContactModal({ workerId, workerName }: Props) {
               </div>
 
               <div className="flex gap-3">
-                <Dialog.Close className="flex-1 rounded-lg border py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
+                <Dialog.Close className="flex-1 rounded-lg border py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
                   {t("cancel")}
                 </Dialog.Close>
                 <button
                   type="submit"
                   disabled={status === "loading"}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-blue-600 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60 transition-colors"
+                  className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-blue-600 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
                 >
                   {status === "loading" && <Loader2 size={14} className="animate-spin" aria-hidden="true" />}
                   {t("sendMessage")}

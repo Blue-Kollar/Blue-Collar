@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { Search, Bookmark, Star, Users, Wallet } from "lucide-react";
-import { routes } from "@/lib/routes";
+import { colors, spacing, radius, typography } from "@blue-collar/design-tokens";
 
 type Variant = "no-workers" | "no-bookmarks" | "no-reviews" | "no-search-results" | "no-transactions";
 
@@ -24,39 +24,39 @@ const config: Record<
   }
 > = {
   "no-workers": {
-    icon: <Users size={48} className="text-blue-200" />,
-    titleKey: "noWorkers.title",
-    descriptionKey: "noWorkers.description",
-    ctaKey: "noWorkers.cta",
-    defaultHref: routes.dashboard.workers.new(),
+    icon: <Users size={48} className={colors.iconMuted} />,
+    title: "No workers listed yet",
+    description: "Be the first to add a skilled worker to the community.",
+    cta: "Add a Worker",
+    defaultHref: "/dashboard/workers/new",
   },
   "no-bookmarks": {
-    icon: <Bookmark size={48} className="text-blue-200" />,
-    titleKey: "noBookmarks.title",
-    descriptionKey: "noBookmarks.description",
-    ctaKey: "noBookmarks.cta",
-    defaultHref: routes.workers.list(),
+    icon: <Bookmark size={48} className={colors.iconMuted} />,
+    title: "No saved workers yet",
+    description: "Bookmark workers you like to find them quickly later.",
+    cta: "Browse Workers",
+    defaultHref: "/workers",
   },
   "no-reviews": {
-    icon: <Star size={48} className="text-blue-200" />,
-    titleKey: "noReviews.title",
-    descriptionKey: "noReviews.description",
-    ctaKey: "noReviews.cta",
+    icon: <Star size={48} className={colors.iconMuted} />,
+    title: "No reviews yet",
+    description: "Be the first to share your experience with this worker.",
+    cta: "Write a Review",
     defaultHref: "#review-form",
   },
   "no-search-results": {
-    icon: <Search size={48} className="text-blue-200" />,
-    titleKey: "noSearchResults.title",
-    descriptionKey: "noSearchResults.description",
-    ctaKey: "noSearchResults.cta",
-    defaultHref: routes.workers.list(),
+    icon: <Search size={48} className={colors.iconMuted} />,
+    title: "No results found",
+    description: "Try different keywords, a broader location, or remove some filters.",
+    cta: "Clear Filters",
+    defaultHref: "/workers",
   },
   "no-transactions": {
-    icon: <Wallet size={48} className="text-blue-200" />,
-    titleKey: "noTransactions.title",
-    descriptionKey: "noTransactions.description",
-    ctaKey: "noTransactions.cta",
-    defaultHref: routes.workers.list(),
+    icon: <Wallet size={48} className={colors.iconMuted} />,
+    title: "No transaction history",
+    description: "Your tips and payments will appear here.",
+    cta: "Send a Tip",
+    defaultHref: "/workers",
   },
 };
 
@@ -71,15 +71,21 @@ export default function EmptyState({
   const buttonText = ctaText ?? t(ctaKey);
 
   return (
-    <div className="flex flex-col items-center justify-center rounded-xl border border-gray-200 bg-gradient-to-b from-gray-50 to-white py-16 px-6 text-center shadow-sm">
-      <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-blue-50">
+    <div
+      className={`flex flex-col items-center justify-center ${radius.xl} border ${colors.border} bg-gradient-to-b ${colors.surfaceGradient} ${spacing.emptyStateY} ${spacing.emptyStateX} text-center shadow-sm`}
+    >
+      <div
+        className={`${spacing.emptyStateIconBottom} flex h-20 w-20 items-center justify-center ${radius.full} ${colors.iconBg}`}
+      >
         {icon}
       </div>
-      <p className="text-xl font-semibold text-gray-900">{t(titleKey)}</p>
-      <p className="mt-2 max-w-sm text-sm text-gray-600">{t(descriptionKey)}</p>
+      <p className={`${typography.heading} ${colors.textPrimary}`}>{title}</p>
+      <p className={`mt-2 max-w-sm ${typography.body} ${colors.textSecondary}`}>
+        {description}
+      </p>
       <Link
         href={href}
-        className="mt-6 rounded-md bg-blue-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+        className={`${spacing.emptyStateCtaTop} ${radius.md} ${colors.primaryBg} px-6 py-2.5 ${typography.body} font-medium ${colors.primaryText} ${colors.primaryHoverBg} transition-colors`}
       >
         {buttonText}
       </Link>

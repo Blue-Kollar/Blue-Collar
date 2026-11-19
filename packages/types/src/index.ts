@@ -262,6 +262,14 @@ import type {
 
 export * from './status.js';
 
+// ─── Shared Validation Schemas (#1788) ────────────────────────────────────────
+//
+// Zod schemas and their inferred input types live in ./validations.ts and are
+// re-exported here so both the api and app packages can import them from
+// `@bluecollar/types` (or the `@bluecollar/types/validations` subpath).
+
+export * from './validations.js';
+
 // ─── Jobs ─────────────────────────────────────────────────────────────────────
 
 export interface Job {
@@ -520,5 +528,4 @@ export interface CreateBookingInput {
   serviceDescription?: string;
 }
 
-// ─── Shared Validation Schemas ────────────────────────────────────────────────
-export * from './validations.js';
+
