@@ -657,6 +657,7 @@ executes the transfer per the recorded decision).
 | Architecture Overview | [system-overview.svg](./architecture/system-overview.svg) |
 | Environment Variables | [ENVIRONMENT_VARIABLES.md](./ENVIRONMENT_VARIABLES.md) |
 | Contract Testing Guide | [CONTRACT_TESTING.md](./CONTRACT_TESTING.md) |
+| Architecture Decision Records (ADRs) | [adr/README.md](./adr/README.md) |
 
 ---
 
