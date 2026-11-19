@@ -110,6 +110,13 @@ model User {
   @@index([role])
   @@index([deletedAt])
   @@index([createdAt])
+  // ── Issue #1813: additional indexes for common filters/sorts ──
+  @@index([role, deletedAt])
+  @@index([locationId])
+  @@index([walletAddress])
+  @@index([verified])
+  @@index([onboardingCompleted])
+  @@index([createdAt, deletedAt])
 }
 
 model Category {
@@ -186,6 +193,16 @@ model Worker {
   @@index([isActive, categoryId, createdAt])
   @@index([isActive, isVerified, categoryId])
   @@index([name]) // full-text prefix search
+  // ── Issue #1813: additional indexes for common filters/sorts ──
+  @@index([isActive, deletedAt])
+  @@index([isActive, deletedAt, createdAt])
+  @@index([isActive, categoryId, deletedAt, createdAt])
+  @@index([locationId, isActive])
+  @@index([curatorId, isActive])
+  @@index([isVerified, isActive])
+  @@index([walletAddress])
+  @@index([stellarContractId])
+  @@index([updatedAt])
 }
 
 model Bookmark {
@@ -197,6 +214,9 @@ model Bookmark {
   worker    Worker   @relation(fields: [workerId], references: [id], onDelete: Cascade)
 
   @@unique([userId, workerId])
+  // ── Issue #1813: indexes for reverse lookups and counts ──
+  @@index([workerId])
+  @@index([userId, createdAt])
 }
 
 model PushSubscription {
@@ -239,6 +259,8 @@ model PortfolioItem {
   updatedAt   DateTime @updatedAt
 
   @@index([workerId])
+  // ── Issue #1813: index for ordered portfolio fetch ──
+  @@index([workerId, order])
 }
 
 model Review {
@@ -267,6 +289,12 @@ model Review {
   @@index([workerId, status])
   @@index([authorId])
   @@index([workerId, rating]) // covering index for avg rating aggregation
+  // ── Issue #1813: additional indexes for common filters/sorts ──
+  @@index([workerId, status, createdAt])
+  @@index([workerId, createdAt])
+  @@index([status, createdAt])
+  @@index([flagged])
+  @@index([userId])
 }
 
 model Subscription {
@@ -280,6 +308,12 @@ model Subscription {
   cancelAtPeriodEnd Boolean          @default(false)
   createdAt         DateTime         @default(now())
   updatedAt         DateTime         @updatedAt
+
+  // ── Issue #1813: indexes for billing lookups ──
+  @@index([tier])
+  @@index([stripeCustomerId])
+  @@index([stripeSubId])
+  @@index([currentPeriodEnd])
 }
 
 model Dispute {
@@ -300,6 +334,10 @@ model Dispute {
   @@index([workerId])
   @@index([filedById])
   @@index([status])
+  // ── Issue #1813: additional indexes for common filters/sorts ──
+  @@index([status, createdAt])
+  @@index([workerId, status])
+  @@index([resolvedById])
 }
 
 model UserInteraction {
@@ -313,6 +351,9 @@ model UserInteraction {
 
   @@index([userId])
   @@index([workerId])
+  // ── Issue #1813: indexes for interaction analytics ──
+  @@index([workerId, type, createdAt])
+  @@index([userId, type, createdAt])
 }
 
 model WebhookSubscription {
@@ -328,6 +369,8 @@ model WebhookSubscription {
   logs      WebhookLog[]
 
   @@index([userId])
+  // ── Issue #1813: index for active webhook dispatch ──
+  @@index([isActive])
 }
 
 model WebhookLog {
@@ -343,6 +386,10 @@ model WebhookLog {
   subscription   WebhookSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
 
   @@index([subscriptionId])
+  // ── Issue #1813: indexes for log queries ──
+  @@index([subscriptionId, createdAt])
+  @@index([success])
+  @@index([createdAt])
 }
 
 model VerificationRequest {
@@ -362,6 +409,10 @@ model VerificationRequest {
 
   @@index([workerId])
   @@index([status])
+  // ── Issue #1813: additional indexes for common filters/sorts ──
+  @@index([status, createdAt])
+  @@index([requestedById])
+  @@index([reviewedById])
 }
 
 model AuditLog {
@@ -377,6 +428,10 @@ model AuditLog {
   @@index([userId])
   @@index([action])
   @@index([createdAt])
+  // ── Issue #1813: additional indexes for audit queries ──
+  @@index([userId, createdAt])
+  @@index([resource, resourceId])
+  @@index([action, createdAt])
 }
 
 // ─── Issue #329: Worker Response Time Tracking ───────────────────────────────
@@ -395,6 +450,10 @@ model ContactRequest {
 
   @@index([workerId])
   @@index([workerId, status])
+  // ── Issue #1813: additional indexes for common filters/sorts ──
+  @@index([fromUserId])
+  @@index([workerId, createdAt])
+  @@index([status, createdAt])
 }
 
 // ─── Issue #331: Worker Insurance Verification ───────────────────────────────
@@ -413,6 +472,9 @@ model InsuranceDocument {
 
   @@index([workerId])
   @@index([expiresAt])
+  // ── Issue #1813: additional indexes for common filters/sorts ──
+  @@index([status])
+  @@index([status, expiresAt])
 }
 
 // ─── Issue #332: Referral System ─────────────────────────────────────────────
@@ -431,6 +493,10 @@ model Referral {
 
   @@index([referrerId])
   @@index([code])
+  // ── Issue #1813: additional indexes for common filters/sorts ──
+  @@index([status])
+  @@index([referrerId, status])
+  @@index([createdAt])
 }
 
 model Job {
@@ -463,6 +529,15 @@ model Job {
   @@index([categoryId])
   @@index([postedById])
   @@index([expiresAt])
+  // ── Issue #1813: additional indexes for common filters/sorts ──
+  @@index([status, createdAt])
+  @@index([status, expiresAt])
+  @@index([categoryId, status])
+  @@index([locationId])
+  @@index([postedById, status])
+  @@index([postedById, createdAt])
+  @@index([urgency])
+  @@index([createdAt])
 }
 
 model JobApplication {
@@ -480,6 +555,10 @@ model JobApplication {
   @@unique([jobId, workerId])
   @@index([jobId])
   @@index([workerId])
+  // ── Issue #1813: additional indexes for common filters/sorts ──
+  @@index([jobId, status])
+  @@index([workerId, status])
+  @@index([status, createdAt])
 }
 
 // ─── Issue #687: Job messaging between poster and applicant ──────────────────
@@ -499,6 +578,10 @@ model JobMessage {
   @@index([jobId])
   @@index([senderId])
   @@index([recipientId])
+  // ── Issue #1813: additional indexes for common filters/sorts ──
+  @@index([jobId, createdAt])
+  @@index([recipientId, readAt])
+  @@index([recipientId, createdAt])
 }
 
 // ─── Issue #analytics: Advanced Analytics & Reporting ────────────────────────
@@ -512,6 +595,9 @@ model ProfileView {
   worker   Worker   @relation(fields: [workerId], references: [id], onDelete: Cascade)
 
   @@index([workerId, ip, viewedAt])
+  // ── Issue #1813: index for time-range analytics ──
+  @@index([workerId, viewedAt])
+  @@index([viewedAt])
 }
 
 model WorkerTipEvent {
@@ -523,6 +609,8 @@ model WorkerTipEvent {
   worker    Worker   @relation(fields: [workerId], references: [id], onDelete: Cascade)
 
   @@index([workerId, createdAt])
+  // ── Issue #1813: index for tx lookups ──
+  @@index([txHash])
 }
 
 model WorkerAnalytics {
@@ -553,6 +641,8 @@ model SearchAnalytics {
 
   @@index([query])
   @@index([createdAt])
+  // ── Issue #1813: index for filtered search analytics ──
+  @@index([hasFilters, createdAt])
 }
 
 // ─── Issue #511: Refresh Token Rotation ──────────────────────────────────────
@@ -568,6 +658,9 @@ model RefreshToken {
 
   @@index([userId])
   @@index([tokenHash])
+  // ── Issue #1813: indexes for token cleanup/validation ──
+  @@index([userId, revokedAt])
+  @@index([expiresAt])
 }
 
 // ─── Issue #517: Idempotency Keys ────────────────────────────────────────────
@@ -583,6 +676,8 @@ model IdempotencyKey {
 
   @@unique([key, userId])
   @@index([expiresAt])
+  // ── Issue #1813: index for user-scoped lookups ──
+  @@index([userId])
 }
 
 // ─── Issue #751: On-Chain Event Indexer Service ───────────────────────────────
@@ -629,6 +724,8 @@ model StellarAccount {
   updatedAt    DateTime  @updatedAt
 
   @@index([userId])
+  // ── Issue #1813: index for sync scheduling ──
+  @@index([lastSyncedAt])
 }
 
 // ─── Issue #771: Secure File Upload & Media Pipeline ─────────────────────────
@@ -648,6 +745,8 @@ model MediaAsset {
   createdAt    DateTime @default(now())
 
   @@index([uploadedById])
+  // ── Issue #1813: index for time-sorted media listing ──
+  @@index([createdAt])
 }
 
 // ─── Issue #755: Escrow Orchestration ────────────────────────────────────────
@@ -672,6 +771,11 @@ model EscrowRecord {
   @@index([status])
   @@index([payerId, status])
   @@index([payeeId, status])
+  // ── Issue #1813: additional indexes for common filters/sorts ──
+  @@index([jobId])
+  @@index([txId])
+  @@index([status, expiresAt])
+  @@index([createdAt])
 }
 
 model EscrowDispute {
@@ -689,6 +793,9 @@ model EscrowDispute {
 
   @@index([escrowId])
   @@index([status])
+  // ── Issue #1813: additional indexes for common filters/sorts ──
+  @@index([filedById])
+  @@index([status, createdAt])
 }
 
 enum EscrowStatus {
@@ -813,6 +920,10 @@ model Notification {
 
   @@index([userId, read])
   @@index([userId, createdAt])
+  // ── Issue #1813: additional indexes for common filters/sorts ──
+  @@index([userId, read, createdAt])
+  @@index([userId, type])
+  @@index([createdAt])
 }
 
 enum NotificationType {
@@ -835,6 +946,8 @@ model ReviewHelpful {
 
   @@unique([reviewId, userId])
   @@index([reviewId])
+  // ── Issue #1813: index for user vote lookups ──
+  @@index([userId])
 }
 
 // ─── Issue #messaging: Conversations & Messages ─────────────────────────────
@@ -848,6 +961,11 @@ model Conversation {
   updatedAt    DateTime                  @updatedAt
   participants ConversationParticipant[]
   messages     Message[]
+
+  // ── Issue #1813: indexes for conversation listing ──
+  @@index([initiatorId])
+  @@index([updatedAt])
+  @@index([createdAt])
 }
 
 model ConversationParticipant {
@@ -861,6 +979,9 @@ model ConversationParticipant {
 
   @@unique([conversationId, userId])
   @@index([userId])
+  // ── Issue #1813: index for conversation participant fetch ──
+  @@index([conversationId])
+  @@index([userId, lastReadAt])
 }
 
 model Message {
@@ -876,6 +997,9 @@ model Message {
   sender         User         @relation(fields: [senderId], references: [id])
 
   @@index([conversationId, createdAt])
+  // ── Issue #1813: additional indexes for common filters/sorts ──
+  @@index([senderId])
+  @@index([conversationId, readAt])
 }
 
 // ── Booking models — Issue #776 ───────────────────────────────────────────────
@@ -891,41 +1015,4 @@ model Booking {
   /// IANA timezone name the requester submitted in
   timezone           String        @default("UTC")
   serviceDescription String
-  note               String?
-  status             BookingStatus @default(pending)
-  cancellationReason String?
-  createdAt          DateTime      @default(now())
-  updatedAt          DateTime      @updatedAt
-
-  worker    Worker @relation(fields: [workerId], references: [id], onDelete: Cascade)
-  requester User   @relation("BookingRequester", fields: [requesterId], references: [id], onDelete: Cascade)
-
-  @@index([workerId, startTime])
-  @@index([requesterId, startTime])
-  @@index([workerId, status])
-}
-
-enum BookingStatus {
-  pending
-  confirmed
-  cancelled
-  completed
-}
-
-// ─── Issue #749: Device & Session Management ─────────────────────────────────
-
-model Device {
-  id         String    @id @default(cuid())
-  userId     String
-  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  deviceName String // e.g., "Chrome on MacOS", "Firefox on Windows"
-  userAgent  String?
-  /// @encrypted — PII (High sensitivity, AES-256-GCM; retained 90 days then anonymized)
-  ipAddress  String
-  lastUsedAt DateTime  @updatedAt
-  createdAt  DateTime  @default(now())
-  revokedAt  DateTime?
-
-  @@index([userId])
-  @@index([userId, revokedAt])
-}
+  note               String

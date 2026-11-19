@@ -11,9 +11,17 @@ export interface IWorkerRepository extends IRepository<Worker, Prisma.WorkerCrea
   findByCurator(curatorId: string): Promise<Worker[]>
   findByCategory(categoryId: string, opts?: { skip?: number; take?: number }): Promise<Worker[]>
   findActive(opts?: { skip?: number; take?: number }): Promise<Worker[]>
-  toggleActive(id: string): Promise<Worker>
+  toggleActive(id: string, tx?: Prisma.TransactionClient): Promise<Worker>
   advancedSearch(filters: AdvancedSearchFilters): Promise<AdvancedSearchResult>
 }
+
+/**
+ * Minimal subset of the Prisma client used by this repository. Both the
+ * root client (`db`) and a transaction client (`Prisma.TransactionClient`)
+ * satisfy this shape, so write methods can run inside or outside a
+ * transaction without changing their call sites.
+ */
+type WorkerDbClient = Pick<typeof db, 'worker' | 'review'>
 
 export interface AdvancedSearchFilters {
   query?: string
@@ -52,6 +60,11 @@ const workerInclude = { category: true, curator: true } as const
 export class WorkerRepository extends BaseRepository<Worker, Prisma.WorkerCreateInput, Prisma.WorkerUpdateInput, Prisma.WorkerWhereInput> implements IWorkerRepository {
   constructor() {
     super(db.worker, { softDelete: true })
+  }
+
+  /** Resolve the client to use: an explicit transaction client, or the root client. */
+  private client(tx?: Prisma.TransactionClient): WorkerDbClient {
+    return (tx ?? db) as WorkerDbClient
   }
 
   async findWithRelations(id: string) {
@@ -105,30 +118,41 @@ export class WorkerRepository extends BaseRepository<Worker, Prisma.WorkerCreate
     })
   }
 
-  /** Overrides BaseRepository.create to eagerly load category/curator relations. */
-  override async create(data: Prisma.WorkerCreateInput): Promise<Worker> {
-    return db.worker.create({ data, include: workerInclude })
+  /**
+   * Overrides BaseRepository.create to eagerly load category/curator relations.
+   * Accepts an optional transaction client so multi-step writes stay atomic.
+   */
+  override async create(data: Prisma.WorkerCreateInput, tx?: Prisma.TransactionClient): Promise<Worker> {
+    return this.client(tx).worker.create({ data, include: workerInclude })
   }
 
-  /** Overrides BaseRepository.update to eagerly load category/curator relations. */
-  override async update(id: string, data: Prisma.WorkerUpdateInput): Promise<Worker> {
-    return db.worker.update({ where: { id }, data: { ...data, updatedAt: new Date() }, include: workerInclude })
+  /**
+   * Overrides BaseRepository.update to eagerly load category/curator relations.
+   * Accepts an optional transaction client so multi-step writes stay atomic.
+   */
+  override async update(id: string, data: Prisma.WorkerUpdateInput, tx?: Prisma.TransactionClient): Promise<Worker> {
+    return this.client(tx).worker.update({
+      where: { id },
+      data: { ...data, updatedAt: new Date() },
+      include: workerInclude,
+    })
   }
 
   // delete() and count() are inherited from BaseRepository (soft-delete applies).
 
-  async toggleActive(id: string): Promise<Worker> {
-    const worker = await db.worker.findUniqueOrThrow({ where: { id } })
-    return db.worker.update({ where: { id }, data: { isActive: !worker.isActive } })
+  async toggleActive(id: string, tx?: Prisma.TransactionClient): Promise<Worker> {
+    const client = this.client(tx)
+    const worker = await client.worker.findUniqueOrThrow({ where: { id } })
+    return client.worker.update({ where: { id }, data: { isActive: !worker.isActive } })
   }
 
   /**
    * Fetch aggregated review data (avg rating + count) for a set of worker IDs.
    * Uses a single GROUP BY query instead of N+1 includes.
    */
-  private async fetchReviewAggs(workerIds: string[]): Promise<Map<string, ReviewAgg>> {
+  private async fetchReviewAggs(workerIds: string[], tx?: Prisma.TransactionClient): Promise<Map<string, ReviewAgg>> {
     if (workerIds.length === 0) return new Map()
-    const aggs = await db.review.groupBy({
+    const aggs = await this.client(tx).review.groupBy({
       by: ['workerId'],
       where: { workerId: { in: workerIds } },
       _avg: { rating: true },
@@ -191,7 +215,8 @@ export class WorkerRepository extends BaseRepository<Worker, Prisma.WorkerCreate
       where.availability = { some: availWhere }
     }
 
-    // Fetch workers with essential relations only (no reviews — avoids N+1)
+    // Fetch workers with essential relations only (no reviews — avoids N+1).
+    // Relations are loaded via a single include so no per-row queries are issued.
     let workers = await db.worker.findMany({
       where,
       include: {
@@ -201,7 +226,6 @@ export class WorkerRepository extends BaseRepository<Worker, Prisma.WorkerCreate
       },
       ...(sortBy === 'newest' ? { orderBy: { createdAt: 'desc' as const } } : {}),
       skip,
-      ...(sortBy === 'newest' ? { orderBy: { createdAt: 'desc' as const } } : {}),
       take: take + 1, // +1 for hasMore detection (used when no in-memory filtering)
     })
 

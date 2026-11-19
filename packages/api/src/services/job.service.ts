@@ -1,4 +1,3 @@
-import type { Prisma } from '@prisma/client'
 import { JobStatus } from '@bluecollar/types'
 import type {
   CreateJobRequest,
@@ -73,11 +72,14 @@ export function createJobService(deps: JobServiceDeps) {
     const expired = await repo.findExpiredOpen()
     if (expired.length === 0) return
 
-    await repo.updateMany(
-      { id: { in: expired.map((j) => j.id) } },
-      { status: JobStatus.Expired },
-    )
+    await repo.transaction(async (tx) => {
+      await tx.updateMany(
+        { id: { in: expired.map((j) => j.id) } },
+        { status: JobStatus.Expired },
+      )
+    })
 
+    // Notifications are fire-and-forget and dispatched outside the transaction.
     for (const job of expired) {
       dispatchNotification({
         userId: job.postedById,
@@ -98,8 +100,8 @@ export function createJobService(deps: JobServiceDeps) {
       const opts = normalizeListJobsQuery(rawOpts)
       const { categoryId, status = JobStatus.Open, search, skills, urgency, minBudget, maxBudget, page = 1, limit = 20 } = opts
 
-      const where: Prisma.JobWhereInput = {
-        ...(status !== 'all' ? { status: status as Prisma.JobWhereInput['status'] } : {}),
+      const where = {
+        ...(status !== 'all' ? { status } : {}),
         ...(categoryId ? { categoryId } : {}),
         ...(urgency ? { urgency } : {}),
         ...(minBudget !== undefined || maxBudget !== undefined
@@ -145,17 +147,21 @@ export function createJobService(deps: JobServiceDeps) {
       data: CreateJobRequest,
       postedById: string,
     ) {
-      return repo.create({
-        title: sanitizeText(data.title),
-        description: sanitizeText(data.description),
-        budget: data.budget,
-        skills: (data.skills ?? []).map((skill) => sanitizeText(skill)),
-        urgency: data.urgency ?? 'normal',
-        categoryId: data.categoryId,
-        locationId: data.locationId,
-        postedById,
-        escrowAmount: (data as CreateJobRequest & { escrowAmount?: number }).escrowAmount,
-        expiresAt: data.expiresAt ? parseUtcDate(data.expiresAt) : undefined,
+      return repo.transaction(async (tx) => {
+        const job = await tx.create({
+          title: sanitizeText(data.title),
+          description: sanitizeText(data.description),
+          budget: data.budget,
+          skills: (data.skills ?? []).map((skill) => sanitizeText(skill)),
+          urgency: data.urgency ?? 'normal',
+          categoryId: data.categoryId,
+          locationId: data.locationId,
+          postedById,
+          escrowAmount: (data as CreateJobRequest & { escrowAmount?: number }).escrowAmount,
+          expiresAt: data.expiresAt ? parseUtcDate(data.expiresAt) : undefined,
+        })
+
+        return job
       })
     },
 
@@ -230,18 +236,22 @@ export function createJobService(deps: JobServiceDeps) {
     // ── Applications ──────────────────────────────────────────────────────────
 
     async applyToJob(jobId: string, workerId: string, coverLetter?: string, proposedRate?: number) {
-      const job = await repo.findById(jobId)
-      if (!job) throw new AppError('Job not found', 404)
-      if (job.status !== JobStatus.Open) throw new AppError('Job is not accepting applications', 400)
+      const { application, job } = await repo.transaction(async (tx) => {
+        const job = await tx.findById(jobId)
+        if (!job) throw new AppError('Job not found', 404)
+        if (job.status !== JobStatus.Open) throw new AppError('Job is not accepting applications', 400)
 
-      const existing = await repo.findApplicationByJobAndWorker(jobId, workerId)
-      if (existing) throw new AppError('Already applied to this job', 409)
+        const existing = await tx.findApplicationByJobAndWorker(jobId, workerId)
+        if (existing) throw new AppError('Already applied to this job', 409)
 
-      const application = await repo.createApplication({
-        jobId,
-        workerId,
-        coverLetter: coverLetter !== undefined ? sanitizeText(coverLetter) : undefined,
-        proposedRate,
+        const application = await tx.createApplication({
+          jobId,
+          workerId,
+          coverLetter: coverLetter !== undefined ? sanitizeText(coverLetter) : undefined,
+          proposedRate,
+        })
+
+        return { application, job }
       })
 
       dispatchNotification({
@@ -264,21 +274,26 @@ export function createJobService(deps: JobServiceDeps) {
     },
 
     async updateApplicationStatus(jobId: string, applicationId: string, userId: string, status: UpdateApplicationStatusRequest['status']) {
-      const job = await repo.findById(jobId)
-      if (!job) throw new AppError('Job not found', 404)
-      if (job.postedById !== userId) throw new AppError('Forbidden', 403)
+      const { updated, workerRecord } = await repo.transaction(async (tx) => {
+        const job = await tx.findById(jobId)
+        if (!job) throw new AppError('Job not found', 404)
+        if (job.postedById !== userId) throw new AppError('Forbidden', 403)
 
-      const app = await repo.findApplication(applicationId)
-      if (!app) throw new AppError('Application not found', 404)
+        const app = await tx.findApplication(applicationId)
+        if (!app) throw new AppError('Application not found', 404)
 
-      const updated = await repo.updateApplication(applicationId, { status })
+        const updated = await tx.updateApplication(applicationId, { status })
 
-      if (status === 'accepted') {
-        await repo.update(jobId, { status: JobStatus.Filled })
-      }
+        if (status === 'accepted') {
+          await tx.update(jobId, { status: JobStatus.Filled })
+        }
 
-      // Notify the worker's curator about status change
-      const workerRecord = await repo.findWorkerById(app.workerId)
+        const workerRecord = await tx.findWorkerById(app.workerId)
+
+        return { updated, workerRecord }
+      })
+
+      // Notify the worker's curator about status change (outside the transaction)
       if (workerRecord) {
         dispatchNotification({
           userId: workerRecord.curatorId,
@@ -310,17 +325,19 @@ export function createJobService(deps: JobServiceDeps) {
     },
 
     async listMessages(jobId: string, userId: string) {
-      const job = await repo.findById(jobId)
-      if (!job) throw new AppError('Job not found', 404)
+      return repo.transaction(async (tx) => {
+        const job = await tx.findById(jobId)
+        if (!job) throw new AppError('Job not found', 404)
 
-      await repo.updateManyMessages(
-        { jobId, recipientId: userId, readAt: null },
-        { readAt: nowUtc() },
-      )
+        await tx.updateManyMessages(
+          { jobId, recipientId: userId, readAt: null },
+          { readAt: nowUtc() },
+        )
 
-      return repo.findMessages({
-        jobId,
-        OR: [{ senderId: userId }, { recipientId: userId }],
+        return tx.findMessages({
+          jobId,
+          OR: [{ senderId: userId }, { recipientId: userId }],
+        })
       })
     },
   }

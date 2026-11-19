@@ -1,9 +1,10 @@
 import rateLimit from 'express-rate-limit'
+import { config } from './index'
 
 // ── Rate limit windows ─────────────────────────────────────────────────────────
-const STRICT_WINDOW_MS = 15 * 60 * 1000    // 15 minutes (for sensitive operations)
-const MODERATE_WINDOW_MS = 60 * 60 * 1000  // 1 hour
-const LIBERAL_WINDOW_MS = 60 * 60 * 1000   // 1 hour (for read operations)
+const STRICT_WINDOW_MS = config.rateLimit.strictWindowMs    // 15 minutes (for sensitive operations)
+const MODERATE_WINDOW_MS = config.rateLimit.moderateWindowMs // 1 hour
+const LIBERAL_WINDOW_MS = config.rateLimit.liberalWindowMs   // 1 hour (for read operations)
 
 const rateLimitResponse = {
   status: 'error',
@@ -15,7 +16,7 @@ const rateLimitResponse = {
 // Protect password-sensitive endpoints: login, password reset
 export const strictAuthRateLimiter = rateLimit({
   windowMs: STRICT_WINDOW_MS,
-  max: 5,
+  max: config.rateLimit.strictAuthMax,
   standardHeaders: true,
   legacyHeaders: false,
   handler: (_req, res) => {
@@ -27,7 +28,7 @@ export const strictAuthRateLimiter = rateLimit({
 // Moderate auth limiter: registration, verification
 export const moderateAuthRateLimiter = rateLimit({
   windowMs: MODERATE_WINDOW_MS,
-  max: 20,
+  max: config.rateLimit.moderateAuthMax,
   standardHeaders: true,
   legacyHeaders: false,
   handler: (_req, res) => {
@@ -40,7 +41,7 @@ export const moderateAuthRateLimiter = rateLimit({
 // For GET endpoints that are freely accessible (listings, details)
 export const publicReadRateLimiter = rateLimit({
   windowMs: LIBERAL_WINDOW_MS,
-  max: 100,
+  max: config.rateLimit.publicReadMax,
   standardHeaders: true,
   legacyHeaders: false,
   handler: (_req, res) => {
@@ -53,7 +54,7 @@ export const publicReadRateLimiter = rateLimit({
 // For POST/PUT/DELETE operations that have side effects (testnet fund, wallet ops)
 export const publicWriteRateLimiter = rateLimit({
   windowMs: STRICT_WINDOW_MS,
-  max: 10,
+  max: config.rateLimit.publicWriteMax,
   standardHeaders: true,
   legacyHeaders: false,
   handler: (_req, res) => {

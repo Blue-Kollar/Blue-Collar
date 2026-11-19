@@ -15,8 +15,8 @@ export interface IDisputeRepository extends IRepository<Dispute, Prisma.DisputeC
   findWorkerById(id: string): Promise<{ id: string } | null>
   findWithRelations(id: string): Promise<(Dispute & { worker: { id: string; name: string }; filedBy: { id: string; firstName: string; lastName: string } }) | null>
   findManyWithRelations(where: Prisma.DisputeWhereInput, opts: { skip: number; take: number }): Promise<{ data: Dispute[]; total: number }>
-  createDispute(data: Prisma.DisputeUncheckedCreateInput): Promise<Dispute>
-  updateDispute(id: string, data: Prisma.DisputeUncheckedUpdateInput): Promise<Dispute>
+  createDispute(data: Prisma.DisputeUncheckedCreateInput, tx?: Prisma.TransactionClient): Promise<Dispute>
+  updateDispute(id: string, data: Prisma.DisputeUncheckedUpdateInput, tx?: Prisma.TransactionClient): Promise<Dispute>
 }
 
 // ── Prisma implementation ─────────────────────────────────────────────────────
@@ -53,16 +53,16 @@ export class DisputeRepository implements IDisputeRepository {
     return db.dispute.create({ data })
   }
 
-  async createDispute(data: Prisma.DisputeUncheckedCreateInput): Promise<Dispute> {
-    return db.dispute.create({ data, include: disputeInclude })
+  async createDispute(data: Prisma.DisputeUncheckedCreateInput, tx?: Prisma.TransactionClient): Promise<Dispute> {
+    return (tx ?? db).dispute.create({ data, include: disputeInclude })
   }
 
   async update(id: string, data: Prisma.DisputeUpdateInput): Promise<Dispute> {
     return db.dispute.update({ where: { id }, data })
   }
 
-  async updateDispute(id: string, data: Prisma.DisputeUncheckedUpdateInput): Promise<Dispute> {
-    return db.dispute.update({ where: { id }, data, include: { worker: { select: { id: true, name: true } } } })
+  async updateDispute(id: string, data: Prisma.DisputeUncheckedUpdateInput, tx?: Prisma.TransactionClient): Promise<Dispute> {
+    return (tx ?? db).dispute.update({ where: { id }, data, include: { worker: { select: { id: true, name: true } } } })
   }
 
   async delete(id: string): Promise<Dispute> {
