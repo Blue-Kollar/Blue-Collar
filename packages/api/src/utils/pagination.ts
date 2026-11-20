@@ -10,6 +10,11 @@
  * `nextCursor` so clients can adopt cursor-based paging incrementally.
  */
 
+/**
+ * Helpers for list endpoints. `paginate.ts` provides the offset helper that
+ * list controllers call; this module holds the cursor and parsing helpers (#1818).
+ */
+
 export interface PaginationParams {
   page?: number | string
   limit?: number | string
