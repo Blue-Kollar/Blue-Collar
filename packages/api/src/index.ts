@@ -5,11 +5,10 @@ initializeTracing()
 
 import express from 'express'
 import { createServer } from 'http'
-import { applySecurity, depthLimiter } from './middleware/security.js'
+import { securityHeaders, MAX_BODY_SIZE, MAX_URLENCODED_SIZE } from './middleware/security.js'
 import { sanitize, sanitizeParams } from './middleware/sanitize.js'
 import { env } from './config/env.js'
 import methodOverride from 'method-override'
-import helmet from 'helmet'
 import cors from 'cors'
 import { corsConfig } from './config/cors.js'
 import passport from './config/passport.js'
@@ -34,28 +33,13 @@ const app = express()
 const PORT = config.port
 
 app.disable('x-powered-by')
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'"],
-      styleSrc: ["'self'"],
-      imgSrc: ["'self'", 'data:'],
-      connectSrc: ["'self'"],
-    },
-  },
-  hsts: {
-    maxAge: 31_536_000,
-    includeSubDomains: true,
-  },
-  frameguard: { action: 'deny' },
-  noSniff: true,
-}))
+// One header policy for the whole app, shared with app.ts and the security tests (#1827)
+app.use(securityHeaders)
 
 app.use(compress())
 app.use(cors(corsConfig))
-app.use(express.json())
-app.use(express.urlencoded({ extended: true }))
+app.use(express.json({ limit: MAX_BODY_SIZE }))
+app.use(express.urlencoded({ extended: true, limit: MAX_URLENCODED_SIZE }))
 app.use(requestId)      // generate/propagate X-Request-ID before logging
 app.use(requestLogger)  // structured request logging with request IDs
 app.use(methodOverride('X-HTTP-Method'))
