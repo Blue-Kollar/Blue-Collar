@@ -51,7 +51,7 @@ mod benchmarks {
             BenchEnv { env, contract_id, admin, curator, owner }
         }
 
-        fn client(&self) -> crate::RegistryContractClient {
+        fn client(&self) -> crate::RegistryContractClient<'_> {
             crate::RegistryContractClient::new(&self.env, &self.contract_id)
         }
 

@@ -4,6 +4,7 @@ import { Eye, Star, TrendingUp, Wallet } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatCompact } from "@/lib/format";
 import type { PersonalAnalytics } from "@/hooks/useWorkerAnalytics";
+import { useTranslations } from "next-intl";
 
 interface WorkerAnalyticsSummaryProps {
   data: PersonalAnalytics;
@@ -22,6 +23,7 @@ function SummaryMetricCard({
   delta: number;
   sub?: string;
 }) {
+  const t = useTranslations("componentText");
   const isPositive = delta > 0;
   const isNegative = delta < 0;
   return (
@@ -39,7 +41,7 @@ function SummaryMetricCard({
       >
         {delta > 0 ? "+" : ""}
         {delta}
-        {label === "Avg rating" ? "" : "%"} vs previous period
+        {label === t("averageRatingLabel") ? "" : "%"} {t("vsPreviousPeriod")}
         {sub ? ` · ${sub}` : ""}
       </p>
     </div>
@@ -47,33 +49,34 @@ function SummaryMetricCard({
 }
 
 export function WorkerAnalyticsSummary({ data }: WorkerAnalyticsSummaryProps) {
+  const t = useTranslations("componentText");
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       <SummaryMetricCard
         icon={<Eye size={18} />}
-        label="Profile views"
+        label={t("profileViews")}
         value={formatCompact(data.summary.totalViews)}
         delta={data.deltas.totalViews}
       />
       <SummaryMetricCard
         icon={<TrendingUp size={18} />}
-        label="Unique views"
+        label={t("uniqueViews")}
         value={formatCompact(data.summary.uniqueViews)}
         delta={data.deltas.uniqueViews}
       />
       <SummaryMetricCard
         icon={<Wallet size={18} />}
-        label="Tips received"
+        label={t("tipsReceived")}
         value={`${formatCompact(data.summary.tipsReceived, { maximumFractionDigits: 2 })} XLM`}
         delta={data.deltas.tipsReceived}
-        sub={`${data.summary.tipCount} tips`}
+        sub={t("tipsCount", { count: data.summary.tipCount })}
       />
       <SummaryMetricCard
         icon={<Star size={18} />}
-        label="Avg rating"
+        label={t("averageRatingLabel")}
         value={data.summary.avgRating ? data.summary.avgRating.toFixed(1) : "—"}
         delta={data.deltas.avgRating}
-        sub={`${data.summary.reviewCount} reviews`}
+        sub={t("reviewsCount", { count: data.summary.reviewCount })}
       />
     </div>
   );

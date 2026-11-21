@@ -17,6 +17,7 @@ import type { IEscrowRepository } from '@/repositories/escrow.repository.js'
 import type { IInsuranceRepository } from '@/repositories/insurance.repository.js'
 import type { IMessagingRepository } from '@/repositories/messaging.repository.js'
 import type { INotificationRepository } from '@/repositories/notification.repository.js'
+import type { IPaymentRepository } from '@/repositories/payment.repository.js'
 import type { IReferralRepository } from '@/repositories/referral.repository.js'
 import type { IReviewRepository } from '@/repositories/review.repository.js'
 import type { IVerificationRepository } from '@/repositories/verification.repository.js'
@@ -122,6 +123,18 @@ export interface ContactRequestServiceDeps {
 
 export interface AvailabilityServiceDeps {
   availabilityRepository: IAvailabilityRepository
+}
+
+/**
+ * Dependencies injected into the payment service factory.
+ *
+ * The payment service orchestrates payment intents, refunds, and payout
+ * bookkeeping. It depends on the payment repository for persistence and on
+ * the escrow repository to coordinate funds held in escrow.
+ */
+export interface PaymentServiceDeps {
+  paymentRepository: IPaymentRepository
+  escrowRepository?: IEscrowRepository
 }
 
 // ── Mailer interface ──────────────────────────────────────────────────────────

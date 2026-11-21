@@ -258,7 +258,7 @@ mod tests {
             }
         }
 
-        fn client(&self) -> DisputeContractClient {
+        fn client(&self) -> DisputeContractClient<'_> {
             DisputeContractClient::new(&self.env, &self.contract)
         }
 

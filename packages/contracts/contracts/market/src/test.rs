@@ -524,7 +524,7 @@ mod upgrade_framework {
             }
         }
 
-        fn client(&self) -> MarketContractClient {
+        fn client(&self) -> MarketContractClient<'_> {
             MarketContractClient::new(&self.env, &self.contract)
         }
     }
@@ -650,7 +650,7 @@ mod pause_tests {
                 token,
             }
         }
-        fn client(&self) -> MarketContractClient {
+        fn client(&self) -> MarketContractClient<'_> {
             MarketContractClient::new(&self.env, &self.contract)
         }
     }
@@ -837,7 +837,7 @@ mod multi_asset_tests {
             }
         }
 
-        fn client(&self) -> MarketContractClient {
+        fn client(&self) -> MarketContractClient<'_> {
             MarketContractClient::new(&self.env, &self.contract)
         }
 

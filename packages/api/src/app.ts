@@ -56,11 +56,16 @@ import { getRolloutStatusEndpoint, updateRolloutEndpoint } from './utils/version
 import { readFileSync } from 'node:fs'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { config } from './config.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const { version: API_VERSION } = JSON.parse(
   readFileSync(join(__dirname, '..', 'package.json'), 'utf-8')
 )
+
+// Fail fast: validate configuration before the app is constructed so that a
+// misconfigured environment aborts boot rather than surfacing later at runtime.
+config.validate()
 
 const app = express()
 
@@ -78,7 +83,9 @@ app.use(express.urlencoded({ extended: true, limit: '100kb' }))
 // job descriptions, review comments, dispute messages, contact requests,
 // user profiles, and direct messages — is sanitised before storage.
 app.use(sanitize)
-app.use(requestId)          // generate/propagate X-Request-ID before logging
+// requestId must run before requestLogger so every log line carries the
+// correlation ID (#1811). It also propagates X-Request-ID to the response.
+app.use(requestId)
 app.use(sanitizeParams)
 app.use(depthLimiter)
 app.use(metricsMiddleware)
@@ -290,7 +297,7 @@ app.get('/metrics', metricsEndpoint)
 // Swagger UI — development only. Imported lazily (and skipped in test) so that
 // OpenAPI spec generation, which runs eagerly on import, never runs as a side
 // effect of booting the app for tests.
-if (process.env['NODE_ENV'] !== 'production' && process.env['NODE_ENV'] !== 'test') {
+if (config.env.nodeEnv !== 'production' && config.env.nodeEnv !== 'test') {
   const { default: docsRouter } = await import('./openapi/docs.js')
   app.use('/api', docsRouter)
 }
@@ -298,7 +305,8 @@ if (process.env['NODE_ENV'] !== 'production' && process.env['NODE_ENV'] !== 'tes
 // 404 handler — must come after all routes
 app.use(notFoundHandler)
 
-// Global error handler — must be last
+// Central error handler — must be the last middleware registered so it can
+// catch errors from every route and middleware above it (#1809).
 app.use(errorHandler)
 
 // ── Graceful shutdown (#836) ───────────────────────────────────────────────────

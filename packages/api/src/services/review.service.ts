@@ -77,14 +77,14 @@ export function createReviewService(deps: ReviewServiceDeps) {
       const where: Prisma.ReviewWhereInput = { workerId, status: 'approved', ...(filterRating ? { rating: filterRating } : {}) }
       const baseWhere: Prisma.ReviewWhereInput = { workerId, status: 'approved' }
 
-      const [reviews, total, agg, allRatings] = await Promise.all([
+      // Batch all reads into a single round-trip set to avoid N+1 queries.
+      const [reviews, total, agg, allRatings, totalReviews] = await Promise.all([
         repo.findWorkerReviews(where, { skip: (page - 1) * limit, take: limit }),
         repo.countReviews(where),
         repo.aggregateRating(baseWhere),
         repo.groupByRating(baseWhere),
+        repo.countReviews(baseWhere),
       ])
-
-      const totalReviews = await repo.countReviews(baseWhere)
 
       const distribution = [5, 4, 3, 2, 1].map((star) => {
         const entry = allRatings.find((r) => r.rating === star)

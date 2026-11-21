@@ -4,12 +4,14 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { ListingForm } from "@/components/Curator/ListingForm";
+import { NewListingHeader } from "@/components/curator/new/NewListingHeader";
+import { NewListingShell } from "@/components/curator/new/NewListingShell";
 
 export default function NewListingPage() {
   const router = useRouter();
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-8">
+    <NewListingShell>
       <Link
         href="/curator"
         className="mb-6 inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-brand-600 transition-colors"
@@ -18,11 +20,11 @@ export default function NewListingPage() {
         Back to console
       </Link>
       <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-8 shadow-sm">
-        <h1 className="mb-6 text-xl font-bold text-gray-900 dark:text-gray-100">New Listing</h1>
+        <NewListingHeader />
         <ListingForm
           onSuccess={() => router.push("/curator")}
         />
       </div>
-    </div>
+    </NewListingShell>
   );
 }

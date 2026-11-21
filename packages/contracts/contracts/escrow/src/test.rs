@@ -10,7 +10,7 @@ use bluecollar_shared::test_fixtures::{
 };
 use soroban_sdk::{
     testutils::Address as _,
-    token::{Client as TokenClient, StellarAssetClient},
+    token::{Client as TokenClient},
     Address, BytesN, Env, Symbol,
 };
 

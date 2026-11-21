@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Worker } from "@/types";
 import Link from "next/link";
 import { MapPin, X, BadgeCheck } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 // Leaflet is loaded client-side only
 let L: typeof import("leaflet") | null = null;
@@ -19,6 +20,8 @@ interface PopupWorker {
 }
 
 export default function WorkerMap({ workers }: Props) {
+  const workerCardT = useTranslations("workerCard");
+  const commonT = useTranslations("common");
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<import("leaflet").Map | null>(null);
   const [popup, setPopup] = useState<PopupWorker | null>(null);
@@ -113,7 +116,7 @@ export default function WorkerMap({ workers }: Props) {
           <button
             onClick={() => setPopup(null)}
             className="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
-            aria-label="Close"
+            aria-label={commonT("close")}
           >
             <X size={14} />
           </button>
@@ -150,7 +153,7 @@ export default function WorkerMap({ workers }: Props) {
             href={`/workers/${popup.worker.id}`}
             className="block w-full rounded-md bg-blue-600 py-1.5 text-center text-xs font-medium text-white hover:bg-blue-700 transition-colors"
           >
-            View Profile
+            {workerCardT("viewProfile")}
           </Link>
         </div>
       )}

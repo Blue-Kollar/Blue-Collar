@@ -11,7 +11,8 @@
  * See packages/app/docs/SNAPSHOT_REVIEW_GUIDELINES.md for the project-wide
  * policy on when snapshots are and are not appropriate.
  */
-import { render, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
+import { renderWithIntl as render } from "@/__tests__/renderWithIntl";
 import { describe, it, expect, vi } from "vitest";
 import ErrorState from "@/components/ErrorState";
 

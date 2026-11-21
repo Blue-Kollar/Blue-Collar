@@ -18,6 +18,11 @@ const BASE = process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3001'
  */
 test.describe.configure({ mode: 'serial' })
 
+// Fixed clock for deterministic timestamps in visual snapshots
+test.use({
+  clock: { install: true, time: new Date('2024-01-01T00:00:00Z') },
+})
+
 const FREEZE_CSS = `
   *, *::before, *::after {
     animation-duration: 0s !important;

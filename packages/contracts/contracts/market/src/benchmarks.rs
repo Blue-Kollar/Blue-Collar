@@ -57,7 +57,7 @@ mod benchmarks {
             }
         }
 
-        fn client(&self) -> crate::MarketContractClient {
+        fn client(&self) -> crate::MarketContractClient<'_> {
             crate::MarketContractClient::new(&self.env, &self.contract_id)
         }
 

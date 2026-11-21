@@ -9,6 +9,7 @@
 import { useState } from "react";
 import { ChevronRight, User, Wallet, Users } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useTranslations } from "next-intl";
 
 interface OnboardingModalProps {
   isOpen: boolean;
@@ -21,29 +22,30 @@ export default function OnboardingModal({
   onClose,
   onComplete,
 }: OnboardingModalProps) {
+  const t = useTranslations("componentText");
   const [step, setStep] = useState(1);
 
   const steps = [
     {
       number: 1,
-      title: "Complete Your Profile",
-      description: "Add a profile picture and bio to help workers know who you are.",
+      title: t("onboardingProfileTitle"),
+      description: t("onboardingProfileDescription"),
       icon: <User size={32} className="text-blue-600" aria-hidden="true" />,
-      action: "Go to Profile",
+      action: t("onboardingProfileAction"),
     },
     {
       number: 2,
-      title: "Connect Your Wallet",
-      description: "Link your Stellar wallet to send tips and payments securely.",
+      title: t("onboardingWalletTitle"),
+      description: t("onboardingWalletDescription"),
       icon: <Wallet size={32} className="text-blue-600" aria-hidden="true" />,
-      action: "Connect Wallet",
+      action: t("connectWallet"),
     },
     {
       number: 3,
-      title: "Explore Workers",
-      description: "Browse skilled workers in your area and find the perfect match.",
+      title: t("onboardingWorkersTitle"),
+      description: t("onboardingWorkersDescription"),
       icon: <Users size={32} className="text-blue-600" aria-hidden="true" />,
-      action: "Browse Workers",
+      action: t("browseWorkers"),
     },
   ];
 
@@ -72,7 +74,7 @@ export default function OnboardingModal({
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-md p-0 overflow-hidden">
         <DialogHeader className="sr-only">
-          <DialogTitle>Onboarding — Step {step} of {steps.length}</DialogTitle>
+          <DialogTitle>{t("onboardingStep", { step, total: steps.length })}</DialogTitle>
         </DialogHeader>
 
         {/* Progress bar */}
@@ -103,19 +105,13 @@ export default function OnboardingModal({
           <div
             className="flex justify-center gap-2 mb-8"
             role="list"
-            aria-label="Steps"
+            aria-label={t("steps")}
           >
             {steps.map((s) => (
               <div
                 key={s.number}
                 role="listitem"
-                aria-label={`Step ${s.number}${
-                  s.number === step
-                    ? " (current)"
-                    : s.number < step
-                    ? " (completed)"
-                    : ""
-                }`}
+                aria-label={t(s.number === step ? "currentStep" : s.number < step ? "completedStep" : "stepNumber", { step: s.number })}
                 className={`h-2 w-2 rounded-full transition-colors ${
                   s.number <= step ? "bg-blue-600" : "bg-gray-300"
                 }`}
@@ -137,13 +133,13 @@ export default function OnboardingModal({
               onClick={handleSkip}
               className="w-full text-gray-600 py-2.5 rounded-md font-medium hover:bg-gray-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2"
             >
-              Skip for now
+              {t("skipForNow")}
             </button>
           </div>
 
           {/* Step counter */}
           <p className="text-xs text-gray-500 mt-4" aria-live="polite">
-            Step {step} of {steps.length}
+            {t("onboardingStep", { step, total: steps.length })}
           </p>
         </div>
       </DialogContent>

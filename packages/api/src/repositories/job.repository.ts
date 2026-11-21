@@ -3,6 +3,15 @@ import { JobStatus } from '@bluecollar/types'
 import type { IRepository } from './base.repository.js'
 import { db } from '@/db.js'
 
+// ── Transaction client ────────────────────────────────────────────────────────
+
+/**
+ * A Prisma client or interactive-transaction client. Write methods accept an
+ * optional `tx` so multi-step flows can be wrapped in a single transaction
+ * (#1814) while remaining callable outside one.
+ */
+export type TxClient = Prisma.TransactionClient | typeof db
+
 // ── Includes ──────────────────────────────────────────────────────────────────
 
 export const jobInclude = {
@@ -32,20 +41,25 @@ export interface IJobRepository extends IRepository<Job, Prisma.JobUncheckedCrea
     where: Prisma.JobWhereInput,
     opts: { skip: number; take: number; orderBy?: Prisma.JobOrderByWithRelationInput | Prisma.JobOrderByWithRelationInput[] },
   ): Promise<Job[]>
+  /** Batched fetch of jobs with relations in a single query (avoids N+1). */
+  findJobsWithRelations(
+    where: Prisma.JobWhereInput,
+    opts: { skip: number; take: number; orderBy?: Prisma.JobOrderByWithRelationInput | Prisma.JobOrderByWithRelationInput[] },
+  ): Promise<Job[]>
   count(where?: Prisma.JobWhereInput): Promise<number>
-  updateMany(where: Prisma.JobWhereInput, data: Prisma.JobUpdateManyMutationInput): Promise<number>
+  updateMany(where: Prisma.JobWhereInput, data: Prisma.JobUpdateManyMutationInput, tx?: TxClient): Promise<number>
   findExpiredOpen(): Promise<{ id: string; title: string; postedById: string }[]>
 
   findApplicationByJobAndWorker(jobId: string, workerId: string): Promise<JobApplication | null>
   findApplication(id: string): Promise<ApplicationWithRelations | null>
-  createApplication(data: Prisma.JobApplicationUncheckedCreateInput): Promise<JobApplication>
-  updateApplication(id: string, data: Prisma.JobApplicationUncheckedUpdateInput): Promise<ApplicationWithRelations>
+  createApplication(data: Prisma.JobApplicationUncheckedCreateInput, tx?: TxClient): Promise<JobApplication>
+  updateApplication(id: string, data: Prisma.JobApplicationUncheckedUpdateInput, tx?: TxClient): Promise<ApplicationWithRelations>
   findApplicationsByJob(jobId: string): Promise<JobApplication[]>
   findApplicationsByWorker(workerId: string, opts: { skip: number; take: number }): Promise<{ data: JobApplication[]; total: number }>
 
-  createMessage(data: Prisma.JobMessageUncheckedCreateInput): Promise<JobMessage>
+  createMessage(data: Prisma.JobMessageUncheckedCreateInput, tx?: TxClient): Promise<JobMessage>
   findMessages(where: Prisma.JobMessageWhereInput, opts?: { orderBy?: Prisma.JobMessageOrderByWithRelationInput }): Promise<JobMessage[]>
-  updateManyMessages(where: Prisma.JobMessageWhereInput, data: Prisma.JobMessageUpdateManyMutationInput): Promise<void>
+  updateManyMessages(where: Prisma.JobMessageWhereInput, data: Prisma.JobMessageUpdateManyMutationInput, tx?: TxClient): Promise<void>
 
   findWorkerById(id: string): Promise<{ categoryId: string; curatorId: string } | null>
 }
@@ -77,24 +91,37 @@ export class JobRepository implements IJobRepository {
     return db.job.findMany({ where, skip: opts.skip, take: opts.take, include: jobInclude, orderBy: opts.orderBy ?? { createdAt: 'desc' } })
   }
 
-  async create(data: Prisma.JobUncheckedCreateInput): Promise<Job> {
-    return db.job.create({ data, include: jobInclude })
+  async findJobsWithRelations(
+    where: Prisma.JobWhereInput,
+    opts: { skip: number; take: number; orderBy?: Prisma.JobOrderByWithRelationInput | Prisma.JobOrderByWithRelationInput[] },
+  ): Promise<Job[]> {
+    return db.job.findMany({
+      where,
+      skip: opts.skip,
+      take: opts.take,
+      include: { ...jobInclude, applications: { include: applicationInclude } },
+      orderBy: opts.orderBy ?? { createdAt: 'desc' },
+    })
   }
 
-  async update(id: string, data: Prisma.JobUncheckedUpdateInput): Promise<Job> {
-    return db.job.update({ where: { id }, data, include: jobInclude })
+  async create(data: Prisma.JobUncheckedCreateInput, tx: TxClient = db): Promise<Job> {
+    return tx.job.create({ data, include: jobInclude })
   }
 
-  async delete(id: string): Promise<Job> {
-    return db.job.delete({ where: { id } })
+  async update(id: string, data: Prisma.JobUncheckedUpdateInput, tx: TxClient = db): Promise<Job> {
+    return tx.job.update({ where: { id }, data, include: jobInclude })
+  }
+
+  async delete(id: string, tx: TxClient = db): Promise<Job> {
+    return tx.job.delete({ where: { id } })
   }
 
   async count(where?: Prisma.JobWhereInput): Promise<number> {
     return db.job.count({ where })
   }
 
-  async updateMany(where: Prisma.JobWhereInput, data: Prisma.JobUpdateManyMutationInput): Promise<number> {
-    const result = await db.job.updateMany({ where, data })
+  async updateMany(where: Prisma.JobWhereInput, data: Prisma.JobUpdateManyMutationInput, tx: TxClient = db): Promise<number> {
+    const result = await tx.job.updateMany({ where, data })
     return result.count
   }
 
@@ -115,12 +142,16 @@ export class JobRepository implements IJobRepository {
     return db.jobApplication.findFirst({ where: { id }, include: applicationInclude })
   }
 
-  async createApplication(data: Prisma.JobApplicationUncheckedCreateInput): Promise<JobApplication> {
-    return db.jobApplication.create({ data, include: applicationInclude })
+  async createApplication(data: Prisma.JobApplicationUncheckedCreateInput, tx: TxClient = db): Promise<JobApplication> {
+    return tx.jobApplication.create({ data, include: applicationInclude })
   }
 
-  async updateApplication(id: string, data: Prisma.JobApplicationUncheckedUpdateInput): Promise<ApplicationWithRelations> {
-    return db.jobApplication.update({ where: { id }, data, include: applicationInclude })
+  async updateApplication(
+    id: string,
+    data: Prisma.JobApplicationUncheckedUpdateInput,
+    tx: TxClient = db,
+  ): Promise<ApplicationWithRelations> {
+    return tx.jobApplication.update({ where: { id }, data, include: applicationInclude })
   }
 
   async findApplicationsByJob(jobId: string): Promise<JobApplication[]> {
@@ -141,8 +172,8 @@ export class JobRepository implements IJobRepository {
 
   // ── Messages ──────────────────────────────────────────────────────────────
 
-  async createMessage(data: Prisma.JobMessageUncheckedCreateInput): Promise<JobMessage> {
-    return db.jobMessage.create({ data, include: messageInclude })
+  async createMessage(data: Prisma.JobMessageUncheckedCreateInput, tx: TxClient = db): Promise<JobMessage> {
+    return tx.jobMessage.create({ data, include: messageInclude })
   }
 
   async findMessages(
@@ -155,8 +186,9 @@ export class JobRepository implements IJobRepository {
   async updateManyMessages(
     where: Prisma.JobMessageWhereInput,
     data: Prisma.JobMessageUpdateManyMutationInput,
+    tx: TxClient = db,
   ): Promise<void> {
-    await db.jobMessage.updateMany({ where, data })
+    await tx.jobMessage.updateMany({ where, data })
   }
 
   // ── Worker lookup ─────────────────────────────────────────────────────────

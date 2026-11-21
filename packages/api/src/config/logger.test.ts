@@ -5,6 +5,12 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import type { Logger } from 'pino'
+import { z } from 'zod'
+import { AppError } from '../errors/AppError'
+import { errorHandler } from '../middleware/errorHandler'
+import { validate } from '../middleware/validate'
+import { requestIdMiddleware } from '../middleware/requestId'
+import { logger as appLogger } from './logger'
 
 /**
  * Mock logger interface matching the structured logger signature.
@@ -345,5 +351,276 @@ describe('Structured Logging Consolidation (Issue #1407)', () => {
       expect(logs[0].data.code).toBe('ECONNREFUSED')
       expect(logs[0].data.retriable).toBe(true)
     })
+  })
+})
+
+/**
+ * Helper to build a minimal Express-like request object.
+ */
+function makeReq(overrides: Record<string, unknown> = {}) {
+  return {
+    method: 'GET',
+    url: '/api/test',
+    originalUrl: '/api/test',
+    headers: {},
+    params: {},
+    query: {},
+    body: {},
+    ...overrides,
+  } as unknown as import('express').Request
+}
+
+/**
+ * Helper to build a minimal Express-like response object that records
+ * status codes and JSON payloads.
+ */
+function makeRes() {
+  const res = {
+    statusCode: 200,
+    body: undefined as unknown,
+    status(code: number) {
+      res.statusCode = code
+      return res
+    },
+    json(payload: unknown) {
+      res.body = payload
+      return res
+    },
+    locals: {} as Record<string, unknown>,
+    setHeader: vi.fn(),
+    getHeader: vi.fn(),
+  }
+  return res as unknown as import('express').Response & {
+    statusCode: number
+    body: unknown
+    locals: Record<string, unknown>
+  }
+}
+
+describe('AppError class (Issue #1809)', () => {
+  it('stores status code, message and code', () => {
+    const err = new AppError(404, 'Not found', 'NOT_FOUND')
+    expect(err).toBeInstanceOf(Error)
+    expect(err.statusCode).toBe(404)
+    expect(err.message).toBe('Not found')
+    expect(err.code).toBe('NOT_FOUND')
+    expect(err.isOperational).toBe(true)
+  })
+
+  it('defaults code from status when not provided', () => {
+    const err = new AppError(400, 'Bad request')
+    expect(err.statusCode).toBe(400)
+    expect(err.code).toBeDefined()
+  })
+
+  it('supports details payload', () => {
+    const details = [{ field: 'email', message: 'invalid' }]
+    const err = new AppError(422, 'Validation failed', 'VALIDATION_ERROR', details)
+    expect(err.details).toEqual(details)
+  })
+
+  it('exposes static factory helpers with correct status codes', () => {
+    expect(AppError.badRequest('x').statusCode).toBe(400)
+    expect(AppError.unauthorized('x').statusCode).toBe(401)
+    expect(AppError.forbidden('x').statusCode).toBe(403)
+    expect(AppError.notFound('x').statusCode).toBe(404)
+    expect(AppError.conflict('x').statusCode).toBe(409)
+    expect(AppError.unprocessable('x').statusCode).toBe(422)
+    expect(AppError.internal('x').statusCode).toBe(500)
+  })
+
+  it('marks non-operational errors appropriately', () => {
+    const err = new AppError(500, 'boom', 'INTERNAL', undefined, false)
+    expect(err.isOperational).toBe(false)
+  })
+})
+
+describe('Central errorHandler (Issue #1809)', () => {
+  let testLogger: ReturnType<typeof createTestLogger>
+  let logSpy: ReturnType<typeof vi.spyOn>
+
+  beforeEach(() => {
+    testLogger = createTestLogger()
+    logSpy = vi.spyOn(appLogger, 'error').mockImplementation(() => {})
+  })
+
+  afterEach(() => {
+    logSpy.mockRestore()
+  })
+
+  const cases: Array<[number, string]> = [
+    [400, 'BAD_REQUEST'],
+    [401, 'UNAUTHORIZED'],
+    [403, 'FORBIDDEN'],
+    [404, 'NOT_FOUND'],
+    [409, 'CONFLICT'],
+    [422, 'UNPROCESSABLE_ENTITY'],
+    [500, 'INTERNAL_SERVER_ERROR'],
+  ]
+
+  it.each(cases)('maps AppError(%i) to response status %i', (status, code) => {
+    const req = makeReq()
+    const res = makeRes()
+    const next = vi.fn()
+    const err = new AppError(status, 'message', code)
+
+    errorHandler(err, req, res, next)
+
+    expect(res.statusCode).toBe(status)
+    const body = res.body as { error: { code: string; message: string } }
+    expect(body).toHaveProperty('error')
+    expect(body.error.code).toBe(code)
+    expect(body.error.message).toBe('message')
+  })
+
+  it('returns 500 for unknown errors and hides internals', () => {
+    const req = makeReq()
+    const res = makeRes()
+    const next = vi.fn()
+
+    errorHandler(new Error('secret db details'), req, res, next)
+
+    expect(res.statusCode).toBe(500)
+    const body = res.body as { error: { code: string; message: string } }
+    expect(body.error.code).toBe('INTERNAL_SERVER_ERROR')
+    expect(body.error.message).not.toContain('secret db details')
+  })
+
+  it('includes requestId in error envelope when present', () => {
+    const req = makeReq({ id: 'req-abc' })
+    const res = makeRes()
+    const next = vi.fn()
+
+    errorHandler(new AppError(400, 'bad', 'BAD_REQUEST'), req, res, next)
+
+    const body = res.body as { error: { requestId?: string } }
+    expect(body.error.requestId).toBe('req-abc')
+  })
+
+  it('logs the error via structured logger', () => {
+    const req = makeReq()
+    const res = makeRes()
+    const next = vi.fn()
+
+    errorHandler(new AppError(500, 'boom', 'INTERNAL_SERVER_ERROR'), req, res, next)
+
+    expect(logSpy).toHaveBeenCalled()
+  })
+})
+
+describe('validate() middleware (Issue #1810)', () => {
+  const schema = z.object({
+    email: z.string().email(),
+    age: z.number().int().positive(),
+  })
+
+  it('passes through valid body and calls next without error', () => {
+    const req = makeReq({ body: { email: 'a@b.com', age: 30 } })
+    const res = makeRes()
+    const next = vi.fn()
+
+    validate({ body: schema })(req, res, next)
+
+    expect(next).toHaveBeenCalledWith()
+    expect(req.body).toEqual({ email: 'a@b.com', age: 30 })
+  })
+
+  it('returns 400 for invalid body', () => {
+    const req = makeReq({ body: { email: 'not-an-email', age: -1 } })
+    const res = makeRes()
+    const next = vi.fn()
+
+    validate({ body: schema })(req, res, next)
+
+    expect(res.statusCode).toBe(400)
+    const body = res.body as { error: { code: string; details?: unknown } }
+    expect(body.error.code).toBe('VALIDATION_ERROR')
+    expect(body.error.details).toBeDefined()
+  })
+
+  it('returns 400 for missing required fields', () => {
+    const req = makeReq({ body: {} })
+    const res = makeRes()
+    const next = vi.fn()
+
+    validate({ body: schema })(req, res, next)
+
+    expect(res.statusCode).toBe(400)
+  })
+
+  it('validates query params and returns 400 on failure', () => {
+    const querySchema = z.object({ page: z.coerce.number().int().min(1) })
+    const req = makeReq({ query: { page: 'abc' } })
+    const res = makeRes()
+    const next = vi.fn()
+
+    validate({ query: querySchema })(req, res, next)
+
+    expect(res.statusCode).toBe(400)
+  })
+
+  it('validates route params and returns 400 on failure', () => {
+    const paramsSchema = z.object({ id: z.string().uuid() })
+    const req = makeReq({ params: { id: 'not-a-uuid' } })
+    const res = makeRes()
+    const next = vi.fn()
+
+    validate({ params: paramsSchema })(req, res, next)
+
+    expect(res.statusCode).toBe(400)
+  })
+})
+
+describe('Logger configuration and requestId propagation (Issue #1811)', () => {
+  it('exposes a pino logger instance', () => {
+    expect(appLogger).toBeDefined()
+    expect(typeof appLogger.info).toBe('function')
+    expect(typeof appLogger.error).toBe('function')
+  })
+
+  it('requestIdMiddleware assigns a request id and echoes header', () => {
+    const req = makeReq({ headers: {} })
+    const res = makeRes()
+    const next = vi.fn()
+
+    requestIdMiddleware(req, res, next)
+
+    expect((req as unknown as { id?: string }).id).toBeDefined()
+    expect(next).toHaveBeenCalled()
+  })
+
+  it('requestIdMiddleware preserves incoming x-request-id header', () => {
+    const req = makeReq({ headers: { 'x-request-id': 'incoming-123' } })
+    const res = makeRes()
+    const next = vi.fn()
+
+    requestIdMiddleware(req, res, next)
+
+    expect((req as unknown as { id?: string }).id).toBe('incoming-123')
+  })
+})
+
+describe('Integration: representative routes (Issues #1809-#1812)', () => {
+  it('invalid payload returns 400 via validate + errorHandler', () => {
+    const schema = z.object({ name: z.string().min(1) })
+    const req = makeReq({ body: { name: '' } })
+    const res = makeRes()
+    const next = vi.fn()
+
+    validate({ body: schema })(req, res, next)
+
+    expect(res.statusCode).toBe(400)
+  })
+
+  it('removed route returns 404 via AppError.notFound', () => {
+    const req = makeReq({ url: '/api/legacy/removed' })
+    const res = makeRes()
+    const next = vi.fn()
+
+    errorHandler(AppError.notFound('Route not found'), req, res, next)
+
+    expect(res.statusCode).toBe(404)
+    const body = res.body as { error: { code: string } }
+    expect(body.error.code).toBe('NOT_FOUND')
   })
 })

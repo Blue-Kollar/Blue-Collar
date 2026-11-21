@@ -5,49 +5,22 @@ import { ChevronLeft, ChevronRight, ExternalLink, Loader2, RefreshCw } from "luc
 import { Button } from "@/components/ui/button";
 import LoadingState from "@/components/LoadingState";
 import ErrorState from "@/components/ErrorState";
-import { formatStellarAddress } from "@/lib/utils";
+import { formatStellarAddress, truncate } from "@/lib/utils";
 import { formatNumber } from "@/lib/format";
+import { useTransactionHistory } from "@/hooks/useTransactionHistory";
+import type { HistoryItem } from "@/hooks/useTransactionHistory";
 
-import { HORIZON_URL, MARKET_CONTRACT_ID, EXPLORER_NETWORK_SLUG, EXPLORER_TX_BASE } from "@/config/stellar";
+import { MARKET_CONTRACT_ID, EXPLORER_NETWORK_SLUG, EXPLORER_TX_BASE } from "@/config/stellar";
 
-const DEFAULT_LIMIT = 10;
 const EXPLORER_NETWORK = EXPLORER_NETWORK_SLUG;
-
-type HorizonPayment = {
-  id: string;
-  paging_token: string;
-  type: string;
-  created_at: string;
-  from?: string;
-  to?: string;
-  amount?: string;
-  asset_type?: string;
-  transaction_hash: string;
-};
-
-type HistoryItem = {
-  id: string;
-  cursor: string;
-  amount: string;
-  recipient: string;
-  date: string;
-  hash: string;
-};
 
 function formatAmount(amount: string) {
   const parsed = Number(amount);
   return Number.isFinite(parsed) ? formatNumber(parsed, { maximumFractionDigits: 7 }) : amount;
 }
 
-function isMarketPayment(record: HorizonPayment, publicKey: string) {
-  if (record.type !== "payment" || record.from !== publicKey || !record.to || !record.amount) {
-    return false;
-  }
-
-  return !MARKET_CONTRACT_ID || record.to === MARKET_CONTRACT_ID;
-}
-
 const TransactionRow = memo(function TransactionRow({ item }: { item: HistoryItem }) {
+  const t = useTranslations("componentText");
   return (
     <tr className="border-b last:border-0">
       <td className="whitespace-nowrap px-6 py-4 text-gray-600">
@@ -64,7 +37,7 @@ const TransactionRow = memo(function TransactionRow({ item }: { item: HistoryIte
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700"
         >
-          View <ExternalLink size={14} />
+          {t("view")} <ExternalLink size={14} />
         </a>
       </td>
     </tr>
@@ -72,9 +45,13 @@ const TransactionRow = memo(function TransactionRow({ item }: { item: HistoryIte
 });
 
 export default function TransactionHistory({ publicKey }: { publicKey: string }) {
-  const [items, setItems] = useState<HistoryItem[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
   const [cursorStack, setCursorStack] = useState<(string | null)[]>([]);
+  const history = useTransactionHistory(publicKey, cursor);
+  const items = history.data?.items ?? [];
+  const nextCursor = history.data?.nextCursor ?? null;
+  const loading = history.isLoading;
+  const error = history.error?.message ?? null;
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -91,7 +68,7 @@ export default function TransactionHistory({ publicKey }: { publicKey: string })
         if (pageCursor) url.searchParams.set("cursor", pageCursor);
 
         const res = await fetch(url.toString());
-        if (!res.ok) throw new Error("Unable to load transaction history");
+        if (!res.ok) throw new Error(t("unableToLoadTransactionHistory"));
 
         const json = await res.json();
         const records = (json._embedded?.records ?? []) as HorizonPayment[];
@@ -110,19 +87,18 @@ export default function TransactionHistory({ publicKey }: { publicKey: string })
         );
         setNextCursor(payments.length > DEFAULT_LIMIT ? visible.at(-1)?.paging_token ?? null : null);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Something went wrong");
+        setError(err instanceof Error ? err.message : t("genericError"));
       } finally {
         setLoading(false);
       }
     },
-    [publicKey]
+    [publicKey, t]
   );
 
   useEffect(() => {
     setCursor(null);
     setCursorStack([]);
-    void loadPage(null);
-  }, [loadPage]);
+  }, [publicKey]);
 
   const totalTipsSent = useMemo(
     () => items.reduce((sum, item) => sum + (Number(item.amount) || 0), 0),
@@ -133,46 +109,44 @@ export default function TransactionHistory({ publicKey }: { publicKey: string })
     if (!nextCursor) return;
     setCursorStack((stack) => [...stack, cursor]);
     setCursor(nextCursor);
-    void loadPage(nextCursor);
-  }, [nextCursor, cursor, loadPage]);
+  }, [nextCursor, cursor]);
 
   const goPrevious = useCallback(() => {
     setCursorStack((stack) => {
       const previous = stack.at(-1) ?? null;
       setCursor(previous);
-      void loadPage(previous);
       return stack.slice(0, -1);
     });
-  }, [loadPage]);
+  }, []);
 
   const refresh = useCallback(() => {
-    void loadPage(cursor);
-  }, [loadPage, cursor]);
+    void history.refetch();
+  }, [history.refetch]);
 
   return (
     <section className="rounded-xl border bg-white shadow-sm">
       <div className="flex flex-col gap-3 border-b p-6 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-gray-900">On-chain activity</h2>
+          <h2 className="text-lg font-semibold text-gray-900">{t("onChainActivity")}</h2>
           <p className="mt-1 font-mono text-xs text-gray-500">{formatStellarAddress(publicKey, { prefixLength: 6, suffixLength: 6 })}</p>
         </div>
         <Button variant="outline" size="sm" onClick={refresh} disabled={loading}>
           {loading ? <Loader2 size={15} className="mr-2 animate-spin" /> : <RefreshCw size={15} className="mr-2" />}
-          Refresh
+          {t("refresh")}
         </Button>
       </div>
 
       <div className="grid gap-4 border-b p-6 sm:grid-cols-2">
         <div>
-          <p className="text-xs font-medium uppercase text-gray-400">Total tips sent on this page</p>
+          <p className="text-xs font-medium uppercase text-gray-400">{t("totalTipsSentPage")}</p>
           <p className="mt-1 text-2xl font-semibold text-gray-900">
             {formatAmount(String(totalTipsSent))} XLM
           </p>
         </div>
         <div className="sm:text-right">
-          <p className="text-xs font-medium uppercase text-gray-400">Market contract</p>
+          <p className="text-xs font-medium uppercase text-gray-400">{t("marketContract")}</p>
           <p className="mt-1 font-mono text-sm text-gray-600">
-            {MARKET_CONTRACT_ID ? formatStellarAddress(MARKET_CONTRACT_ID, { prefixLength: 6, suffixLength: 6 }) : "Not configured"}
+            {MARKET_CONTRACT_ID ? formatStellarAddress(MARKET_CONTRACT_ID, { prefixLength: 6, suffixLength: 6 }) : t("notConfigured")}
           </p>
         </div>
       </div>
@@ -180,14 +154,14 @@ export default function TransactionHistory({ publicKey }: { publicKey: string })
       {error && <ErrorState variant="inline" message={error} className="m-6" />}
 
       {loading && !error ? (
-        <LoadingState variant="inline" message="Loading transactions..." className="justify-center p-10" />
+        <LoadingState variant="inline" message={t("loadingTransactions")} className="justify-center p-10" />
       ) : null}
 
       {!loading && !error && items.length === 0 ? (
         <div className="p-10 text-center">
-          <p className="font-medium text-gray-700">No Market payments found</p>
+          <p className="font-medium text-gray-700">{t("noMarketPayments")}</p>
           <p className="mt-1 text-sm text-gray-500">
-            Sent tips and payments will appear here after they settle on Stellar.
+            {t("settledPayments")}
           </p>
         </div>
       ) : null}
@@ -197,10 +171,10 @@ export default function TransactionHistory({ publicKey }: { publicKey: string })
           <table className="w-full text-left text-sm">
             <thead>
               <tr className="border-b bg-gray-50 text-xs font-semibold uppercase text-gray-500">
-                <th className="px-6 py-3">Date</th>
-                <th className="px-6 py-3">Recipient worker</th>
-                <th className="px-6 py-3">Amount</th>
-                <th className="px-6 py-3">Explorer</th>
+                <th className="px-6 py-3">{t("date")}</th>
+                <th className="px-6 py-3">{t("recipientWorker")}</th>
+                <th className="px-6 py-3">{t("amount")}</th>
+                <th className="px-6 py-3">{t("explorer")}</th>
               </tr>
             </thead>
             <tbody>
@@ -220,7 +194,7 @@ export default function TransactionHistory({ publicKey }: { publicKey: string })
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700"
                     >
-                      View <ExternalLink size={14} />
+                      {t("view")} <ExternalLink size={14} />
                     </a>
                   </td>
                 </tr>
@@ -233,10 +207,10 @@ export default function TransactionHistory({ publicKey }: { publicKey: string })
       <div className="flex items-center justify-between border-t p-4">
         <Button variant="outline" size="sm" onClick={goPrevious} disabled={loading || cursorStack.length === 0}>
           <ChevronLeft size={16} className="mr-1" />
-          Previous
+          {t("previous")}
         </Button>
         <Button variant="outline" size="sm" onClick={goNext} disabled={loading || !nextCursor}>
-          Next
+          {t("next")}
           <ChevronRight size={16} className="ml-1" />
         </Button>
       </div>

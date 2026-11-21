@@ -1,5 +1,6 @@
 import { messagingRepository as defaultMessagingRepository } from '@/repositories/messaging.repository.js'
 import { AppError, ErrorCode } from '@/utils/app-error.js'
+import { parseUtcDate } from '@/utils/date.js'
 import { sanitizeText } from '@/utils/sanitize.js'
 import type { MessagingServiceDeps } from '@/container/types.js'
 
@@ -19,14 +20,26 @@ export function createMessagingService(deps: MessagingServiceDeps) {
     },
 
     async getConversation(conversationId: string, userId: string) {
-      const conversation = await repo.findConversation(conversationId, userId)
+      const conversation = await repo.findConversation(conversationId, userId, {
+        include: {
+          participants: { select: { userId: true, lastReadAt: true } },
+          messages: { orderBy: { createdAt: 'desc' }, take: 1 },
+        },
+      })
       if (!conversation) throw new AppError('Conversation not found', 404, true, ErrorCode.NOT_FOUND)
       return conversation
     },
 
     async getUserConversations(userId: string, page = 1, limit = 20) {
       const skip = (page - 1) * limit
-      const { data, total } = await repo.findUserConversations(userId, { skip, take: limit })
+      const { data, total } = await repo.findUserConversations(userId, {
+        skip,
+        take: limit,
+        include: {
+          participants: { select: { userId: true, lastReadAt: true } },
+          messages: { orderBy: { createdAt: 'desc' }, take: 1 },
+        },
+      })
       return {
         data,
         meta: { total, page, limit, pages: Math.ceil(total / limit) },
@@ -53,7 +66,17 @@ export function createMessagingService(deps: MessagingServiceDeps) {
     },
 
     async getUnreadCount(userId: string) {
-      const conversations = await repo.findConversationsForUnreadCount(userId)
+      // Single batched query: repository returns each conversation with only the
+      // participant row for this user and the messages needed to count unread.
+      const conversations = await repo.findConversationsForUnreadCount(userId, {
+        include: {
+          participants: {
+            where: { userId },
+            select: { lastReadAt: true },
+          },
+          messages: { select: { createdAt: true } },
+        },
+      })
 
       return conversations.reduce((count: number, conv) => {
         const lastReadAt = conv.participants[0]?.lastReadAt

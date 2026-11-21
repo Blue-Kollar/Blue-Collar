@@ -7,8 +7,9 @@ import { DashboardTableSkeleton } from "@/components/Skeleton";
 import { useDashboardWorkers } from "@/hooks/useDashboardWorkers";
 import type { ViewTrend } from "@/types";
 import { MetricCard } from "./MetricCard";
-import { buildWorkerColumns } from "./workerTableColumns";
+import { useWorkerColumns } from "./workerTableColumns";
 import { WorkerTrendsPanel } from "./WorkerTrendsPanel";
+import { useTranslations } from "next-intl";
 
 export interface DashboardWorker {
   id: string;
@@ -45,7 +46,9 @@ export function WorkersPanel({
   onViewTrends,
   onCloseTrends,
 }: WorkersPanelProps) {
+  const t = useTranslations("componentText");
   const stats = useDashboardWorkers(workers);
+  const workerColumns = useWorkerColumns({ onToggle, onDeleteRequest, onViewTrends });
 
   if (loading) {
     return <DashboardTableSkeleton />;
@@ -54,17 +57,17 @@ export function WorkersPanel({
   return (
     <>
       <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <MetricCard label="Total workers" value={stats.total} />
-        <MetricCard label="Active" value={stats.active} />
-        <MetricCard label="Inactive" value={stats.inactive} />
+        <MetricCard label={t("totalWorkers")} value={stats.total} />
+        <MetricCard label={t("active")} value={stats.active} />
+        <MetricCard label={t("inactive")} value={stats.inactive} />
       </div>
 
       <Table
-        columns={buildWorkerColumns({ onToggle, onDeleteRequest, onViewTrends })}
+        columns={workerColumns}
         data={workers}
         loading={false}
-        emptyMessage="No workers yet. Create your first worker listing to get started."
-        aria-label="Worker listings"
+        emptyMessage={t("noWorkersCreateFirst")}
+        aria-label={t("workerListings")}
         className="bg-white"
       />
 
@@ -76,7 +79,7 @@ export function WorkersPanel({
             className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
           >
             <Plus size={15} />
-            Create Worker
+            {t("createWorker")}
           </Link>
         </div>
       )}

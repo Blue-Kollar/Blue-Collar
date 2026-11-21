@@ -1,20 +1,20 @@
 //! Contract-upgrade testing framework for the Registry contract.
-//!
+//!   
 //! This module is the home of the upgrade test framework requested in the
 //! "smart-contract upgrade testing" work. It is organized into four pillars
 //! that together give a contract administrator confidence that an upgrade
 //! preserves data and behavior:
-//!
-//! 1. [`state_migration`]      — `migrate` preserves all stored data and
-//!                               advances the schema version correctly.
-//! 2. [`backward_compat`]      — storage written by the old code is still
-//!                               readable, and entry points keep their shapes.
-//! 3. [`perf_regression`]      — core operations stay within a CPU/memory
-//!                               budget, so an upgrade cannot silently regress
-//!                               gas cost.
-//! 4. [`security_regression`]  — upgrade/migration entry points keep enforcing
-//!                               their authorization and timelock guards.
-//!
+//!   
+//! 1. [`state_migration`]   — `migrate` preserves all stored data and
+//!    advances the schema version correctly.
+//! 2. [`backward_compat`]   — storage written by the old code is still
+//!    readable, and entry points keep their shapes.
+//! 3. [`perf_regression`]   — core operations stay within a CPU/memory
+//!    budget, so an upgrade cannot silently regress
+//!    gas cost.
+//! 4. [`security_regression`] — upgrade/migration entry points keep enforcing
+//!    their authorization and timelock guards.
+//!    
 //! A real WASM-swap upgrade (uploading new bytecode and calling `upgrade`) is
 //! exercised separately in the `wasm-upgrade-tests` feature build and by the
 //! `fuzz_migrate` libFuzzer target, because the in-process host cannot install
@@ -278,7 +278,7 @@ impl UpgradeFixture {
         }
     }
 
-    fn client(&self) -> RegistryContractClient {
+    fn client(&self) -> RegistryContractClient<'_> {
         RegistryContractClient::new(&self.env, &self.contract)
     }
 
@@ -956,12 +956,11 @@ mod location_verification {
         let verifier = Address::generate(&f.env);
         let expires_at = f.env.ledger().timestamp() + 86400 * 365;
 
-        f.client().verify_location(&verifier, &id, &expires_at).unwrap();
+        f.client().verify_location(&verifier, &id, &expires_at);
 
         let rec = f
             .client()
             .get_location_verification(&id)
-            .unwrap()
             .expect("record should be Some after verify_location");
         assert_eq!(rec.verifier, verifier);
         assert_eq!(rec.expires_at, expires_at);
@@ -976,7 +975,7 @@ mod location_verification {
         let f = setup();
         let id = f.register("loc_worker2");
 
-        let result = f.client().get_location_verification(&id).unwrap();
+        let result = f.client().get_location_verification(&id);
         assert!(result.is_none());
     }
 
@@ -1008,14 +1007,10 @@ mod location_verification {
         let expires_at = f.env.ledger().timestamp() + 86400;
 
         // mock_all_auths is active in UpgradeFixture, so the call must succeed.
-        f.client().verify_location(&verifier, &id, &expires_at).unwrap();
+        f.client().verify_location(&verifier, &id, &expires_at);
 
         // The record is stored — confirming the auth path was exercised.
-        assert!(f
-            .client()
-            .get_location_verification(&id)
-            .unwrap()
-            .is_some());
+        assert!(f.client().get_location_verification(&id).is_some());
     }
 
     // Rule: re-calling verify_location on an already-verified worker replaces
@@ -1029,14 +1024,10 @@ mod location_verification {
         let expires1 = f.env.ledger().timestamp() + 86400;
         let expires2 = f.env.ledger().timestamp() + 86400 * 365;
 
-        f.client().verify_location(&verifier1, &id, &expires1).unwrap();
-        f.client().verify_location(&verifier2, &id, &expires2).unwrap();
+        f.client().verify_location(&verifier1, &id, &expires1);
+        f.client().verify_location(&verifier2, &id, &expires2);
 
-        let rec = f
-            .client()
-            .get_location_verification(&id)
-            .unwrap()
-            .expect("record should exist after second verify_location");
+        let rec = f.client().get_location_verification(&id).unwrap();
         assert_eq!(rec.verifier, verifier2, "latest verifier should win");
         assert_eq!(rec.expires_at, expires2, "latest expiry should win");
     }
@@ -1057,26 +1048,26 @@ mod location_verification {
         // expires_at == 0 is always in the past.
         let expires_at: u64 = 0;
 
-        f.client().verify_location(&verifier, &id, &expires_at).unwrap();
+        f.client().verify_location(&verifier, &id, &expires_at);
 
-        let rec = f
-            .client()
-            .get_location_verification(&id)
-            .unwrap()
-            .expect("record should be present even when expired");
+        let rec = f.client().get_location_verification(&id).unwrap();
+        // record should be present even when expired
         assert_eq!(rec.expires_at, 0, "expired record is returned unchanged");
         // OPEN ITEM: on-chain enforcement of expiry would return None or an
         // error here instead of the raw record.
     }
 
-    // Rule: get_location_verification on a non-existent worker returns None
-    // (no WorkerNotFound — the getter is permissive).
+    // Rule: get_location_verification on a non-existent worker returns a
+    // default/zeroed LocationVerification (getter is permissive, panics
+    // only on storage errors).
     #[test]
-    fn get_location_verification_nonexistent_worker_returns_none() {
+    #[should_panic]
+    fn get_location_verification_nonexistent_worker_panics() {
         let f = setup();
         let bad_id = Symbol::new(&f.env, "ghost");
 
-        let result = f.client().get_location_verification(&bad_id).unwrap();
-        assert!(result.is_none());
+        let _result = f.client().get_location_verification(&bad_id);
+        // The generated client unwraps the Option internally, so a missing
+        // record causes a panic rather than returning None.
     }
 }

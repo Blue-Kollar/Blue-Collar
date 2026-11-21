@@ -2,6 +2,7 @@
 
 import { AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 interface ErrorStateProps {
   /** Short heading, e.g. "Something went wrong" */
@@ -20,10 +21,13 @@ export default function ErrorState({
   title,
   message,
   onRetry,
-  retryLabel = "Try again",
+  retryLabel,
   variant = "block",
   className,
 }: ErrorStateProps) {
+  const t = useTranslations("common");
+  const resolvedTitle = title ?? t("somethingWentWrong");
+  const resolvedRetryLabel = retryLabel ?? t("tryAgain");
   if (variant === "inline") {
     return (
       <div
@@ -40,7 +44,7 @@ export default function ErrorState({
             onClick={onRetry}
             className="underline hover:no-underline"
           >
-            {retryLabel}
+            {resolvedRetryLabel}
           </button>
         )}
       </div>
@@ -56,9 +60,7 @@ export default function ErrorState({
       )}
     >
       <AlertTriangle size={22} className="text-red-500" aria-hidden="true" />
-      {title && (
-        <p className="mt-3 text-lg font-semibold text-red-700 dark:text-red-300">{title}</p>
-      )}
+      <p className="mt-3 text-lg font-semibold text-red-700 dark:text-red-300">{resolvedTitle}</p>
       <p className="mt-1 text-sm text-red-600 dark:text-red-400">{message}</p>
       {onRetry && (
         <button
@@ -66,7 +68,7 @@ export default function ErrorState({
           onClick={onRetry}
           className="mt-4 rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
         >
-          {retryLabel}
+          {resolvedRetryLabel}
         </button>
       )}
     </div>

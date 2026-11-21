@@ -21,7 +21,7 @@ Many skilled workers lack a platform to help them get noticed. Meanwhile, countl
 - [Overview](#overview)
 - [Architecture](#architecture)
 - [Monorepo Structure](#monorepo-structure)
-- [Architecture Decision Records](docs/adr/0001-monorepo-package-boundaries.md)
+- [Architecture Decision Records](docs/adr/README.md)
 - [Packages](#packages)
   - [API](#api-packagesapi)
   - [Contracts](#contracts-packagescontracts)
@@ -30,7 +30,7 @@ Many skilled workers lack a platform to help them get noticed. Meanwhile, countl
 - [API Reference](#api-reference)
 - [Smart Contracts](#smart-contracts)
 - [Getting Started](#getting-started)
-- [Local Developer Setup Guide](docs/architecture/setup.md)
+- [Local Developer Setup Guide](docs/setup.md)
 - [Environment Variables](#environment-variables)
 - [Production Deployment](#production-deployment)
 - [Status Page](#status-page)
@@ -38,7 +38,11 @@ Many skilled workers lack a platform to help them get noticed. Meanwhile, countl
 - [Community](#community)
 - [Contributing](#contributing)
 - [License](#license)
+- [Architecture Decision Records (index)](docs/adr/README.md)
 - [Monorepo Package Boundaries (ADR)](docs/adr/0001-monorepo-package-boundaries.md)
+- [Developer Setup Guide](docs/setup.md)
+- [API Reference (generated)](docs/api.md)
+- [SDK Usage Guide](packages/sdk/README.md)
 - [Quick Start Guide](packages/api/QUICK_START_GUIDE.md)
 - [API Reference](packages/api/API_REFERENCE.md)
 - [API cURL Examples](packages/api/CURL_EXAMPLES.md)
@@ -158,6 +162,8 @@ bluecollar/
 For the rationale behind this split — what each package is for, which packages are
 allowed to depend on which, and a dependency graph — see
 [docs/adr/0001-monorepo-package-boundaries.md](docs/adr/0001-monorepo-package-boundaries.md).
+All architecture decisions (escrow, tipping, contract upgrade pattern, and package
+boundaries) are recorded in the [ADR index](docs/adr/README.md).
 
 ---
 
@@ -170,7 +176,7 @@ allowed to depend on which, and a dependency graph — see
 | [Contracts](packages/contracts/README.md) | Stellar Soroban smart contracts that power the BlueCollar protocol. |
 | [Mobile](packages/mobile/README.md) | Expo-based React Native app for browsing workers and using BlueCollar services. |
 | [Monitoring](packages/monitoring/README.md) | Contract event monitoring, balance tracking, and alerting. |
-| [SDK](packages/sdk/README.md) | Shared SDK for interacting with Stellar and BlueCollar contracts. |
+| [SDK](packages/sdk/README.md) | Shared SDK for interacting with Stellar and BlueCollar contracts. See the [SDK usage guide](packages/sdk/README.md) for install instructions, public methods, and examples. |
 | [Test Utils](packages/test-utils/README.md) | Shared test factories and rendering helpers for workspace packages. |
 | [Types](packages/types/README.md) | Shared TypeScript types, DTOs, and Zod validation schemas. |
 
@@ -243,6 +249,10 @@ React Native mobile app built with **Expo**. Features secure authentication with
 ## API Reference
 
 Base URL: `http://localhost:3000/api`
+
+> The generated, always-up-to-date reference (including the authentication flow and
+> request/response schemas derived from the API's Zod validators) lives in
+> [docs/api.md](docs/api.md). The summary below is a hand-maintained overview.
 
 ### Auth
 
@@ -422,10 +432,10 @@ pnpm docker:down
 
 ## Getting Started
 
-> This section is a quick-start for `api` + `app` only. For the authoritative guide covering
-> every package — `api`, `app`, `contracts`, `sdk`, `mobile`, `monitoring`, `types` —
-> plus environment variables, database, and local Soroban/Stellar network setup, see the
-> **[Local Developer Setup Guide](docs/architecture/setup.md)**.
+> This section is a short quick-start for `api` + `app` only. For the authoritative guide
+> covering every package — `api`, `app`, `contracts`, `sdk`, `mobile`, `monitoring`, `types` —
+> plus pnpm workspace setup, docker-compose, environment variables, database, and local
+> Soroban/Stellar network setup, see the **[Developer Setup Guide](docs/setup.md)**.
 
 ### Prerequisites
 
@@ -434,32 +444,23 @@ pnpm docker:down
 - PostgreSQL
 - Rust (for contracts)
 
-### Install
+### Quick start
 
 ```bash
 git clone https://github.com/Fidelis900/Blue-Collar.git
 cd Blue-Collar
 pnpm install
+
+# API
+cp packages/api/.env.example packages/api/.env   # fill in DATABASE_URL and JWT_SECRET
+cd packages/api && pnpm migrate && pnpm seed && pnpm dev   # :3000
+
+# App (in another terminal)
+cd packages/app && pnpm dev   # :3001
 ```
 
-### Run the API
-
-```bash
-cp packages/api/.env.example packages/api/.env
-# fill in DATABASE_URL and JWT_SECRET
-
-cd packages/api
-pnpm migrate       # run prisma migrations
-pnpm seed          # seed categories
-pnpm dev           # start dev server on :3000
-```
-
-### Run the App
-
-```bash
-cd packages/app
-pnpm dev           # start Next.js on :3001
-```
+For Docker Compose, per-package setup, and troubleshooting, follow
+[docs/setup.md](docs/setup.md).
 
 ---
 

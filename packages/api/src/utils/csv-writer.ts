@@ -27,7 +27,7 @@ export function escapeCsvField(value: unknown): string {
   }
 
   // Escape internal quotes and wrap in double-quotes
-  return `"${str.replace(/"/g, '""')}"
+  return `"${str.replace(/"/g, '""')}"`
 }
 
 /**

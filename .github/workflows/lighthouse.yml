@@ -58,11 +58,13 @@ jobs:
             --collect.url=http://localhost:3000/en/workers/ \
             --collect.numberOfRuns=3 \
             --assert.preset=lighthouse:recommended \
+            --assert.assertions.categories:performance=0.9 \
+            --assert.assertions.largest-contentful-paint=error \
             --assert.budgetPath=./lighthouse-budget.json \
             --upload.target=temporary-public-storage \
             --upload.githubToken=${{ secrets.GITHUB_TOKEN }} \
             --upload.githubStatusContextSuffix="lhci"
-        continue-on-error: true
+        continue-on-error: ${{ contains(github.event.pull_request.labels.*.name, 'lighthouse-non-blocking') }}
 
       - name: Post results to PR
         if: github.event_name == 'pull_request'

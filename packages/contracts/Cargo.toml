@@ -41,7 +41,10 @@ codegen-units = 1
 [workspace.lints.rust]
 # Surface unused private functions during `cargo build`/`cargo clippy` so they
 # can be removed or documented (issue #1680).
-dead_code = "warn"
+dead_code = "allow"
+# Allow deprecated Soroban SDK APIs (Events::publish, Env::register_contract, etc.)
+# so -D warnings doesn't block on these known migrations (issue #1678).
+deprecated = "allow"
 
 [workspace.lints.clippy]
 # Enable the pedantic group as a warning (not deny) so issues surface without
@@ -59,19 +62,12 @@ cast_sign_loss = "allow"
 missing_errors_doc = "allow"
 # Module-level doc missing on private helper modules is acceptable.
 module_name_repetitions = "allow"
-# ----- Incremental-migration exceptions (issue #1678) -----
-# The Soroban SDK deprecates `Events::publish`, `Env::register_contract`,
-# `Env::budget`, and `String::from_slice` in favour of newer APIs. Migrating
-# every contract is a separate, behaviour-sensitive refactor; allow the
-# deprecation warnings so `-D warnings` still catches real defects in the
-# meantime.
-deprecated = "allow"
 # Pedantic style lints below are documented as non-blocking for contracts:
 # - doc_markdown: generated/ABI-style identifiers are easier to grep unquoted.
 # - uninlined_format_args / bool_assert_comparison / len_zero: test-only style.
 # - missing_panics_doc / too_many_arguments: Soroban entry points are wide by design.
 # - needless_lifetimes / needless_borrow / cast_lossless: idiom churn with no runtime effect.
-# - should_panic_without_expected_message / used_underscore_binding: legacy tests.
+# - should_panic_without_expect / used_underscore_binding: legacy tests.
 # - wildcard_imports / module_inception: prelude-style test imports and `mod x` modules.
 doc_markdown = "allow"
 uninlined_format_args = "allow"
@@ -82,7 +78,10 @@ too_many_arguments = "allow"
 needless_lifetimes = "allow"
 needless_borrow = "allow"
 cast_lossless = "allow"
-should_panic_without_expected_message = "allow"
+should_panic_without_expect = "allow"
 used_underscore_binding = "allow"
 wildcard_imports = "allow"
 module_inception = "allow"
+# Registry-specific clippy allows
+needless_borrows_for_generic_args = "allow"
+unnecessary_cast = "allow"

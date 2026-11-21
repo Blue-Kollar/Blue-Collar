@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useToast } from "./useToast";
+import { readLocalStorageValue } from "./useLocalStorage";
 
 export function usePushNotifications() {
   const { toast } = useToast();
@@ -80,7 +81,7 @@ export function usePushNotifications() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${typeof localStorage !== "undefined" ? localStorage.getItem("token") : ""}`,
+          Authorization: `Bearer ${readLocalStorageValue<string | null>("token", "") ?? ""}`,
         },
         body: JSON.stringify({
           endpoint: subscription.endpoint,
@@ -124,7 +125,7 @@ export function usePushNotifications() {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${typeof localStorage !== "undefined" ? localStorage.getItem("token") : ""}`,
+          Authorization: `Bearer ${readLocalStorageValue<string | null>("token", "") ?? ""}`,
         },
         body: JSON.stringify({ endpoint: subscription.endpoint }),
       });

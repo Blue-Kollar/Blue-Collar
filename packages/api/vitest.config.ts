@@ -40,6 +40,11 @@ export default defineConfig({
       MAIL_USER: 'test@example.com',
       MAIL_PASS: 'test-mail-password',
       HORIZON_URL: 'http://127.0.0.1:0',
+      // Required by centralized config validation (issue #1816).
+      PORT: '3000',
+      LOG_LEVEL: 'silent',
+      DB_POOL_SIZE: '5',
+      DB_QUERY_TIMEOUT_MS: '5000',
     },
     include: ['src/**/*.test.ts', 'src/**/__tests__/**/*.test.ts'],
     exclude: ['src/**/*.e2e.test.ts'],
@@ -47,12 +52,20 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
-      include: ['src/services/**', 'src/utils/**', 'src/controllers/**', 'src/middleware/**'],
+      include: [
+        'src/services/**',
+        'src/utils/**',
+        'src/controllers/**',
+        'src/middleware/**',
+        // Repository layer (issue #1815).
+        'src/repositories/**',
+        // Centralized config + env validation (issue #1816).
+        'src/config/**',
+      ],
       exclude: [
         'src/database/**',
         'src/commands/**',
         'src/index.ts',
-        'src/config/**',
         '**/*.d.ts',
         'src/**/*.test.ts',
         'src/**/__tests__/**',

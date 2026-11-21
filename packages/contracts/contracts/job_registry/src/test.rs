@@ -9,7 +9,7 @@ use bluecollar_types::{test_utils::zero_hash, ContractError};
 use soroban_sdk::{testutils::Address as _, Address, Env, Symbol};
 use std::format;
 
-fn setup(env: &Env) -> (Address, Address, JobRegistryContractClient) {
+fn setup(env: &Env) -> (Address, Address, JobRegistryContractClient<'_>) {
     env.mock_all_auths();
     let admin = Address::generate(env);
     let poster = Address::generate(env);
@@ -1108,6 +1108,7 @@ fn test_upgrade_with_role_succeeds() {
 /// the WASM-swap role gate, then the post-swap `migrate` step. Every stored
 /// value must survive unchanged and the schema version must advance by exactly
 /// one.
+#[allow(clippy::similar_names)]
 #[test]
 fn test_upgrade_simulation_preserves_pre_existing_state() {
     let env = Env::default();

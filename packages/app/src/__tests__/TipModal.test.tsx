@@ -1,4 +1,5 @@
 import { render, screen, within } from '@testing-library/react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import messages from '@/messages/en.json'
@@ -22,15 +23,17 @@ vi.mock('next-intl', () => ({
   },
 }))
 
-const mockIsConnected = vi.fn()
-const mockRequestAccess = vi.fn()
-const mockGetAddress = vi.fn()
+const mockConnect = vi.fn()
 const mockSignTransaction = vi.fn()
-vi.mock('@stellar/freighter-api', () => ({
-  isConnected: (...args: unknown[]) => mockIsConnected(...args),
-  requestAccess: (...args: unknown[]) => mockRequestAccess(...args),
-  getAddress: (...args: unknown[]) => mockGetAddress(...args),
-  signTransaction: (...args: unknown[]) => mockSignTransaction(...args),
+vi.mock('@/hooks/useWallet', () => ({
+  useWallet: () => ({
+    publicKey: null,
+    networkPassphrase: null,
+    connect: mockConnect,
+    signTransaction: mockSignTransaction,
+  }),
+  FreighterNotInstalledError: class FreighterNotInstalledError extends Error {},
+  WalletNotConnectedError: class WalletNotConnectedError extends Error {},
 }))
 
 // buildTipTxXdr dynamically imports the SDK; stub it so we can count how many
@@ -66,9 +69,20 @@ const defaultProps = {
   walletAddress: 'GABCDEF1234567890',
 }
 
+function renderTipModal() {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  })
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <TipModal {...defaultProps} />
+    </QueryClientProvider>,
+  )
+}
+
 /** Open the modal and return its dialog element. */
 async function openModal(user: ReturnType<typeof userEvent.setup>) {
-  render(<TipModal {...defaultProps} />)
+  renderTipModal()
   await user.click(screen.getByRole('button', { name: /send tip/i }))
   return screen.findByRole('dialog')
 }
@@ -77,9 +91,8 @@ describe('TipModal', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockLoadAccount.mockResolvedValue({})
-    mockIsConnected.mockResolvedValue({ isConnected: true })
-    mockGetAddress.mockResolvedValue({ address: 'GSENDER0000000000' })
-    mockSignTransaction.mockResolvedValue({ signedTxXdr: 'SIGNED_XDR' })
+    mockConnect.mockResolvedValue('GSENDER0000000000')
+    mockSignTransaction.mockResolvedValue('SIGNED_XDR')
   })
 
   afterEach(() => {
@@ -87,20 +100,20 @@ describe('TipModal', () => {
   })
 
   it('renders the trigger button', () => {
-    render(<TipModal {...defaultProps} />)
+    renderTipModal()
     expect(screen.getByRole('button', { name: /send tip/i })).toBeInTheDocument()
   })
 
   it('opens modal when trigger is clicked', async () => {
     const user = userEvent.setup()
-    render(<TipModal {...defaultProps} />)
+    renderTipModal()
     await user.click(screen.getByRole('button', { name: /send tip/i }))
     expect(await screen.findByText('Send a Tip')).toBeInTheDocument()
   })
 
   it('shows worker wallet address in modal', async () => {
     const user = userEvent.setup()
-    render(<TipModal {...defaultProps} />)
+    renderTipModal()
     await user.click(screen.getByRole('button', { name: /send tip/i }))
     expect(await screen.findByText('GABCDEF1234567890')).toBeInTheDocument()
   })
@@ -128,7 +141,7 @@ describe('TipModal', () => {
   })
 
   it('shows Freighter not found when the extension is unavailable', async () => {
-    mockIsConnected.mockResolvedValue({ isConnected: false })
+    mockConnect.mockResolvedValue(null)
     const user = userEvent.setup()
     const dialog = await openModal(user)
     await user.type(within(dialog).getByRole('spinbutton'), '5')
@@ -188,6 +201,6 @@ describe('TipModal', () => {
 
     expect(await screen.findByText('Tip sent successfully!')).toBeInTheDocument()
     expect(mockLoadAccount).toHaveBeenCalledTimes(1)
-    expect(mockSignTransaction).toHaveBeenCalledWith('MOCK_XDR', expect.anything())
+    expect(mockSignTransaction).toHaveBeenCalledWith('MOCK_XDR')
   })
 })

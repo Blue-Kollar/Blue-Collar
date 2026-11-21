@@ -3,6 +3,7 @@ import { memo } from "react";
 import type { TransactionListItem } from "@/hooks/useTransactionList";
 import { formatXlmAmount, stellarExplorerTxUrl, truncateStellarAddress } from "@/utils";
 import { formatDate } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 interface TransactionListTableProps {
   transactions: TransactionListItem[];
@@ -13,6 +14,7 @@ interface TransactionRowProps {
 }
 
 const TransactionRow = memo(function TransactionRow({ tx }: TransactionRowProps) {
+  const t = useTranslations("componentText");
   return (
     <tr className="border-b last:border-0">
       <td className="py-2 pr-4 text-gray-500 whitespace-nowrap">
@@ -30,7 +32,7 @@ const TransactionRow = memo(function TransactionRow({ tx }: TransactionRowProps)
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1 text-blue-500 hover:text-blue-700 transition-colors"
-          aria-label="View on Stellar Expert"
+          aria-label={t("viewOnStellarExpert")}
         >
           <ExternalLink size={13} />
         </a>
@@ -40,15 +42,16 @@ const TransactionRow = memo(function TransactionRow({ tx }: TransactionRowProps)
 });
 
 const TransactionListTable = memo(function TransactionListTable({ transactions }: TransactionListTableProps) {
+  const t = useTranslations("componentText");
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm text-left">
         <thead>
           <tr className="text-xs text-gray-400 border-b">
-            <th className="pb-2 pr-4 font-medium">Date</th>
-            <th className="pb-2 pr-4 font-medium">From</th>
-            <th className="pb-2 pr-4 font-medium">Amount</th>
-            <th className="pb-2 font-medium">Tx</th>
+            <th className="pb-2 pr-4 font-medium">{t("date")}</th>
+            <th className="pb-2 pr-4 font-medium">{t("from")}</th>
+            <th className="pb-2 pr-4 font-medium">{t("amount")}</th>
+            <th className="pb-2 font-medium">{t("transaction")}</th>
           </tr>
         </thead>
         <tbody>

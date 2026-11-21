@@ -14,7 +14,8 @@
  * Update:      pnpm --filter @bluecollar/app test -- -u
  * (or)         pnpm --filter @bluecollar/app test -- --update-snapshots
  */
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
+import { renderWithIntl as render } from '@/__tests__/renderWithIntl';
 import { describe, it, expect, vi } from 'vitest';
 import * as React from 'react';
 

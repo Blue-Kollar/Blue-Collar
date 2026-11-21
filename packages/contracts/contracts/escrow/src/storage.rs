@@ -11,6 +11,7 @@ use soroban_sdk::{contracttype, Address, Env, Symbol, Vec};
 // TTL Constants
 // =============================================================================
 
+#[allow(unused_imports)]
 pub use bluecollar_types::storage::{TTL_EXTEND_TO, TTL_THRESHOLD};
 
 // =============================================================================

@@ -52,7 +52,7 @@ impl AuthFixture {
         }
     }
 
-    fn client(&self) -> DisputeContractClient {
+    fn client(&self) -> DisputeContractClient<'_> {
         DisputeContractClient::new(&self.env, &self.contract)
     }
 
@@ -75,7 +75,7 @@ fn setup_no_mock() -> (Env, Address, Address, Address, Address, Address, Address
     let disputer = Address::generate(&env);
     let respondent = Address::generate(&env);
     let arbitrator = Address::generate(&env);
-    let stranger = Address::generate(&env);
+    let _stranger = Address::generate(&env);
 
     let token = deploy_token_and_mint(&env, &admin, &disputer, 1_000_000);
 
@@ -85,8 +85,7 @@ fn setup_no_mock() -> (Env, Address, Address, Address, Address, Address, Address
     )
 }
 
-fn init_no_mock(env: &Env, contract: &Address, admin: &Address, arbitrator: &Address) {
-    let client = DisputeContractClient::new(env, contract);
+fn init_no_mock(_env: &Env, _contract: &Address, _admin: &Address, _arbitrator: &Address) {
     // Need to use soroban_sdk auth framework for proper auth
     // For non-mock tests, we use the Address's built-in authorization
     // by calling from a test that doesn't use mock_all_auths

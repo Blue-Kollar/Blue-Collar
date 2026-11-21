@@ -1,8 +1,6 @@
 import { Clock, Plus, Trash2 } from "lucide-react";
 import type { Slot } from "@/components/AvailabilityCalendar";
-
-const DAY_LABELS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
-const DAY_FULL = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+import { useLocale, useTranslations } from "next-intl";
 
 const TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
   const h = Math.floor(i / 2);
@@ -41,12 +39,24 @@ export default function SlotEditor({
   onSelectAll,
   onRemove,
 }: SlotEditorProps) {
+  const locale = useLocale();
+  const t = useTranslations("componentText");
+  const dayLabels = Array.from({ length: 7 }, (_, day) =>
+    new Intl.DateTimeFormat(locale, { weekday: "short", timeZone: "UTC" }).format(
+      new Date(Date.UTC(2023, 0, 1 + day))
+    )
+  );
+  const dayNames = Array.from({ length: 7 }, (_, day) =>
+    new Intl.DateTimeFormat(locale, { weekday: "long", timeZone: "UTC" }).format(
+      new Date(Date.UTC(2023, 0, 1 + day))
+    )
+  );
   return (
     <div className="mt-4 space-y-3">
       {/* Current slots list */}
       {availability.length > 0 && (
         <div className="space-y-1.5">
-          <p className="text-xs font-medium text-gray-600">Current schedule</p>
+          <p className="text-xs font-medium text-gray-600">{t("currentSchedule")}</p>
           {availability
             .slice()
             .sort((a, b) => a.dayOfWeek - b.dayOfWeek)
@@ -57,7 +67,7 @@ export default function SlotEditor({
               >
                 <div className="flex items-center gap-2 text-sm">
                   <span className="font-medium text-gray-700 w-24">
-                    {DAY_FULL[slot.dayOfWeek]}
+                    {dayNames[slot.dayOfWeek]}
                   </span>
                   <span className="flex items-center gap-1 text-gray-500">
                     <Clock size={12} />
@@ -67,7 +77,7 @@ export default function SlotEditor({
                 <button
                   onClick={() => onRemove?.(slot.dayOfWeek)}
                   className="rounded p-1 text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors"
-                  aria-label={`Remove ${DAY_FULL[slot.dayOfWeek]}`}
+                  aria-label={t("removeDay", { day: dayNames[slot.dayOfWeek] })}
                 >
                   <Trash2 size={14} />
                 </button>
@@ -83,35 +93,35 @@ export default function SlotEditor({
           className="flex items-center gap-1.5 rounded-lg border border-dashed border-gray-300 px-3 py-2 text-xs font-medium text-gray-500 hover:border-blue-400 hover:text-blue-500 transition-colors w-full justify-center"
         >
           <Plus size={14} />
-          Set availability
+          {t("setAvailability")}
         </button>
       ) : (
         <div className="rounded-lg border bg-blue-50/50 p-4 space-y-3">
           <p className="text-xs font-semibold text-gray-700">
-            Bulk set availability
+            {t("bulkSetAvailability")}
           </p>
 
           {/* Day selector */}
           <div>
             <div className="mb-1.5 flex items-center gap-2">
-              <span className="text-xs text-gray-500">Select days</span>
+              <span className="text-xs text-gray-500">{t("selectDays")}</span>
               <button
                 type="button"
                 onClick={onSelectWeekdays}
                 className="text-[10px] text-blue-500 hover:underline"
               >
-                Weekdays
+                {t("weekdays")}
               </button>
               <button
                 type="button"
                 onClick={onSelectAll}
                 className="text-[10px] text-blue-500 hover:underline"
               >
-                All
+                {t("all")}
               </button>
             </div>
             <div className="flex gap-1.5">
-              {DAY_LABELS.map((label, i) => (
+              {dayLabels.map((label, i) => (
                 <button
                   key={i}
                   type="button"
@@ -131,7 +141,7 @@ export default function SlotEditor({
           {/* Time range */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="mb-1 block text-xs text-gray-500">Start time</label>
+              <label className="mb-1 block text-xs text-gray-500">{t("startTime")}</label>
               <select
                 value={bulkStart}
                 onChange={(e) => onStartTimeChange(e.target.value)}
@@ -143,7 +153,7 @@ export default function SlotEditor({
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-xs text-gray-500">End time</label>
+              <label className="mb-1 block text-xs text-gray-500">{t("endTime")}</label>
               <select
                 value={bulkEnd}
                 onChange={(e) => onEndTimeChange(e.target.value)}
@@ -164,14 +174,14 @@ export default function SlotEditor({
               disabled={bulkDays.length === 0}
               className="flex-1 rounded-lg bg-blue-600 py-2 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
             >
-              Apply to {bulkDays.length} day{bulkDays.length !== 1 ? "s" : ""}
+              {t(bulkDays.length === 1 ? "applyToOneDay" : "applyToDays", { count: bulkDays.length })}
             </button>
             <button
               type="button"
               onClick={onToggleEditor}
               className="rounded-lg border bg-white px-3 py-2 text-xs text-gray-600 hover:bg-gray-50 transition-colors"
             >
-              Cancel
+              {t("cancel")}
             </button>
           </div>
         </div>

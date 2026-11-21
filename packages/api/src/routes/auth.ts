@@ -39,6 +39,8 @@ const router = Router()
 
 // ── Google OAuth ──────────────────────────────────────────────────────────────
 // Initiates the OAuth flow; redirects the user to Google's consent screen.
+// All OAuth logic (token issuance, redirect URL construction) lives in
+// services/auth.service.ts (googleAuthCallback controller delegates to it).
 router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }))
 
 // Google redirects back here after the user grants (or denies) access.
@@ -64,8 +66,8 @@ router.get('/me', authenticate, me)
 
 // ── Email verification ────────────────────────────────────────────────────────
 // Accepts ?token=<jwt> as a query param (email link) or a body field.
-// Verifies the SHA-256 hash of the token against the stored hash, then marks
-// the account as verified and clears the token fields.
+// Token parsing, hashing and account state changes live in
+// services/auth.service.ts (verifyAccount controller delegates to it).
 router.put('/verify-account', validate(verifyAccountRules), verifyAccount)
 router.post('/resend-verification', validate(resendVerificationRules), resendVerification)
 
@@ -74,6 +76,8 @@ router.get('/unsubscribe-reminders', unsubscribeReminders)
 
 // ── Password reset ────────────────────────────────────────────────────────────
 // Sends a reset link to the given email (always 200 to prevent enumeration).
+// Token generation/hashing and password updates live in
+// services/auth.service.ts (recovery sub-service).
 router.post('/forgot-password', strictAuthRateLimiter, validate(forgotPasswordRules), forgotPassword)
 
 // Validates the raw reset token (hashed and compared server-side), then
@@ -81,6 +85,8 @@ router.post('/forgot-password', strictAuthRateLimiter, validate(forgotPasswordRu
 router.put('/reset-password', validate(resetPasswordRules), resetPassword)
 
 // ── Two-Factor Authentication (TOTP) ─────────────────────────────────────────
+// TOTP secret generation, backup-code hashing and verification logic live in
+// services/auth.service.ts (2FA sub-service).
 router.post('/2fa/setup', authenticate, setup2FA)
 router.post('/2fa/enable', authenticate, enable2FA)
 router.post('/2fa/verify', verify2FA)

@@ -2,6 +2,7 @@
 
 import { ReactNode } from "react";
 import { useWallet } from "@/context/WalletContext";
+import { useTranslations } from "next-intl";
 
 interface WalletGuardProps {
   children: ReactNode;
@@ -10,6 +11,7 @@ interface WalletGuardProps {
 
 export default function WalletGuard({ children, fallback }: WalletGuardProps) {
   const wallet = useWallet();
+  const t = useTranslations("componentText");
 
   if (wallet.isConnecting) {
     return (
@@ -24,12 +26,12 @@ export default function WalletGuard({ children, fallback }: WalletGuardProps) {
       <>
         {fallback ?? (
           <div className="flex flex-col items-center gap-3 p-6 text-center">
-            <p className="text-sm text-gray-600">Connect your wallet to continue.</p>
+            <p className="text-sm text-gray-600">{t("connectWalletPrompt")}</p>
             <button
               onClick={() => wallet.connect()}
               className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition-colors"
             >
-              Connect Wallet
+              {t("connectWallet")}
             </button>
           </div>
         )}

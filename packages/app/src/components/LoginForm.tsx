@@ -12,8 +12,10 @@ import type { AuthUser } from "@/context/AuthContext";
 import FormField from "@/components/Form/FormField";
 import FormError from "@/components/Form/FormError";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 export default function LoginForm() {
+  const t = useTranslations("auth");
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect") ?? "/workers";
@@ -39,7 +41,7 @@ export default function LoginForm() {
       login(res.data as AuthUser, res.token);
       router.push(redirect);
     } catch (err: unknown) {
-      setApiError(err instanceof Error ? err.message : "Login failed");
+      setApiError(err instanceof Error ? err.message : t("loginFailed"));
     }
   };
 
@@ -57,7 +59,7 @@ export default function LoginForm() {
       )}
 
       <FormField
-        label="Email"
+        label={t("email")}
         id="email"
         error={touchedFields.email ? errors.email?.message : undefined}
         isValid={isValid("email")}
@@ -66,7 +68,7 @@ export default function LoginForm() {
           id="email"
           type="email"
           autoComplete="email"
-          placeholder="you@example.com"
+          placeholder={t("emailExample")}
           {...register("email")}
           className={inputClass(
             touchedFields.email && !!errors.email,
@@ -76,7 +78,7 @@ export default function LoginForm() {
       </FormField>
 
       <FormField
-        label="Password"
+        label={t("password")}
         id="password"
         error={touchedFields.password ? errors.password?.message : undefined}
         isValid={isValid("password")}
@@ -96,7 +98,7 @@ export default function LoginForm() {
 
       <div className="flex justify-end">
         <Link href="/auth/forgot-password" className="text-xs text-blue-600 hover:underline">
-          Forgot password?
+          {t("forgotPassword")}
         </Link>
       </div>
 
@@ -106,7 +108,7 @@ export default function LoginForm() {
         className="flex items-center justify-center gap-2 rounded-lg bg-blue-600 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60 transition-colors"
       >
         {isSubmitting && <Loader2 size={15} className="animate-spin" />}
-        Sign in
+        {t("signIn")}
       </button>
     </form>
   );

@@ -15,6 +15,9 @@ export enum ErrorCode {
   NOT_FOUND = 'NOT_FOUND',
   CONFLICT = 'CONFLICT',
 
+  // Request
+  BAD_REQUEST = 'BAD_REQUEST',
+
   // Validation
   VALIDATION_ERROR = 'VALIDATION_ERROR',
 
@@ -35,17 +38,20 @@ export class AppError extends Error {
   public readonly statusCode: number
   public readonly isOperational: boolean
   public readonly errorCode: ErrorCode
+  public readonly details?: unknown
 
   constructor(
     message: string,
     statusCode: number = 500,
     isOperational: boolean = true,
     errorCode: ErrorCode = ErrorCode.INTERNAL_ERROR,
+    details?: unknown,
   ) {
     super(message)
     this.statusCode = statusCode
     this.isOperational = isOperational
     this.errorCode = errorCode
+    this.details = details
 
     // Maintains proper stack trace for where our error was thrown (only available on V8)
     Error.captureStackTrace(this, this.constructor)

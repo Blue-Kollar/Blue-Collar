@@ -51,3 +51,9 @@ this change). Since the only change is moving a type-only package between
 dependency sections — no version change, no runtime import touched — this
 carries effectively no risk to boot or test behavior, but should still be
 confirmed with a normal install + `pnpm build` / `pnpm test` before merge.
+
+## Re-check (#1831)
+
+Re-checked against `main` on 2026-11-20 with the same grep-based method. The
+result above still holds: no dependency has zero call sites in `src/`, so
+none were removed. `depcheck` was not run in this check.

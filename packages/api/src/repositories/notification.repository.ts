@@ -5,7 +5,8 @@ import { db } from '@/db.js'
 // ── Interface ─────────────────────────────────────────────────────────────────
 
 export interface INotificationRepository extends IRepository<Notification, Prisma.NotificationCreateInput, Prisma.NotificationUpdateInput> {
-  createNotification(data: Prisma.NotificationUncheckedCreateInput): Promise<Notification>
+  createNotification(data: Prisma.NotificationUncheckedCreateInput, tx?: Prisma.TransactionClient): Promise<Notification>
+  createManyNotifications(data: Prisma.NotificationUncheckedCreateInput[], tx?: Prisma.TransactionClient): Promise<Prisma.BatchPayload>
   findPreferences(userId: string): Promise<NotificationPreferences | null>
   upsertPreferences(userId: string, data: Partial<{
     newWorkerNearby: boolean
@@ -30,24 +31,28 @@ export class NotificationRepository implements INotificationRepository {
     return db.notification.findMany({ skip: opts.skip, take: opts.take, orderBy: { createdAt: 'desc' } })
   }
 
-  async create(data: Prisma.NotificationCreateInput): Promise<Notification> {
-    return db.notification.create({ data })
+  async create(data: Prisma.NotificationCreateInput, tx?: Prisma.TransactionClient): Promise<Notification> {
+    return (tx ?? db).notification.create({ data })
   }
 
-  async update(id: string, data: Prisma.NotificationUpdateInput): Promise<Notification> {
-    return db.notification.update({ where: { id }, data })
+  async update(id: string, data: Prisma.NotificationUpdateInput, tx?: Prisma.TransactionClient): Promise<Notification> {
+    return (tx ?? db).notification.update({ where: { id }, data })
   }
 
-  async delete(id: string): Promise<Notification> {
-    return db.notification.delete({ where: { id } })
+  async delete(id: string, tx?: Prisma.TransactionClient): Promise<Notification> {
+    return (tx ?? db).notification.delete({ where: { id } })
   }
 
   async count(where?: Prisma.NotificationWhereInput): Promise<number> {
     return db.notification.count({ where })
   }
 
-  async createNotification(data: Prisma.NotificationUncheckedCreateInput): Promise<Notification> {
-    return db.notification.create({ data })
+  async createNotification(data: Prisma.NotificationUncheckedCreateInput, tx?: Prisma.TransactionClient): Promise<Notification> {
+    return (tx ?? db).notification.create({ data })
+  }
+
+  async createManyNotifications(data: Prisma.NotificationUncheckedCreateInput[], tx?: Prisma.TransactionClient): Promise<Prisma.BatchPayload> {
+    return (tx ?? db).notification.createMany({ data })
   }
 
   async findPreferences(userId: string): Promise<NotificationPreferences | null> {
@@ -61,8 +66,8 @@ export class NotificationRepository implements INotificationRepository {
     announcements: boolean
     quietHoursStart?: string
     quietHoursEnd?: string
-  }>): Promise<NotificationPreferences> {
-    return db.notificationPreferences.upsert({
+  }>, tx?: Prisma.TransactionClient): Promise<NotificationPreferences> {
+    return (tx ?? db).notificationPreferences.upsert({
       where: { userId },
       create: { userId, ...data },
       update: data,

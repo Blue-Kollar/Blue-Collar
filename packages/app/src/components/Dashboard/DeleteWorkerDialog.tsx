@@ -2,6 +2,7 @@
 
 import * as Dialog from "@radix-ui/react-dialog";
 import { AlertTriangle, Loader2, X } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface DeleteWorkerDialogProps {
   workerName: string | undefined;
@@ -21,6 +22,7 @@ export function DeleteWorkerDialog({
   onConfirm,
   isDeleting,
 }: DeleteWorkerDialogProps) {
+  const t = useTranslations("componentText");
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
@@ -33,25 +35,25 @@ export function DeleteWorkerDialog({
               </div>
               <div>
                 <Dialog.Title className="font-semibold text-gray-900 dark:text-gray-100">
-                  Delete worker?
+                  {t("deleteWorkerQuestion")}
                 </Dialog.Title>
                 <Dialog.Description className="mt-0.5 text-sm text-gray-500">
-                  This will permanently remove{" "}
+                  {t("permanentlyRemove")}{" "}
                   <span className="font-medium text-gray-700 dark:text-gray-300">
                     {workerName}
                   </span>
-                  . This action cannot be undone.
+                  {t("cannotBeUndone")}
                 </Dialog.Description>
               </div>
             </div>
-            <Dialog.Close aria-label="Close" className="rounded-md p-1 text-gray-400 hover:text-gray-600">
+            <Dialog.Close aria-label={t("close")} className="rounded-md p-1 text-gray-400 hover:text-gray-600">
               <X size={16} />
             </Dialog.Close>
           </div>
 
           <div className="mt-5 flex gap-3">
             <Dialog.Close className="flex-1 rounded-lg border py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
-              Cancel
+              {t("cancel")}
             </Dialog.Close>
             <button
               onClick={onConfirm}
@@ -59,7 +61,7 @@ export function DeleteWorkerDialog({
               className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-red-600 py-2.5 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-60 transition-colors"
             >
               {isDeleting && <Loader2 size={14} className="animate-spin" />}
-              Delete
+              {t("delete")}
             </button>
           </div>
         </Dialog.Content>

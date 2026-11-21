@@ -24,6 +24,15 @@
  *   packages/sdk     no-console off and no-explicit-any 'warn' in src/__tests__
  *   packages/types   no-console off and no-explicit-any 'warn' in test files
  *   packages/*       no-deprecated requires type info; see per-package configs
+ *
+ * Shared baseline expectations (#1797, #1798):
+ *   • Debug output must go through the shared logger, never `console.*`.
+ *     The logger implementation itself (e.g. `lib/logger.ts`) is the only
+ *     place allowed to touch `console`; it is exempted per-package via a
+ *     targeted `no-console` override rather than by weakening the baseline.
+ *   • User-facing strings must live in locale files, not inline literals.
+ *     Packages adopt the shared `i18nRules` below (see #1797) so the same
+ *     literal-string rule is enforced everywhere.
  */
 
 'use strict'
@@ -95,10 +104,32 @@ const deprecationRules = {
   '@typescript-eslint/no-deprecated': 'error',
 }
 
+/**
+ * Hardcoded i18n string detection (#1797).
+ *
+ * Flags inline user-facing string literals so they are moved into locale
+ * files. Packages opt in by spreading `i18nRules` into their config; the
+ * rule is intentionally not part of `baseRules` yet so that packages can
+ * migrate incrementally without changing existing rule behavior.
+ *
+ * Auto-disable for a specific line (with justification):
+ *   // eslint-disable-next-line i18next/no-literal-string -- <reason>
+ */
+const i18nRules = {
+  'i18next/no-literal-string': [
+    'warn',
+    {
+      mode: 'jsx-text-only',
+      'should-validate-template': true,
+    },
+  ],
+}
+
 module.exports = {
   tsRules,
   baseRules,
   productionOnlyRules,
   filenameRules,
   deprecationRules,
+  i18nRules,
 }

@@ -2,7 +2,7 @@ import type { NotificationChannel, NotificationMessage, DeliveryResult } from '.
 import { transporter } from '@/mailer/transport.js'
 import { notificationRepository } from '@/repositories/notification.repository.js'
 import { logger } from '@/config/logger.js'
-import { AppError } from '@/utils/AppError.js'
+import { AppError } from '@/utils/app-error.js'
 import { nowUtc } from '@/utils/date.js'
 
 /**

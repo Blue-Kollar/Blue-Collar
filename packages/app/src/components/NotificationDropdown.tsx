@@ -29,6 +29,7 @@ export default function NotificationDropdown() {
   const { notifications, unreadCount, markRead, markAllRead, clearAll } =
     useNotifications();
   const t = useTranslations("notifications");
+  const componentT = useTranslations("componentText");
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -76,7 +77,7 @@ export default function NotificationDropdown() {
           {/* Header */}
           <div className="flex items-center justify-between border-b px-4 py-3 dark:border-gray-700">
             <span className="text-sm font-semibold text-gray-800 dark:text-gray-100">
-              Notifications
+              {componentT("notificationsTitle")}
             </span>
             <div className="flex items-center gap-1">
               {unreadCount > 0 && (
@@ -107,7 +108,7 @@ export default function NotificationDropdown() {
             {notifications.length === 0 ? (
               <div className="flex flex-col items-center justify-center gap-2 py-10 text-gray-400">
                 <Bell size={28} className="opacity-30" />
-                <p className="text-sm">No notifications yet</p>
+                <p className="text-sm">{componentT("noNotifications")}</p>
               </div>
             ) : (
               notifications.map((n) => (
@@ -167,7 +168,7 @@ export default function NotificationDropdown() {
               onClick={() => setOpen(false)}
               className="text-xs text-gray-400 hover:text-blue-600 transition-colors"
             >
-              Notification preferences
+              {componentT("notificationPreferences")}
             </Link>
           </div>
         </div>

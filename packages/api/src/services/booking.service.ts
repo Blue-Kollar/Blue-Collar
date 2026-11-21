@@ -14,6 +14,23 @@ import type { BookingServiceDeps } from '@/container/types.js'
 import { BookingStatus } from '@bluecollar/types'
 import type { CreateBookingInput } from '@bluecollar/types'
 
+// ── Transaction helper ────────────────────────────────────────────────────────
+
+/**
+ * Run `fn` inside a database transaction when the repository supports it.
+ * Falls back to executing `fn` directly for repositories without transaction
+ * support (e.g. lightweight test doubles).
+ */
+async function withTransaction<T>(
+  repo: BookingServiceDeps['bookingRepository'],
+  fn: (tx: BookingServiceDeps['bookingRepository']) => Promise<T>,
+): Promise<T> {
+  if (typeof repo.transaction === 'function') {
+    return repo.transaction((tx) => fn(tx))
+  }
+  return fn(repo)
+}
+
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 export type { CreateBookingInput }
@@ -79,33 +96,40 @@ export function createBookingService(deps: BookingServiceDeps) {
         throw new AppError('Requested time is outside the worker\'s availability', 409)
       }
 
-      const existingBookings = await repo.findConflicting(workerId, startTime, endTime)
+      // Wrap conflict re-check, booking creation and notification enqueue in a
+      // single transaction so a partial write can never leave an orphaned
+      // booking or a notification for a booking that was rolled back.
+      const booking = await withTransaction(repo, async (tx) => {
+        const existingBookings = await tx.findConflicting(workerId, startTime, endTime)
 
-      if (hasConflict({ startTime, endTime }, existingBookings)) {
-        throw new AppError('Worker is already booked during this time slot', 409)
-      }
+        if (hasConflict({ startTime, endTime }, existingBookings)) {
+          throw new AppError('Worker is already booked during this time slot', 409)
+        }
 
-      const booking = await repo.createBooking({
-        workerId,
-        requesterId,
-        startTime,
-        endTime,
-        timezone,
-        note,
-        serviceDescription: serviceDescription ?? '',
-        status: BookingStatus.Pending,
+        const created = await tx.createBooking({
+          workerId,
+          requesterId,
+          startTime,
+          endTime,
+          timezone,
+          note,
+          serviceDescription: serviceDescription ?? '',
+          status: BookingStatus.Pending,
+        })
+
+        await enqueueNotification({
+          userId: created.worker.userId,
+          type: 'booking_request',
+          title: 'New booking request',
+          message: `${created.requester.firstName ?? 'A user'} has requested a booking on ${startTime.toUTCString()}.`,
+          channels: ['email', 'push', 'inapp'],
+          href: `/bookings/${created.id}`,
+        })
+
+        return created
       })
 
       logger.info({ bookingId: booking.id, workerId, requesterId }, 'Booking request created')
-
-      await enqueueNotification({
-        userId: booking.worker.userId,
-        type: 'booking_request',
-        title: 'New booking request',
-        message: `${booking.requester.firstName ?? 'A user'} has requested a booking on ${startTime.toUTCString()}.`,
-        channels: ['email', 'push', 'inapp'],
-        href: `/bookings/${booking.id}`,
-      })
 
       return booking
     },
@@ -119,15 +143,19 @@ export function createBookingService(deps: BookingServiceDeps) {
       if (booking.workerId !== workerId) throw new AppError('Unauthorized', 403)
       if (booking.status !== BookingStatus.Pending) throw new AppError(`Cannot confirm a booking with status: ${booking.status}`, 400)
 
-      const updated = await repo.updateBooking(bookingId, { status: BookingStatus.Confirmed })
+      const updated = await withTransaction(repo, async (tx) => {
+        const result = await tx.updateBooking(bookingId, { status: BookingStatus.Confirmed })
 
-      await enqueueNotification({
-        userId: booking.requesterId,
-        type: 'booking_confirmed',
-        title: 'Booking confirmed!',
-        message: `Your booking on ${booking.startTime.toUTCString()} has been confirmed.`,
-        channels: ['email', 'push', 'inapp'],
-        href: `/bookings/${bookingId}`,
+        await enqueueNotification({
+          userId: booking.requesterId,
+          type: 'booking_confirmed',
+          title: 'Booking confirmed!',
+          message: `Your booking on ${booking.startTime.toUTCString()} has been confirmed.`,
+          channels: ['email', 'push', 'inapp'],
+          href: `/bookings/${bookingId}`,
+        })
+
+        return result
       })
 
       return updated
@@ -148,15 +176,20 @@ export function createBookingService(deps: BookingServiceDeps) {
         throw new AppError(`Cannot cancel a booking with status: ${booking.status}`, 400)
       }
 
-      const updated = await repo.updateBooking(bookingId, { status: BookingStatus.Cancelled, cancellationReason: reason })
-
       const notifyUserId = isWorker ? booking.requesterId : booking.worker.userId
-      await enqueueNotification({
-        userId: notifyUserId,
-        type: 'booking_cancelled',
-        title: 'Booking cancelled',
-        message: `A booking on ${booking.startTime.toUTCString()} has been cancelled.${reason ? ` Reason: ${reason}` : ''}`,
-        channels: ['email', 'inapp'],
+
+      const updated = await withTransaction(repo, async (tx) => {
+        const result = await tx.updateBooking(bookingId, { status: BookingStatus.Cancelled, cancellationReason: reason })
+
+        await enqueueNotification({
+          userId: notifyUserId,
+          type: 'booking_cancelled',
+          title: 'Booking cancelled',
+          message: `A booking on ${booking.startTime.toUTCString()} has been cancelled.${reason ? ` Reason: ${reason}` : ''}`,
+          channels: ['email', 'inapp'],
+        })
+
+        return result
       })
 
       return updated
@@ -170,6 +203,8 @@ export function createBookingService(deps: BookingServiceDeps) {
       options: { page?: number; limit?: number; status?: BookingStatus } = {},
     ) {
       const { page = 1, limit = 20, status } = options
+      // Repository performs a single paginated query with related records
+      // eagerly included, avoiding per-booking N+1 lookups.
       return repo.findWorkerBookings(workerId, { page, limit, status })
     },
 
@@ -181,7 +216,29 @@ export function createBookingService(deps: BookingServiceDeps) {
       options: { page?: number; limit?: number; status?: BookingStatus } = {},
     ) {
       const { page = 1, limit = 20, status } = options
+      // Single paginated query with eager-loaded relations (no N+1).
       return repo.findRequesterBookings(requesterId, { page, limit, status })
+    },
+
+    /**
+     * Resolve the current user's bookings for GET /bookings/mine.
+     *
+     * The route previously decided between worker and requester listings based
+     * on the authenticated user's role. That branching now lives here so the
+     * route stays a thin HTTP adapter.
+     */
+    async getMyBookings(
+      userId: string,
+      role: string,
+      options: { page?: number; limit?: number; status?: BookingStatus } = {},
+    ) {
+      const { page = 1, limit = 20, status } = options
+
+      if (role === 'WORKER') {
+        return repo.findWorkerBookings(userId, { page, limit, status })
+      }
+
+      return repo.findRequesterBookings(userId, { page, limit, status })
     },
   }
 }
@@ -216,4 +273,12 @@ export async function getRequesterBookings(
   options: { page?: number; limit?: number; status?: BookingStatus } = {},
 ) {
   return _defaultService.getRequesterBookings(requesterId, options)
+}
+
+export async function getMyBookings(
+  userId: string,
+  role: string,
+  options: { page?: number; limit?: number; status?: BookingStatus } = {},
+) {
+  return _defaultService.getMyBookings(userId, role, options)
 }

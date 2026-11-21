@@ -6,7 +6,39 @@
 #                               --admin <admin-address> --fee-bps <0-500> \
 #                               --fee-recipient <address>
 #
-# Outputs the deployed contract ID and appends it to deployments.json.
+# Arguments:
+#   --network        Target network: "testnet" or "mainnet" (required).
+#   --source         Stellar CLI source: a secret key or a configured key alias
+#                    (required). Prefer an alias backed by the CLI keystore.
+#   --admin          Admin address for the initialized contract (required).
+#   --fee-bps        Fee in basis points, 0-500 (default: 0).
+#   --fee-recipient  Address that receives fees (required).
+#
+# Environment variables:
+#   STELLAR_NETWORK_PASSPHRASE  Optional; the Stellar CLI resolves the network
+#                               passphrase from its config for the given name.
+#   No secrets are read from or written to this script. Never hardcode secret
+#   keys here or commit them to the repository.
+#
+# Deployer key handling:
+#   The deployer key is supplied via --source and is never echoed. If the
+#   source is missing or empty the script fails fast before building. Use a
+#   dedicated deployer identity with the minimum required privileges, and
+#   rotate it after mainnet deployments.
+#
+# Network selection:
+#   --network must be exactly "testnet" or "mainnet"; any other value aborts
+#   before any build or deploy step runs.
+#
+# Outputs:
+#   Prints the deployed contract ID and appends/updates the record in
+#   deployments.json under the selected network.
+#
+# Rollback:
+#   This script does not delete contracts. To roll back, redeploy the previous
+#   WASM version and re-initialize, or restore the prior entry in
+#   deployments.json from version control. See the deployment guide.
+=======
 
 set -euo pipefail
 
@@ -38,6 +70,12 @@ done
 if [[ -z "$NETWORK" || -z "$SOURCE" || -z "$ADMIN" || -z "$FEE_RECIPIENT" ]]; then
   echo "Usage: $0 --network testnet|mainnet --source <key> --admin <addr> \
 --fee-bps <n> --fee-recipient <addr>" >&2
+  exit 1
+fi
+
+# Fail fast if the deployer key source is empty (no hardcoded secrets).
+if [[ -z "${SOURCE// }" ]]; then
+  echo "Error: --source must be a non-empty secret key or key alias" >&2
   exit 1
 fi
 

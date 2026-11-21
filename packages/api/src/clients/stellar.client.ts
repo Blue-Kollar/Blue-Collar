@@ -8,12 +8,11 @@
  */
 
 import { AppError, ErrorCode } from '@/utils/app-error.js';
-import { TESTNET_HORIZON_URL, TESTNET_FRIENDBOT_URL } from '@bluecollar/sdk';
 import { CircuitBreaker } from './circuitBreaker.js';
 import { config } from '@/config/config.js';
 
 const HORIZON_URL = config.stellar.horizonUrl;
-const FRIENDBOT_URL = TESTNET_FRIENDBOT_URL;
+const FRIENDBOT_URL = config.stellar.friendbotUrl;
 
 /**
  * Shared breaker for all Horizon/friendbot calls made through this client.

@@ -16,7 +16,8 @@
  * Guideline: if a change to the component should NOT break this test, do not
  * snapshot the part that changes. Assert behaviour and semantics instead.
  */
-import { render, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
+import { renderWithIntl as render } from "@/__tests__/renderWithIntl";
 import { describe, it, expect, vi } from "vitest";
 import LoadingState from "@/components/LoadingState";
 

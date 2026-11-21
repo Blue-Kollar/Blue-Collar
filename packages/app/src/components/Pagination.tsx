@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface PaginationProps {
   page: number;
@@ -13,6 +14,7 @@ export default function Pagination({
   pages,
   onPageChange,
 }: PaginationProps) {
+  const t = useTranslations("pagination");
   if (pages <= 1) return null;
 
   const getVisiblePages = (): (number | "...")[] => {
@@ -31,12 +33,12 @@ export default function Pagination({
   };
 
   return (
-    <nav aria-label="Pagination" className="flex items-center justify-center gap-1">
+    <nav aria-label={t("navigation")} className="flex items-center justify-center gap-1">
       <button
         type="button"
         onClick={() => onPageChange(page - 1)}
         disabled={page <= 1}
-        aria-label="Previous page"
+        aria-label={t("previousPage")}
         className="rounded-md border border-gray-300 p-2 text-gray-600 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
       >
         <ChevronLeft size={16} />
@@ -68,7 +70,7 @@ export default function Pagination({
         type="button"
         onClick={() => onPageChange(page + 1)}
         disabled={page >= pages}
-        aria-label="Next page"
+        aria-label={t("nextPage")}
         className="rounded-md border border-gray-300 p-2 text-gray-600 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
       >
         <ChevronRight size={16} />

@@ -74,7 +74,7 @@ impl AuthFixture {
         }
     }
 
-    fn client(&self) -> FeeDistributionContractClient {
+    fn client(&self) -> FeeDistributionContractClient<'_> {
         FeeDistributionContractClient::new(&self.env, &self.contract)
     }
 

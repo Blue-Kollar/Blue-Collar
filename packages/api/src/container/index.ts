@@ -51,6 +51,7 @@ export type {
   VerificationServiceDeps,
   ContactRequestServiceDeps,
   AvailabilityServiceDeps,
+  PaymentServiceDeps,
   IMailer,
   IDbClient,
 } from './types.js'
@@ -72,3 +73,4 @@ export { createReferralService } from '@/services/referral.service.js'
 export { createVerificationService } from '@/services/verification.service.js'
 export { createContactRequestService } from '@/services/contact-request.service.js'
 export { createAvailabilityService } from '@/services/availability.service.js'
+export { createPaymentService } from '@/services/payment.service.js'

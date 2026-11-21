@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Bookmark, Star } from "lucide-react";
 import { WorkerCardSkeleton } from "@/components/Skeleton";
 import type { Worker } from "@/types";
+import { useTranslations } from "next-intl";
 
 interface Props {
   workers: Pick<Worker, "id" | "name" | "avatar" | "category" | "averageRating" | "location">[];
@@ -13,10 +14,11 @@ interface Props {
 }
 
 export function SavedWorkers({ workers, loading, onRemove }: Props) {
+  const t = useTranslations("componentText");
   // ── Loading state (#1203) ──────────────────────────────────────────────────
   if (loading) {
     return (
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2" aria-busy="true" aria-label="Loading saved workers">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2" aria-busy="true" aria-label={t("loadingSavedWorkers")}>
         {Array.from({ length: 4 }).map((_, i) => (
           <WorkerCardSkeleton key={i} />
         ))}
@@ -29,9 +31,9 @@ export function SavedWorkers({ workers, loading, onRemove }: Props) {
     return (
       <div className="py-10 text-center">
         <Bookmark size={32} className="mx-auto mb-2 text-gray-300" />
-        <p className="text-sm text-gray-400">No saved workers yet.</p>
+        <p className="text-sm text-gray-400">{t("noSavedWorkers")}</p>
         <Link href="/workers" className="mt-3 inline-block text-sm text-brand-600 hover:underline">
-          Browse workers
+          {t("browseWorkers")}
         </Link>
       </div>
     );
@@ -76,7 +78,7 @@ export function SavedWorkers({ workers, loading, onRemove }: Props) {
             <button
               type="button"
               onClick={() => onRemove(w.id)}
-              aria-label={`Remove ${w.name} from saved`}
+              aria-label={t("removeSavedWorker", { name: w.name })}
               className="shrink-0 rounded-md p-1.5 text-gray-400 hover:text-red-500 transition-colors"
             >
               <Bookmark size={15} fill="currentColor" />

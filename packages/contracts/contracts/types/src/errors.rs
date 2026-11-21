@@ -213,8 +213,7 @@ mod tests {
             .iter()
             .filter(|path| {
                 fs::read_to_string(path)
-                    .map(|src| src.lines().any(|line| line.trim_start().starts_with("#[contracterror]")))
-                    .unwrap_or(false)
+                    .is_ok_and(|src| src.lines().any(|line| line.trim_start().starts_with("#[contracterror]")))
             })
             .map(|path| path.display().to_string())
             .collect();

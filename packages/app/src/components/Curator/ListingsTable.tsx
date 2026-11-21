@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Pencil, Trash2, ToggleLeft, ToggleRight, ExternalLink, Loader2 } from "lucide-react";
 import { cn, formatDate } from "@/lib/utils";
 import LoadingState from "@/components/LoadingState";
+import { useTranslations } from "next-intl";
 
 export interface CuratorWorker {
   id: string;
@@ -24,17 +25,18 @@ interface Props {
 }
 
 function OnChainBadge({ status, ttlDaysLeft }: { status?: string; ttlDaysLeft?: number }) {
+  const t = useTranslations("componentText");
   if (!status || status === "unregistered") {
     return (
       <span className="rounded-full bg-gray-100 dark:bg-gray-700 px-2 py-0.5 text-[11px] font-medium text-gray-500">
-        Off-chain
+        {t("offChain")}
       </span>
     );
   }
   if (status === "pending") {
     return (
       <span className="rounded-full bg-yellow-100 dark:bg-yellow-900/30 px-2 py-0.5 text-[11px] font-medium text-yellow-700 dark:text-yellow-400">
-        Pending
+        {t("pending")}
       </span>
     );
   }
@@ -47,12 +49,15 @@ function OnChainBadge({ status, ttlDaysLeft }: { status?: string; ttlDaysLeft?: 
           : "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400"
       )}
     >
-      On-chain{ttlDaysLeft != null ? ` · ${ttlDaysLeft}d TTL` : ""}
+      {ttlDaysLeft != null
+        ? t("onChainWithTtl", { days: ttlDaysLeft })
+        : t("onChain")}
     </span>
   );
 }
 
 export function ListingsTable({ workers, loading, onToggle, onDelete, toggling }: Props) {
+  const t = useTranslations("componentText");
   if (loading) {
     return <LoadingState className="py-20" />;
   }
@@ -60,8 +65,8 @@ export function ListingsTable({ workers, loading, onToggle, onDelete, toggling }
   if (workers.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center text-sm text-gray-400">
-        <p className="font-medium">No listings yet.</p>
-        <p className="mt-1">Create your first worker listing to get started.</p>
+        <p className="font-medium">{t("noListings")}</p>
+        <p className="mt-1">{t("createFirstListing")}</p>
       </div>
     );
   }
@@ -70,15 +75,15 @@ export function ListingsTable({ workers, loading, onToggle, onDelete, toggling }
     <>
       {/* Desktop */}
       <div className="hidden sm:block overflow-x-auto">
-        <table className="w-full text-sm" aria-label="Worker listings">
+        <table className="w-full text-sm" aria-label={t("workerListings")}>
           <thead>
             <tr className="border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-              <th className="px-5 py-3">Name</th>
-              <th className="px-5 py-3">Category</th>
-              <th className="px-5 py-3">Status</th>
-              <th className="px-5 py-3">On-chain</th>
-              <th className="px-5 py-3">Created</th>
-              <th className="px-5 py-3 text-right">Actions</th>
+              <th className="px-5 py-3">{t("name")}</th>
+              <th className="px-5 py-3">{t("category")}</th>
+              <th className="px-5 py-3">{t("status")}</th>
+              <th className="px-5 py-3">{t("onChain")}</th>
+              <th className="px-5 py-3">{t("created")}</th>
+              <th className="px-5 py-3 text-right">{t("actions")}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
@@ -99,7 +104,7 @@ export function ListingsTable({ workers, loading, onToggle, onDelete, toggling }
                       ? "bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400"
                       : "bg-gray-100 dark:bg-gray-700 text-gray-500"
                   )}>
-                    {w.isActive ? "Active" : "Inactive"}
+                    {w.isActive ? t("active") : t("inactive")}
                   </span>
                 </td>
                 <td className="px-5 py-4">
@@ -114,14 +119,14 @@ export function ListingsTable({ workers, loading, onToggle, onDelete, toggling }
                       href={`/workers/${w.id}`}
                       target="_blank"
                       className="rounded p-1.5 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-brand-600 transition-colors"
-                      title="View public profile"
+                      title={t("viewPublicProfile")}
                     >
                       <ExternalLink size={14} />
                     </Link>
                     <Link
                       href={`/curator/${w.id}/edit`}
                       className="rounded p-1.5 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-brand-600 transition-colors"
-                      title="Edit"
+                      title={t("edit")}
                     >
                       <Pencil size={14} />
                     </Link>
@@ -129,7 +134,7 @@ export function ListingsTable({ workers, loading, onToggle, onDelete, toggling }
                       type="button"
                       onClick={() => onToggle(w)}
                       disabled={toggling?.has(w.id)}
-                      title={w.isActive ? "Deactivate" : "Activate"}
+                      title={w.isActive ? t("deactivate") : t("activate")}
                       className="rounded p-1.5 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-brand-600 transition-colors disabled:opacity-50"
                     >
                       {toggling?.has(w.id) ? (
@@ -143,7 +148,7 @@ export function ListingsTable({ workers, loading, onToggle, onDelete, toggling }
                     <button
                       type="button"
                       onClick={() => onDelete(w)}
-                      title="Delete"
+                      title={t("delete")}
                       className="rounded p-1.5 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-red-500 transition-colors"
                     >
                       <Trash2 size={14} />
@@ -170,20 +175,20 @@ export function ListingsTable({ workers, loading, onToggle, onDelete, toggling }
                   "rounded-full px-2 py-0.5 text-[11px] font-medium",
                   w.isActive ? "bg-green-50 text-green-600" : "bg-gray-100 text-gray-500"
                 )}>
-                  {w.isActive ? "Active" : "Inactive"}
+                  {w.isActive ? t("active") : t("inactive")}
                 </span>
                 <OnChainBadge status={w.onChainStatus} ttlDaysLeft={w.ttlDaysLeft} />
               </div>
             </div>
             <div className="flex gap-2">
               <Link href={`/curator/${w.id}/edit`} className="flex-1 rounded-lg border dark:border-gray-700 py-1.5 text-center text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">
-                Edit
+                {t("edit")}
               </Link>
               <button type="button" onClick={() => onToggle(w)} disabled={toggling?.has(w.id)} className="flex-1 rounded-lg border dark:border-gray-700 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50">
-                {w.isActive ? "Deactivate" : "Activate"}
+                {w.isActive ? t("deactivate") : t("activate")}
               </button>
               <button type="button" onClick={() => onDelete(w)} className="flex-1 rounded-lg border border-red-200 dark:border-red-900/50 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20">
-                Delete
+                {t("delete")}
               </button>
             </div>
           </div>

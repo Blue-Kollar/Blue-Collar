@@ -1,6 +1,7 @@
 import { Clock } from "lucide-react";
 import type { Slot } from "@/components/AvailabilityCalendar";
 import { formatDate } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 interface SelectionSummaryProps {
   rangeStart: Date | null;
@@ -17,6 +18,7 @@ export default function SelectionSummary({
   onClearSelection,
   slotMap,
 }: SelectionSummaryProps) {
+  const t = useTranslations("componentText");
   if (!rangeStart) return null;
 
   const displaySlot = rangeStart ? slotMap[rangeStart.getDay()] : null;
@@ -28,19 +30,19 @@ export default function SelectionSummary({
           <span className="font-medium">
             {formatDate(rangeStart)} – {formatDate(rangeEnd)}
           </span>
-          {" "}selected
+          {" "}{t("selected").toLowerCase()}
           {" "}
           <button
             onClick={onClearSelection}
             className="ml-2 text-xs text-blue-500 underline hover:no-underline"
           >
-            Clear
+            {t("selectionClear")}
           </button>
         </p>
       ) : (
         <p>
           <span className="font-medium">{formatDate(rangeStart)}</span>
-          {" "}— select an end date
+          {" "}{t("selectEndDate")}
         </p>
       )}
       {displaySlot && (

@@ -6,24 +6,38 @@ import type { DisputeServiceDeps } from '@/container/types.js'
 // ── Factory ───────────────────────────────────────────────────────────────────
 
 export function createDisputeService(deps: DisputeServiceDeps) {
-  const { disputeRepository: repo } = deps
+  const { disputeRepository: repo, transactionManager } = deps
+
+  /**
+   * Run `fn` inside a database transaction. Falls back to direct execution when
+   * no transaction manager is injected (e.g. in unit tests).
+   */
+  function withTransaction<T>(fn: (tx: DisputeServiceDeps['disputeRepository']) => Promise<T>): Promise<T> {
+    if (!transactionManager) return fn(repo)
+    return transactionManager.run((tx) => fn(tx.disputeRepository))
+  }
 
   return {
     /**
      * File a new dispute against a worker.
+     *
+     * The worker existence check, dispute creation and any related updates are
+     * performed atomically so a failure cannot leave partial writes behind.
      */
     async fileDispute(workerId: string, filedById: string, reason: string, evidence?: string) {
-      const worker = await repo.findWorkerById(workerId)
-      if (!worker) throw new AppError('Worker not found', 404, true, ErrorCode.NOT_FOUND)
-
       const sanitizedReason = sanitizeText(reason)
       const sanitizedEvidence = evidence === undefined ? undefined : sanitizeText(evidence)
 
-      return repo.createDispute({
-        workerId,
-        filedById,
-        reason: sanitizedReason,
-        evidence: sanitizedEvidence,
+      return withTransaction(async (tx) => {
+        const worker = await tx.findWorkerById(workerId)
+        if (!worker) throw new AppError('Worker not found', 404, true, ErrorCode.NOT_FOUND)
+
+        return tx.createDispute({
+          workerId,
+          filedById,
+          reason: sanitizedReason,
+          evidence: sanitizedEvidence,
+        })
       })
     },
 
@@ -55,18 +69,20 @@ export function createDisputeService(deps: DisputeServiceDeps) {
      * Resolve or dismiss a dispute (admin only).
      */
     async resolveDispute(id: string, adminId: string, status: 'resolved' | 'dismissed' | 'under_review', resolution?: string) {
-      const dispute = await repo.findById(id)
-      if (!dispute) throw new AppError('Dispute not found', 404, true, ErrorCode.NOT_FOUND)
-      if (dispute.status === 'resolved' || dispute.status === 'dismissed') {
-        throw new AppError('Dispute has already been resolved', 409, true, ErrorCode.CONFLICT)
-      }
-
       const sanitizedResolution = resolution === undefined ? undefined : sanitizeText(resolution)
 
-      return repo.updateDispute(id, {
-        status,
-        resolution: sanitizedResolution,
-        resolvedById: adminId,
+      return withTransaction(async (tx) => {
+        const dispute = await tx.findById(id)
+        if (!dispute) throw new AppError('Dispute not found', 404, true, ErrorCode.NOT_FOUND)
+        if (dispute.status === 'resolved' || dispute.status === 'dismissed') {
+          throw new AppError('Dispute has already been resolved', 409, true, ErrorCode.CONFLICT)
+        }
+
+        return tx.updateDispute(id, {
+          status,
+          resolution: sanitizedResolution,
+          resolvedById: adminId,
+        })
       })
     },
   }

@@ -2,18 +2,21 @@
 
 import { useState } from "react";
 import { X, Zap } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface FriendbotBannerProps {
   walletAddress: string;
   xlmBalance: number;
 }
 
-import { FRIENDBOT_URL, IS_TESTNET } from "@/config/stellar";
+import { IS_TESTNET } from "@/config/stellar";
+import { useFriendbotFunding } from "@/hooks/useFriendbotFunding";
 
 export default function FriendbotBanner({ walletAddress, xlmBalance }: FriendbotBannerProps) {
+  const t = useTranslations("componentText");
   const [dismissed, setDismissed] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState("");
+  const funding = useFriendbotFunding();
 
   const showToast = (message: string) => {
     setToast(message);
@@ -25,17 +28,13 @@ export default function FriendbotBanner({ walletAddress, xlmBalance }: Friendbot
   const handleFund = async () => {
     if (!walletAddress) return;
 
-    setLoading(true);
     try {
-      const res = await fetch(`${FRIENDBOT_URL}?addr=${encodeURIComponent(walletAddress)}`);
-      if (!res.ok) throw new Error("Friendbot funding failed.");
+      await funding.mutateAsync(walletAddress);
 
-      showToast("Wallet funded with 10,000 XLM testnet tokens!");
+      showToast(t("friendbotFunded"));
       setDismissed(true);
     } catch {
-      showToast("Friendbot funding failed. Please try again.");
-    } finally {
-      setLoading(false);
+      showToast(t("friendbotFundingFailed"));
     }
   };
 
@@ -52,9 +51,9 @@ export default function FriendbotBanner({ walletAddress, xlmBalance }: Friendbot
               <Zap size={18} aria-hidden="true" />
             </div>
             <div>
-              <p className="font-semibold">Your testnet wallet has no XLM</p>
+              <p className="font-semibold">{t("friendbotNoBalance")}</p>
               <p className="text-yellow-700">
-                Fund it instantly with Stellar Friendbot to start testing.
+                {t("friendbotDescription")}
               </p>
             </div>
           </div>
@@ -62,15 +61,15 @@ export default function FriendbotBanner({ walletAddress, xlmBalance }: Friendbot
             <button
               type="button"
               onClick={handleFund}
-              disabled={loading}
+              disabled={funding.isPending}
               className="rounded-lg bg-yellow-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-yellow-600 disabled:opacity-50"
             >
-              {loading ? "Funding..." : "Fund with Friendbot"}
+              {funding.isPending ? t("friendbotFunding") : t("friendbotFundButton")}
             </button>
             <button
               type="button"
               onClick={() => setDismissed(true)}
-              aria-label="Dismiss banner"
+              aria-label={t("dismissBanner")}
               className="rounded-md p-1 text-yellow-700 hover:bg-yellow-100"
             >
               <X size={16} aria-hidden="true" />
