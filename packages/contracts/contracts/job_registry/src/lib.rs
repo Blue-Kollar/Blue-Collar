@@ -2,12 +2,8 @@
 // Lint policy: clippy::pedantic enabled at workspace level (issue #1254).
 // Blanket Soroban exceptions (needless_pass_by_value, must_use_candidate, etc.)
 // are configured in the workspace Cargo.toml; per-function overrides go here.
-// soroban-sdk 26 deprecates `Events::publish` in favour of the `#[contractevent]`
-// macro, and `Env::register_contract` in favour of `Env::register`. Migrating the
-// event API changes the on-chain event ABI, so both are deliberately deferred to a
-// dedicated upgrade rather than mixed into unrelated changes.
-#![allow(deprecated)]
 
+use bluecollar_types::events::{ContractPaused, ContractUnpaused, RoleGranted, RoleRevoked};
 use bluecollar_types::ContractError;
 use soroban_sdk::{contract, contractimpl, symbol_short, Address, BytesN, Env, Symbol, Vec};
 
@@ -21,9 +17,9 @@ mod test;
 mod benchmarks;
 
 use logic::{
-    do_assign_worker, do_cancel_job, do_complete_job, do_dispute_job, do_initialize, do_post_job,
-    require_admin_for_role, require_not_paused, require_role, role_to_id, ROLE_ADMIN, ROLE_PAUSER,
-    ROLE_UPGRADER,
+    do_assign_worker, do_batch_complete_jobs, do_cancel_job, do_complete_job, do_dispute_job,
+    do_initialize, do_post_job, require_admin_for_role, require_not_paused, require_role,
+    role_to_id, ROLE_ADMIN, ROLE_PAUSER, ROLE_UPGRADER,
 };
 use storage::{
     is_paused, load_admin, load_job, load_job_list, load_poster_jobs, load_role_members,
@@ -63,8 +59,7 @@ impl JobRegistryContract {
             members.push_back(account.clone());
         }
         save_role_members(&env, id, &members);
-        env.events()
-            .publish((symbol_short!("RlGrnt"), role), account);
+        RoleGranted { role, admin: account }.publish(&env);
         Ok(())
     }
 
@@ -84,8 +79,7 @@ impl JobRegistryContract {
             }
         }
         save_role_members(&env, id, &updated);
-        env.events()
-            .publish((symbol_short!("RlRevk"), role), account);
+        RoleRevoked { role, account }.publish(&env);
         Ok(())
     }
 
@@ -103,7 +97,7 @@ impl JobRegistryContract {
     pub fn pause(env: Env, caller: Address) -> Result<(), ContractError> {
         require_role(&env, &Symbol::new(&env, ROLE_PAUSER), &caller)?;
         set_paused(&env, true);
-        env.events().publish((symbol_short!("Paused"), caller), ());
+        ContractPaused { admin: caller }.publish(&env);
         Ok(())
     }
 
@@ -111,8 +105,7 @@ impl JobRegistryContract {
     pub fn unpause(env: Env, caller: Address) -> Result<(), ContractError> {
         require_role(&env, &Symbol::new(&env, ROLE_PAUSER), &caller)?;
         set_paused(&env, false);
-        env.events()
-            .publish((symbol_short!("Unpaused"), caller), ());
+        ContractUnpaused { admin: caller }.publish(&env);
         Ok(())
     }
 
@@ -166,6 +159,19 @@ impl JobRegistryContract {
     /// File a dispute on an assigned job. Either party may call this.
     pub fn dispute_job(env: Env, caller: Address, job_id: Symbol) -> Result<(), ContractError> {
         do_dispute_job(&env, &caller, job_id)
+    }
+
+    /// Complete multiple assigned jobs in one transaction.
+    ///
+    /// Only the assigned worker of each job may complete it. Jobs not in
+    /// `Assigned` state or where `caller` is not the worker are skipped.
+    /// Returns the ids of jobs successfully completed. Capped at 20 per call.
+    pub fn batch_complete_jobs(
+        env: Env,
+        caller: Address,
+        job_ids: Vec<Symbol>,
+    ) -> Result<Vec<Symbol>, ContractError> {
+        do_batch_complete_jobs(&env, &caller, job_ids)
     }
 
     // -------------------------------------------------------------------------

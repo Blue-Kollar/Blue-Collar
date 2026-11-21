@@ -31,7 +31,8 @@ mod skill_certification;
 mod storage;
 
 use bluecollar_types::events::{
-    ContractPaused, ContractUnpaused, CuratorAdded, CuratorRemoved, RoleGranted, RoleRevoked,
+    ContractPaused, ContractUnpaused, CuratorAdded, CuratorRemoved, ReputationSlashed,
+    ReputationUpdated, ReviewSubmitted, RoleGranted, RoleRevoked, WorkerDeregistered,
     WorkerRegistered, WorkerToggled, WorkerUpdated,
 };
 use bluecollar_types::ContractError;
@@ -482,8 +483,7 @@ impl RegistryContract {
         }
         storage::set_worker_list(&env, &list);
         storage::decrement_worker_count(&env);
-        env.events()
-            .publish((symbol_short!("WrkDrg"), id, caller), ());
+        WorkerDeregistered { id, caller }.publish(&env);
         Ok(())
     }
 
@@ -606,7 +606,7 @@ impl RegistryContract {
         worker.reputation = score;
         storage::set_worker(&env, &worker);
         logic::append_reputation_history(&env, &id, prev, score, Symbol::new(&env, "manual"));
-        env.events().publish((symbol_short!("RepUpd"), id), score);
+        ReputationUpdated { worker_id: id, score: score as i128 }.publish(&env);
         Ok(())
     }
 
@@ -668,10 +668,12 @@ impl RegistryContract {
                 Symbol::new(&env, "slash"),
             );
             worker.reputation = slashed;
-            env.events().publish(
-                (Symbol::new(&env, "RepSlashed"), worker_id.clone()),
-                (worker.avg_rating, slashed),
-            );
+            ReputationSlashed {
+                worker_id: worker_id.clone(),
+                avg_rating: worker.avg_rating,
+                new_reputation: slashed as i128,
+            }
+            .publish(&env);
         }
         storage::set_worker(&env, &worker);
         logic::append_reputation_history(
@@ -681,10 +683,13 @@ impl RegistryContract {
             new_score,
             Symbol::new(&env, "review"),
         );
-        env.events().publish(
-            (symbol_short!("RevSub"), worker_id),
-            (reviewer, rating, worker.reputation),
-        );
+        ReviewSubmitted {
+            worker_id,
+            reviewer,
+            rating,
+            new_reputation: worker.reputation as i128,
+        }
+        .publish(&env);
         Ok(())
     }
 
@@ -763,10 +768,12 @@ impl RegistryContract {
             worker.reputation,
             Symbol::new(&env, "slash"),
         );
-        env.events().publish(
-            (symbol_short!("RepSlash"), worker_id),
-            (slash_bps, worker.reputation),
-        );
+        ReputationSlashed {
+            worker_id,
+            avg_rating: slash_bps,
+            new_reputation: worker.reputation as i128,
+        }
+        .publish(&env);
         Ok(())
     }
 

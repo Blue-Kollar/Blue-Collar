@@ -292,7 +292,7 @@ pub struct TipSent {
 /// An escrow was created.
 ///
 /// Fixed topic: `"escrow_created"` | Indexed: `id`, `from`
-/// Data: `to`, `token`, `amount`, `expiry_ledger`
+/// Data: `to`, `token`, `amount`, `expiry`
 #[contractevent]
 pub struct EscrowCreated {
     /// Escrow identifier.
@@ -307,8 +307,8 @@ pub struct EscrowCreated {
     pub token: Address,
     /// Locked amount in token base units.
     pub amount: i128,
-    /// Ledger sequence number after which the escrow may be cancelled.
-    pub expiry_ledger: u32,
+    /// Unix timestamp (seconds) after which the escrow may be cancelled.
+    pub expiry: u64,
 }
 
 /// Escrowed funds were released to the worker.
@@ -325,6 +325,36 @@ pub struct EscrowReleased {
     pub to: Address,
     /// Net amount released in token base units.
     pub amount: i128,
+}
+
+/// A dispute was filed on an active escrow.
+///
+/// Fixed topic: `"escrow_disputed"` | Indexed: `id`, `caller`
+/// Data: none
+#[contractevent]
+pub struct EscrowDisputed {
+    /// Escrow identifier.
+    #[topic]
+    pub id: Symbol,
+    /// Address that filed the dispute.
+    #[topic]
+    pub caller: Address,
+}
+
+/// An escrow dispute was resolved by an arbitrator.
+///
+/// Fixed topic: `"escrow_resolved"` | Indexed: `id`, `arbitrator`
+/// Data: `released_to_beneficiary`
+#[contractevent]
+pub struct EscrowResolved {
+    /// Escrow identifier.
+    #[topic]
+    pub id: Symbol,
+    /// Arbitrator that resolved the dispute.
+    #[topic]
+    pub arbitrator: Address,
+    /// `true` if funds were released to the beneficiary; `false` if refunded to depositor.
+    pub released_to_beneficiary: bool,
 }
 
 /// An escrow was cancelled and funds returned to the payer.
@@ -362,7 +392,7 @@ pub struct EscrowExpired {
 /// A multi-sig escrow was created.
 ///
 /// Fixed topic: `"multi_sig_escrow_created"` | Indexed: `id`, `from`
-/// Data: `to`, `token`, `amount`, `expiry_ledger`, `threshold`
+/// Data: `to`, `token`, `amount`, `expiry`, `threshold`
 #[contractevent]
 pub struct MultiSigEscrowCreated {
     /// Escrow identifier.
@@ -377,8 +407,8 @@ pub struct MultiSigEscrowCreated {
     pub token: Address,
     /// Locked amount in token base units.
     pub amount: i128,
-    /// Ledger sequence after which the escrow may be cancelled.
-    pub expiry_ledger: u32,
+    /// Unix timestamp (seconds) after which the escrow may be cancelled.
+    pub expiry: u64,
     /// Minimum number of approvals required to release.
     pub threshold: u32,
 }
@@ -553,6 +583,20 @@ pub struct DisputeOpened {
     pub amount: i128,
 }
 
+/// Evidence was submitted for an open dispute.
+///
+/// Fixed topic: `"dispute_evidence"` | Indexed: `id`, `caller`
+/// Data: none
+#[contractevent]
+pub struct DisputeEvidence {
+    /// Dispute identifier.
+    #[topic]
+    pub id: Symbol,
+    /// Address that submitted evidence.
+    #[topic]
+    pub caller: Address,
+}
+
 /// An arbitrator decided the outcome of a dispute.
 ///
 /// Fixed topic: `"dispute_decided"` | Indexed: `id`, `arbitrator`
@@ -646,6 +690,20 @@ pub struct JobCancelled {
     #[topic]
     pub job_id: Symbol,
     /// Address that cancelled the job.
+    #[topic]
+    pub caller: Address,
+}
+
+/// A dispute was filed on a job.
+///
+/// Fixed topic: `"job_disputed"` | Indexed: `job_id`, `caller`
+/// Data: none
+#[contractevent]
+pub struct JobDisputed {
+    /// Job identifier.
+    #[topic]
+    pub job_id: Symbol,
+    /// Address that filed the dispute (poster or worker).
     #[topic]
     pub caller: Address,
 }

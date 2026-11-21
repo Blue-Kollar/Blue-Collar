@@ -13,6 +13,8 @@ use crate::storage::{
     save_job_list, save_role_members, Job, JobStatus,
 };
 
+use bluecollar_types::events::{JobAssigned, JobCancelled, JobCompleted, JobDisputed, JobPosted};
+
 // =============================================================================
 // Roles
 // =============================================================================
@@ -150,8 +152,13 @@ pub fn do_post_job(
     add_poster_job(env, poster, &id);
 
     // --- Interactions ---
-    env.events()
-        .publish((symbol_short!("JobPost"), id), (poster.clone(), budget));
+    JobPosted {
+        id,
+        poster: poster.clone(),
+        category: job.category.clone(),
+        budget,
+    }
+    .publish(env);
 
     Ok(job)
 }
@@ -182,10 +189,12 @@ pub fn do_assign_worker(
     save_job(env, &job);
 
     // --- Interactions ---
-    env.events().publish(
-        (symbol_short!("Assigned"), job_id),
-        (caller.clone(), worker),
-    );
+    JobAssigned {
+        job_id,
+        caller: caller.clone(),
+        worker,
+    }
+    .publish(env);
     Ok(())
 }
 
@@ -209,8 +218,11 @@ pub fn do_complete_job(env: &Env, caller: &Address, job_id: Symbol) -> Result<()
     save_job(env, &job);
 
     // --- Interactions ---
-    env.events()
-        .publish((symbol_short!("Completed"), job_id), caller.clone());
+    JobCompleted {
+        job_id,
+        caller: caller.clone(),
+    }
+    .publish(env);
     Ok(())
 }
 
@@ -234,8 +246,11 @@ pub fn do_cancel_job(env: &Env, caller: &Address, job_id: Symbol) -> Result<(), 
     save_job(env, &job);
 
     // --- Interactions ---
-    env.events()
-        .publish((symbol_short!("Cancelled"), job_id), caller.clone());
+    JobCancelled {
+        job_id,
+        caller: caller.clone(),
+    }
+    .publish(env);
     Ok(())
 }
 
@@ -261,7 +276,50 @@ pub fn do_dispute_job(env: &Env, caller: &Address, job_id: Symbol) -> Result<(),
     save_job(env, &job);
 
     // --- Interactions ---
-    env.events()
-        .publish((symbol_short!("Disputed"), job_id), caller.clone());
+    JobDisputed {
+        job_id,
+        caller: caller.clone(),
+    }
+    .publish(env);
     Ok(())
+}
+
+/// Complete multiple assigned jobs in one transaction (batch optimization, issue #1839).
+///
+/// Only the assigned worker of each job may complete it. Jobs that are not in
+/// `Assigned` state or where `caller` is not the assigned worker are skipped.
+/// Returns the ids of jobs successfully completed. Capped at 20 per call.
+pub fn do_batch_complete_jobs(
+    env: &Env,
+    caller: &Address,
+    job_ids: Vec<Symbol>,
+) -> Result<Vec<Symbol>, ContractError> {
+    // --- Checks ---
+    require_not_paused(env)?;
+    caller.require_auth();
+    if job_ids.len() > 20 {
+        return Err(ContractError::BatchTooLarge);
+    }
+
+    let mut completed: Vec<Symbol> = Vec::new(env);
+    for job_id in job_ids.iter() {
+        if let Some(mut job) = load_job(env, &job_id) {
+            if job.status != JobStatus::Assigned {
+                continue;
+            }
+            if job.worker.as_ref() != Some(caller) {
+                continue;
+            }
+            job.status = JobStatus::Completed;
+            job.updated_at = env.ledger().sequence();
+            save_job(env, &job);
+            JobCompleted {
+                job_id: job_id.clone(),
+                caller: caller.clone(),
+            }
+            .publish(env);
+            completed.push_back(job_id);
+        }
+    }
+    Ok(completed)
 }
