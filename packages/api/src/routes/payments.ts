@@ -4,6 +4,7 @@ import { publicReadRateLimiter } from '@/config/rateLimiter.js'
 import { paymentsWriteRateLimiter } from '@/middleware/rateLimit.js'
 import { createPaymentController } from '@/controllers/payment.js'
 import { paymentService } from '@/services/payment.service.js'
+import { idempotency } from '@/middleware/idempotency.js'
 
 const router = Router()
 
@@ -13,7 +14,8 @@ const { processTip, createEscrow, getFee, updateFee } = createPaymentController(
 
 router.get('/fee', publicReadRateLimiter, getFee)
 router.patch('/fee', authenticate, authorize('admin'), paymentsWriteRateLimiter, updateFee)
-router.post('/tip', authenticate, paymentsWriteRateLimiter, processTip)
-router.post('/escrow', authenticate, paymentsWriteRateLimiter, createEscrow)
+// Payment-initiating writes replay the stored response for a repeated Idempotency-Key (#1821).
+router.post('/tip', authenticate, paymentsWriteRateLimiter, idempotency, processTip)
+router.post('/escrow', authenticate, paymentsWriteRateLimiter, idempotency, createEscrow)
 
 export default router
