@@ -1,6 +1,6 @@
 #![cfg(test)]
 use super::*;
-use bluecollar_shared::CommonError;
+use bluecollar_shared::ContractError;
 use soroban_sdk::{Env, Address, String, Vec};
 
 #[test]
@@ -54,7 +54,7 @@ fn test_zero_amount_transfer() {
     );
 
     assert!(result.is_err());
-    assert_eq!(result.unwrap_err(), CommonError::InvalidAmount);
+    assert_eq!(result.unwrap_err(), ContractError::AmountMustBePositive);
 }
 
 #[test]
@@ -79,7 +79,7 @@ fn test_insufficient_balance() {
     );
 
     assert!(result.is_err());
-    assert_eq!(result.unwrap_err(), CommonError::InsufficientBalance);
+    assert_eq!(result.unwrap_err(), ContractError::InsufficientBalance);
 
     // Verify balance unchanged
     let balance = TokenTransferContract::get_balance(env, from, asset);
@@ -108,7 +108,7 @@ fn test_unauthorized_caller() {
     );
 
     assert!(result.is_err());
-    assert_eq!(result.unwrap_err(), CommonError::Unauthorized);
+    assert_eq!(result.unwrap_err(), ContractError::NotAuthorized);
 
     // Verify balance unchanged
     let balance = TokenTransferContract::get_balance(env, from, asset);
@@ -138,7 +138,7 @@ fn test_overflow_transfer() {
     );
 
     assert!(result.is_err());
-    assert_eq!(result.unwrap_err(), CommonError::Overflow);
+    assert_eq!(result.unwrap_err(), ContractError::ArithmeticOverflow);
 }
 
 #[test]
@@ -159,7 +159,7 @@ fn test_invalid_address() {
     );
 
     assert!(result.is_err());
-    assert_eq!(result.unwrap_err(), CommonError::InvalidAddress);
+    assert_eq!(result.unwrap_err(), ContractError::InvalidAddress);
 }
 
 #[test]
@@ -321,7 +321,7 @@ fn test_negative_amount_transfer() {
     );
 
     assert!(result.is_err());
-    assert_eq!(result.unwrap_err(), CommonError::InvalidAmount);
+    assert_eq!(result.unwrap_err(), ContractError::AmountMustBePositive);
 }
 
 #[test]

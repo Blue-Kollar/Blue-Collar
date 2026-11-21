@@ -12,5 +12,5 @@ pub mod storage_keys;
 pub mod test_fixtures;
 
 // Re-export commonly used items
-pub use errors::CommonError;
+pub use errors::ContractError;
 pub use storage_keys::{keys, CompactKey, StorageKeyBuilder};

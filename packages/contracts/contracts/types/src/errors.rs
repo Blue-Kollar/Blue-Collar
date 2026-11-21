@@ -168,6 +168,14 @@ pub enum ContractError {
     /// or raw operator previously clamped or panicked silently, so that fee
     /// bookkeeping failures surface as a typed error instead of losing value.
     ArithmeticOverflow = 80,
+
+    // =========================================================================
+    // Token / balance errors (issue #1835 — migrated from CommonError)
+    // =========================================================================
+    /// The caller's token balance is too low for the requested operation.
+    InsufficientBalance = 81,
+    /// The provided address is structurally invalid.
+    InvalidAddress = 82,
 }
 
 #[cfg(test)]
