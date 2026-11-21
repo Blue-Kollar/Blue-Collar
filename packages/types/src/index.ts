@@ -522,3 +522,6 @@ export interface CreateBookingInput {
 
 // ─── Shared Validation Schemas ────────────────────────────────────────────────
 export * from './validations.js';
+
+// ─── Shared Constants (#1898) ──────────────────────────────────────────────────
+export * from './constants.js';
