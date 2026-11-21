@@ -1,7 +1,21 @@
+# docker-compose.yml — Local development stack
+#
+# Profiles:
+#   core        (default) — db, redis, api, app, adminer
+#   monitoring  — otel-collector, loki, promtail (requires deploy/ configs)
+#
+# Usage:
+#   docker compose up -d                         # core services only
+#   docker compose --profile monitoring up -d    # core + monitoring
+#   docker compose down                          # stop all
+#   docker compose -f docker-compose.test.yml up -d  # test backends only
+
 services:
+  # ── Core services (default profile) ──────────────────────────────────────────
   db:
     image: postgres:16-alpine
     restart: unless-stopped
+    profiles: [""]
     environment:
       POSTGRES_USER: bluecollar
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-bluecollar}
@@ -19,6 +33,7 @@ services:
   redis:
     image: redis:7-alpine
     restart: unless-stopped
+    profiles: [""]
     ports:
       - "6379:6379"
     volumes:
@@ -34,6 +49,7 @@ services:
       context: .
       dockerfile: packages/api/Dockerfile
     restart: unless-stopped
+    profiles: [""]
     depends_on:
       db:
         condition: service_healthy
@@ -65,6 +81,7 @@ services:
         NEXT_PUBLIC_REGISTRY_CONTRACT_ID: ${NEXT_PUBLIC_REGISTRY_CONTRACT_ID:-}
         NEXT_PUBLIC_VAPID_PUBLIC_KEY: ${NEXT_PUBLIC_VAPID_PUBLIC_KEY:-}
     restart: unless-stopped
+    profiles: [""]
     depends_on:
       api:
         condition: service_healthy
@@ -77,25 +94,29 @@ services:
   adminer:
     image: adminer:latest
     restart: unless-stopped
+    profiles: [""]
     depends_on:
       - db
     ports:
       - "8080:8080"
 
+  # ── Monitoring services (opt-in via --profile monitoring) ────────────────────
   otel-collector:
     image: otel/opentelemetry-collector-contrib:0.96.0
     restart: unless-stopped
+    profiles: ["monitoring"]
     command: ["--config=/etc/otel-collector-config.yml"]
     volumes:
       - ./deploy/otel/otel-collector-config.yml:/etc/otel-collector-config.yml:ro
     ports:
-      - "4317:4317"   # OTLP gRPC
-      - "4318:4318"   # OTLP HTTP
-      - "8888:8888"   # Collector metrics
+      - "4317:4317"
+      - "4318:4318"
+      - "8888:8888"
 
   loki:
     image: grafana/loki:2.9.4
     restart: unless-stopped
+    profiles: ["monitoring"]
     command: -config.file=/etc/loki/loki.yml
     volumes:
       - ./deploy/loki/loki.yml:/etc/loki/loki.yml:ro
@@ -107,6 +128,7 @@ services:
   promtail:
     image: grafana/promtail:2.9.4
     restart: unless-stopped
+    profiles: ["monitoring"]
     command: -config.file=/etc/promtail/promtail.yml
     volumes:
       - ./deploy/promtail/promtail.yml:/etc/promtail/promtail.yml:ro

@@ -528,4 +528,5 @@ export interface CreateBookingInput {
   serviceDescription?: string;
 }
 
-
+// ─── Shared Constants (#1898) ─────────────────────────────────────────────────
+export * from './constants.js';

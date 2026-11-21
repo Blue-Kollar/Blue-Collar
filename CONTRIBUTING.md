@@ -8,6 +8,7 @@ Thanks for your interest in contributing! This guide covers everything you need 
 
 - [Getting Started](#getting-started)
 - [Commit Message Convention](#commit-message-convention)
+- [Pre-commit Hooks](#pre-commit-hooks)
 - [Branch Naming](#branch-naming)
 - [Issue & PR Templates](#issue--pr-templates)
 - [Pull Request Process](#pull-request-process)
@@ -31,3 +32,11 @@ In short:
 3. Configure environment variables and start local services as described in [docs/setup.md](docs/setup.md).
 
 Once your environment is ready, come back here for contribution conventions below.
+
+---
+
+## Commit Message Convention
+
+This project follows [Conventional Commits v1.0.0](https://www.conventionalcommits.org/).
+
+### Format
