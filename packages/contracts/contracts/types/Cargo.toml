@@ -11,6 +11,10 @@ soroban-sdk = { workspace = true }
 
 [dev-dependencies]
 soroban-sdk = { workspace = true, features = ["alloc", "testutils"] }
+# Property-based tests for the shared contract math (split_fee / bps_share),
+# issue #1848. The version is already resolved in the workspace Cargo.lock, so
+# adding it here does not change the lockfile.
+proptest = "1.4"
 
 [features]
 testutils = ["soroban-sdk/testutils"]
