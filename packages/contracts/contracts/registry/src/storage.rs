@@ -394,7 +394,7 @@ pub fn increment_worker_count(env: &Env) {
     let count = get_worker_count(env);
     env.storage()
         .persistent()
-        .set(&DataKey::WorkerCount, &(count + 1));
+        .set(&DataKey::WorkerCount, &count.checked_add(1).expect("worker count overflow"));
 }
 
 /// Decrement the worker count by 1 (saturates at 0).

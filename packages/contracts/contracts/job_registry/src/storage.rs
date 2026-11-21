@@ -92,9 +92,13 @@ pub fn load_job_list(env: &Env) -> Vec<Symbol> {
         .unwrap_or(Vec::new(env))
 }
 
-/// Write the job list index.
+/// Write the job list index and extend its TTL.
 pub fn save_job_list(env: &Env, list: &Vec<Symbol>) {
-    env.storage().persistent().set(&DataKey::JobList, list);
+    let key = DataKey::JobList;
+    env.storage().persistent().set(&key, list);
+    env.storage()
+        .persistent()
+        .extend_ttl(&key, TTL_THRESHOLD, TTL_EXTEND_TO);
 }
 
 /// Read a single job by id. Returns `None` if not found.
@@ -150,9 +154,13 @@ pub fn load_admin(env: &Env) -> Option<Address> {
     env.storage().persistent().get(&DataKey::Admin)
 }
 
-/// Write the admin address.
+/// Write the admin address and extend its TTL.
 pub fn save_admin(env: &Env, admin: &Address) {
-    env.storage().persistent().set(&DataKey::Admin, admin);
+    let key = DataKey::Admin;
+    env.storage().persistent().set(&key, admin);
+    env.storage()
+        .persistent()
+        .extend_ttl(&key, TTL_THRESHOLD, TTL_EXTEND_TO);
 }
 
 /// Read the role members list.
@@ -163,11 +171,13 @@ pub fn load_role_members(env: &Env, role_id: u64) -> Vec<Address> {
         .unwrap_or(Vec::new(env))
 }
 
-/// Write the role members list.
+/// Write the role members list and extend its TTL.
 pub fn save_role_members(env: &Env, role_id: u64, members: &Vec<Address>) {
+    let key = DataKey::RoleMembers(role_id);
+    env.storage().persistent().set(&key, members);
     env.storage()
         .persistent()
-        .set(&DataKey::RoleMembers(role_id), members);
+        .extend_ttl(&key, TTL_THRESHOLD, TTL_EXTEND_TO);
 }
 
 /// Return `true` if the contract has been initialised.

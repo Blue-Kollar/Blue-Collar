@@ -241,10 +241,9 @@ impl MarketContract {
     // Admin
     // -------------------------------------------------------------------------
 
-    /// Update the protocol fee (admin only, capped at [`MAX_FEE_BPS`]).
-    pub fn update_fee(env: Env, new_fee_bps: u32) -> Result<(), ContractError> {
-        let admin = Self::get_admin(env.clone())?;
-        Self::require_role(&env, &Symbol::new(&env, ROLE_FEE_MANAGER), &admin)?;
+    /// Update the protocol fee (fee_manager only, capped at [`MAX_FEE_BPS`]).
+    pub fn update_fee(env: Env, caller: Address, new_fee_bps: u32) -> Result<(), ContractError> {
+        Self::require_role(&env, &Symbol::new(&env, ROLE_FEE_MANAGER), &caller)?;
         if new_fee_bps > MAX_FEE_BPS {
             return Err(ContractError::FeeBpsExceedsMaximum);
         }
@@ -1243,10 +1242,9 @@ impl MarketContract {
     // -------------------------------------------------------------------------
 
     /// Upgrade the contract WASM in-place, preserving the contract ID and all storage.
-    pub fn upgrade(env: Env, new_wasm_hash: soroban_sdk::BytesN<32>) -> Result<(), ContractError> {
-        let admin = Self::get_admin(env.clone())?;
+    pub fn upgrade(env: Env, caller: Address, new_wasm_hash: soroban_sdk::BytesN<32>) -> Result<(), ContractError> {
         let upgrader_role = Self::role_symbol(&env, ROLE_UPGRADER);
-        Self::require_role(&env, &upgrader_role, &admin)?;
+        Self::require_role(&env, &upgrader_role, &caller)?;
         env.deployer().update_current_contract_wasm(new_wasm_hash);
         Ok(())
     }
@@ -2402,7 +2400,7 @@ mod admin_tests {
         
         // User should not be able to update fee (requires ROLE_FEE_MANAGER)
         assert_eq!(
-            client.try_update_fee(&200),
+            client.try_update_fee(&user, &200),
             Err(Ok(ContractError::MissingRole))
         );
         
