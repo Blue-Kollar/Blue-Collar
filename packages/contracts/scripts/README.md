@@ -9,6 +9,7 @@ This directory contains **manual scripts** for the BlueCollar Soroban smart cont
 | `deploy-registry.sh` | Build and deploy the Registry contract |
 | `deploy-market.sh` | Build and deploy the Market contract |
 | `profile-storage.sh` | Measure the CPU/memory cost of the key `job_registry` and `market` entrypoints (storage/fee profiling) |
+| `compare-wasm-sizes.sh` | Build the release WASM for every deployable contract and print each bytecode size and the total (size-regression check) |
 
 ---
 
@@ -157,6 +158,33 @@ cd packages/contracts
 See [`docs/changes/ISSUE-1433-storage-key-optimization.md`](../../docs/changes/ISSUE-1433-storage-key-optimization.md)
 for a recorded before/after comparison, and `BENCHMARKS.md` for the baseline
 tables.
+
+---
+
+## `compare-wasm-sizes.sh`
+
+Builds the release WASM for every deployable contract (optimised release
+profile: `opt-level = "z"`, `strip = "symbols"`, `panic = "abort"`,
+`codegen-units = 1`) and prints one line per contract with its bytecode size,
+plus the total. Use it to catch WASM-size regressions: capture a baseline
+before a change, rebuild, and diff the two outputs.
+
+### Usage
+
+```bash
+cd packages/contracts
+./scripts/compare-wasm-sizes.sh
+```
+
+### Output
+
+```
+== contract WASM sizes (release, opt-level z) ==
+bluecollar_registry                        12345 bytes
+bluecollar_market                          23456 bytes
+...
+TOTAL                                      123456 bytes
+```
 
 ---
 
