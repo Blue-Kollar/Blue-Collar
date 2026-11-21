@@ -1,5 +1,6 @@
 #![cfg(test)]
 use super::*;
+use bluecollar_shared::CommonError;
 use soroban_sdk::{Env, Address, String, Vec};
 
 #[test]
@@ -53,7 +54,7 @@ fn test_zero_amount_transfer() {
     );
 
     assert!(result.is_err());
-    assert_eq!(result.unwrap_err(), TransferError::ZeroAmount);
+    assert_eq!(result.unwrap_err(), CommonError::InvalidAmount);
 }
 
 #[test]
@@ -78,7 +79,7 @@ fn test_insufficient_balance() {
     );
 
     assert!(result.is_err());
-    assert_eq!(result.unwrap_err(), TransferError::InsufficientBalance);
+    assert_eq!(result.unwrap_err(), CommonError::InsufficientBalance);
 
     // Verify balance unchanged
     let balance = TokenTransferContract::get_balance(env, from, asset);
@@ -107,7 +108,7 @@ fn test_unauthorized_caller() {
     );
 
     assert!(result.is_err());
-    assert_eq!(result.unwrap_err(), TransferError::Unauthorized);
+    assert_eq!(result.unwrap_err(), CommonError::Unauthorized);
 
     // Verify balance unchanged
     let balance = TokenTransferContract::get_balance(env, from, asset);
@@ -137,7 +138,7 @@ fn test_overflow_transfer() {
     );
 
     assert!(result.is_err());
-    assert_eq!(result.unwrap_err(), TransferError::Overflow);
+    assert_eq!(result.unwrap_err(), CommonError::Overflow);
 }
 
 #[test]
@@ -158,7 +159,7 @@ fn test_invalid_address() {
     );
 
     assert!(result.is_err());
-    assert_eq!(result.unwrap_err(), TransferError::InvalidAddress);
+    assert_eq!(result.unwrap_err(), CommonError::InvalidAddress);
 }
 
 #[test]
@@ -320,7 +321,7 @@ fn test_negative_amount_transfer() {
     );
 
     assert!(result.is_err());
-    assert_eq!(result.unwrap_err(), TransferError::ZeroAmount);
+    assert_eq!(result.unwrap_err(), CommonError::InvalidAmount);
 }
 
 #[test]

@@ -1,4 +1,5 @@
 #![no_std]
+use bluecollar_shared::CommonError;
 use soroban_sdk::{contract, contracttype, Address, Env, String, Vec};
 
 #[contracttype]
@@ -19,18 +20,6 @@ pub struct TransferResult {
     pub tx_hash: String,
 }
 
-#[contracttype]
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub enum TransferError {
-    InsufficientBalance = 1,
-    ZeroAmount = 2,
-    Unauthorized = 3,
-    Overflow = 4,
-    InvalidAddress = 5,
-    AssetNotFound = 6,
-    TransferFailed = 7,
-}
-
 #[contract]
 pub struct TokenTransferContract;
 
@@ -48,30 +37,30 @@ impl TokenTransferContract {
         amount: i128,
         asset: String,
         memo: String,
-    ) -> Result<TransferResult, TransferError> {
+    ) -> Result<TransferResult, CommonError> {
         // Check authorization
         from.require_auth();
 
         // Validate addresses
         if Self::is_invalid_address(&from) || Self::is_invalid_address(&to) {
-            return Err(TransferError::InvalidAddress);
+            return Err(CommonError::InvalidAddress);
         }
 
         // Check zero amount
         if amount <= 0 {
-            return Err(TransferError::ZeroAmount);
+            return Err(CommonError::InvalidAmount);
         }
 
         // Check balance
         let balance = Self::get_balance(&env, &from, &asset);
         if balance < amount {
-            return Err(TransferError::InsufficientBalance);
+            return Err(CommonError::InsufficientBalance);
         }
 
         // Check overflow
         let recipient_balance = Self::get_balance(&env, &to, &asset);
         if let Err(_) = recipient_balance.checked_add(amount) {
-            return Err(TransferError::Overflow);
+            return Err(CommonError::Overflow);
         }
 
         // Store transfer record
