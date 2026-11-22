@@ -47,9 +47,12 @@ dead_code = "allow"
 deprecated = "allow"
 
 [workspace.lints.clippy]
-# Enable the pedantic group as a warning (not deny) so issues surface without
-# blocking compilation. Crate authors should fix or explicitly allow each one.
-pedantic = { level = "warn", priority = -1 }
+# Enable the pedantic group as denied (issue #1846). Clippy warnings are also
+# denied in CI via `cargo clippy --workspace --all-targets -- -D warnings`
+# (see .github/workflows/contract.yml), so the group is warning-free. Threshold
+# settings live in clippy.toml. Crate authors must fix or explicitly allow each
+# pedantic finding rather than silencing it inline.
+pedantic = { level = "deny", priority = -1 }
 # ----- Blanket exceptions for Soroban contract patterns -----
 # Soroban entry-point functions receive `Env` by value (SDK requirement).
 needless_pass_by_value = "allow"

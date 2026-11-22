@@ -1,0 +1,18 @@
+# clippy configuration for the BlueCollar Soroban contracts (issue #1846).
+#
+# Clippy warnings are denied in CI:
+#
+#     cargo clippy --workspace --all-targets -- -D warnings
+#
+# (see .github/workflows/contract.yml). The `clippy::pedantic` group and the
+# Soroban-specific blanket exceptions are declared under
+# `[workspace.lints.clippy]` in packages/contracts/Cargo.toml; this file holds
+# the threshold-style settings that are awkward to express per-lint.
+#
+# Thresholds are kept at clippy's defaults so enabling the pedantic group never
+# regresses the build; raise them here if a contract legitimately needs more.
+
+# Soroban entry points legitimately take many arguments (Env + several typed
+# inputs). `clippy::too_many_arguments` is allowed in the workspace lints, but
+# the threshold is recorded here so future tightening is a one-line change.
+too-many-arguments-threshold = 7

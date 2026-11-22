@@ -69,6 +69,14 @@ cargo fmt --all
 cargo clippy --workspace --all-targets -- -D warnings
 ```
 
+Clippy warnings are denied both in CI (`.github/workflows/contract.yml`) and at
+the workspace level: `[workspace.lints.clippy]` in `Cargo.toml` sets the
+`clippy::pedantic` group to `deny`, and threshold-style settings that are
+awkward to express per-lint live in `clippy.toml`. When a pedantic finding is
+legitimate for a Soroban pattern, add an explicit `allow` (per-function) or
+append it to the workspace blanket exceptions in `Cargo.toml` rather than
+silencing it inline.
+
 ### Writing unit tests
 
 Contract tests use `soroban-sdk` test utilities and standard Rust test conventions.
