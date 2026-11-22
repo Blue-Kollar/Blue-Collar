@@ -14,6 +14,7 @@ import {
 } from '@/schemas/admin.js'
 import multer from 'multer'
 import rateLimit from 'express-rate-limit'
+import { handleMulterError } from '@/middleware/upload.js'
 
 const router = Router()
 const csvUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } })
@@ -37,7 +38,7 @@ router.get('/workers', listWorkers)
 router.get('/users', listUsers)
 router.get('/export/workers', exportRateLimit, exportWorkers)
 router.get('/export/users', exportRateLimit, exportUsers)
-router.post('/workers/import', csvUpload.single('file'), importWorkersFromCsvController)
+router.post('/workers/import', csvUpload.single('file'), handleMulterError, importWorkersFromCsvController)
 router.post('/workers/bulk-toggle', validate(bulkToggleWorkersSchema), bulkToggleWorkers)
 router.delete('/workers/bulk-delete', validate(bulkDeleteWorkersSchema), bulkDeleteWorkers)
 router.patch('/users/:id/suspend', suspendUser)

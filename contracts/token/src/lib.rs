@@ -1,5 +1,5 @@
 #![no_std]
-use bluecollar_shared::CommonError;
+use bluecollar_shared::ContractError;
 use soroban_sdk::{contract, contracttype, Address, Env, String, Vec};
 
 #[contracttype]
@@ -37,30 +37,30 @@ impl TokenTransferContract {
         amount: i128,
         asset: String,
         memo: String,
-    ) -> Result<TransferResult, CommonError> {
+    ) -> Result<TransferResult, ContractError> {
         // Check authorization
         from.require_auth();
 
         // Validate addresses
         if Self::is_invalid_address(&from) || Self::is_invalid_address(&to) {
-            return Err(CommonError::InvalidAddress);
+            return Err(ContractError::InvalidAddress);
         }
 
         // Check zero amount
         if amount <= 0 {
-            return Err(CommonError::InvalidAmount);
+            return Err(ContractError::AmountMustBePositive);
         }
 
         // Check balance
         let balance = Self::get_balance(&env, &from, &asset);
         if balance < amount {
-            return Err(CommonError::InsufficientBalance);
+            return Err(ContractError::InsufficientBalance);
         }
 
         // Check overflow
         let recipient_balance = Self::get_balance(&env, &to, &asset);
         if let Err(_) = recipient_balance.checked_add(amount) {
-            return Err(CommonError::Overflow);
+            return Err(ContractError::ArithmeticOverflow);
         }
 
         // Store transfer record
