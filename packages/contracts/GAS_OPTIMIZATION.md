@@ -107,6 +107,44 @@ env.storage().persistent().set(&key, &worker); // Single write
 - Optimize pagination queries for large datasets
 - Consider lazy-loading for rarely-accessed fields
 
+## Cross-Contract Call Batching (issue #1839)
+
+Multiple sequential cross-contract calls each incur per-call overhead (auth, host
+frame setup, storage metering). Batching several operations into one transaction
+reduces that overhead proportionally.
+
+### Batch operations available
+
+| Contract | Function | Max batch | Notes |
+|----------|----------|-----------|-------|
+| `market` | `batch_release_escrow` | 20 | Release multiple escrows in one tx |
+| `payment` | `batch_release_payment` | 20 | Release multiple locked payments in one tx |
+| `job_registry` | `batch_complete_jobs` | 20 | Complete multiple assigned jobs in one tx |
+| `registry` | `batch_toggle` | 20 | Toggle active status for multiple workers |
+| `registry` | `batch_register` | 20 | Register multiple workers in one tx |
+
+### Gas budget guidance
+
+Each batch call must stay within the per-transaction instruction limit
+(currently ~100 million instructions on Mainnet). A batch of 20 token
+transfers costs roughly the same as 20 individual `release_payment` calls'
+*logic* cost but saves ~20× the per-transaction base overhead (auth check,
+contract invocation frame, XDR parsing/serialization). Start with batches of
+10 and increase until approaching the budget for your token contract.
+
+### Pattern
+
+```rust
+// Instead of 10 separate transactions:
+client.release_payment(&caller, &id1)?;
+client.release_payment(&caller, &id2)?;
+// ...
+
+// One transaction covers all:
+let ids = vec![id1, id2, ...];
+client.batch_release_payment(&caller, &ids)?;
+```
+
 ## References
 
 - [Soroban Gas Model](https://developers.stellar.org/docs/learn/soroban/gas-metering)

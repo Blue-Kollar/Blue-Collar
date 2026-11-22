@@ -19,6 +19,7 @@
 // Blanket Soroban exceptions (needless_pass_by_value, must_use_candidate, etc.)
 // are configured in the workspace Cargo.toml; per-function overrides go here.
 
+use bluecollar_types::events::{ContractPaused, ContractUnpaused, RoleGranted, RoleRevoked};
 use bluecollar_types::ContractError;
 use soroban_sdk::{contract, contractimpl, symbol_short, Address, BytesN, Env, Symbol, Vec};
 
@@ -73,8 +74,7 @@ impl EscrowContract {
             members.push_back(account.clone());
         }
         save_role_members(&env, id, &members);
-        env.events()
-            .publish((symbol_short!("RlGrnt"), role), account);
+        RoleGranted { role, admin: account }.publish(&env);
         Ok(())
     }
 
@@ -95,8 +95,7 @@ impl EscrowContract {
             }
         }
         save_role_members(&env, id, &updated);
-        env.events()
-            .publish((symbol_short!("RlRevk"), role), account);
+        RoleRevoked { role, account }.publish(&env);
         Ok(())
     }
 
@@ -114,7 +113,7 @@ impl EscrowContract {
     pub fn pause(env: Env, caller: Address) -> Result<(), ContractError> {
         require_role(&env, &Symbol::new(&env, ROLE_PAUSER), &caller)?;
         set_paused(&env, true);
-        env.events().publish((symbol_short!("Paused"), caller), ());
+        ContractPaused { admin: caller }.publish(&env);
         Ok(())
     }
 
@@ -122,8 +121,7 @@ impl EscrowContract {
     pub fn unpause(env: Env, caller: Address) -> Result<(), ContractError> {
         require_role(&env, &Symbol::new(&env, ROLE_PAUSER), &caller)?;
         set_paused(&env, false);
-        env.events()
-            .publish((symbol_short!("Unpaused"), caller), ());
+        ContractUnpaused { admin: caller }.publish(&env);
         Ok(())
     }
 

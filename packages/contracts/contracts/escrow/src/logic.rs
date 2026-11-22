@@ -37,6 +37,8 @@ use crate::storage::{
     save_role_members, EscrowRecord, EscrowState,
 };
 
+use bluecollar_types::events::{EscrowCancelled, EscrowCreated, EscrowDisputed, EscrowReleased, EscrowResolved};
+
 // =============================================================================
 // Roles
 // =============================================================================
@@ -185,10 +187,15 @@ pub fn do_create(
     let token = token::Client::new(env, &token_addr);
     token.transfer(depositor, &env.current_contract_address(), &amount);
 
-    env.events().publish(
-        (symbol_short!("Created"), id),
-        (depositor.clone(), beneficiary, amount),
-    );
+    EscrowCreated {
+        id,
+        from: depositor.clone(),
+        to: beneficiary,
+        token: token_addr,
+        amount,
+        expiry,
+    }
+    .publish(env);
     Ok(())
 }
 
@@ -228,10 +235,12 @@ pub fn do_release(env: &Env, caller: &Address, id: Symbol) -> Result<(), Contrac
     record.updated_at = env.ledger().sequence();
     save_escrow(env, &record);
 
-    env.events().publish(
-        (symbol_short!("Released"), id),
-        (caller.clone(), record.beneficiary, record.amount),
-    );
+    EscrowReleased {
+        id,
+        to: record.beneficiary,
+        amount: record.amount,
+    }
+    .publish(env);
     Ok(())
 }
 
@@ -269,10 +278,12 @@ pub fn do_cancel(env: &Env, caller: &Address, id: Symbol) -> Result<(), Contract
     record.updated_at = env.ledger().sequence();
     save_escrow(env, &record);
 
-    env.events().publish(
-        (symbol_short!("Cancelled"), id),
-        (caller.clone(), record.depositor, record.amount),
-    );
+    EscrowCancelled {
+        id,
+        from: record.depositor,
+        amount: record.amount,
+    }
+    .publish(env);
     Ok(())
 }
 
@@ -296,8 +307,11 @@ pub fn do_dispute(env: &Env, caller: &Address, id: Symbol) -> Result<(), Contrac
     save_escrow(env, &record);
 
     // --- Interactions ---
-    env.events()
-        .publish((symbol_short!("Disputed"), id), caller.clone());
+    EscrowDisputed {
+        id,
+        caller: caller.clone(),
+    }
+    .publish(env);
     Ok(())
 }
 
@@ -338,9 +352,11 @@ pub fn do_resolve(
     record.updated_at = env.ledger().sequence();
     save_escrow(env, &record);
 
-    env.events().publish(
-        (symbol_short!("Resolved"), id),
-        (caller.clone(), recipient, release_to_beneficiary),
-    );
+    EscrowResolved {
+        id,
+        arbitrator: caller.clone(),
+        released_to_beneficiary: release_to_beneficiary,
+    }
+    .publish(env);
     Ok(())
 }

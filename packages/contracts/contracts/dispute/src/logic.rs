@@ -7,6 +7,11 @@ use soroban_sdk::{symbol_short, token, Address, Env, String, Symbol, Vec};
 
 use crate::storage::{self, Dispute, DisputeOutcome, DisputeStatus};
 
+use bluecollar_types::events::{
+    ArbitratorAdded, ArbitratorRemoved, ContractPaused, ContractUnpaused, DisputeDecided,
+    DisputeEvidence, DisputeOpened, DisputeSettled,
+};
+
 // =============================================================================
 // Init
 // =============================================================================
@@ -43,16 +48,14 @@ pub fn require_not_paused(env: &Env) -> Result<(), ContractError> {
 pub fn pause(env: &Env, admin: &Address) -> Result<(), ContractError> {
     require_admin(env, admin)?;
     storage::set_paused(env, true);
-    env.events()
-        .publish((symbol_short!("Paused"), admin.clone()), ());
+    ContractPaused { admin: admin.clone() }.publish(env);
     Ok(())
 }
 
 pub fn unpause(env: &Env, admin: &Address) -> Result<(), ContractError> {
     require_admin(env, admin)?;
     storage::set_paused(env, false);
-    env.events()
-        .publish((symbol_short!("Unpaused"), admin.clone()), ());
+    ContractUnpaused { admin: admin.clone() }.publish(env);
     Ok(())
 }
 
@@ -71,8 +74,11 @@ pub fn add_arbitrator(
         arbs.push_back(arbitrator.clone());
         storage::set_arbitrators(env, &arbs);
     }
-    env.events()
-        .publish((symbol_short!("ArbAdd"),), arbitrator.clone());
+    ArbitratorAdded {
+        admin: admin.clone(),
+        arbitrator: arbitrator.clone(),
+    }
+    .publish(env);
     Ok(())
 }
 
@@ -90,8 +96,11 @@ pub fn remove_arbitrator(
         }
     }
     storage::set_arbitrators(env, &updated);
-    env.events()
-        .publish((symbol_short!("ArbRem"),), arbitrator.clone());
+    ArbitratorRemoved {
+        admin: admin.clone(),
+        arbitrator: arbitrator.clone(),
+    }
+    .publish(env);
     Ok(())
 }
 
@@ -145,10 +154,13 @@ pub fn file_dispute(
     let client = token::Client::new(env, &token);
     client.transfer(&disputer, &env.current_contract_address(), &amount);
 
-    env.events().publish(
-        (symbol_short!("DspOpen"), id, disputer),
-        (respondent, amount),
-    );
+    DisputeOpened {
+        id,
+        disputer: disputer.clone(),
+        respondent,
+        amount,
+    }
+    .publish(env);
     Ok(())
 }
 
@@ -187,8 +199,11 @@ pub fn submit_evidence(
 
     storage::set_dispute(env, &dispute_id, &dispute);
 
-    env.events()
-        .publish((symbol_short!("DspEvid"), dispute_id, caller), ());
+    DisputeEvidence {
+        id: dispute_id,
+        caller: caller.clone(),
+    }
+    .publish(env);
     Ok(())
 }
 
@@ -233,10 +248,13 @@ pub fn decide(
 
     storage::set_dispute(env, &dispute_id, &dispute);
 
-    env.events().publish(
-        (symbol_short!("DspDcide"), dispute_id, arbitrator),
-        (outcome as u32, split_bps),
-    );
+    DisputeDecided {
+        id: dispute_id,
+        arbitrator: arbitrator.clone(),
+        outcome: outcome as u32,
+        split_bps,
+    }
+    .publish(env);
     Ok(())
 }
 
@@ -320,10 +338,12 @@ pub fn settle(env: &Env, dispute_id: Symbol) -> Result<(), ContractError> {
     let (disputer_share, respondent_share) = tally_votes(&dispute)?;
     execute_payout(env, &dispute, disputer_share, respondent_share);
 
-    env.events().publish(
-        (symbol_short!("DspSettle"), dispute_id),
-        (dispute.outcome as u32, dispute.amount),
-    );
+    DisputeSettled {
+        id: dispute_id,
+        outcome: dispute.outcome as u32,
+        amount: dispute.amount,
+    }
+    .publish(env);
     Ok(())
 }
 
