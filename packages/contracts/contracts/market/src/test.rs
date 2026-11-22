@@ -171,8 +171,8 @@ fn test_update_fee_success() {
     init(&env, &contract, &admin, 100, &fee_recipient);
 
     let client = MarketContractClient::new(&env, &contract);
-    // `update_fee` reads the admin from storage; it takes only the new fee.
-    client.update_fee(&200);
+    // `update_fee` now requires a caller with ROLE_FEE_MANAGER; admin was granted this role in `init`.
+    client.update_fee(&admin, &200);
     assert_eq!(client.get_config().fee_bps, 200);
 }
 
@@ -182,7 +182,7 @@ fn test_update_fee_too_high() {
     let contract = deploy(&env);
     init(&env, &contract, &admin, 100, &fee_recipient);
     assert_eq!(
-        MarketContractClient::new(&env, &contract).try_update_fee(&501),
+        MarketContractClient::new(&env, &contract).try_update_fee(&admin, &501),
         Err(Ok(ContractError::FeeBpsExceedsMaximum))
     );
 }
