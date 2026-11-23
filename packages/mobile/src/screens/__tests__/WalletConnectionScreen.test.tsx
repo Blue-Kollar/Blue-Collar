@@ -43,6 +43,11 @@ function makeProvider(overrides: Partial<{
 
 const MOCK_PK = 'GDQP2KPQGKIHYJGXNUIYOMHARUARCA7DJT5FO2FFOOKY3B2WSQHG4W37'
 
+function statusText(getByTestId: (id: string) => any): string {
+  const children = getByTestId('wallet-status-text').props.children
+  return (Array.isArray(children) ? children.join('') : String(children)).trim()
+}
+
 describe('WalletConnectionScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks()
@@ -57,7 +62,7 @@ describe('WalletConnectionScreen', () => {
 
   it('starts in disconnected status', () => {
     const { getByTestId } = render(<WalletConnectionScreen />)
-    expect(getByTestId('wallet-status-text').props.children).toContain('Disconnected')
+    expect(statusText(getByTestId)).toContain('Disconnected')
   })
 
   it('renders the Connect Wallet button when disconnected', () => {
@@ -86,7 +91,7 @@ describe('WalletConnectionScreen', () => {
     })
 
     expect(getByTestId('connecting-indicator')).toBeTruthy()
-    expect(getByTestId('wallet-status-text').props.children).toContain('Connecting')
+    expect(statusText(getByTestId)).toContain('Connecting')
 
     // Clean up: resolve the promise
     await act(async () => { resolve({ publicKey: MOCK_PK }) })
@@ -114,7 +119,7 @@ describe('WalletConnectionScreen', () => {
     })
 
     await waitFor(() =>
-      expect(getByTestId('wallet-status-text').props.children).toContain('Connected')
+      expect(statusText(getByTestId)).toContain('Connected')
     )
   })
 
@@ -171,7 +176,7 @@ describe('WalletConnectionScreen', () => {
     })
 
     await waitFor(() =>
-      expect(getByTestId('wallet-status-text').props.children).toContain('Failed')
+      expect(statusText(getByTestId)).toContain('Failed')
     )
   })
 
@@ -202,7 +207,7 @@ describe('WalletConnectionScreen', () => {
 
     expect(queryByTestId('error-card')).toBeNull()
     expect(getByTestId('connect-button')).toBeTruthy()
-    expect(getByTestId('wallet-status-text').props.children).toContain('Disconnected')
+    expect(statusText(getByTestId)).toContain('Disconnected')
   })
 
   // ── Disconnect ────────────────────────────────────────────────────────────

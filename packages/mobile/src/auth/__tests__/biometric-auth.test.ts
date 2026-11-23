@@ -13,7 +13,7 @@ jest.mock('expo-local-authentication', () => ({
   },
 }))
 
-jest.mock('../SecureStorage', () => ({
+jest.mock('../secure-storage', () => ({
   SecureStorage: {
     setBiometricEnabled: jest.fn(),
     isBiometricEnabled: jest.fn(),

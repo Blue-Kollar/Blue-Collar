@@ -123,7 +123,7 @@ export default function JobPostingScreen({
       {/* Worker ID */}
       <Text style={styles.label}>Worker ID *</Text>
       <TextInput
-        style={[styles.input, errors.workerId && styles.inputError]}
+        style={[styles.input, errors.workerId ? styles.inputError : undefined]}
         value={workerId}
         onChangeText={(v) => {
           setWorkerId(v)
@@ -141,7 +141,7 @@ export default function JobPostingScreen({
       {/* Message */}
       <Text style={styles.label}>Job Description *</Text>
       <TextInput
-        style={[styles.textArea, errors.message && styles.inputError]}
+        style={[styles.textArea, errors.message ? styles.inputError : undefined]}
         value={message}
         onChangeText={(v) => {
           setMessage(v)

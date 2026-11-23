@@ -15,21 +15,21 @@ import React from 'react'
 import { render, waitFor, fireEvent } from '@testing-library/react-native'
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
-jest.mock('../../../context/AuthContext', () => ({
+jest.mock('@/context/AuthContext', () => ({
   useAuth: jest.fn(),
 }))
 
-jest.mock('../../../cache', () => ({
+jest.mock('@/cache', () => ({
   useStaleWhileRevalidate: jest.fn(),
 }))
 
-jest.mock('../../../lib/api', () => ({
+jest.mock('@/lib/api', () => ({
   workersApi: { getAll: jest.fn() },
   contactRequestsApi: { getMyRequests: jest.fn() },
 }))
 
-const { useAuth } = require('../../../context/AuthContext')
-const { useStaleWhileRevalidate } = require('../../../cache')
+const { useAuth } = require('@/context/AuthContext')
+const { useStaleWhileRevalidate } = require('@/cache')
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 const defaultUser = {

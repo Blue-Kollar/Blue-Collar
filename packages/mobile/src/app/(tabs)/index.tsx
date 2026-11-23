@@ -4,12 +4,12 @@ import { workersApi } from "@/lib/api";
 
 export default function DiscoveryScreen() {
   const { data: workers, isLoading, isFromCache, isRefreshing, isError, error } =
-    useStaleWhileRevalidate({
+    useStaleWhileRevalidate<any[]>({
       queryKey: ["workers", "discover"],
       queryFn: async () => {
         const response = await workersApi.getAll({ limit: 20 });
         if (!response.ok) throw new Error(response.error || "Failed to fetch");
-        return response.data;
+        return response.data as any[];
       },
       cacheKey: "workers:discover",
       ttl: 24 * 60 * 60 * 1000,
