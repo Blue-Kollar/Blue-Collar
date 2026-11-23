@@ -10,13 +10,13 @@
  * Issue #1857: Mock Stellar SDK test utility
  */
 
-import { Account, TransactionBuilder, Networks, Operation, FeeBumpTransaction, Transaction, Keypair, Asset } from '@stellar/js-sdk'
+import { MOCK_STELLAR_ADDRESS, MOCK_TX_HASH } from './stellar-mocks.js'
 
 /**
  * Mock account fixture with common test values
  */
 export const mockAccountFixture = () => ({
-  id: 'GCZZZ3YJBIE2MTSW36X4MSAAGVH7PNXK34FCZWJ2GCYKWW22KWXLOZH',
+  id: MOCK_STELLAR_ADDRESS,
   sequence: '100',
   balances: [
     {
@@ -34,7 +34,7 @@ export const mockAccountFixture = () => ({
   signers: [
     {
       weight: 1,
-      key: 'GCZZZ3YJBIE2MTSW36X4MSAAGVH7PNXK34FCZWJ2GCYKWW22KWXLOZH',
+      key: MOCK_STELLAR_ADDRESS,
       type: 'ed25519_public_key',
     },
   ],
@@ -50,12 +50,12 @@ export const mockAccountFixture = () => ({
  * Mock transaction fixture
  */
 export const mockTransactionFixture = () => ({
-  id: '3ce2250d527c0bae4d12c61aaa7432ebb337a32170b2a34f44b03c63e5ef9e36',
+  id: MOCK_TX_HASH,
   paging_token: '51623103489-0',
-  hash: '3ce2250d527c0bae4d12c61aaa7432ebb337a32170b2a34f44b03c63e5ef9e36',
+  hash: MOCK_TX_HASH,
   ledger: 12345,
   created_at: new Date().toISOString(),
-  source_account: 'GCZZZ3YJBIE2MTSW36X4MSAAGVH7PNXK34FCZWJ2GCYKWW22KWXLOZH',
+  source_account: MOCK_STELLAR_ADDRESS,
   source_account_sequence: '100',
   fee_charged: '100',
   max_fee: '100',
@@ -113,7 +113,7 @@ export class MockStellarServer {
     }
 
     return {
-      hash: '3ce2250d527c0bae4d12c61aaa7432ebb337a32170b2a34f44b03c63e5ef9e36',
+      hash: MOCK_TX_HASH,
       result_xdr: 'AAAAAAAAAGQAAAAAAAAAAA==',
       result_meta_xdr: 'AAAAAgAAAAIAAAADACYaAQAAAAA=',
     }
@@ -274,58 +274,38 @@ export class MockSorobanRpcServer {
 }
 
 /**
- * Create a mock Stellar client for testing
+ * Create a mock Stellar client for testing.
+ *
+ * Accepts either a `MockStellarServer` (the usage documented when this helper
+ * was introduced) or an object of per-method overrides.
  */
-export function createMockStellarClient(overrides?: {
-  getAccountInfo?: (publicKey: string) => Promise<any>
-  broadcastTransaction?: (xdr: string) => Promise<any>
-  pollTransactionStatus?: (hash: string) => Promise<any>
-  getAccountTransactions?: (publicKey: string) => Promise<any>
-}) {
-  const horizonServer = new MockStellarServer()
+export function createMockStellarClient(
+  overridesOrServer: {
+    getAccountInfo?: (publicKey: string) => Promise<any>
+    broadcastTransaction?: (xdr: string) => Promise<any>
+    pollTransactionStatus?: (hash: string) => Promise<any>
+    getAccountTransactions?: (publicKey: string) => Promise<any>
+  } | MockStellarServer = {},
+) {
+  const horizonServer =
+    overridesOrServer instanceof MockStellarServer ? overridesOrServer : new MockStellarServer()
   const sorobanServer = new MockSorobanRpcServer()
+  const overrides =
+    overridesOrServer instanceof MockStellarServer
+      ? {}
+      : (overridesOrServer as {
+          getAccountInfo?: (publicKey: string) => Promise<any>
+          broadcastTransaction?: (xdr: string) => Promise<any>
+          pollTransactionStatus?: (hash: string) => Promise<any>
+          getAccountTransactions?: (publicKey: string) => Promise<any>
+        })
 
   return {
     horizonServer,
     sorobanServer,
-    getAccountInfo: overrides?.getAccountInfo || ((publicKey: string) => horizonServer.getAccount(publicKey)),
-    broadcastTransaction: overrides?.broadcastTransaction || ((xdr: string) => horizonServer.submitTransaction(xdr)),
-    pollTransactionStatus: overrides?.pollTransactionStatus || ((hash: string) => horizonServer.getTransaction(hash)),
-    getAccountTransactions: overrides?.getAccountTransactions || ((publicKey: string) => horizonServer.getAccountTransactions(publicKey)),
+    getAccountInfo: overrides.getAccountInfo || ((publicKey: string) => horizonServer.getAccount(publicKey)),
+    broadcastTransaction: overrides.broadcastTransaction || ((xdr: string) => horizonServer.submitTransaction(xdr)),
+    pollTransactionStatus: overrides.pollTransactionStatus || ((hash: string) => horizonServer.getTransaction(hash)),
+    getAccountTransactions: overrides.getAccountTransactions || ((publicKey: string) => horizonServer.getAccountTransactions(publicKey)),
   }
 }
-
-/**
- * Create a mock transaction for testing
- */
-export function createMockTransaction(options?: {
-  sourcePublicKey?: string
-  operationType?: string
-  amount?: string
-  destination?: string
-}) {
-  const sourceKey = options?.sourcePublicKey || 'GCZZZ3YJBIE2MTSW36X4MSAAGVH7PNXK34FCZWJ2GCYKWW22KWXLOZH'
-  const account = new Account(sourceKey, '100')
-
-  const builder = new TransactionBuilder(account, {
-    fee: '100',
-    networkPassphrase: Networks.TESTNET_NETWORK_PASSPHRASE,
-  })
-
-  if (options?.operationType === 'payment' && options?.destination && options?.amount) {
-    builder.addOperation(
-      Operation.payment({
-        destination: options.destination,
-        asset: Asset.native(),
-        amount: options.amount,
-      })
-    )
-  }
-
-  return builder.setTimeout(300).build()
-}
-
-/**
- * Export mock fixtures and utilities
- */
-export { mockAccountFixture, mockTransactionFixture }

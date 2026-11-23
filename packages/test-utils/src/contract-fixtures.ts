@@ -22,11 +22,18 @@
 import { vi } from 'vitest';
 
 // ─── Constants ─────────────────────────────────────────────────────────────────
-// Re-exported from @bluecollar/sdk so there is a single source of truth (#1295).
-// Tests that previously imported these from @bluecollar/test-utils will continue
-// to work because the names and values are identical.
+// These mirror the canonical values in @bluecollar/sdk/src/constants.ts. They
+// are declared locally so test-utils stays independently importable (the SDK
+// also dev-depends on test-utils, which made the re-export circular).
 
-export { TESTNET_FRIENDBOT_URL, TESTNET_HORIZON_URL, MAINNET_HORIZON_URL } from '@bluecollar/sdk';
+/** Friendbot endpoint for funding testnet accounts. */
+export const TESTNET_FRIENDBOT_URL = 'https://friendbot-testnet.stellar.org/bump_sequence' as const;
+
+/** Stellar Horizon REST API URL for testnet. */
+export const TESTNET_HORIZON_URL = 'https://horizon-testnet.stellar.org' as const;
+
+/** Stellar Horizon REST API URL for mainnet. */
+export const MAINNET_HORIZON_URL = 'https://horizon.stellar.org' as const;
 
 /** Default initial XLM balance for newly funded test accounts (in stroops string form). */
 export const DEFAULT_TEST_BALANCE = '10000.0000000';
