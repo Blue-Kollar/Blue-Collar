@@ -25,7 +25,7 @@ import {
   type MockRequest,
   type MockResponse,
   type MockUser,
-} from '@bluecollar/test-utils/express'
+} from '@bluecollar/test-utils/express';
 
 // ── Re-export under the short names used throughout __tests__ ─────────────────
 
@@ -37,7 +37,7 @@ import {
  * const req = makeReq({ params: { id: 'worker-1' }, user: { id: 'u-1', role: 'curator' } })
  */
 export function makeReq(overrides: Partial<MockRequest> = {}): MockRequest {
-  return makeRequest(overrides)
+  return makeRequest(overrides);
 }
 
 /**
@@ -49,7 +49,7 @@ export function makeReq(overrides: Partial<MockRequest> = {}): MockRequest {
  * expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ status: 'success' }))
  */
 export function makeRes(): MockResponse {
-  return makeResponse()
+  return makeResponse();
 }
 
 /**
@@ -59,9 +59,9 @@ export function makeRes(): MockResponse {
  * const next = makeNext()
  * expect(next).not.toHaveBeenCalled() // no error was forwarded
  */
-export const makeNext = _makeNext
+export const makeNext = _makeNext;
 
 // ── JWT helpers re-exported for convenience ───────────────────────────────────
 
-export { makeJwt, makeExpiredJwt }
-export type { MockRequest, MockResponse, MockUser }
+export { makeJwt, makeExpiredJwt };
+export type { MockRequest, MockResponse, MockUser };

@@ -8,16 +8,16 @@
  * Closes #1400
  */
 
-import { render, screen } from "@testing-library/react";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
 
-vi.mock("next/image", () => ({
+vi.mock('next/image', () => ({
   default: ({ src, alt, ...props }: any) => <img src={src} alt={alt} {...props} />,
 }));
 
-vi.mock("next/link", () => ({
+vi.mock('next/link', () => ({
   default: ({ href, children, ...props }: any) => (
     <a href={href} {...props}>
       {children}
@@ -25,28 +25,23 @@ vi.mock("next/link", () => ({
   ),
 }));
 
-vi.mock("lucide-react", () => ({
+vi.mock('lucide-react', () => ({
   ChevronLeft: (props: any) => <span {...props} data-icon="chevron-left" />,
   ChevronRight: (props: any) => <span {...props} data-icon="chevron-right" />,
   Clock: (props: any) => <span {...props} data-icon="clock" />,
   AlertCircle: (props: any) => <span {...props} data-icon="alert-circle" />,
 }));
 
-vi.mock("@/components/Skeleton", () => ({
+vi.mock('@/components/Skeleton', () => ({
   default: ({ className }: any) => (
-    <div
-      data-testid="skeleton"
-      className={className}
-      role="status"
-      aria-label="Loading"
-    />
+    <div data-testid="skeleton" className={className} role="status" aria-label="Loading" />
   ),
   DashboardTableSkeleton: () => (
     <div
       data-testid="dashboard-table-skeleton"
       role="status"
       aria-label="Loading table"
-      style={{ height: "400px" }}
+      style={{ height: '400px' }}
     />
   ),
   CalendarSkeleton: () => (
@@ -54,107 +49,102 @@ vi.mock("@/components/Skeleton", () => ({
       data-testid="calendar-skeleton"
       role="status"
       aria-label="Loading calendar"
-      style={{ height: "350px", width: "100%" }}
+      style={{ height: '350px', width: '100%' }}
     />
   ),
 }));
 
 // ── AvailabilityCalendar skeleton tests ────────────────────────────────────
 
-describe("AvailabilityCalendar skeleton loading", () => {
-  it("renders skeleton placeholder while loading with loading prop", () => {
+describe('AvailabilityCalendar skeleton loading', () => {
+  it('renders skeleton placeholder while loading with loading prop', () => {
     // Simulating a loading state wrapper component
     const { container } = render(
       <div role="status" aria-busy="true" aria-label="Loading calendar">
-        <div
-          data-testid="calendar-skeleton"
-          style={{ height: "350px", width: "100%" }}
-        />
-      </div>
+        <div data-testid="calendar-skeleton" style={{ height: '350px', width: '100%' }} />
+      </div>,
     );
 
     expect(container.querySelector("[aria-busy='true']")).not.toBeNull();
-    expect(screen.getByTestId("calendar-skeleton")).toBeInTheDocument();
+    expect(screen.getByTestId('calendar-skeleton')).toBeInTheDocument();
   });
 
-  it("skeleton reserves space matching final content height", () => {
+  it('skeleton reserves space matching final content height', () => {
     const { container } = render(
-      <div
-        data-testid="calendar-skeleton"
-        style={{ height: "350px", width: "100%" }}
-      />
+      <div data-testid="calendar-skeleton" style={{ height: '350px', width: '100%' }} />,
     );
 
     const skeleton = container.querySelector("[data-testid='calendar-skeleton']") as HTMLElement;
     expect(skeleton).toBeDefined();
-    expect(skeleton.style.height).toBe("350px");
-    expect(skeleton.style.width).toBe("100%");
+    expect(skeleton.style.height).toBe('350px');
+    expect(skeleton.style.width).toBe('100%');
   });
 
-  it("does not render skeleton when data is loaded", () => {
+  it('does not render skeleton when data is loaded', () => {
     const { container } = render(
       <div role="main">
         <div className="rounded-xl border bg-white p-5">
           <h2>Calendar Header</h2>
           <div>Calendar Grid</div>
         </div>
-      </div>
+      </div>,
     );
 
-    expect(screen.queryByTestId("calendar-skeleton")).not.toBeInTheDocument();
+    expect(screen.queryByTestId('calendar-skeleton')).not.toBeInTheDocument();
     expect(container.querySelector("[role='main']")).toBeInTheDocument();
   });
 
-  it("maintains content dimensions post-load to prevent CLS", () => {
+  it('maintains content dimensions post-load to prevent CLS', () => {
     const { rerender } = render(
-      <div style={{ height: "350px", width: "100%" }}>
+      <div style={{ height: '350px', width: '100%' }}>
         <div data-testid="calendar-skeleton" />
-      </div>
+      </div>,
     );
 
-    let container = screen.getByTestId("calendar-skeleton").parentElement as HTMLElement;
+    let container = screen.getByTestId('calendar-skeleton').parentElement as HTMLElement;
     const skeletonHeight = container.style.height;
 
     // Simulate data load
     rerender(
-      <div style={{ height: "350px", width: "100%" }}>
+      <div style={{ height: '350px', width: '100%' }}>
         <div className="rounded-xl border bg-white p-5">
           <div>Calendar Grid (loaded)</div>
         </div>
-      </div>
+      </div>,
     );
 
-    container = screen.getByRole("main").parentElement?.parentElement as HTMLElement;
-    expect(container.style.height).toBe(skeletonHeight);
+    const loadedWrapper = screen.getByText('Calendar Grid (loaded)').parentElement
+      ?.parentElement as HTMLElement;
+    expect(loadedWrapper.style.height).toBe(skeletonHeight);
   });
 });
 
 // ── Dashboard skeleton tests ────────────────────────────────────────────────
 
-describe("Dashboard loading skeletons", () => {
-  it("renders table skeleton while workers are loading", () => {
+describe('Dashboard loading skeletons', () => {
+  it('renders table skeleton while workers are loading', () => {
     render(
       <div role="status" aria-busy="true" aria-label="Loading workers table">
-        <div data-testid="dashboard-table-skeleton" style={{ height: "400px" }} />
-      </div>
+        <div data-testid="dashboard-table-skeleton" style={{ height: '400px' }} />
+      </div>,
     );
 
-    expect(screen.getByTestId("dashboard-table-skeleton")).toBeInTheDocument();
-    expect(screen.getByRole("status")).toHaveAttribute("aria-busy", "true");
+    expect(screen.getByTestId('dashboard-table-skeleton')).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveAttribute('aria-busy', 'true');
   });
 
-  it("dashboard table skeleton has minimum height to prevent layout shift", () => {
+  it('dashboard table skeleton has minimum height to prevent layout shift', () => {
     const { container } = render(
-      <div data-testid="dashboard-table-skeleton" style={{ height: "400px" }} />
+      <div data-testid="dashboard-table-skeleton" style={{ height: '400px' }} />,
     );
 
     const skeleton = container.querySelector(
-      "[data-testid='dashboard-table-skeleton']"
+      "[data-testid='dashboard-table-skeleton']",
     ) as HTMLElement;
     expect(parseInt(skeleton.style.height)).toBeGreaterThanOrEqual(300);
   });
 
-  it("does not render skeleton when dashboard data is loaded", () => {
+  it('does not render skeleton when dashboard data is loaded', () => {
     render(
       <div role="main" className="p-4">
         <h1>Dashboard</h1>
@@ -165,26 +155,25 @@ describe("Dashboard loading skeletons", () => {
             </tr>
           </tbody>
         </table>
-      </div>
+      </div>,
     );
 
-    expect(screen.queryByTestId("dashboard-table-skeleton")).not.toBeInTheDocument();
-    expect(screen.getByRole("main")).toBeInTheDocument();
+    expect(screen.queryByTestId('dashboard-table-skeleton')).not.toBeInTheDocument();
+    expect(screen.getByRole('main')).toBeInTheDocument();
   });
 
-  it("preserves viewport space during skeleton-to-content transition", () => {
+  it('preserves viewport space during skeleton-to-content transition', () => {
     const { rerender } = render(
-      <div style={{ minHeight: "400px" }}>
-        <div data-testid="dashboard-table-skeleton" style={{ height: "400px" }} />
-      </div>
+      <div style={{ minHeight: '400px' }}>
+        <div data-testid="dashboard-table-skeleton" style={{ height: '400px' }} />
+      </div>,
     );
 
-    let container = screen.getByTestId("dashboard-table-skeleton")
-      .parentElement as HTMLElement;
+    let container = screen.getByTestId('dashboard-table-skeleton').parentElement as HTMLElement;
     const skeletonMinHeight = container.style.minHeight;
 
     rerender(
-      <div style={{ minHeight: "400px" }}>
+      <div style={{ minHeight: '400px' }}>
         <table>
           <tbody>
             <tr>
@@ -192,129 +181,131 @@ describe("Dashboard loading skeletons", () => {
             </tr>
           </tbody>
         </table>
-      </div>
+      </div>,
     );
 
-    container = screen.getByRole("row").closest("div") as HTMLElement;
-    if (container && container.parentElement) {
-      expect(container.parentElement.style.minHeight).toBe(skeletonMinHeight);
-    }
+    const loadedWrapper = screen.getByRole('row').closest('table')?.parentElement as HTMLElement;
+    expect(loadedWrapper.style.minHeight).toBe(skeletonMinHeight);
   });
 
-  it("multiple skeleton rows maintain consistent row height", () => {
+  it('multiple skeleton rows maintain consistent row height', () => {
     render(
       <div>
         {[1, 2, 3, 4, 5].map((i) => (
-          <div key={i} data-testid={`skeleton-row-${i}`} style={{ height: "60px" }}>
+          <div key={i} data-testid={`skeleton-row-${i}`} style={{ height: '60px' }}>
             Skeleton
           </div>
         ))}
-      </div>
+      </div>,
     );
 
     const rows = screen.getAllByTestId(/skeleton-row-/);
     rows.forEach((row) => {
-      expect((row as HTMLElement).style.height).toBe("60px");
+      expect((row as HTMLElement).style.height).toBe('60px');
     });
   });
 });
 
-// ── Snapshot tests for skeleton states ──────────────────────────────────────
+// ── Targeted assertions for skeleton/loaded states ──────────────────────────
 
-describe("Skeleton snapshot states", () => {
-  it("matches snapshot for calendar skeleton during load", () => {
-    const { container } = render(
+describe('Skeleton state semantics', () => {
+  it('announces a busy calendar and reserves its final height', () => {
+    render(
       <div role="status" aria-busy="true">
-        <div
-          data-testid="calendar-skeleton"
-          style={{ height: "350px", width: "100%" }}
-          className="rounded-xl border bg-gray-100 p-5"
-        />
-      </div>
+        <div data-testid="calendar-skeleton" style={{ height: '350px', width: '100%' }} />
+      </div>,
     );
 
-    expect(container).toMatchSnapshot();
+    expect(screen.getByRole('status')).toHaveAttribute('aria-busy', 'true');
+    const skeleton = screen.getByTestId('calendar-skeleton');
+    expect(skeleton.style.height).toBe('350px');
+    expect(skeleton.style.width).toBe('100%');
   });
 
-  it("matches snapshot for dashboard table skeleton during load", () => {
-    const { container } = render(
+  it('reserves table height with one placeholder per row', () => {
+    render(
       <div role="status" aria-busy="true">
-        <div
-          data-testid="dashboard-table-skeleton"
-          style={{ height: "400px" }}
-          className="space-y-2"
-        >
+        <div data-testid="dashboard-table-skeleton" style={{ height: '400px' }}>
           {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="h-12 bg-gray-200 rounded" />
+            <div key={i} data-testid="table-skeleton-row" />
           ))}
         </div>
-      </div>
+      </div>,
     );
 
-    expect(container).toMatchSnapshot();
+    expect(screen.getByRole('status')).toHaveAttribute('aria-busy', 'true');
+    expect(screen.getByTestId('dashboard-table-skeleton').style.height).toBe('400px');
+    expect(screen.getAllByTestId('table-skeleton-row')).toHaveLength(5);
   });
 
-  it("matches snapshot for loaded calendar state (no CLS)", () => {
+  it('renders the loaded calendar heading and all seven day cells', () => {
     const { container } = render(
-      <div style={{ height: "350px", width: "100%" }}>
-        <div className="rounded-xl border bg-white p-5">
+      <div style={{ height: '350px', width: '100%' }}>
+        <div>
           <h2>September 2024</h2>
-          <div className="grid grid-cols-7 gap-1">
+          <div>
             {[1, 2, 3, 4, 5, 6, 7].map((d) => (
-              <div key={d} className="text-center p-2">
+              <div key={d} data-testid="calendar-day">
                 {d}
               </div>
             ))}
           </div>
         </div>
-      </div>
+      </div>,
     );
 
-    expect(container).toMatchSnapshot();
+    expect(screen.getByRole('heading', { name: 'September 2024' })).toBeInTheDocument();
+    expect(screen.getAllByTestId('calendar-day')).toHaveLength(7);
+    expect((container.firstElementChild as HTMLElement).style.height).toBe('350px');
   });
 
-  it("matches snapshot for loaded dashboard state (no CLS)", () => {
-    const { container } = render(
-      <div style={{ minHeight: "400px" }}>
-        <table className="w-full">
+  it('renders the loaded worker table with headers and three active rows', () => {
+    render(
+      <div style={{ minHeight: '400px' }}>
+        <table>
           <thead>
-            <tr className="border-b">
-              <th className="text-left p-2">Worker</th>
-              <th className="text-left p-2">Status</th>
+            <tr>
+              <th>Worker</th>
+              <th>Status</th>
             </tr>
           </thead>
           <tbody>
-            {["Alice", "Bob", "Carol"].map((name) => (
-              <tr key={name} className="border-b">
-                <td className="p-2">{name}</td>
-                <td className="p-2">Active</td>
+            {['Alice', 'Bob', 'Carol'].map((name) => (
+              <tr key={name}>
+                <td>{name}</td>
+                <td>Active</td>
               </tr>
             ))}
           </tbody>
         </table>
-      </div>
+      </div>,
     );
 
-    expect(container).toMatchSnapshot();
+    expect(screen.getByRole('columnheader', { name: 'Worker' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'Status' })).toBeInTheDocument();
+    expect(screen.getAllByRole('row')).toHaveLength(4);
+    ['Alice', 'Bob', 'Carol'].forEach((name) => {
+      expect(screen.getByText(name)).toBeInTheDocument();
+    });
+    expect(screen.getAllByText('Active')).toHaveLength(3);
   });
 });
 
 // ── CLS regression tests ───────────────────────────────────────────────────
 
-describe("CLS regression prevention", () => {
-  it("does not shift content when hydrating from skeleton to real data", () => {
+describe('CLS regression prevention', () => {
+  it('does not shift content when hydrating from skeleton to real data', () => {
     const { container, rerender } = render(
-      <div style={{ height: "350px" }}>
+      <div style={{ height: '350px' }}>
         <div data-testid="calendar-skeleton" />
-      </div>
+      </div>,
     );
 
-    const skeletonParent = screen.getByTestId("calendar-skeleton")
-      .parentElement as HTMLElement;
+    const skeletonParent = screen.getByTestId('calendar-skeleton').parentElement as HTMLElement;
     const originalHeight = skeletonParent.style.height;
 
     rerender(
-      <div style={{ height: "350px" }}>
+      <div style={{ height: '350px' }}>
         <div className="calendar-content">
           <div className="grid grid-cols-7">
             {Array.from({ length: 35 }).map((_, i) => (
@@ -324,41 +315,42 @@ describe("CLS regression prevention", () => {
             ))}
           </div>
         </div>
-      </div>
+      </div>,
     );
 
-    const contentParent = container.querySelector(".calendar-content")
+    const contentParent = container.querySelector('.calendar-content')
       ?.parentElement as HTMLElement;
     expect(contentParent.style.height).toBe(originalHeight);
   });
 
-  it("reserves space for all rows in table before data loads", () => {
+  it('reserves space for all rows in table before data loads', () => {
     const { rerender } = render(
-      <div style={{ minHeight: "400px" }}>
+      <div style={{ minHeight: '400px' }}>
         {[1, 2, 3, 4, 5].map((i) => (
-          <div key={i} data-testid={`skeleton-row-${i}`} style={{ height: "60px" }} />
+          <div key={i} data-testid={`skeleton-row-${i}`} style={{ height: '60px' }} />
         ))}
-      </div>
+      </div>,
     );
 
-    const originalHeight = (screen.getByTestId("skeleton-row-1")
-      .parentElement as HTMLElement).style.minHeight;
+    const originalHeight = (screen.getByTestId('skeleton-row-1').parentElement as HTMLElement).style
+      .minHeight;
 
     rerender(
-      <div style={{ minHeight: "400px" }}>
+      <div style={{ minHeight: '400px' }}>
         <table>
           <tbody>
-            {["Worker1", "Worker2", "Worker3", "Worker4", "Worker5"].map((name) => (
-              <tr key={name} style={{ height: "60px" }}>
+            {['Worker1', 'Worker2', 'Worker3', 'Worker4', 'Worker5'].map((name) => (
+              <tr key={name} style={{ height: '60px' }}>
                 <td>{name}</td>
               </tr>
             ))}
           </tbody>
         </table>
-      </div>
+      </div>,
     );
 
-    const tableParent = screen.getByRole("row").closest("table")?.parentElement as HTMLElement;
+    const tableParent = screen.getAllByRole('row')[0].closest('table')
+      ?.parentElement as HTMLElement;
     expect(tableParent.style.minHeight).toBe(originalHeight);
   });
 });
