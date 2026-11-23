@@ -125,6 +125,74 @@ const i18nRules = {
   ],
 }
 
+/**
+ * Import ordering and cycle detection rules (#1893).
+ *
+ * Enforces consistent import ordering and detects circular dependencies.
+ * Requires eslint-plugin-import (ESLint 8) or eslint-plugin-import-x (ESLint 9)
+ * to be installed in the consuming package.
+ *
+ * ESLint 9 flat config packages (api, sdk, types) use eslint-plugin-import-x.
+ * ESLint 8 legacy packages (app, mobile) use eslint-plugin-import.
+ *
+ * Import group order:
+ *   1. Node built-ins (node:*)
+ *   2. External packages (npm)
+ *   3. Workspace packages (@bluecollar/*)
+ *   4. Internal aliases (@/*)
+ *   5. Relative imports (./)
+ *
+ * Auto-disable for a justified circular dep:
+ *   // eslint-disable-next-line import/no-cycle -- <reason>
+ */
+const importRules = {
+  'import/no-cycle': ['error', { maxDepth: 5, ignoreExternal: true }],
+  'import/order': [
+    'warn',
+    {
+      groups: [
+        'builtin',
+        'external',
+        'internal',
+        'parent',
+        'sibling',
+        'index',
+        'object',
+        'type',
+      ],
+      pathGroups: [
+        {
+          pattern: '@bluecollar/**',
+          group: 'internal',
+          position: 'before',
+        },
+        {
+          pattern: '@/**',
+          group: 'internal',
+          position: 'after',
+        },
+      ],
+      pathGroupsExcludedImportTypes: ['builtin'],
+      'newlines-between': 'ignore',
+      alphabetize: { order: 'asc', caseInsensitive: true },
+    },
+  ],
+}
+
+/**
+ * Consistent type definitions (#1895).
+ *
+ * Enforces `interface` for object shapes and disallows `type Foo = { ... }`
+ * object alias declarations. Union types, mapped types, and conditional types
+ * are unaffected because the rule only applies to object-literal shapes.
+ *
+ * To use a type alias for a shape deliberately (e.g., Partial<X>, Pick<X, K>),
+ * add: // eslint-disable-next-line @typescript-eslint/consistent-type-definitions -- <reason>
+ */
+const typeDefinitionRules = {
+  '@typescript-eslint/consistent-type-definitions': ['error', 'interface'],
+}
+
 module.exports = {
   tsRules,
   baseRules,
@@ -132,4 +200,6 @@ module.exports = {
   filenameRules,
   deprecationRules,
   i18nRules,
+  importRules,
+  typeDefinitionRules,
 }
