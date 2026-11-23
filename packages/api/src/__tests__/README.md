@@ -29,6 +29,28 @@ Patterns that cause flakiness and are **not allowed** in the default test suite:
 If a test cannot be made deterministic (requires real DB, timing-sensitive by design), it
 belongs in the E2E quarantine zone, not the default suite.
 
+---
+
+## Coverage policy (issue #1867)
+
+The monorepo enforces an **85% line-coverage target** across all packages. This threshold
+applies to lines, functions, and statements; branches are set at 80% due to environment-
+conditional code paths. See `docs/TESTING_COVERAGE.md` for the complete coverage policy,
+per-package thresholds, and exclusion rules.
+
+**Running coverage checks locally:**
+
+```bash
+# Single package
+pnpm --filter @bluecollar/api test:coverage
+
+# All packages
+pnpm -r test:coverage
+```
+
+Coverage reports are generated in `<package>/coverage/index.html`. Failing to meet the 85%
+threshold causes the test run to exit with a non-zero code, blocking CI merges.
+
 ## Shared HTTP integration harness (`test-harness.ts`)
 
 HTTP integration suites drive the real Express app with supertest. Each one needs the same
