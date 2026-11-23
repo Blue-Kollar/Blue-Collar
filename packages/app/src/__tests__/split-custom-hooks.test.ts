@@ -112,8 +112,8 @@ describe("useWorkersFetch - split data fetching hook", () => {
     const { result } = renderHook(() => useWorkersFetch(mockToken));
 
     await act(async () => {
-      // Simulate fetch
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      // Trigger fetch (no real timing wait needed in mock scenario)
+      await Promise.resolve();
     });
 
     expect(mockFetch).toHaveBeenCalled();
@@ -191,7 +191,8 @@ describe("useCuratorAnalytics - analytics data fetching hook", () => {
     const { result } = renderHook(() => useCuratorAnalytics("token"));
 
     await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      // Trigger fetch (no real timing wait needed in mock scenario)
+      await Promise.resolve();
     });
 
     expect(mockFetch).toHaveBeenCalled();

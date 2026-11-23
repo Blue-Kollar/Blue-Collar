@@ -4,6 +4,31 @@ Test files live under `src/__tests__/` and are run with `pnpm --filter @bluecoll
 (Vitest). The `e2e/` directory and `*.e2e.test.ts` files need a live database and are excluded
 from the default run.
 
+## Retry-free policy (issue #1865)
+
+**All tests must pass deterministically without retries.** Flaky tests that pass intermittently
+mask real issues and slow down CI. The monorepo enforces a strict no-retry policy:
+
+- **No test retries** — Vitest and Playwright test runners are configured with `retries: 0`.
+- **Fix root causes** — Tests that fail due to timing, shared state, or real network/DB
+  dependencies must be fixed (use fake timers, mock infrastructure, isolate state) or moved
+  to the quarantine zone (E2E tests with explicit DB setup).
+- **E2E tests are quarantined** — Tests requiring live infrastructure are excluded from the
+  default test run and live in `src/__tests__/e2e/`. They must be explicitly opted in via
+  `pnpm test:e2e` with `TEST_DATABASE_URL` set. See `QUARANTINE.md` for details.
+
+Patterns that cause flakiness and are **not allowed** in the default test suite:
+
+| Pattern | Why it fails | Fix |
+|---|---|---|
+| `await new Promise(resolve => setTimeout(resolve, 100))` | Wall-clock timing depends on CPU load | Use `vi.useFakeTimers()` and `vi.advanceTimersByTime()` |
+| `let sharedState` across `describe` blocks | Order-dependent — one test modifies state used by the next | Isolate state with `beforeEach`/`afterEach` or factories |
+| `prisma.user.create()` without mocking | Real DB calls fail in CI without provisioned database | Mock `db` module with `vi.mock('../../db.js')` |
+| TOTP codes tested within 30s window | Validation window makes tests time-sensitive | Mock `Date.now()` or use pre-generated valid codes |
+
+If a test cannot be made deterministic (requires real DB, timing-sensitive by design), it
+belongs in the E2E quarantine zone, not the default suite.
+
 ## Shared HTTP integration harness (`test-harness.ts`)
 
 HTTP integration suites drive the real Express app with supertest. Each one needs the same
