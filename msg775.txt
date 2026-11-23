@@ -1,0 +1,15 @@
+feat(#775): implement background job queue and scheduler
+
+- Create queue/index.ts with BullMQ Queue definitions:
+  emailQueue, notificationQueue, indexerQueue, ttlQueue, cleanupQueue, schedulerQueue
+- DEFAULT_JOB_OPTIONS: 3 attempts, exponential backoff (2s), DLQ retention 7 days
+- Typed job data interfaces: EmailJobData, NotificationJobData, etc.
+- Helper functions: enqueueEmail, enqueueNotification, enqueueScheduled
+- Create workers/email.worker.ts: processes email queue, concurrency 5
+- Create workers/notification.worker.ts: processes notification queue, concurrency 10
+- Create workers/scheduler.worker.ts:
+  - cleanupWorker: expired sessions, orphaned uploads, stale notifications
+  - schedulerWorker: booking_reminder, review_prompt, weekly_digest
+  - registerRecurringJobs: daily cleanup 02:00 UTC, weekly cleanup Sundays 03:00 UTC
+
+Closes #775

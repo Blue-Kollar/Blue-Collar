@@ -1,0 +1,15 @@
+feat(#774): implement sophisticated Redis-backed rate limiting
+
+- Create rateLimit.ts middleware with createRateLimiter factory
+- Sliding window via Redis sorted sets (ZREMRANGEBYSCORE, ZADD, ZCARD)
+- Per-user bucket (auth) and per-IP bucket (anon) with separate limits
+- Admin role bypass, IP allowlist via RL_ALLOWLIST env var
+- Burst allowance on top of base limit
+- RateLimit-Limit/Remaining/Reset/Policy headers on every response
+- Retry-After with exponential backoff on 429 responses
+- Graceful fail-open when Redis is unavailable
+- Create rateLimits.ts config with AUTH_STRICT, AUTH_MODERATE, WORKERS_READ,
+  WORKERS_WRITE, CONTACT, GENERAL_API, BOOKINGS configs
+- All values configurable via env vars without redeploy
+
+Closes #774
