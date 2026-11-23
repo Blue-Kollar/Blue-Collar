@@ -8,8 +8,8 @@
  *   - Top-categories leaderboard
  *   - Recent workers / recent users lists
  */
-import { db } from '@/db.js'
-import { daysAgo, calcGrowthPct } from './shared.js'
+import { db } from '@/db.js';
+import { daysAgo, calcGrowthPct } from './shared.js';
 
 // ── Monthly growth trend ─────────────────────────────────────────────────────
 
@@ -21,23 +21,23 @@ import { daysAgo, calcGrowthPct } from './shared.js'
  * @internal Used by getPlatformAnalytics; not exported from the barrel.
  */
 async function getGrowthData(model: 'user' | 'worker', months: number) {
-  const data: { month: string; count: number }[] = []
-  const now = new Date()
+  const data: { month: string; count: number }[] = [];
+  const now = new Date();
 
   for (let i = months - 1; i >= 0; i--) {
-    const start = new Date(now.getFullYear(), now.getMonth() - i, 1)
-    const end = new Date(now.getFullYear(), now.getMonth() - i + 1, 1)
-    const label = start.toLocaleDateString('en-US', { month: 'short', year: '2-digit' })
+    const start = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const end = new Date(now.getFullYear(), now.getMonth() - i + 1, 1);
+    const label = start.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
 
     const count =
       model === 'user'
         ? await db.user.count({ where: { createdAt: { gte: start, lt: end } } })
-        : await db.worker.count({ where: { createdAt: { gte: start, lt: end } } })
+        : await db.worker.count({ where: { createdAt: { gte: start, lt: end } } });
 
-    data.push({ month: label, count })
+    data.push({ month: label, count });
   }
 
-  return data
+  return data;
 }
 
 // ── Main export ──────────────────────────────────────────────────────────────
@@ -50,8 +50,8 @@ async function getGrowthData(model: 'user' | 'worker', months: number) {
  *   { overview, engagement, revenue, growth, trends, topCategories, recentWorkers, recentUsers }
  */
 export async function getPlatformAnalytics() {
-  const thirtyDaysAgo = daysAgo(30)
-  const sixtyDaysAgo = daysAgo(60)
+  const thirtyDaysAgo = daysAgo(30);
+  const sixtyDaysAgo = daysAgo(60);
 
   const [
     totalWorkers,
@@ -100,7 +100,14 @@ export async function getPlatformAnalytics() {
       take: 10,
     }),
     db.user.findMany({
-      select: { id: true, firstName: true, lastName: true, email: true, createdAt: true, role: true },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        createdAt: true,
+        role: true,
+      },
       orderBy: { createdAt: 'desc' },
       take: 10,
     }),
@@ -109,7 +116,7 @@ export async function getPlatformAnalytics() {
     }),
     getGrowthData('user', 6),
     getGrowthData('worker', 6),
-  ])
+  ]);
 
   return {
     overview: {
@@ -148,5 +155,5 @@ export async function getPlatformAnalytics() {
     })),
     recentWorkers,
     recentUsers,
-  }
+  };
 }

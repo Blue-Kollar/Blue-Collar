@@ -1,44 +1,32 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import dynamic from "next/dynamic";
-import {
-  Users,
-  Briefcase,
-  Eye,
-  MessageSquare,
-  Star,
-  Download,
-  DollarSign,
-} from "lucide-react";
-import { MetricCard } from "@/components/Dashboard";
-import { useAuth } from "@/context/AuthContext";
-import { useToast } from "@/hooks/useToast";
-import { formatCompact } from "@/lib/format";
-import { AdminDashboardSkeleton } from "@/components/Skeleton";
-import { apiClient, ApiError } from "@/lib/apiClient";
-import {
-  AdminQuickLinks,
-  RecentWorkersList,
-  RecentUsersList,
-} from "@/components/dashboard/admin";
-import type { PlatformAnalytics } from "@/types";
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
+import { Users, Briefcase, Eye, MessageSquare, Star, Download, DollarSign } from 'lucide-react';
+import { MetricCard } from '@/components/Dashboard';
+import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/hooks/useToast';
+import { formatCompact } from '@/lib/format';
+import { AdminDashboardSkeleton } from '@/components/Skeleton';
+import { apiClient, ApiError } from '@/lib/apiClient';
+import { AdminQuickLinks, RecentWorkersList, RecentUsersList } from '@/components/dashboard/admin';
+import type { PlatformAnalytics } from '@/types';
 
 // ── Dynamic imports (code splitting: recharts is ~200KB) ─────────────────────
 const chartLoading = () => <div className="h-[300px] rounded-lg bg-gray-50 animate-pulse" />;
 
 const UserGrowthChart = dynamic(
-  () => import("@/components/charts/AdminCharts").then((m) => m.UserGrowthChart),
-  { ssr: false, loading: chartLoading }
+  () => import('@/components/charts/AdminCharts').then((m) => m.UserGrowthChart),
+  { ssr: false, loading: chartLoading },
 );
 const WorkerGrowthChart = dynamic(
-  () => import("@/components/charts/AdminCharts").then((m) => m.WorkerGrowthChart),
-  { ssr: false, loading: chartLoading }
+  () => import('@/components/charts/AdminCharts').then((m) => m.WorkerGrowthChart),
+  { ssr: false, loading: chartLoading },
 );
 const TopCategoriesChart = dynamic(
-  () => import("@/components/charts/AdminCharts").then((m) => m.TopCategoriesChart),
-  { ssr: false, loading: chartLoading }
+  () => import('@/components/charts/AdminCharts').then((m) => m.TopCategoriesChart),
+  { ssr: false, loading: chartLoading },
 );
 
 export default function AdminDashboard() {
@@ -49,32 +37,32 @@ export default function AdminDashboard() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (user && user.role !== "admin") {
-      router.push("/");
+    if (user && user.role !== 'admin') {
+      router.push('/');
       return;
     }
 
     apiClient
-      .get<PlatformAnalytics>("/admin/analytics")
+      .get<PlatformAnalytics>('/admin/analytics')
       .then((res) => setData(res ?? null))
       .catch((err) => {
         const message =
-          err instanceof ApiError ? err.message : "Failed to load dashboard analytics";
-        toast(message, "error");
+          err instanceof ApiError ? err.message : 'Failed to load dashboard analytics';
+        toast(message, 'error');
       })
       .finally(() => setIsLoading(false));
   }, [user, router, toast]);
 
   const handleExportCsv = () => {
-    const link = document.createElement("a");
-    link.href = apiClient.url("/admin/analytics/export");
-    link.setAttribute("download", "platform-analytics.csv");
+    const link = document.createElement('a');
+    link.href = apiClient.url('/admin/analytics/export');
+    link.setAttribute('download', 'platform-analytics.csv');
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
-  if (!user || user.role !== "admin") return null;
+  if (!user || user.role !== 'admin') return null;
   if (isLoading) return <AdminDashboardSkeleton />;
   if (!data) return <div className="p-8 text-center text-gray-500">Failed to load analytics</div>;
 
@@ -151,19 +139,25 @@ export default function AdminDashboard() {
       {/* Growth Trends Charts */}
       <div className="mb-8 grid grid-cols-1 gap-8 lg:grid-cols-2">
         <div className="rounded-lg border bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
-          <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">User Growth (6 months)</h2>
+          <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">
+            User Growth (6 months)
+          </h2>
           <UserGrowthChart data={data.trends.userGrowth} />
         </div>
 
         <div className="rounded-lg border bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
-          <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">Worker Growth (6 months)</h2>
+          <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">
+            Worker Growth (6 months)
+          </h2>
           <WorkerGrowthChart data={data.trends.workerGrowth} />
         </div>
       </div>
 
       {/* Top Categories Chart */}
       <div className="mb-8 rounded-lg border bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
-        <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">Top Categories</h2>
+        <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">
+          Top Categories
+        </h2>
         <TopCategoriesChart data={data.topCategories} />
       </div>
 

@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { cn } from "@/lib/utils";
-import type { DashboardWorker, DatePreset } from "@/hooks/useWorkerAnalytics";
+import { cn } from '@/lib/utils';
+import type { DashboardWorker, DatePreset } from '@/hooks/useWorkerAnalytics';
 
 interface WorkerAnalyticsFiltersProps {
   workers: DashboardWorker[];
@@ -64,18 +64,18 @@ export function WorkerAnalyticsFilters({
           </label>
         </div>
         <div className="flex rounded-lg bg-gray-100 p-1 dark:bg-gray-800">
-          {(["7", "30", "90", "custom"] as DatePreset[]).map((item) => (
+          {(['7', '30', '90', 'custom'] as DatePreset[]).map((item) => (
             <button
               key={item}
               onClick={() => onPresetChange(item)}
               className={cn(
-                "rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
+                'rounded-md px-3 py-1.5 text-xs font-medium transition-colors',
                 preset === item
-                  ? "bg-white text-gray-900 shadow-sm dark:bg-gray-950 dark:text-gray-100"
-                  : "text-gray-500 hover:text-gray-700 dark:text-gray-400"
+                  ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-950 dark:text-gray-100'
+                  : 'text-gray-500 hover:text-gray-700 dark:text-gray-400',
               )}
             >
-              {item === "custom" ? "Custom" : `${item}D`}
+              {item === 'custom' ? 'Custom' : `${item}D`}
             </button>
           ))}
         </div>

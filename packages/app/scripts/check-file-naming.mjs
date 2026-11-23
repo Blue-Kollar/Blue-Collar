@@ -15,16 +15,16 @@
  * Exit 1 if any violations are found so it can be wired into CI.
  */
 
-import { readdirSync, statSync } from "fs";
-import { join, relative, basename, extname } from "path";
+import { readdirSync, statSync } from 'fs';
+import { join, relative, basename, extname } from 'path';
 
-const ROOT = new URL("../src", import.meta.url).pathname;
+const ROOT = new URL('../src', import.meta.url).pathname;
 
 const PASCAL = /^[A-Z][A-Za-z0-9]*(\.[a-z]+)*\.(ts|tsx)$/;
-const CAMEL  = /^[a-z][A-Za-z0-9]*(\.[a-z]+)*\.(ts|tsx)$/;
+const CAMEL = /^[a-z][A-Za-z0-9]*(\.[a-z]+)*\.(ts|tsx)$/;
 
-const EXEMPT_BASENAMES = new Set(["index.ts", "index.tsx"]);
-const EXEMPT_MIDDLE_EXTS = [".stories.", ".test."];
+const EXEMPT_BASENAMES = new Set(['index.ts', 'index.tsx']);
+const EXEMPT_MIDDLE_EXTS = ['.stories.', '.test.'];
 
 function isExempt(filename) {
   if (EXEMPT_BASENAMES.has(filename)) return true;
@@ -45,14 +45,14 @@ function walk(dir, cb) {
 let violations = 0;
 
 // ── components (excluding ui/) ────────────────────────────────────────────────
-walk(join(ROOT, "components"), (fullPath) => {
+walk(join(ROOT, 'components'), (fullPath) => {
   const rel = relative(ROOT, fullPath);
   // Skip shadcn/ui files (intentionally kebab-case)
-  if (rel.startsWith("components/ui/")) return;
+  if (rel.startsWith('components/ui/')) return;
 
   const name = basename(fullPath);
   if (isExempt(name)) return;
-  if (![".ts", ".tsx"].includes(extname(name))) return;
+  if (!['.ts', '.tsx'].includes(extname(name))) return;
 
   if (!PASCAL.test(name)) {
     console.error(`[naming] PASCAL_CASE required: ${rel}`);
@@ -61,13 +61,13 @@ walk(join(ROOT, "components"), (fullPath) => {
 });
 
 // ── hooks ─────────────────────────────────────────────────────────────────────
-walk(join(ROOT, "hooks"), (fullPath) => {
+walk(join(ROOT, 'hooks'), (fullPath) => {
   const rel = relative(ROOT, fullPath);
   const name = basename(fullPath);
   if (isExempt(name)) return;
-  if (![".ts", ".tsx"].includes(extname(name))) return;
+  if (!['.ts', '.tsx'].includes(extname(name))) return;
   // Markdown docs inside hooks/ are exempt
-  if (name.endsWith(".md")) return;
+  if (name.endsWith('.md')) return;
 
   if (!CAMEL.test(name)) {
     console.error(`[naming] camelCase required: ${rel}`);
@@ -79,5 +79,5 @@ if (violations > 0) {
   console.error(`\n${violations} naming violation(s) found.`);
   process.exit(1);
 } else {
-  console.log("File naming conventions OK.");
+  console.log('File naming conventions OK.');
 }

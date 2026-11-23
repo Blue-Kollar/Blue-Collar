@@ -1,17 +1,17 @@
-"use client";
+'use client';
 
-import { useEffect, useState, useCallback } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Plus } from "lucide-react";
-import { useAuth } from "@/context/AuthContext";
-import { useWallet } from "@/hooks/useWallet";
-import { getMyPostedJobs, deleteJob, renewJob } from "@/lib/api/jobs";
-import type { Job, Meta } from "@/types";
-import { MyJobCard } from "@/components/jobs/me/MyJobCard";
-import { MyJobsEmptyState } from "@/components/jobs/me/MyJobsEmptyState";
-import { MyJobsSkeleton } from "@/components/jobs/me/MyJobsSkeleton";
-import { MyJobsPagination } from "@/components/jobs/me/MyJobsPagination";
+import { useEffect, useState, useCallback } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { Plus } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import { useWallet } from '@/hooks/useWallet';
+import { getMyPostedJobs, deleteJob, renewJob } from '@/lib/api/jobs';
+import type { Job, Meta } from '@/types';
+import { MyJobCard } from '@/components/jobs/me/MyJobCard';
+import { MyJobsEmptyState } from '@/components/jobs/me/MyJobsEmptyState';
+import { MyJobsSkeleton } from '@/components/jobs/me/MyJobsSkeleton';
+import { MyJobsPagination } from '@/components/jobs/me/MyJobsPagination';
 
 export default function MyJobsPage() {
   const { user } = useAuth();
@@ -26,7 +26,7 @@ export default function MyJobsPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!user && !isConnected) router.replace("/auth/login");
+    if (!user && !isConnected) router.replace('/auth/login');
   }, [user, isConnected, router]);
 
   const load = useCallback(async () => {
@@ -35,29 +35,40 @@ export default function MyJobsPage() {
       const res = await getMyPostedJobs({ page, limit: 10 });
       setJobs(res.data ?? []);
       setMeta(res.meta ?? null);
-    } catch {/* ignore */}
-    finally { setLoading(false); }
+    } catch {
+      /* ignore */
+    } finally {
+      setLoading(false);
+    }
   }, [page]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const handleRenew = async (id: string) => {
     setRenewingId(id);
     try {
       const res = await renewJob(id, 30);
-      setJobs((prev) => prev.map((j) => j.id === id ? res.data : j));
-    } catch {/* ignore */}
-    finally { setRenewingId(null); }
+      setJobs((prev) => prev.map((j) => (j.id === id ? res.data : j)));
+    } catch {
+      /* ignore */
+    } finally {
+      setRenewingId(null);
+    }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Delete this job? This cannot be undone.")) return;
+    if (!confirm('Delete this job? This cannot be undone.')) return;
     setDeletingId(id);
     try {
       await deleteJob(id);
       setJobs((prev) => prev.filter((j) => j.id !== id));
-    } catch {/* ignore */}
-    finally { setDeletingId(null); }
+    } catch {
+      /* ignore */
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   return (
@@ -65,7 +76,9 @@ export default function MyJobsPage() {
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">My Posted Jobs</h1>
-          <p className="mt-0.5 text-sm text-gray-500">Manage your job postings and review applicants</p>
+          <p className="mt-0.5 text-sm text-gray-500">
+            Manage your job postings and review applicants
+          </p>
         </div>
         <Link
           href="/jobs/new"
@@ -95,11 +108,7 @@ export default function MyJobsPage() {
       )}
 
       {meta && meta.pages > 1 && (
-        <MyJobsPagination
-          page={page}
-          pages={meta.pages}
-          onPageChange={setPage}
-        />
+        <MyJobsPagination page={page} pages={meta.pages} onPageChange={setPage} />
       )}
     </div>
   );

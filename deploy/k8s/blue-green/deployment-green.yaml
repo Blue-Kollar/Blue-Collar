@@ -15,8 +15,8 @@ metadata:
     app.kubernetes.io/part-of: bluecollar
     slot: green
   annotations:
-    bluecollar.io/deploy-sha: ""
-    bluecollar.io/deployed-at: ""
+    bluecollar.io/deploy-sha: ''
+    bluecollar.io/deployed-at: ''
 spec:
   replicas: 3
   strategy:
@@ -35,9 +35,9 @@ spec:
         app.kubernetes.io/name: bluecollar-api
         slot: green
       annotations:
-        prometheus.io/scrape: "true"
-        prometheus.io/port: "3000"
-        prometheus.io/path: "/metrics"
+        prometheus.io/scrape: 'true'
+        prometheus.io/port: '3000'
+        prometheus.io/path: '/metrics'
     spec:
       topologySpreadConstraints:
         - maxSkew: 1
@@ -58,9 +58,9 @@ spec:
               protocol: TCP
           env:
             - name: NODE_ENV
-              value: "production"
+              value: 'production'
             - name: PORT
-              value: "3000"
+              value: '3000'
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
@@ -78,7 +78,7 @@ spec:
                   key: redis-url
                   optional: true
             - name: SLOT
-              value: "green"
+              value: 'green'
           livenessProbe:
             httpGet:
               path: /health
@@ -106,12 +106,12 @@ spec:
             failureThreshold: 24
           resources:
             requests:
-              cpu: "250m"
-              memory: "256Mi"
+              cpu: '250m'
+              memory: '256Mi'
             limits:
-              cpu: "500m"
-              memory: "512Mi"
+              cpu: '500m'
+              memory: '512Mi'
           lifecycle:
             preStop:
               exec:
-                command: ["/bin/sh", "-c", "sleep 5"]
+                command: ['/bin/sh', '-c', 'sleep 5']

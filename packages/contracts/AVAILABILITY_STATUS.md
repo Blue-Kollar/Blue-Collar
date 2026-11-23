@@ -24,6 +24,7 @@ pub struct AvailabilityStatus {
 ### Storage
 
 Availability statuses are stored in persistent contract storage:
+
 - **Key**: `DataKey::AvailabilityStatus(worker_id)`
 - **Value**: `AvailabilityStatus` struct
 - **TTL**: Managed by Soroban's storage TTL system
@@ -45,19 +46,23 @@ pub fn update_availability(
 ```
 
 **Parameters:**
+
 - `id`: The worker's unique identifier
 - `caller`: Must be the worker's owner (must call `require_auth()`)
 - `is_available`: New availability status (true = available, false = unavailable)
 - `expires_at`: Unix timestamp when status expires (0 = no expiry)
 
 **Events:**
+
 - Emits `("AvlUpd", id)` with data `(is_available, updated_at, expires_at)`
 
 **Panics:**
+
 - `"Worker not found"` if worker doesn't exist
 - `"Not authorized"` if caller is not the worker's owner
 
 **Example:**
+
 ```rust
 let worker_id = Symbol::new(&env, "worker123");
 let now = env.ledger().timestamp();
@@ -79,13 +84,16 @@ pub fn get_availability(
 ```
 
 **Parameters:**
+
 - `worker_id`: The worker's unique identifier
 
 **Returns:**
+
 - `Some(AvailabilityStatus)` if status has been set
 - `None` if no status has been set
 
 **Example:**
+
 ```rust
 if let Some(status) = client.get_availability(&worker_id) {
     if status.is_available {
@@ -145,9 +153,9 @@ Filter workers by current availability:
 let now = env.ledger().timestamp();
 
 if let Some(status) = client.get_availability(&worker_id) {
-    let is_currently_available = status.is_available && 
+    let is_currently_available = status.is_available &&
         (status.expires_at == 0 || status.expires_at > now);
-    
+
     if is_currently_available {
         // Include in available workers list
     }

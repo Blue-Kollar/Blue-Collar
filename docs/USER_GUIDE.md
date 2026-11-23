@@ -175,15 +175,15 @@ curl "https://api.bluecollar.app/api/v1/workers?category=cat_plumber_01&page=1&l
 curl "https://api.bluecollar.app/api/v1/workers/search/advanced?q=electrician&location=São+Paulo&minRating=4&available=true"
 ```
 
-| Parameter   | Description                       |
-| ----------- | --------------------------------- |
-| `q`         | Keyword search (name, bio)        |
-| `category`  | Category ID                       |
-| `location`  | Location name or area             |
-| `minRating` | Minimum average rating (1–5)      |
+| Parameter   | Description                        |
+| ----------- | ---------------------------------- |
+| `q`         | Keyword search (name, bio)         |
+| `category`  | Category ID                        |
+| `location`  | Location name or area              |
+| `minRating` | Minimum average rating (1–5)       |
 | `available` | `true` to show only active workers |
-| `page`      | Page number (default: 1)          |
-| `limit`     | Results per page (default: 20)    |
+| `page`      | Page number (default: 1)           |
+| `limit`     | Results per page (default: 20)     |
 
 ---
 

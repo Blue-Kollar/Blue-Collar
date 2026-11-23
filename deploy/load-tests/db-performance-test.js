@@ -86,7 +86,9 @@ export function dbHeavyScenario() {
         try {
           const body = r.json();
           return body.data !== undefined && body.meta !== undefined;
-        } catch { return false; }
+        } catch {
+          return false;
+        }
       },
       'paginated workers → no N+1 (response time < 300ms)': (r) => r.timings.duration < 300,
     });
@@ -148,7 +150,9 @@ export function workerListScenario() {
         try {
           const body = r.json();
           return body.data !== undefined && body.meta !== undefined;
-        } catch { return false; }
+        } catch {
+          return false;
+        }
       },
     });
     dbErrorRate.add(!ok);
@@ -183,7 +187,9 @@ export function jobListScenario() {
         try {
           const body = r.json();
           return body.data !== undefined && body.meta !== undefined;
-        } catch { return false; }
+        } catch {
+          return false;
+        }
       },
     });
     dbErrorRate.add(!ok);
@@ -218,7 +224,9 @@ export function reviewsScenario() {
         try {
           const body = r.json();
           return body.data !== undefined && body.meta !== undefined;
-        } catch { return false; }
+        } catch {
+          return false;
+        }
       },
     });
     dbErrorRate.add(!ok);

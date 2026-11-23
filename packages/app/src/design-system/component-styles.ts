@@ -2,7 +2,7 @@
  * Component style guide — cva variant maps for shared UI primitives.
  * Import these in component files to keep variant logic centralised.
  */
-import { cva } from 'class-variance-authority'
+import { cva } from 'class-variance-authority';
 
 /** Button variants */
 export const buttonVariants = cva(
@@ -10,10 +10,10 @@ export const buttonVariants = cva(
   {
     variants: {
       variant: {
-        primary:   'bg-brand-600 text-white hover:bg-brand-700 active:bg-brand-800',
+        primary: 'bg-brand-600 text-white hover:bg-brand-700 active:bg-brand-800',
         secondary: 'border border-brand-600 text-brand-600 hover:bg-brand-50 active:bg-brand-100',
-        ghost:     'text-brand-600 hover:bg-brand-50 active:bg-brand-100',
-        danger:    'bg-red-600 text-white hover:bg-red-700 active:bg-red-800',
+        ghost: 'text-brand-600 hover:bg-brand-50 active:bg-brand-100',
+        danger: 'bg-red-600 text-white hover:bg-red-700 active:bg-red-800',
       },
       size: {
         sm: 'h-8  px-3 text-sm',
@@ -22,8 +22,8 @@ export const buttonVariants = cva(
       },
     },
     defaultVariants: { variant: 'primary', size: 'md' },
-  }
-)
+  },
+);
 
 /** Badge variants */
 export const badgeVariants = cva(
@@ -34,35 +34,32 @@ export const badgeVariants = cva(
         default: 'bg-brand-100 text-brand-700',
         success: 'bg-green-100 text-green-700',
         warning: 'bg-yellow-100 text-yellow-700',
-        danger:  'bg-red-100 text-red-700',
+        danger: 'bg-red-100 text-red-700',
         neutral: 'bg-neutral-100 text-neutral-700',
       },
     },
     defaultVariants: { variant: 'default' },
-  }
-)
+  },
+);
 
 /** Card variants */
-export const cardVariants = cva(
-  'rounded-xl border bg-white',
-  {
-    variants: {
-      shadow: {
-        none: '',
-        sm:   'shadow-sm',
-        md:   'shadow-md',
-        lg:   'shadow-lg',
-      },
-      padding: {
-        none: '',
-        sm:   'p-4',
-        md:   'p-5',
-        lg:   'p-6',
-      },
+export const cardVariants = cva('rounded-xl border bg-white', {
+  variants: {
+    shadow: {
+      none: '',
+      sm: 'shadow-sm',
+      md: 'shadow-md',
+      lg: 'shadow-lg',
     },
-    defaultVariants: { shadow: 'sm', padding: 'md' },
-  }
-)
+    padding: {
+      none: '',
+      sm: 'p-4',
+      md: 'p-5',
+      lg: 'p-6',
+    },
+  },
+  defaultVariants: { shadow: 'sm', padding: 'md' },
+});
 
 /** Input variants */
 export const inputVariants = cva(
@@ -71,10 +68,10 @@ export const inputVariants = cva(
     variants: {
       state: {
         default: 'border-gray-300 focus:border-brand-500 focus:ring-brand-500/20',
-        error:   'border-red-400 focus:border-red-500 focus:ring-red-500/20',
+        error: 'border-red-400 focus:border-red-500 focus:ring-red-500/20',
         success: 'border-green-400 focus:border-green-500 focus:ring-green-500/20',
       },
     },
     defaultVariants: { state: 'default' },
-  }
-)
+  },
+);

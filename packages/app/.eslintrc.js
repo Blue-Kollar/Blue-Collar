@@ -9,7 +9,7 @@
  * eslint.config.js and extend the shared preset directly.
  */
 
-'use strict'
+'use strict';
 
 const {
   tsRules,
@@ -17,12 +17,12 @@ const {
   productionOnlyRules,
   filenameRules,
   deprecationRules,
-} = require('../../eslint-base-rules.js')
+} = require('../../eslint-base-rules.js');
 
 /** @type {import('eslint').Linter.Config} */
 module.exports = {
   extends: ['next/core-web-vitals', 'next/typescript'],
-  plugins: ['unicorn', 'i18next'],
+  plugins: ['unicorn'],
   parserOptions: {
     // Required by @typescript-eslint/no-deprecated (#1688).
     project: './tsconfig.json',
@@ -49,4 +49,4 @@ module.exports = {
     // ── App-specific rules ─────────────────────────────────────────────────
     'jsx-a11y/control-has-associated-label': 'warn',
   },
-}
+};

@@ -1,6 +1,6 @@
-import { buildSpec } from './spec.js'
+import { buildSpec } from './spec.js';
 
-type Spec = ReturnType<typeof buildSpec>
+type Spec = ReturnType<typeof buildSpec>;
 
 /**
  * v1 and v2 mount the exact same Express routers (see app.ts), so their
@@ -18,15 +18,18 @@ function withVersionMeta(spec: Spec, version: 'v1' | 'v2'): Spec {
       { url: `http://localhost:3000/api/${version}`, description: 'Local' },
       { url: `https://api.bluecollar.app/api/${version}`, description: 'Production' },
     ],
-  }
+  };
 }
 
 function reprefixPaths(spec: Spec, from: string, to: string): Spec {
   const paths = Object.fromEntries(
     Object.entries(spec.paths ?? {}).map(([path, def]) => [path.replace(from, to), def]),
-  )
-  return { ...spec, paths }
+  );
+  return { ...spec, paths };
 }
 
-export const openApiSpecV1 = withVersionMeta(buildSpec(), 'v1')
-export const openApiSpecV2 = withVersionMeta(reprefixPaths(buildSpec(), '/api/v1/', '/api/v2/'), 'v2')
+export const openApiSpecV1 = withVersionMeta(buildSpec(), 'v1');
+export const openApiSpecV2 = withVersionMeta(
+  reprefixPaths(buildSpec(), '/api/v1/', '/api/v2/'),
+  'v2',
+);

@@ -1,9 +1,9 @@
-import { Router } from 'express'
-import { toggleHelpful } from '@/controllers/helpful.js'
-import { authenticate } from '@/middleware/auth.js'
+import { Router } from 'express';
+import { toggleHelpful } from '@/controllers/helpful.js';
+import { authenticate } from '@/middleware/auth.js';
 
-const router = Router()
+const router = Router();
 
-router.post('/:reviewId/helpful', authenticate, toggleHelpful)
+router.post('/:reviewId/helpful', authenticate, toggleHelpful);
 
-export default router
+export default router;

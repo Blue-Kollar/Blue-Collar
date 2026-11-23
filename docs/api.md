@@ -22,11 +22,11 @@ via [`zod-to-openapi`](https://github.com/asteasolutions/zod-to-openapi).
 
 ## Base URLs
 
-| Environment | Base URL |
-| ----------- | -------- |
-| Local       | `http://localhost:3000/api` |
+| Environment | Base URL                                     |
+| ----------- | -------------------------------------------- |
+| Local       | `http://localhost:3000/api`                  |
 | Staging     | `https://staging-api.bluecollar.example/api` |
-| Production  | `https://api.bluecollar.example/api` |
+| Production  | `https://api.bluecollar.example/api`         |
 
 All endpoints below are relative to the base URL (e.g. `POST /auth/login`
 resolves to `https://api.bluecollar.example/api/auth/login`).
@@ -142,17 +142,17 @@ required; `Bearer` = access token required; `Bearer (role)` = token plus role.
 
 ### Auth
 
-| Method | Path | Summary | Auth |
-| ------ | ---- | ------- | ---- |
-| `POST` | `/auth/register` | Create a new account | Public |
-| `POST` | `/auth/login` | Authenticate and obtain tokens (or 2FA challenge) | Public |
-| `POST` | `/auth/refresh` | Rotate refresh token, issue new access token | Public |
-| `POST` | `/auth/logout` | Revoke refresh token / all sessions | Bearer |
-| `POST` | `/auth/2fa/verify` | Complete 2FA challenge | Public |
-| `POST` | `/auth/2fa/recover` | Complete 2FA using a recovery code | Public |
-| `POST` | `/auth/2fa/enable` | Enable 2FA for the current user | Bearer |
-| `POST` | `/auth/2fa/disable` | Disable 2FA for the current user | Bearer |
-| `GET`  | `/auth/me` | Get the authenticated user | Bearer |
+| Method | Path                | Summary                                           | Auth   |
+| ------ | ------------------- | ------------------------------------------------- | ------ |
+| `POST` | `/auth/register`    | Create a new account                              | Public |
+| `POST` | `/auth/login`       | Authenticate and obtain tokens (or 2FA challenge) | Public |
+| `POST` | `/auth/refresh`     | Rotate refresh token, issue new access token      | Public |
+| `POST` | `/auth/logout`      | Revoke refresh token / all sessions               | Bearer |
+| `POST` | `/auth/2fa/verify`  | Complete 2FA challenge                            | Public |
+| `POST` | `/auth/2fa/recover` | Complete 2FA using a recovery code                | Public |
+| `POST` | `/auth/2fa/enable`  | Enable 2FA for the current user                   | Bearer |
+| `POST` | `/auth/2fa/disable` | Disable 2FA for the current user                  | Bearer |
+| `GET`  | `/auth/me`          | Get the authenticated user                        | Bearer |
 
 **`POST /auth/register`** — request `RegisterRequest`:
 
@@ -218,14 +218,14 @@ Response `200` → `AuthTokens`. Errors: `401 INVALID_2FA_CODE`,
 
 ### Workers
 
-| Method | Path | Summary | Auth |
-| ------ | ---- | ------- | ---- |
-| `GET`    | `/workers` | List workers (paginated, filterable) | Public |
-| `GET`    | `/workers/{id}` | Get a worker profile | Public |
-| `POST`   | `/workers` | Create the current user's worker profile | Bearer (WORKER) |
-| `PATCH`  | `/workers/{id}` | Update a worker profile | Bearer (owner) |
-| `DELETE` | `/workers/{id}` | Delete a worker profile | Bearer (owner) |
-| `GET`    | `/workers/{id}/reviews` | List reviews for a worker | Public |
+| Method   | Path                    | Summary                                  | Auth            |
+| -------- | ----------------------- | ---------------------------------------- | --------------- |
+| `GET`    | `/workers`              | List workers (paginated, filterable)     | Public          |
+| `GET`    | `/workers/{id}`         | Get a worker profile                     | Public          |
+| `POST`   | `/workers`              | Create the current user's worker profile | Bearer (WORKER) |
+| `PATCH`  | `/workers/{id}`         | Update a worker profile                  | Bearer (owner)  |
+| `DELETE` | `/workers/{id}`         | Delete a worker profile                  | Bearer (owner)  |
+| `GET`    | `/workers/{id}/reviews` | List reviews for a worker                | Public          |
 
 **`GET /workers`** — query params: `page` (int, default 1), `limit`
 (int, default 20, max 100), `skill` (string), `location` (string),
@@ -270,14 +270,14 @@ optional, same shape as create). Response `200` → `Worker`. Errors:
 
 ### Jobs
 
-| Method | Path | Summary | Auth |
-| ------ | ---- | ------- | ---- |
-| `GET`    | `/jobs` | List open jobs | Public |
-| `GET`    | `/jobs/{id}` | Get a job posting | Public |
-| `POST`   | `/jobs` | Create a job posting | Bearer (CLIENT) |
-| `PATCH`  | `/jobs/{id}` | Update a job posting | Bearer (owner) |
-| `DELETE` | `/jobs/{id}` | Close/delete a job posting | Bearer (owner) |
-| `POST`   | `/jobs/{id}/apply` | Apply to a job | Bearer (WORKER) |
+| Method   | Path               | Summary                    | Auth            |
+| -------- | ------------------ | -------------------------- | --------------- |
+| `GET`    | `/jobs`            | List open jobs             | Public          |
+| `GET`    | `/jobs/{id}`       | Get a job posting          | Public          |
+| `POST`   | `/jobs`            | Create a job posting       | Bearer (CLIENT) |
+| `PATCH`  | `/jobs/{id}`       | Update a job posting       | Bearer (owner)  |
+| `DELETE` | `/jobs/{id}`       | Close/delete a job posting | Bearer (owner)  |
+| `POST`   | `/jobs/{id}/apply` | Apply to a job             | Bearer (WORKER) |
 
 **`POST /jobs`** — request `CreateJobRequest`:
 
@@ -304,13 +304,13 @@ Response `201` → `Application`. Errors: `409 ALREADY_APPLIED`,
 
 ### Wallet
 
-| Method | Path | Summary | Auth |
-| ------ | ---- | ------- | ---- |
-| `GET`  | `/wallet` | Get the current user's wallet balance | Bearer |
-| `GET`  | `/wallet/transactions` | List wallet transactions | Bearer |
-| `POST` | `/wallet/deposit` | Create a deposit (top-up) | Bearer |
-| `POST` | `/wallet/withdraw` | Request a withdrawal | Bearer |
-| `POST` | `/wallet/transfer` | Transfer funds to another user | Bearer |
+| Method | Path                   | Summary                               | Auth   |
+| ------ | ---------------------- | ------------------------------------- | ------ |
+| `GET`  | `/wallet`              | Get the current user's wallet balance | Bearer |
+| `GET`  | `/wallet/transactions` | List wallet transactions              | Bearer |
+| `POST` | `/wallet/deposit`      | Create a deposit (top-up)             | Bearer |
+| `POST` | `/wallet/withdraw`     | Request a withdrawal                  | Bearer |
+| `POST` | `/wallet/transfer`     | Transfer funds to another user        | Bearer |
 
 **`GET /wallet`** — response `200` → `Wallet`:
 
@@ -346,11 +346,11 @@ Response `201` → `Transaction`. Errors: `402 INSUFFICIENT_FUNDS`,
 
 ### Payments
 
-| Method | Path | Summary | Auth |
-| ------ | ---- | ------- | ---- |
-| `POST` | `/payments/intent` | Create a payment intent for a job | Bearer |
-| `GET`  | `/payments/{id}` | Get payment status | Bearer (owner) |
-| `POST` | `/payments/{id}/refund` | Refund a payment | Bearer (CLIENT) |
+| Method | Path                    | Summary                           | Auth            |
+| ------ | ----------------------- | --------------------------------- | --------------- |
+| `POST` | `/payments/intent`      | Create a payment intent for a job | Bearer          |
+| `GET`  | `/payments/{id}`        | Get payment status                | Bearer (owner)  |
+| `POST` | `/payments/{id}/refund` | Refund a payment                  | Bearer (CLIENT) |
 
 **`POST /payments/intent`** — request `PaymentIntentRequest`:
 
@@ -372,11 +372,11 @@ Response `201` → `PaymentIntent`:
 
 ### Messages
 
-| Method | Path | Summary | Auth |
-| ------ | ---- | ------- | ---- |
-| `GET`  | `/conversations` | List the current user's conversations | Bearer |
-| `GET`  | `/conversations/{id}/messages` | List messages in a conversation | Bearer (participant) |
-| `POST` | `/conversations/{id}/messages` | Send a message | Bearer (participant) |
+| Method | Path                           | Summary                               | Auth                 |
+| ------ | ------------------------------ | ------------------------------------- | -------------------- |
+| `GET`  | `/conversations`               | List the current user's conversations | Bearer               |
+| `GET`  | `/conversations/{id}/messages` | List messages in a conversation       | Bearer (participant) |
+| `POST` | `/conversations/{id}/messages` | Send a message                        | Bearer (participant) |
 
 **`POST /conversations/{id}/messages`** — request `SendMessageRequest`:
 
@@ -398,10 +398,10 @@ Response `201` → `Message`:
 
 ### Reviews
 
-| Method | Path | Summary | Auth |
-| ------ | ---- | ------- | ---- |
-| `POST` | `/reviews` | Create a review for a completed job | Bearer |
-| `GET`  | `/reviews/{id}` | Get a review | Public |
+| Method | Path            | Summary                             | Auth   |
+| ------ | --------------- | ----------------------------------- | ------ |
+| `POST` | `/reviews`      | Create a review for a completed job | Bearer |
+| `GET`  | `/reviews/{id}` | Get a review                        | Public |
 
 **`POST /reviews`** — request `CreateReviewRequest`:
 
@@ -414,9 +414,9 @@ Response `201` → `Review`. Errors: `409 ALREADY_REVIEWED`,
 
 ### Health
 
-| Method | Path | Summary | Auth |
-| ------ | ---- | ------- | ---- |
-| `GET` | `/health` | Liveness/readiness probe | Public |
+| Method | Path      | Summary                  | Auth   |
+| ------ | --------- | ------------------------ | ------ |
+| `GET`  | `/health` | Liveness/readiness probe | Public |
 
 Response `200` → `{ "status": "ok", "version": "1.0.0" }`.
 
@@ -429,33 +429,31 @@ All errors use a consistent envelope:
   "error": {
     "code": "VALIDATION_ERROR",
     "message": "Request body is invalid.",
-    "details": [
-      { "path": "email", "message": "Invalid email address" }
-    ],
+    "details": [{ "path": "email", "message": "Invalid email address" }],
     "requestId": "req_01H..."
   }
 }
 ```
 
-| Field | Type | Description |
-| ----- | ---- | ----------- |
-| `error.code` | string | Stable machine-readable error code |
-| `error.message` | string | Human-readable message |
-| `error.details` | array? | Optional field-level details (validation) |
+| Field             | Type   | Description                                     |
+| ----------------- | ------ | ----------------------------------------------- |
+| `error.code`      | string | Stable machine-readable error code              |
+| `error.message`   | string | Human-readable message                          |
+| `error.details`   | array? | Optional field-level details (validation)       |
 | `error.requestId` | string | Correlation ID; include when contacting support |
 
 ### Common status codes
 
-| Status | Meaning |
-| ------ | ------- |
-| `400` | Malformed request |
-| `401` | Missing/invalid/expired token (`UNAUTHORIZED`, `TOKEN_EXPIRED`) |
-| `403` | Authenticated but not permitted (`FORBIDDEN`) |
-| `404` | Resource not found (`NOT_FOUND`) |
-| `409` | Conflict (`EMAIL_TAKEN`, `ALREADY_APPLIED`, …) |
-| `422` | Validation failed (`VALIDATION_ERROR`) |
-| `429` | Rate limited (`RATE_LIMITED`) — respect `Retry-After` |
-| `500` | Internal server error (`INTERNAL_ERROR`) |
+| Status | Meaning                                                         |
+| ------ | --------------------------------------------------------------- |
+| `400`  | Malformed request                                               |
+| `401`  | Missing/invalid/expired token (`UNAUTHORIZED`, `TOKEN_EXPIRED`) |
+| `403`  | Authenticated but not permitted (`FORBIDDEN`)                   |
+| `404`  | Resource not found (`NOT_FOUND`)                                |
+| `409`  | Conflict (`EMAIL_TAKEN`, `ALREADY_APPLIED`, …)                  |
+| `422`  | Validation failed (`VALIDATION_ERROR`)                          |
+| `429`  | Rate limited (`RATE_LIMITED`) — respect `Retry-After`           |
+| `500`  | Internal server error (`INTERNAL_ERROR`)                        |
 
 ## Regenerating this document
 

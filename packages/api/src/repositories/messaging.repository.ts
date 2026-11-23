@@ -1,49 +1,85 @@
-import type { Conversation, ConversationParticipant, Message, Prisma } from '@prisma/client'
-import type { IRepository } from './base.repository.js'
-import { db } from '@/db.js'
+import type { Conversation, ConversationParticipant, Message, Prisma } from '@prisma/client';
+import type { IRepository } from './base.repository.js';
+import { db } from '@/db.js';
 
 // ── Interface ─────────────────────────────────────────────────────────────────
 
-export interface IMessagingRepository extends IRepository<Conversation, Prisma.ConversationCreateInput, Prisma.ConversationUpdateInput> {
-  createConversation(data: Prisma.ConversationCreateInput, tx?: Prisma.TransactionClient): Promise<Conversation & { participants: ConversationParticipant[] }>
-  findConversation(id: string, userId: string): Promise<(Conversation & { participants: ConversationParticipant[]; messages: Message[] }) | null>
-  findUserConversations(userId: string, opts: { skip: number; take: number }): Promise<{ data: Conversation[]; total: number }>
-  findMessage(id: string): Promise<Message | null>
-  updateMessage(id: string, data: Prisma.MessageUpdateInput, tx?: Prisma.TransactionClient): Promise<Message>
-  updateParticipantReadAt(conversationId: string, userId: string, tx?: Prisma.TransactionClient): Promise<ConversationParticipant>
-  findConversationsForUnreadCount(userId: string): Promise<(Conversation & { participants: ConversationParticipant[]; messages: Message[] })[]>
-  searchMessages(conversationId: string, searchQuery: string): Promise<Message[]>
+export interface IMessagingRepository extends IRepository<
+  Conversation,
+  Prisma.ConversationCreateInput,
+  Prisma.ConversationUpdateInput
+> {
+  createConversation(
+    data: Prisma.ConversationCreateInput,
+    tx?: Prisma.TransactionClient,
+  ): Promise<Conversation & { participants: ConversationParticipant[] }>;
+  findConversation(
+    id: string,
+    userId: string,
+  ): Promise<
+    (Conversation & { participants: ConversationParticipant[]; messages: Message[] }) | null
+  >;
+  findUserConversations(
+    userId: string,
+    opts: { skip: number; take: number },
+  ): Promise<{ data: Conversation[]; total: number }>;
+  findMessage(id: string): Promise<Message | null>;
+  updateMessage(
+    id: string,
+    data: Prisma.MessageUpdateInput,
+    tx?: Prisma.TransactionClient,
+  ): Promise<Message>;
+  updateParticipantReadAt(
+    conversationId: string,
+    userId: string,
+    tx?: Prisma.TransactionClient,
+  ): Promise<ConversationParticipant>;
+  findConversationsForUnreadCount(
+    userId: string,
+  ): Promise<(Conversation & { participants: ConversationParticipant[]; messages: Message[] })[]>;
+  searchMessages(conversationId: string, searchQuery: string): Promise<Message[]>;
 }
 
 // ── Prisma implementation ─────────────────────────────────────────────────────
 
 export class MessagingRepository implements IMessagingRepository {
   async findById(id: string): Promise<Conversation | null> {
-    return db.conversation.findUnique({ where: { id } })
+    return db.conversation.findUnique({ where: { id } });
   }
 
   async findAll(opts: { skip?: number; take?: number } = {}): Promise<Conversation[]> {
-    return db.conversation.findMany({ skip: opts.skip, take: opts.take, orderBy: { updatedAt: 'desc' } })
+    return db.conversation.findMany({
+      skip: opts.skip,
+      take: opts.take,
+      orderBy: { updatedAt: 'desc' },
+    });
   }
 
-  async create(data: Prisma.ConversationCreateInput, tx?: Prisma.TransactionClient): Promise<Conversation> {
-    return (tx ?? db).conversation.create({ data })
+  async create(
+    data: Prisma.ConversationCreateInput,
+    tx?: Prisma.TransactionClient,
+  ): Promise<Conversation> {
+    return (tx ?? db).conversation.create({ data });
   }
 
-  async update(id: string, data: Prisma.ConversationUpdateInput, tx?: Prisma.TransactionClient): Promise<Conversation> {
-    return (tx ?? db).conversation.update({ where: { id }, data })
+  async update(
+    id: string,
+    data: Prisma.ConversationUpdateInput,
+    tx?: Prisma.TransactionClient,
+  ): Promise<Conversation> {
+    return (tx ?? db).conversation.update({ where: { id }, data });
   }
 
   async delete(id: string, tx?: Prisma.TransactionClient): Promise<Conversation> {
-    return (tx ?? db).conversation.delete({ where: { id } })
+    return (tx ?? db).conversation.delete({ where: { id } });
   }
 
   async count(where?: Prisma.ConversationWhereInput): Promise<number> {
-    return db.conversation.count({ where })
+    return db.conversation.count({ where });
   }
 
   async createConversation(data: Prisma.ConversationCreateInput, tx?: Prisma.TransactionClient) {
-    return (tx ?? db).conversation.create({ data, include: { participants: true } })
+    return (tx ?? db).conversation.create({ data, include: { participants: true } });
   }
 
   async findConversation(id: string, userId: string) {
@@ -54,11 +90,13 @@ export class MessagingRepository implements IMessagingRepository {
       },
       include: {
         participants: {
-          include: { user: { select: { id: true, firstName: true, lastName: true, avatar: true } } },
+          include: {
+            user: { select: { id: true, firstName: true, lastName: true, avatar: true } },
+          },
         },
         messages: { take: 50, orderBy: { createdAt: 'asc' } },
       },
-    })
+    });
   }
 
   async findUserConversations(userId: string, opts: { skip: number; take: number }) {
@@ -74,23 +112,31 @@ export class MessagingRepository implements IMessagingRepository {
         take: opts.take,
       }),
       db.conversation.count({ where: { participants: { some: { userId } } } }),
-    ])
-    return { data, total }
+    ]);
+    return { data, total };
   }
 
   async findMessage(id: string): Promise<Message | null> {
-    return db.message.findUnique({ where: { id } })
+    return db.message.findUnique({ where: { id } });
   }
 
-  async updateMessage(id: string, data: Prisma.MessageUpdateInput, tx?: Prisma.TransactionClient): Promise<Message> {
-    return (tx ?? db).message.update({ where: { id }, data })
+  async updateMessage(
+    id: string,
+    data: Prisma.MessageUpdateInput,
+    tx?: Prisma.TransactionClient,
+  ): Promise<Message> {
+    return (tx ?? db).message.update({ where: { id }, data });
   }
 
-  async updateParticipantReadAt(conversationId: string, userId: string, tx?: Prisma.TransactionClient): Promise<ConversationParticipant> {
+  async updateParticipantReadAt(
+    conversationId: string,
+    userId: string,
+    tx?: Prisma.TransactionClient,
+  ): Promise<ConversationParticipant> {
     return (tx ?? db).conversationParticipant.update({
       where: { conversationId_userId: { conversationId, userId } },
       data: { lastReadAt: new Date() },
-    })
+    });
   }
 
   async findConversationsForUnreadCount(userId: string) {
@@ -109,19 +155,21 @@ export class MessagingRepository implements IMessagingRepository {
           },
         },
       },
-    })
+    });
   }
 
   async searchMessages(conversationId: string, searchQuery: string): Promise<Message[]> {
     return db.message.findMany({
       where: {
         conversationId,
-        body: { search: searchQuery.split(' ').join(' | ') } as unknown as Prisma.StringFilter<'Message'>,
+        body: {
+          search: searchQuery.split(' ').join(' | '),
+        } as unknown as Prisma.StringFilter<'Message'>,
       },
       orderBy: { createdAt: 'desc' },
       take: 50,
-    })
+    });
   }
 }
 
-export const messagingRepository = new MessagingRepository()
+export const messagingRepository = new MessagingRepository();

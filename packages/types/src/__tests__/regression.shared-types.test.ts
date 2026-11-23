@@ -11,9 +11,9 @@
  *   pnpm vitest run src/__tests__/regression.shared-types.test.ts
  */
 
-import { describe, it, expect } from 'vitest'
-import { readFileSync, existsSync } from 'node:fs'
-import { join } from 'node:path'
+import { describe, it, expect } from 'vitest';
+import { readFileSync, existsSync } from 'node:fs';
+import { join } from 'node:path';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // BUG 1 – Shared-types barrel missing re-exports (commit 8d3de8f)
@@ -36,13 +36,13 @@ import { join } from 'node:path'
  */
 describe('[regression] App barrel completeness – all upstream types must be re-exported', () => {
   it('packages/app/src/types/index.ts re-exports the critical 8 types', async () => {
-    const barrelPath = join(process.cwd(), 'packages', 'app', 'src', 'types', 'index.ts')
+    const barrelPath = join(process.cwd(), 'packages', 'app', 'src', 'types', 'index.ts');
     if (!existsSync(barrelPath)) {
       // Skip in environments where the app package isn't present
-      return
+      return;
     }
 
-    const source = readFileSync(barrelPath, 'utf8')
+    const source = readFileSync(barrelPath, 'utf8');
 
     // The eight types that were missing before the fix
     const requiredTypes = [
@@ -54,25 +54,25 @@ describe('[regression] App barrel completeness – all upstream types must be re
       'NotificationType',
       'TipDTO',
       'WorkerAnalytics',
-    ]
+    ];
 
     for (const typeName of requiredTypes) {
       expect(
         source,
         `Type "${typeName}" is missing from packages/app/src/types/index.ts barrel. ` +
-        `This is a regression of commit 8d3de8f.`
-      ).toContain(typeName)
+          `This is a regression of commit 8d3de8f.`,
+      ).toContain(typeName);
     }
-  })
+  });
 
   it('packages/app/src/types/index.ts imports from @bluecollar/types (not a local copy)', async () => {
-    const barrelPath = join(process.cwd(), 'packages', 'app', 'src', 'types', 'index.ts')
-    if (!existsSync(barrelPath)) return
+    const barrelPath = join(process.cwd(), 'packages', 'app', 'src', 'types', 'index.ts');
+    if (!existsSync(barrelPath)) return;
 
-    const source = readFileSync(barrelPath, 'utf8')
-    expect(source).toContain('@bluecollar/types')
-  })
-})
+    const source = readFileSync(barrelPath, 'utf8');
+    expect(source).toContain('@bluecollar/types');
+  });
+});
 
 // ─────────────────────────────────────────────────────────────────────────────
 // BUG 2 – Invoice interface missing from barrel (commit 8d3de8f)
@@ -91,20 +91,20 @@ describe('[regression] App barrel completeness – all upstream types must be re
  */
 describe('[regression] Invoice interface – must be defined with correct shape', () => {
   it('Invoice interface is exported from the app barrel', async () => {
-    const barrelPath = join(process.cwd(), 'packages', 'app', 'src', 'types', 'index.ts')
-    if (!existsSync(barrelPath)) return
+    const barrelPath = join(process.cwd(), 'packages', 'app', 'src', 'types', 'index.ts');
+    if (!existsSync(barrelPath)) return;
 
-    const source = readFileSync(barrelPath, 'utf8')
+    const source = readFileSync(barrelPath, 'utf8');
 
     // The Invoice interface must be defined (not just re-exported)
-    expect(source).toContain('export interface Invoice')
-  })
+    expect(source).toContain('export interface Invoice');
+  });
 
   it('Invoice interface includes required fields', async () => {
-    const barrelPath = join(process.cwd(), 'packages', 'app', 'src', 'types', 'index.ts')
-    if (!existsSync(barrelPath)) return
+    const barrelPath = join(process.cwd(), 'packages', 'app', 'src', 'types', 'index.ts');
+    if (!existsSync(barrelPath)) return;
 
-    const source = readFileSync(barrelPath, 'utf8')
+    const source = readFileSync(barrelPath, 'utf8');
 
     const requiredFields = [
       'id: string',
@@ -116,16 +116,13 @@ describe('[regression] Invoice interface – must be defined with correct shape'
       'client: InvoiceParty',
       'lineItems: InvoiceLineItem[]',
       'platformFee: number',
-    ]
+    ];
 
     for (const field of requiredFields) {
-      expect(
-        source,
-        `Invoice interface missing field: ${field}`
-      ).toContain(field)
+      expect(source, `Invoice interface missing field: ${field}`).toContain(field);
     }
-  })
-})
+  });
+});
 
 // ─────────────────────────────────────────────────────────────────────────────
 // BUG 3 – Worker.category incorrectly made optional (commit 1affd59)
@@ -143,38 +140,44 @@ describe('[regression] Invoice interface – must be defined with correct shape'
  */
 describe('[regression] Worker.category – must be required field', () => {
   it('Worker type in shared types does not mark category as optional', async () => {
-    const typesPath = join(process.cwd(), 'packages', 'types', 'src', 'index.ts')
-    if (!existsSync(typesPath)) return
+    const typesPath = join(process.cwd(), 'packages', 'types', 'src', 'index.ts');
+    if (!existsSync(typesPath)) return;
 
-    const source = readFileSync(typesPath, 'utf8')
+    const source = readFileSync(typesPath, 'utf8');
 
     // Find the Worker interface/type definition
-    const workerMatch = source.match(/(?:interface|type)\s+Worker\s*[{<]/)
-    if (!workerMatch) return // Worker not defined in this file
+    const workerMatch = source.match(/(?:interface|type)\s+Worker\s*[{<]/);
+    if (!workerMatch) return; // Worker not defined in this file
 
     // Extract the Worker type definition (until the next top-level declaration)
-    const startIdx = source.indexOf(workerMatch[0])
-    let braceCount = 0
-    let endIdx = startIdx
-    let foundFirstBrace = false
+    const startIdx = source.indexOf(workerMatch[0]);
+    let braceCount = 0;
+    let endIdx = startIdx;
+    let foundFirstBrace = false;
     for (let i = startIdx; i < source.length; i++) {
-      if (source[i] === '{') { braceCount++; foundFirstBrace = true }
-      if (source[i] === '}') braceCount--
-      if (foundFirstBrace && braceCount === 0) { endIdx = i + 1; break }
+      if (source[i] === '{') {
+        braceCount++;
+        foundFirstBrace = true;
+      }
+      if (source[i] === '}') braceCount--;
+      if (foundFirstBrace && braceCount === 0) {
+        endIdx = i + 1;
+        break;
+      }
     }
 
-    const workerDef = source.slice(startIdx, endIdx)
+    const workerDef = source.slice(startIdx, endIdx);
 
     // category must NOT be optional (no ? after category)
-    const categoryLine = workerDef.split('\n').find(l => l.includes('category'))
+    const categoryLine = workerDef.split('\n').find((l) => l.includes('category'));
     if (categoryLine) {
       expect(
         categoryLine,
-        'Worker.category must be required (no ? modifier). This is a regression of commit 1affd59.'
-      ).not.toContain('category?')
+        'Worker.category must be required (no ? modifier). This is a regression of commit 1affd59.',
+      ).not.toContain('category?');
     }
-  })
-})
+  });
+});
 
 // ─────────────────────────────────────────────────────────────────────────────
 // BUG 4 – tsconfig.json was two concatenated JSON documents (commits 8352e48, 4c92302)
@@ -191,26 +194,29 @@ describe('[regression] Worker.category – must be required field', () => {
  */
 describe('[regression] packages/types tsconfig.json – valid single JSON document', () => {
   it('packages/types/tsconfig.json is valid JSON', () => {
-    const tsconfigPath = join(process.cwd(), 'packages', 'types', 'tsconfig.json')
-    if (!existsSync(tsconfigPath)) return
+    const tsconfigPath = join(process.cwd(), 'packages', 'types', 'tsconfig.json');
+    if (!existsSync(tsconfigPath)) return;
 
-    const raw = readFileSync(tsconfigPath, 'utf8')
-    expect(() => JSON.parse(raw), 'tsconfig.json is not valid JSON — possible concatenated documents').not.toThrow()
-  })
+    const raw = readFileSync(tsconfigPath, 'utf8');
+    expect(
+      () => JSON.parse(raw),
+      'tsconfig.json is not valid JSON — possible concatenated documents',
+    ).not.toThrow();
+  });
 
   it('packages/types/tsconfig.json has expected keys', () => {
-    const tsconfigPath = join(process.cwd(), 'packages', 'types', 'tsconfig.json')
-    if (!existsSync(tsconfigPath)) return
+    const tsconfigPath = join(process.cwd(), 'packages', 'types', 'tsconfig.json');
+    if (!existsSync(tsconfigPath)) return;
 
-    const raw = readFileSync(tsconfigPath, 'utf8')
-    const config = JSON.parse(raw)
+    const raw = readFileSync(tsconfigPath, 'utf8');
+    const config = JSON.parse(raw);
 
     // Must have at minimum compilerOptions
-    expect(config).toHaveProperty('compilerOptions')
-    expect(config.compilerOptions).toHaveProperty('target')
-    expect(config.compilerOptions).toHaveProperty('declaration')
-  })
-})
+    expect(config).toHaveProperty('compilerOptions');
+    expect(config.compilerOptions).toHaveProperty('target');
+    expect(config.compilerOptions).toHaveProperty('declaration');
+  });
+});
 
 // ─────────────────────────────────────────────────────────────────────────────
 // BUG 5 – Duplicate interface declarations in packages/types (commits 4c92302, b34ebca)
@@ -228,30 +234,30 @@ describe('[regression] packages/types tsconfig.json – valid single JSON docume
  */
 describe('[regression] No duplicate interface/type declarations in packages/types', () => {
   it('packages/types/src/index.ts has no duplicate top-level declarations', () => {
-    const typesPath = join(process.cwd(), 'packages', 'types', 'src', 'index.ts')
-    if (!existsSync(typesPath)) return
+    const typesPath = join(process.cwd(), 'packages', 'types', 'src', 'index.ts');
+    if (!existsSync(typesPath)) return;
 
-    const source = readFileSync(typesPath, 'utf8')
-    const lines = source.split('\n')
+    const source = readFileSync(typesPath, 'utf8');
+    const lines = source.split('\n');
 
     // Collect all top-level interface/type declarations
-    const declarations: Record<string, number> = {}
+    const declarations: Record<string, number> = {};
     for (const line of lines) {
-      const match = line.match(/^\s*(?:export\s+)?(?:interface|type)\s+(\w+)/)
+      const match = line.match(/^\s*(?:export\s+)?(?:interface|type)\s+(\w+)/);
       if (match) {
-        const name = match[1]
-        declarations[name] = (declarations[name] || 0) + 1
+        const name = match[1]!;
+        declarations[name] = (declarations[name] || 0) + 1;
       }
     }
 
     // Check for duplicates
-    const duplicates = Object.entries(declarations).filter(([, count]) => count > 1)
+    const duplicates = Object.entries(declarations).filter(([, count]) => count > 1);
     expect(
       duplicates,
-      `Duplicate declarations found in packages/types/src/index.ts: ${duplicates.map(([k, v]) => `${k}(${v}x)`).join(', ')}`
-    ).toHaveLength(0)
-  })
-})
+      `Duplicate declarations found in packages/types/src/index.ts: ${duplicates.map(([k, v]) => `${k}(${v}x)`).join(', ')}`,
+    ).toHaveLength(0);
+  });
+});
 
 // ─────────────────────────────────────────────────────────────────────────────
 // BUG 6 – QueryClientProvider not mounted (commit 6f2d2be)
@@ -269,16 +275,24 @@ describe('[regression] No duplicate interface/type declarations in packages/type
  */
 describe('[regression] QueryClientProvider – must be mounted in app layout', () => {
   it('app layout includes QueryClientProvider', async () => {
-    const layoutPath = join(process.cwd(), 'packages', 'app', 'src', 'app', '[locale]', 'layout.tsx')
-    if (!existsSync(layoutPath)) return
+    const layoutPath = join(
+      process.cwd(),
+      'packages',
+      'app',
+      'src',
+      'app',
+      '[locale]',
+      'layout.tsx',
+    );
+    if (!existsSync(layoutPath)) return;
 
-    const source = readFileSync(layoutPath, 'utf8')
+    const source = readFileSync(layoutPath, 'utf8');
     expect(
       source,
-      'QueryClientProvider is missing from app layout. This is a regression of commit 6f2d2be.'
-    ).toContain('QueryClientProvider')
-  })
-})
+      'QueryClientProvider is missing from app layout. This is a regression of commit 6f2d2be.',
+    ).toContain('QueryClientProvider');
+  });
+});
 
 // ─────────────────────────────────────────────────────────────────────────────
 // BUG 7 – pnpm-lock.yaml corruption (commits b34ebca, 9b9aeb6)
@@ -295,15 +309,15 @@ describe('[regression] QueryClientProvider – must be mounted in app layout', (
  */
 describe('[regression] pnpm-lock.yaml – must be parseable YAML', () => {
   it('pnpm-lock.yaml exists and starts with expected lockfileVersion header', () => {
-    const lockfilePath = join(process.cwd(), 'pnpm-lock.yaml')
-    if (!existsSync(lockfilePath)) return
+    const lockfilePath = join(process.cwd(), 'pnpm-lock.yaml');
+    if (!existsSync(lockfilePath)) return;
 
-    const raw = readFileSync(lockfilePath, 'utf8')
+    const raw = readFileSync(lockfilePath, 'utf8');
     // pnpm lockfiles start with "lockfileVersion:" on the first non-empty line
-    const firstLine = raw.split('\n').find(l => l.trim().length > 0) || ''
-    expect(firstLine).toMatch(/^lockfileVersion:/)
-  })
-})
+    const firstLine = raw.split('\n').find((l) => l.trim().length > 0) || '';
+    expect(firstLine).toMatch(/^lockfileVersion:/);
+  });
+});
 
 // ─────────────────────────────────────────────────────────────────────────────
 // BUG 8 – packages/types exports all required types
@@ -317,10 +331,10 @@ describe('[regression] pnpm-lock.yaml – must be parseable YAML', () => {
  */
 describe('[regression] packages/types exports – all critical types present', () => {
   it('packages/types/src/index.ts exports the 8 previously-missing types', async () => {
-    const typesPath = join(process.cwd(), 'packages', 'types', 'src', 'index.ts')
-    if (!existsSync(typesPath)) return
+    const typesPath = join(process.cwd(), 'packages', 'types', 'src', 'index.ts');
+    if (!existsSync(typesPath)) return;
 
-    const source = readFileSync(typesPath, 'utf8')
+    const source = readFileSync(typesPath, 'utf8');
 
     const criticalTypes = [
       'Job',
@@ -331,25 +345,27 @@ describe('[regression] packages/types exports – all critical types present', (
       'NotificationType',
       'TipDTO',
       'WorkerAnalytics',
-    ]
+    ];
 
     for (const typeName of criticalTypes) {
       // The type must be either defined or re-exported in the file
-      const isDefined = new RegExp(`(?:export\\s+)?(?:interface|type)\\s+${typeName}\\b`).test(source)
-      const isReExported = new RegExp(`export\\s+.*\\b${typeName}\\b`).test(source)
+      const isDefined = new RegExp(`(?:export\\s+)?(?:interface|type)\\s+${typeName}\\b`).test(
+        source,
+      );
+      const isReExported = new RegExp(`export\\s+.*\\b${typeName}\\b`).test(source);
       expect(
         isDefined || isReExported,
-        `Type "${typeName}" is not defined or exported in packages/types/src/index.ts`
-      ).toBe(true)
+        `Type "${typeName}" is not defined or exported in packages/types/src/index.ts`,
+      ).toBe(true);
     }
-  })
+  });
 
   it('packages/types exports Worker with required category field', async () => {
-    const typesPath = join(process.cwd(), 'packages', 'types', 'src', 'index.ts')
-    if (!existsSync(typesPath)) return
+    const typesPath = join(process.cwd(), 'packages', 'types', 'src', 'index.ts');
+    if (!existsSync(typesPath)) return;
 
-    const source = readFileSync(typesPath, 'utf8')
+    const source = readFileSync(typesPath, 'utf8');
     // Worker should be exported (either defined or re-exported)
-    expect(source).toMatch(/export\s+(?:interface|type)\s+Worker\b|export\s+.*\bWorker\b/)
-  })
-})
+    expect(source).toMatch(/export\s+(?:interface|type)\s+Worker\b|export\s+.*\bWorker\b/);
+  });
+});

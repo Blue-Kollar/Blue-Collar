@@ -1,5 +1,5 @@
-import type { Meta, StoryObj } from '@storybook/react'
-import ErrorState from './ErrorState'
+import type { Meta, StoryObj } from '@storybook/react';
+import ErrorState from './ErrorState';
 
 const meta: Meta<typeof ErrorState> = {
   title: 'Components/ErrorState',
@@ -11,10 +11,10 @@ const meta: Meta<typeof ErrorState> = {
       options: ['inline', 'block'],
     },
   },
-}
+};
 
-export default meta
-type Story = StoryObj<typeof meta>
+export default meta;
+type Story = StoryObj<typeof meta>;
 
 export const Block: Story = {
   args: {
@@ -23,14 +23,14 @@ export const Block: Story = {
     message: 'Failed to load workers. Please try again.',
     onRetry: () => {},
   },
-}
+};
 
 export const BlockWithoutRetry: Story = {
   args: {
     variant: 'block',
     message: 'Failed to load workers.',
   },
-}
+};
 
 export const Inline: Story = {
   args: {
@@ -38,4 +38,4 @@ export const Inline: Story = {
     message: 'Failed to load transactions.',
     onRetry: () => {},
   },
-}
+};

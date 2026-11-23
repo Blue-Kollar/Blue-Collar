@@ -1,5 +1,5 @@
-import { db } from "@/db.js";
-import { nowUtc, parseUtcDate, addUtcMs, formatUtcIso } from "@/utils/date.js";
+import { db } from '@/db.js';
+import { nowUtc, parseUtcDate, addUtcMs, formatUtcIso } from '@/utils/date.js';
 
 /**
  * Notification-preferences domain logic. Previously lived in the generic
@@ -23,10 +23,7 @@ export async function seedDefaultPreferences(userId: string) {
   });
 }
 
-export async function isNotificationEnabled(
-  userId: string,
-  type: string
-): Promise<boolean> {
+export async function isNotificationEnabled(userId: string, type: string): Promise<boolean> {
   const prefs = await db.notificationPreferences.findUnique({
     where: { userId },
   });

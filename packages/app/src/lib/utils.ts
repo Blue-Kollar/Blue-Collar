@@ -36,7 +36,7 @@ export function truncate(str: string, maxLength: number): string {
 // Show first N and last N chars of a Stellar address (account or muxed): GABC…WXYZ
 export function formatStellarAddress(
   address: string,
-  { prefixLength = 4, suffixLength = 4 }: { prefixLength?: number; suffixLength?: number } = {}
+  { prefixLength = 4, suffixLength = 4 }: { prefixLength?: number; suffixLength?: number } = {},
 ): string {
   if (!address || address.length <= prefixLength + suffixLength) return address;
   return `${address.slice(0, prefixLength)}…${address.slice(-suffixLength)}`;

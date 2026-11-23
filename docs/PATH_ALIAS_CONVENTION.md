@@ -10,35 +10,37 @@ All packages use **`@/*`** as the primary alias mapping to the package's `src/` 
 
 ### By Package
 
-| Package | Alias | Maps To | Rationale |
-|---------|-------|---------|-----------|
-| `packages/api` | `@/*` | `src/*` | Enable clean imports for backend; match frontend convention |
-| `packages/app` | `@/*` | `src/*` | Next.js standard; already implemented |
-| `packages/mobile` | `@/*` | `src/*` | React Native standard; already implemented |
-| `packages/contracts` | N/A | N/A | Rust project—no TypeScript config needed |
+| Package              | Alias | Maps To | Rationale                                                   |
+| -------------------- | ----- | ------- | ----------------------------------------------------------- |
+| `packages/api`       | `@/*` | `src/*` | Enable clean imports for backend; match frontend convention |
+| `packages/app`       | `@/*` | `src/*` | Next.js standard; already implemented                       |
+| `packages/mobile`    | `@/*` | `src/*` | React Native standard; already implemented                  |
+| `packages/contracts` | N/A   | N/A     | Rust project—no TypeScript config needed                    |
 
 ## Usage Examples
 
 ### Bad (Relative imports)
+
 ```typescript
 // packages/api
-import { UserService } from '../../../services/user.service'
-import { validateUser } from '../../../../utils/validate'
+import { UserService } from '../../../services/user.service';
+import { validateUser } from '../../../../utils/validate';
 
 // packages/app
-import { useWorkers } from '../../hooks/queries/useWorkers'
-import { API_URL } from '../config'
+import { useWorkers } from '../../hooks/queries/useWorkers';
+import { API_URL } from '../config';
 ```
 
 ### Good (Path aliases)
+
 ```typescript
 // packages/api
-import { UserService } from '@/services/user.service'
-import { validateUser } from '@/utils/validate'
+import { UserService } from '@/services/user.service';
+import { validateUser } from '@/utils/validate';
 
 // packages/app
-import { useWorkers } from '@/hooks/queries/useWorkers'
-import { API_URL } from '@/config'
+import { useWorkers } from '@/hooks/queries/useWorkers';
+import { API_URL } from '@/config';
 ```
 
 ## tsconfig.json Template
@@ -67,9 +69,11 @@ Use this structure in your package's `tsconfig.json`:
 ## Build Tool Integration
 
 ### Next.js (packages/app)
+
 Next.js automatically respects `tsconfig.json` paths. No additional configuration needed.
 
 **Verification:**
+
 ```bash
 cd packages/app
 pnpm build
@@ -77,9 +81,11 @@ pnpm typecheck
 ```
 
 ### Node.js / Express (packages/api)
+
 Use `tsx` (already in dependencies) or add build-time transpilation. The build process handles path resolution.
 
 **Verification:**
+
 ```bash
 cd packages/api
 pnpm typecheck
@@ -87,9 +93,11 @@ pnpm build  # if applicable
 ```
 
 ### React Native / Expo (packages/mobile)
+
 Expo's bundler automatically resolves TypeScript paths via `tsconfig.json`.
 
 **Verification:**
+
 ```bash
 cd packages/mobile
 pnpm typecheck
@@ -130,6 +138,7 @@ src/
 ## Validation & Enforcement
 
 ### Pre-commit Hook (Optional)
+
 Add a check to `pre-commit` configuration to catch relative imports:
 
 ```bash
@@ -138,6 +147,7 @@ pnpm lint:imports  # custom script
 ```
 
 ### Linting Rule
+
 Configure ESLint to prefer path aliases over relative imports:
 
 ```json
@@ -157,22 +167,24 @@ Configure ESLint to prefer path aliases over relative imports:
 ## Exceptions & Edge Cases
 
 ### Sibling Imports Within Same Directory
+
 It's acceptable to use relative imports for siblings in the same directory:
 
 ```typescript
 // src/controllers/workers.ts
-import { validateWorker } from './validate-worker' // OK for siblings
+import { validateWorker } from './validate-worker'; // OK for siblings
 
 // But prefer alias for deeper navigation:
-import { UserService } from '@/services/user.service' // Preferred
+import { UserService } from '@/services/user.service'; // Preferred
 ```
 
 ### Test Files
+
 Test files may use relative imports to test co-located modules, but prefer aliases for external dependencies:
 
 ```typescript
-import { calculateFee } from '../payment.service' // OK for tested module
-import { Logger } from '@/utils/logger' // Preferred for external
+import { calculateFee } from '../payment.service'; // OK for tested module
+import { Logger } from '@/utils/logger'; // Preferred for external
 ```
 
 ## FAQ

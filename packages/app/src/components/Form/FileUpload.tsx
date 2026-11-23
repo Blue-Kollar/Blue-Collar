@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import * as React from "react";
-import { Upload, X } from "lucide-react";
-import { cn } from "@/lib/utils";
+import * as React from 'react';
+import { Upload, X } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export interface FileUploadProps {
   label: string;
@@ -12,7 +12,7 @@ export interface FileUploadProps {
   hint?: string;
   disabled?: boolean;
   /** `image` presets `accept` to images and shows a preview of the picked file. */
-  mode?: "file" | "image";
+  mode?: 'file' | 'image';
   /** Preview to show before any file is picked, e.g. the current avatar. */
   existingUrl?: string | null;
   onChange?: (files: FileList | null) => void;
@@ -26,7 +26,7 @@ function FileUpload({
   error: propError,
   hint,
   disabled,
-  mode = "file",
+  mode = 'file',
   existingUrl,
   onChange,
   className,
@@ -37,7 +37,7 @@ function FileUpload({
   const inputId = React.useId();
   const errorId = `${inputId}-error`;
 
-  const isImage = mode === "image";
+  const isImage = mode === 'image';
   const error = propError ?? typeError ?? undefined;
   const selectedPreview = React.useMemo(
     () => (isImage && files[0] ? URL.createObjectURL(files[0]) : null),
@@ -56,11 +56,11 @@ function FileUpload({
     const fl = e.target.files;
     const picked = fl ? Array.from(fl) : [];
 
-    const rejected = isImage ? picked.find((f) => !f.type.startsWith("image/")) : undefined;
+    const rejected = isImage ? picked.find((f) => !f.type.startsWith('image/')) : undefined;
     if (rejected) {
       setTypeError(`${rejected.name} is not an image.`);
       setFiles([]);
-      e.target.value = "";
+      e.target.value = '';
       onChange?.(null);
       return;
     }
@@ -83,36 +83,30 @@ function FileUpload({
   };
 
   return (
-    <div className={cn("flex flex-col gap-1.5", className)}>
+    <div className={cn('flex flex-col gap-1.5', className)}>
       <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{label}</span>
-      {preview && (
-        <img
-          src={preview}
-          alt=""
-          className="h-24 w-24 rounded-md object-cover"
-        />
-      )}
+      {preview && <img src={preview} alt="" className="h-24 w-24 rounded-md object-cover" />}
       <label
         htmlFor={inputId}
         className={cn(
-          "flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed p-6",
-          "text-sm text-gray-500 dark:text-gray-400",
-          "transition-colors hover:border-brand-400 hover:text-brand-600",
-          "dark:border-gray-700 dark:hover:border-brand-500",
-          error ? "border-error" : "border-gray-300",
-          disabled && "pointer-events-none opacity-50"
+          'flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed p-6',
+          'text-sm text-gray-500 dark:text-gray-400',
+          'transition-colors hover:border-brand-400 hover:text-brand-600',
+          'dark:border-gray-700 dark:hover:border-brand-500',
+          error ? 'border-error' : 'border-gray-300',
+          disabled && 'pointer-events-none opacity-50',
         )}
       >
         <Upload size={20} />
-        <span>Click to upload{multiple ? " files" : isImage ? " an image" : " a file"}</span>
-        {(isImage ? accept ?? "image/*" : accept) && (
-          <span className="text-xs text-gray-400">{isImage ? accept ?? "image/*" : accept}</span>
+        <span>Click to upload{multiple ? ' files' : isImage ? ' an image' : ' a file'}</span>
+        {(isImage ? (accept ?? 'image/*') : accept) && (
+          <span className="text-xs text-gray-400">{isImage ? (accept ?? 'image/*') : accept}</span>
         )}
         <input
           ref={inputRef}
           id={inputId}
           type="file"
-          accept={isImage ? accept ?? "image/*" : accept}
+          accept={isImage ? (accept ?? 'image/*') : accept}
           multiple={multiple}
           disabled={disabled}
           onChange={handleChange}
@@ -124,9 +118,17 @@ function FileUpload({
       {files.length > 0 && (
         <ul className="flex flex-col gap-1 mt-1">
           {files.map((f, i) => (
-            <li key={i} className="flex items-center justify-between rounded-md bg-gray-50 dark:bg-gray-800 px-3 py-1.5 text-xs">
+            <li
+              key={i}
+              className="flex items-center justify-between rounded-md bg-gray-50 dark:bg-gray-800 px-3 py-1.5 text-xs"
+            >
               <span className="truncate max-w-[calc(100%-2rem)]">{f.name}</span>
-              <button type="button" onClick={() => removeFile(i)} aria-label={`Remove ${f.name}`} className="ml-2 text-gray-400 hover:text-error">
+              <button
+                type="button"
+                onClick={() => removeFile(i)}
+                aria-label={`Remove ${f.name}`}
+                className="ml-2 text-gray-400 hover:text-error"
+              >
                 <X size={14} />
               </button>
             </li>
@@ -138,9 +140,7 @@ function FileUpload({
           {error}
         </p>
       )}
-      {!error && hint && (
-        <p className="text-xs text-gray-400 dark:text-gray-500">{hint}</p>
-      )}
+      {!error && hint && <p className="text-xs text-gray-400 dark:text-gray-500">{hint}</p>}
     </div>
   );
 }

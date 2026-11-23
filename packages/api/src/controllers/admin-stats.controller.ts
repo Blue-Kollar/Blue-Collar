@@ -4,9 +4,9 @@
  * Issue #1215: standardize error handling — wraps handler in `catchAsync` so
  * any rejection propagates to the global `errorHandler` middleware.
  */
-import type { Request, Response } from 'express'
-import { db } from '@/db.js'
-import { catchAsync } from '@/utils/catchAsync.js'
+import type { Request, Response } from 'express';
+import { db } from '@/db.js';
+import { catchAsync } from '@/utils/catchAsync.js';
 
 export const getStats = catchAsync(async (_req: Request, res: Response) => {
   const [totalUsers, totalWorkers, activeWorkers, totalJobs, verifiedWorkers] = await Promise.all([
@@ -15,7 +15,7 @@ export const getStats = catchAsync(async (_req: Request, res: Response) => {
     db.worker.count({ where: { isActive: true, deletedAt: null } }),
     db.job.count(),
     db.worker.count({ where: { isVerified: true, deletedAt: null } }),
-  ])
+  ]);
 
   return res.json({
     status: 'success',
@@ -32,5 +32,5 @@ export const getStats = catchAsync(async (_req: Request, res: Response) => {
         total: totalJobs,
       },
     },
-  })
-})
+  });
+});

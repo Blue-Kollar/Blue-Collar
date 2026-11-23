@@ -8,9 +8,9 @@ BlueCollar uses AWS ECR as its private container registry.
 
 ## Image tagging
 
-| Tag pattern | When created |
-|---|---|
-| `v1.2.3` | On a semver Git tag |
+| Tag pattern   | When created            |
+| ------------- | ----------------------- |
+| `v1.2.3`      | On a semver Git tag     |
 | `sha-abc1234` | On every push to `main` |
 
 Tags are **immutable** — an existing tag cannot be overwritten.
@@ -25,6 +25,7 @@ Results are uploaded to GitHub Security → Code Scanning.
 
 Images are signed with **Cosign** using keyless signing (Sigstore OIDC).
 Verify a signature:
+
 ```bash
 cosign verify \
   --certificate-identity-regexp="https://github.com/.*" \
@@ -34,14 +35,14 @@ cosign verify \
 
 ## Retention policy
 
-| Rule | Action |
-|---|---|
-| Untagged images older than 1 day | Deleted |
-| More than 10 `v*`-tagged images | Oldest deleted |
+| Rule                             | Action         |
+| -------------------------------- | -------------- |
+| Untagged images older than 1 day | Deleted        |
+| More than 10 `v*`-tagged images  | Oldest deleted |
 
 ## Access controls
 
-| Role | Permissions |
-|---|---|
-| `bluecollar-ci` | Push + pull (CI builds) |
+| Role                | Permissions                     |
+| ------------------- | ------------------------------- |
+| `bluecollar-ci`     | Push + pull (CI builds)         |
 | `bluecollar-deploy` | Pull only (ECS/K8s deployments) |

@@ -10,14 +10,14 @@
  * out of the initial bundle (see issue #1791).
  */
 
-export type StellarNetwork = "testnet" | "public";
+export type StellarNetwork = 'testnet' | 'public';
 
 /**
  * Shorten a Stellar address for display, keeping enough of both ends that a
  * user can still verify it against a wallet: `GABCDE…WXYZ`.
  */
 export function truncateStellarAddress(address: string, lead = 6, tail = 4): string {
-  if (!address) return "";
+  if (!address) return '';
   // Nothing to gain if the ellipsis would make the string longer.
   if (address.length <= lead + tail + 1) return address;
   return `${address.slice(0, lead)}…${address.slice(-tail)}`;
@@ -34,7 +34,7 @@ export function formatXlmAmount(amount: string, fractionDigits = 2): string {
 }
 
 /** Build a stellar.expert transaction URL for the given network. */
-export function stellarExplorerTxUrl(hash: string, network: StellarNetwork = "testnet"): string {
+export function stellarExplorerTxUrl(hash: string, network: StellarNetwork = 'testnet'): string {
   return `https://stellar.expert/explorer/${network}/tx/${hash}`;
 }
 
@@ -42,8 +42,8 @@ export function stellarExplorerTxUrl(hash: string, network: StellarNetwork = "te
  * Lazily load the Stellar SDK. The dynamic import keeps the SDK in a separate
  * chunk so it is only fetched when a caller actually needs it.
  */
-export async function loadStellarSdk(): Promise<typeof import("@stellar/stellar-sdk")> {
-  return import("@stellar/stellar-sdk");
+export async function loadStellarSdk(): Promise<typeof import('@stellar/stellar-sdk')> {
+  return import('@stellar/stellar-sdk');
 }
 
 /**
@@ -62,12 +62,10 @@ export async function isValidStellarAddress(address: string): Promise<boolean> {
  * Horizon, so the SDK chunk is not pulled in for pure formatting work.
  */
 export async function createHorizonServer(
-  network: StellarNetwork = "testnet",
-): Promise<import("@stellar/stellar-sdk").Horizon.Server> {
+  network: StellarNetwork = 'testnet',
+): Promise<import('@stellar/stellar-sdk').Horizon.Server> {
   const { Horizon } = await loadStellarSdk();
   const url =
-    network === "public"
-      ? "https://horizon.stellar.org"
-      : "https://horizon-testnet.stellar.org";
+    network === 'public' ? 'https://horizon.stellar.org' : 'https://horizon-testnet.stellar.org';
   return new Horizon.Server(url);
 }

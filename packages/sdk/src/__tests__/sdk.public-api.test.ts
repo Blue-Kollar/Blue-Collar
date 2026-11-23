@@ -252,7 +252,7 @@ describe('RegistryClient.simulateInvoke', () => {
     spy.mockResolvedValue(jsonResponse({ result: { ok: true } }));
     const result = await client.simulateInvoke('getWorker');
     expect(result).toEqual({ ok: true });
-    const [url, init] = spy.mock.calls[0];
+    const [url, init] = spy.mock.calls[0] ?? [];
     expect(url).toBe('https://soroban-testnet.stellar.org');
     const body = JSON.parse(String(init!.body));
     expect(body.method).toBe('simulateTransaction');
@@ -265,7 +265,7 @@ describe('RegistryClient.simulateInvoke', () => {
     const spy = vi.spyOn(global, 'fetch');
     spy.mockResolvedValue(jsonResponse({ result: 1 }));
     await client.simulateInvoke('totalWorkers');
-    expect(spy.mock.calls[0][0]).toBe('https://soroban-mainnet.stellar.org');
+    expect(spy.mock.calls[0]?.[0]).toBe('https://soroban-mainnet.stellar.org');
   });
 
   it('throws an SdkError on an HTTP failure', async () => {

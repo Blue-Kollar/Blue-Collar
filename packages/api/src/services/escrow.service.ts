@@ -2,11 +2,11 @@
  * Escrow orchestration service.
  * Mirrors the on-chain escrow lifecycle in the DB and notifies parties on transitions.
  */
-import { escrowRepository as defaultEscrowRepository } from '@/repositories/escrow.repository.js'
-import { AppError, ErrorCode } from '@/utils/app-error.js'
-import { dispatchNotification } from './notification.service.js'
-import { nowUtc } from '@/utils/date.js'
-import type { EscrowServiceDeps } from '@/container/types.js'
+import { escrowRepository as defaultEscrowRepository } from '@/repositories/escrow.repository.js';
+import { AppError, ErrorCode } from '@/utils/app-error.js';
+import { dispatchNotification } from './notification.service.js';
+import { nowUtc } from '@/utils/date.js';
+import type { EscrowServiceDeps } from '@/container/types.js';
 
 // ── Pause guard ───────────────────────────────────────────────────────────────
 
@@ -15,33 +15,46 @@ import type { EscrowServiceDeps } from '@/container/types.js'
  * Throws 409 Conflict if paused, mirroring the on-chain `require_not_paused`.
  */
 async function requireNotPaused(deps: EscrowServiceDeps) {
-  const config = await deps.escrowRepository.findSystemConfig('isPaused')
+  const config = await deps.escrowRepository.findSystemConfig('isPaused');
   if (config && config.value === 'true') {
-    throw new AppError('System is paused — escrow operations are temporarily disabled', 409, true, ErrorCode.CONFLICT)
+    throw new AppError(
+      'System is paused — escrow operations are temporarily disabled',
+      409,
+      true,
+      ErrorCode.CONFLICT,
+    );
   }
 }
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
-function notifyBoth(payerId: string, payeeId: string, title: string, message: string, href?: string) {
-  const channels: ('email' | 'push' | 'inapp')[] = ['inapp', 'email']
-  const payload = { type: 'system' as const, title, message, href, channels }
-  dispatchNotification({ userId: payerId, ...payload }).catch(() => {})
-  dispatchNotification({ userId: payeeId, ...payload }).catch(() => {})
+function notifyBoth(
+  payerId: string,
+  payeeId: string,
+  title: string,
+  message: string,
+  href?: string,
+) {
+  const channels: ('email' | 'push' | 'inapp')[] = ['inapp', 'email'];
+  const payload = { type: 'system' as const, title, message, href, channels };
+  dispatchNotification({ userId: payerId, ...payload }).catch(() => {});
+  dispatchNotification({ userId: payeeId, ...payload }).catch(() => {});
 }
 
 // ── Factory ───────────────────────────────────────────────────────────────────
 
 export function createEscrowService(deps: EscrowServiceDeps) {
-  const { escrowRepository: repo } = deps
+  const { escrowRepository: repo } = deps;
 
   /**
    * Run a multi-step write atomically. Delegates to the repository's transaction
    * primitive so all DB access stays behind the repository abstraction (#1815),
    * while guaranteeing rollback on failure (#1814).
    */
-  function withTransaction<T>(fn: (tx: EscrowServiceDeps['escrowRepository']) => Promise<T>): Promise<T> {
-    return repo.transaction(fn)
+  function withTransaction<T>(
+    fn: (tx: EscrowServiceDeps['escrowRepository']) => Promise<T>,
+  ): Promise<T> {
+    return repo.transaction(fn);
   }
 
   return {
@@ -49,114 +62,193 @@ export function createEscrowService(deps: EscrowServiceDeps) {
      * Create a new escrow record.
      */
     async createEscrow(data: {
-      jobId?: string
-      payerId: string
-      payeeId: string
-      amountXlm: number
-      expiresAt: Date
-      txId?: string
+      jobId?: string;
+      payerId: string;
+      payeeId: string;
+      amountXlm: number;
+      expiresAt: Date;
+      txId?: string;
     }) {
-      await requireNotPaused(deps)
-      if (data.amountXlm <= 0) throw new AppError('amountXlm must be greater than 0', 400, true, ErrorCode.VALIDATION_ERROR)
-      if (data.expiresAt <= nowUtc()) throw new AppError('expiresAt must be in the future', 400, true, ErrorCode.VALIDATION_ERROR)
-      if (data.payerId === data.payeeId) throw new AppError('Payer and payee must be different', 400, true, ErrorCode.VALIDATION_ERROR)
+      await requireNotPaused(deps);
+      if (data.amountXlm <= 0)
+        throw new AppError(
+          'amountXlm must be greater than 0',
+          400,
+          true,
+          ErrorCode.VALIDATION_ERROR,
+        );
+      if (data.expiresAt <= nowUtc())
+        throw new AppError(
+          'expiresAt must be in the future',
+          400,
+          true,
+          ErrorCode.VALIDATION_ERROR,
+        );
+      if (data.payerId === data.payeeId)
+        throw new AppError(
+          'Payer and payee must be different',
+          400,
+          true,
+          ErrorCode.VALIDATION_ERROR,
+        );
 
-      const record = await repo.createEscrow({ ...data, status: 'pending' })
+      const record = await repo.createEscrow({ ...data, status: 'pending' });
 
-      notifyBoth(data.payerId, data.payeeId, 'Escrow created', `An escrow of ${data.amountXlm} XLM has been created.`, `/escrow/${record.id}`)
+      notifyBoth(
+        data.payerId,
+        data.payeeId,
+        'Escrow created',
+        `An escrow of ${data.amountXlm} XLM has been created.`,
+        `/escrow/${record.id}`,
+      );
 
-      return record
+      return record;
     },
 
     /**
      * Activate an escrow (funds confirmed on-chain).
      */
     async activateEscrow(id: string, txId: string, callerId: string, callerRole: string) {
-      const record = await repo.findEscrow(id)
-      if (!record) throw new AppError('Escrow not found', 404, true, ErrorCode.NOT_FOUND)
-      if (record.status !== 'pending') throw new AppError('Only pending escrows can be activated', 400, true, ErrorCode.VALIDATION_ERROR)
-      if (callerRole !== 'admin' && record.payerId !== callerId) throw new AppError('Forbidden', 403, true, ErrorCode.FORBIDDEN)
+      const record = await repo.findEscrow(id);
+      if (!record) throw new AppError('Escrow not found', 404, true, ErrorCode.NOT_FOUND);
+      if (record.status !== 'pending')
+        throw new AppError(
+          'Only pending escrows can be activated',
+          400,
+          true,
+          ErrorCode.VALIDATION_ERROR,
+        );
+      if (callerRole !== 'admin' && record.payerId !== callerId)
+        throw new AppError('Forbidden', 403, true, ErrorCode.FORBIDDEN);
 
-      const updated = await repo.updateEscrow(id, { status: 'active', txId })
+      const updated = await repo.updateEscrow(id, { status: 'active', txId });
 
-      notifyBoth(record.payerId, record.payeeId, 'Escrow active', `Escrow ${id} is now active. Funds are locked until release or expiry.`, `/escrow/${id}`)
+      notifyBoth(
+        record.payerId,
+        record.payeeId,
+        'Escrow active',
+        `Escrow ${id} is now active. Funds are locked until release or expiry.`,
+        `/escrow/${id}`,
+      );
 
-      return updated
+      return updated;
     },
 
     /**
      * Release an escrow to the payee.
      */
     async releaseEscrow(id: string, callerId: string, callerRole: string) {
-      const record = await repo.findEscrow(id)
-      if (!record) throw new AppError('Escrow not found', 404, true, ErrorCode.NOT_FOUND)
-      if (record.status !== 'active') throw new AppError('Only active escrows can be released', 400, true, ErrorCode.VALIDATION_ERROR)
-      if (callerRole !== 'admin' && record.payerId !== callerId) throw new AppError('Forbidden', 403, true, ErrorCode.FORBIDDEN)
+      const record = await repo.findEscrow(id);
+      if (!record) throw new AppError('Escrow not found', 404, true, ErrorCode.NOT_FOUND);
+      if (record.status !== 'active')
+        throw new AppError(
+          'Only active escrows can be released',
+          400,
+          true,
+          ErrorCode.VALIDATION_ERROR,
+        );
+      if (callerRole !== 'admin' && record.payerId !== callerId)
+        throw new AppError('Forbidden', 403, true, ErrorCode.FORBIDDEN);
 
-      const updated = await repo.updateEscrow(id, { status: 'released', releasedAt: nowUtc() })
+      const updated = await repo.updateEscrow(id, { status: 'released', releasedAt: nowUtc() });
 
-      notifyBoth(record.payerId, record.payeeId, 'Escrow released', `Escrow ${id} has been released. Funds are on their way to the payee.`, `/escrow/${id}`)
+      notifyBoth(
+        record.payerId,
+        record.payeeId,
+        'Escrow released',
+        `Escrow ${id} has been released. Funds are on their way to the payee.`,
+        `/escrow/${id}`,
+      );
 
-      return updated
+      return updated;
     },
 
     /**
      * Cancel an escrow (time-locked: only after expiry, or by admin).
      */
     async cancelEscrow(id: string, callerId: string, callerRole: string) {
-      const record = await repo.findEscrow(id)
-      if (!record) throw new AppError('Escrow not found', 404, true, ErrorCode.NOT_FOUND)
+      const record = await repo.findEscrow(id);
+      if (!record) throw new AppError('Escrow not found', 404, true, ErrorCode.NOT_FOUND);
       if (record.status !== 'active' && record.status !== 'pending') {
-        throw new AppError('Only pending/active escrows can be cancelled', 400, true, ErrorCode.VALIDATION_ERROR)
+        throw new AppError(
+          'Only pending/active escrows can be cancelled',
+          400,
+          true,
+          ErrorCode.VALIDATION_ERROR,
+        );
       }
-      const now = nowUtc()
-      if (callerRole !== 'admin' && record.payerId !== callerId) throw new AppError('Forbidden', 403, true, ErrorCode.FORBIDDEN)
+      const now = nowUtc();
+      if (callerRole !== 'admin' && record.payerId !== callerId)
+        throw new AppError('Forbidden', 403, true, ErrorCode.FORBIDDEN);
       if (callerRole !== 'admin' && record.expiresAt > now) {
-        throw new AppError('Escrow is still within the lock period', 400, true, ErrorCode.VALIDATION_ERROR)
+        throw new AppError(
+          'Escrow is still within the lock period',
+          400,
+          true,
+          ErrorCode.VALIDATION_ERROR,
+        );
       }
 
-      const updated = await repo.updateEscrow(id, { status: 'cancelled', cancelledAt: now })
+      const updated = await repo.updateEscrow(id, { status: 'cancelled', cancelledAt: now });
 
-      notifyBoth(record.payerId, record.payeeId, 'Escrow cancelled', `Escrow ${id} has been cancelled.`, `/escrow/${id}`)
+      notifyBoth(
+        record.payerId,
+        record.payeeId,
+        'Escrow cancelled',
+        `Escrow ${id} has been cancelled.`,
+        `/escrow/${id}`,
+      );
 
-      return updated
+      return updated;
     },
 
     async getEscrow(id: string, callerId: string, callerRole: string) {
-      const record = await repo.findEscrowWithDisputes(id)
-      if (!record) throw new AppError('Escrow not found', 404, true, ErrorCode.NOT_FOUND)
+      const record = await repo.findEscrowWithDisputes(id);
+      if (!record) throw new AppError('Escrow not found', 404, true, ErrorCode.NOT_FOUND);
       if (callerRole !== 'admin' && record.payerId !== callerId && record.payeeId !== callerId) {
-        throw new AppError('Forbidden', 403, true, ErrorCode.FORBIDDEN)
+        throw new AppError('Forbidden', 403, true, ErrorCode.FORBIDDEN);
       }
-      return record
+      return record;
     },
 
     async listEscrows(callerId: string, callerRole: string, page = 1, limit = 20) {
-      const where = callerRole === 'admin' ? {} : { OR: [{ payerId: callerId }, { payeeId: callerId }] }
+      const where =
+        callerRole === 'admin' ? {} : { OR: [{ payerId: callerId }, { payeeId: callerId }] };
       const { data, total } = await repo.listEscrows(where, {
         skip: (page - 1) * limit,
         take: limit,
-      })
-      return { data, meta: { total, page, limit, pages: Math.ceil(total / limit) } }
+      });
+      return { data, meta: { total, page, limit, pages: Math.ceil(total / limit) } };
     },
 
     /**
      * File a dispute against an active escrow.
      */
-    async fileEscrowDispute(escrowId: string, filedById: string, reason: string, evidence?: string) {
-      const record = await repo.findEscrow(escrowId)
-      if (!record) throw new AppError('Escrow not found', 404, true, ErrorCode.NOT_FOUND)
-      if (record.payerId !== filedById && record.payeeId !== filedById) throw new AppError('Forbidden', 403, true, ErrorCode.FORBIDDEN)
+    async fileEscrowDispute(
+      escrowId: string,
+      filedById: string,
+      reason: string,
+      evidence?: string,
+    ) {
+      const record = await repo.findEscrow(escrowId);
+      if (!record) throw new AppError('Escrow not found', 404, true, ErrorCode.NOT_FOUND);
+      if (record.payerId !== filedById && record.payeeId !== filedById)
+        throw new AppError('Forbidden', 403, true, ErrorCode.FORBIDDEN);
       if (record.status === 'released' || record.status === 'cancelled') {
-        throw new AppError('Cannot dispute a completed escrow', 400, true, ErrorCode.VALIDATION_ERROR)
+        throw new AppError(
+          'Cannot dispute a completed escrow',
+          400,
+          true,
+          ErrorCode.VALIDATION_ERROR,
+        );
       }
 
       // Create dispute and mark escrow as disputed atomically
       const newDispute = await withTransaction((tx) =>
         tx.createDisputeAndMarkEscrow(escrowId, { escrowId, filedById, reason, evidence }),
-      )
+      );
 
-      const otherId = record.payerId === filedById ? record.payeeId : record.payerId
+      const otherId = record.payerId === filedById ? record.payeeId : record.payerId;
       dispatchNotification({
         userId: otherId,
         type: 'system',
@@ -164,9 +256,9 @@ export function createEscrowService(deps: EscrowServiceDeps) {
         message: `A dispute has been filed on escrow ${escrowId}.`,
         href: `/escrow/${escrowId}`,
         channels: ['inapp', 'email'],
-      }).catch(() => {})
+      }).catch(() => {});
 
-      return newDispute
+      return newDispute;
     },
 
     /**
@@ -178,8 +270,8 @@ export function createEscrowService(deps: EscrowServiceDeps) {
       status: 'under_review' | 'resolved' | 'dismissed',
       resolution?: string,
     ) {
-      const dispute = await repo.findDispute(disputeId)
-      if (!dispute) throw new AppError('Dispute not found', 404, true, ErrorCode.NOT_FOUND)
+      const dispute = await repo.findDispute(disputeId);
+      if (!dispute) throw new AppError('Dispute not found', 404, true, ErrorCode.NOT_FOUND);
 
       // Dispute update, escrow transition and audit log must all succeed or none should.
       const updated = await withTransaction(async (tx) => {
@@ -187,15 +279,15 @@ export function createEscrowService(deps: EscrowServiceDeps) {
           status,
           resolution,
           resolvedAt: status !== 'under_review' ? nowUtc() : undefined,
-        })
+        });
 
         if (status === 'resolved' || status === 'dismissed') {
-          const escrowStatus = status === 'resolved' ? 'released' : 'cancelled'
+          const escrowStatus = status === 'resolved' ? 'released' : 'cancelled';
           await tx.updateEscrow(dispute.escrowId, {
             status: escrowStatus,
             releasedAt: escrowStatus === 'released' ? nowUtc() : undefined,
             cancelledAt: escrowStatus === 'cancelled' ? nowUtc() : undefined,
-          })
+          });
         }
 
         await tx.createAuditLog({
@@ -204,10 +296,10 @@ export function createEscrowService(deps: EscrowServiceDeps) {
           resource: 'EscrowDispute',
           resourceId: disputeId,
           meta: { resolution: resolution ?? null },
-        })
+        });
 
-        return result
-      })
+        return result;
+      });
 
       if (status === 'resolved' || status === 'dismissed') {
         notifyBoth(
@@ -216,53 +308,63 @@ export function createEscrowService(deps: EscrowServiceDeps) {
           `Escrow dispute ${status}`,
           `The dispute on escrow ${dispute.escrowId} has been ${status}. ${resolution ?? ''}`.trim(),
           `/escrow/${dispute.escrowId}`,
-        )
+        );
       }
 
-      return updated
+      return updated;
     },
-  }
+  };
 }
 
 // ── Default service instance (backward-compatible module-level API) ───────────
 
 const _defaultService = createEscrowService({
   escrowRepository: defaultEscrowRepository,
-})
+});
 
 export async function createEscrow(data: {
-  jobId?: string
-  payerId: string
-  payeeId: string
-  amountXlm: number
-  expiresAt: Date
-  txId?: string
+  jobId?: string;
+  payerId: string;
+  payeeId: string;
+  amountXlm: number;
+  expiresAt: Date;
+  txId?: string;
 }) {
-  return _defaultService.createEscrow(data)
+  return _defaultService.createEscrow(data);
 }
 
-export async function activateEscrow(id: string, txId: string, callerId: string, callerRole: string) {
-  return _defaultService.activateEscrow(id, txId, callerId, callerRole)
+export async function activateEscrow(
+  id: string,
+  txId: string,
+  callerId: string,
+  callerRole: string,
+) {
+  return _defaultService.activateEscrow(id, txId, callerId, callerRole);
 }
 
 export async function releaseEscrow(id: string, callerId: string, callerRole: string) {
-  return _defaultService.releaseEscrow(id, callerId, callerRole)
+  return _defaultService.releaseEscrow(id, callerId, callerRole);
 }
 
 export async function cancelEscrow(id: string, callerId: string, callerRole: string) {
-  return _defaultService.cancelEscrow(id, callerId, callerRole)
+  return _defaultService.cancelEscrow(id, callerId, callerRole);
 }
 
 export async function getEscrow(id: string, callerId: string, callerRole: string) {
-  return _defaultService.getEscrow(id, callerId, callerRole)
+  return _defaultService.getEscrow(id, callerId, callerRole);
 }
 
 export async function listEscrows(callerId: string, callerRole: string, page = 1, limit = 20) {
-  return _defaultService.listEscrows(callerId, callerRole, page, limit)
+  return _defaultService.listEscrows(callerId, callerRole, page, limit);
 }
 
-export async function fileEscrowDispute(escrowId: string, filedById: string, reason: string, evidence?: string) {
-  return _defaultService.fileEscrowDispute(escrowId, filedById, reason, evidence)
+export async function fileEscrowDispute(
+  escrowId: string,
+  filedById: string,
+  reason: string,
+  evidence?: string,
+) {
+  return _defaultService.fileEscrowDispute(escrowId, filedById, reason, evidence);
 }
 
 export async function resolveEscrowDispute(
@@ -271,7 +373,7 @@ export async function resolveEscrowDispute(
   status: 'under_review' | 'resolved' | 'dismissed',
   resolution?: string,
 ) {
-  return _defaultService.resolveEscrowDispute(disputeId, adminId, status, resolution)
+  return _defaultService.resolveEscrowDispute(disputeId, adminId, status, resolution);
 }
 
 /**
@@ -289,19 +391,19 @@ export async function resolveDispute(
   callerId: string,
   callerRole: string,
 ) {
-  await requireNotPaused({ escrowRepository: defaultEscrowRepository })
+  await requireNotPaused({ escrowRepository: defaultEscrowRepository });
 
-  const record = await defaultEscrowRepository.findEscrow(escrowId)
-  if (!record) throw new AppError('Escrow not found', 404, true, ErrorCode.NOT_FOUND)
-  if (callerRole !== 'admin') throw new AppError('Forbidden', 403, true, ErrorCode.FORBIDDEN)
+  const record = await defaultEscrowRepository.findEscrow(escrowId);
+  if (!record) throw new AppError('Escrow not found', 404, true, ErrorCode.NOT_FOUND);
+  if (callerRole !== 'admin') throw new AppError('Forbidden', 403, true, ErrorCode.FORBIDDEN);
 
-  const newStatus = outcome === 'release' ? 'released' : 'cancelled'
+  const newStatus = outcome === 'release' ? 'released' : 'cancelled';
   const updated = await defaultEscrowRepository.transaction((tx) =>
     tx.updateEscrow(escrowId, {
       status: newStatus,
       ...(newStatus === 'released' ? { releasedAt: nowUtc() } : { cancelledAt: nowUtc() }),
     }),
-  )
+  );
 
   notifyBoth(
     record.payerId,
@@ -309,7 +411,7 @@ export async function resolveDispute(
     `Escrow dispute resolved`,
     `The dispute on escrow ${escrowId} has been resolved. Outcome: ${outcome}.`,
     `/escrow/${escrowId}`,
-  )
+  );
 
-  return updated
+  return updated;
 }

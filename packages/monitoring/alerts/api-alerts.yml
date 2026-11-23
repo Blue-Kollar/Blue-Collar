@@ -17,9 +17,9 @@ groups:
           team: backend
           service: api
         annotations:
-          summary: "API error rate exceeds 5%"
-          description: "Error rate is {{ $value | humanizePercentage }} over the last 5 minutes"
-          runbook: "https://github.com/Blue-Kollar/Blue-Collar/docs/INCIDENT_RUNBOOK.md#api-high-error-rate"
+          summary: 'API error rate exceeds 5%'
+          description: 'Error rate is {{ $value | humanizePercentage }} over the last 5 minutes'
+          runbook: 'https://github.com/Blue-Kollar/Blue-Collar/docs/INCIDENT_RUNBOOK.md#api-high-error-rate'
 
       # High Latency Alert
       - alert: APIHighLatency
@@ -31,9 +31,9 @@ groups:
           team: backend
           service: api
         annotations:
-          summary: "API p95 latency exceeds 2s"
-          description: "p95 latency is {{ $value }}s over the last 5 minutes"
-          runbook: "https://github.com/Blue-Kollar/Blue-Collar/docs/INCIDENT_RUNBOOK.md#api-high-latency"
+          summary: 'API p95 latency exceeds 2s'
+          description: 'p95 latency is {{ $value }}s over the last 5 minutes'
+          runbook: 'https://github.com/Blue-Kollar/Blue-Collar/docs/INCIDENT_RUNBOOK.md#api-high-latency'
 
       # Low Request Rate Alert
       - alert: APIRequestRateDrop
@@ -45,5 +45,5 @@ groups:
           team: backend
           service: api
         annotations:
-          summary: "API request rate dropped significantly"
-          description: "Request rate is {{ $value }} req/s over the last 5 minutes"
+          summary: 'API request rate dropped significantly'
+          description: 'Request rate is {{ $value }} req/s over the last 5 minutes'

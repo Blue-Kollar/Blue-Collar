@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 /**
  * OnboardingModal — migrated to Radix Dialog for proper focus-trap and
@@ -6,10 +6,10 @@
  * Closes #1210
  */
 
-import { useState } from "react";
-import { ChevronRight, User, Wallet, Users } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useTranslations } from "next-intl";
+import { useState } from 'react';
+import { ChevronRight, User, Wallet, Users } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useTranslations } from 'next-intl';
 
 interface OnboardingModalProps {
   isOpen: boolean;
@@ -17,35 +17,31 @@ interface OnboardingModalProps {
   onComplete: () => void;
 }
 
-export default function OnboardingModal({
-  isOpen,
-  onClose,
-  onComplete,
-}: OnboardingModalProps) {
-  const t = useTranslations("componentText");
+export default function OnboardingModal({ isOpen, onClose, onComplete }: OnboardingModalProps) {
+  const t = useTranslations('componentText');
   const [step, setStep] = useState(1);
 
   const steps = [
     {
       number: 1,
-      title: t("onboardingProfileTitle"),
-      description: t("onboardingProfileDescription"),
+      title: t('onboardingProfileTitle'),
+      description: t('onboardingProfileDescription'),
       icon: <User size={32} className="text-blue-600" aria-hidden="true" />,
-      action: t("onboardingProfileAction"),
+      action: t('onboardingProfileAction'),
     },
     {
       number: 2,
-      title: t("onboardingWalletTitle"),
-      description: t("onboardingWalletDescription"),
+      title: t('onboardingWalletTitle'),
+      description: t('onboardingWalletDescription'),
       icon: <Wallet size={32} className="text-blue-600" aria-hidden="true" />,
-      action: t("connectWallet"),
+      action: t('connectWallet'),
     },
     {
       number: 3,
-      title: t("onboardingWorkersTitle"),
-      description: t("onboardingWorkersDescription"),
+      title: t('onboardingWorkersTitle'),
+      description: t('onboardingWorkersDescription'),
       icon: <Users size={32} className="text-blue-600" aria-hidden="true" />,
-      action: t("browseWorkers"),
+      action: t('browseWorkers'),
     },
   ];
 
@@ -74,7 +70,7 @@ export default function OnboardingModal({
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-md p-0 overflow-hidden">
         <DialogHeader className="sr-only">
-          <DialogTitle>{t("onboardingStep", { step, total: steps.length })}</DialogTitle>
+          <DialogTitle>{t('onboardingStep', { step, total: steps.length })}</DialogTitle>
         </DialogHeader>
 
         {/* Progress bar */}
@@ -95,25 +91,26 @@ export default function OnboardingModal({
         <div className="p-8 text-center">
           <div className="mb-6 flex justify-center">{currentStep.icon}</div>
 
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            {currentStep.title}
-          </h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">{currentStep.title}</h2>
 
           <p className="text-gray-600 mb-8">{currentStep.description}</p>
 
           {/* Step indicator */}
-          <div
-            className="flex justify-center gap-2 mb-8"
-            role="list"
-            aria-label={t("steps")}
-          >
+          <div className="flex justify-center gap-2 mb-8" role="list" aria-label={t('steps')}>
             {steps.map((s) => (
               <div
                 key={s.number}
                 role="listitem"
-                aria-label={t(s.number === step ? "currentStep" : s.number < step ? "completedStep" : "stepNumber", { step: s.number })}
+                aria-label={t(
+                  s.number === step
+                    ? 'currentStep'
+                    : s.number < step
+                      ? 'completedStep'
+                      : 'stepNumber',
+                  { step: s.number },
+                )}
                 className={`h-2 w-2 rounded-full transition-colors ${
-                  s.number <= step ? "bg-blue-600" : "bg-gray-300"
+                  s.number <= step ? 'bg-blue-600' : 'bg-gray-300'
                 }`}
               />
             ))}
@@ -133,13 +130,13 @@ export default function OnboardingModal({
               onClick={handleSkip}
               className="w-full text-gray-600 py-2.5 rounded-md font-medium hover:bg-gray-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2"
             >
-              {t("skipForNow")}
+              {t('skipForNow')}
             </button>
           </div>
 
           {/* Step counter */}
           <p className="text-xs text-gray-500 mt-4" aria-live="polite">
-            {t("onboardingStep", { step, total: steps.length })}
+            {t('onboardingStep', { step, total: steps.length })}
           </p>
         </div>
       </DialogContent>

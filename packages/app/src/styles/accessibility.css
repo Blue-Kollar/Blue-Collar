@@ -20,7 +20,7 @@
  */
 a:focus-visible,
 button:focus-visible,
-[role="button"]:focus-visible,
+[role='button']:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible,
@@ -72,9 +72,9 @@ summary:focus-visible,
  */
 @media (pointer: coarse) {
   button,
-  [role="button"],
-  input[type="checkbox"],
-  input[type="radio"] {
+  [role='button'],
+  input[type='checkbox'],
+  input[type='radio'] {
     min-height: 44px;
     min-width: 44px;
   }

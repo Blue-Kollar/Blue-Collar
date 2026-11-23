@@ -1,23 +1,16 @@
-"use client";
+'use client';
 
-import {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  useCallback,
-  type ReactNode,
-} from "react";
+import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/api";
-const TOKEN_KEY = "bc_token";
+const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000/api';
+const TOKEN_KEY = 'bc_token';
 
 export interface AuthUser {
   id: string;
   firstName: string;
   lastName: string;
   email: string;
-  role: "user" | "curator" | "admin";
+  role: 'user' | 'curator' | 'admin';
   verified?: boolean;
   onboardingCompleted?: boolean;
 }
@@ -57,7 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       headers: { Authorization: `Bearer ${stored}` },
     })
       .then((res) => {
-        if (!res.ok) throw new Error("Invalid token");
+        if (!res.ok) throw new Error('Invalid token');
         return res.json();
       })
       .then((json) => {

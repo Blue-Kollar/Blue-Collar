@@ -7,20 +7,20 @@ on:
   push:
     branches: [main]
     paths:
-      - "packages/app/**"
-      - "packages/api/**"
-      - "docker-compose.test.yml"
-      - ".github/workflows/e2e.yml"
+      - 'packages/app/**'
+      - 'packages/api/**'
+      - 'docker-compose.test.yml'
+      - '.github/workflows/e2e.yml'
   pull_request:
     paths:
-      - "packages/app/**"
-      - "packages/api/**"
-      - "docker-compose.test.yml"
-      - ".github/workflows/e2e.yml"
+      - 'packages/app/**'
+      - 'packages/api/**'
+      - 'docker-compose.test.yml'
+      - '.github/workflows/e2e.yml'
   workflow_dispatch:
 
 env:
-  CI: "true"
+  CI: 'true'
 
 jobs:
   # Blocking: axe-core a11y gate

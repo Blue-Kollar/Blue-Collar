@@ -23,11 +23,11 @@ All tokens are exported as TypeScript constants and mirrored in the Tailwind con
 ### Importing Tokens
 
 ```typescript
-import { colors, typography, spacing, radii, shadows } from '@/design-system/tokens'
+import { colors, typography, spacing, radii, shadows } from '@/design-system/tokens';
 
-const bgColor = colors.brand[500]
-const fontSize = typography.fontSize.lg
-const padding = spacing[4]
+const bgColor = colors.brand[500];
+const fontSize = typography.fontSize.lg;
+const padding = spacing[4];
 ```
 
 ## Color Palette
@@ -36,44 +36,44 @@ const padding = spacing[4]
 
 The brand color is blue, used for primary actions, links, and highlights.
 
-| Shade | Hex | Usage |
-|-------|-----|-------|
-| 50 | #eff6ff | Lightest backgrounds |
-| 100 | #dbeafe | Light backgrounds |
-| 200 | #bfdbfe | Hover states |
-| 300 | #93c5fd | Disabled states |
-| 400 | #60a5fa | Secondary actions |
-| **500** | **#3b82f6** | **Primary actions** |
-| 600 | #2563eb | Primary hover |
-| 700 | #1d4ed8 | Primary active |
-| 800 | #1e40af | Dark mode primary |
-| 900 | #1e3a8a | Darkest |
+| Shade   | Hex         | Usage                |
+| ------- | ----------- | -------------------- |
+| 50      | #eff6ff     | Lightest backgrounds |
+| 100     | #dbeafe     | Light backgrounds    |
+| 200     | #bfdbfe     | Hover states         |
+| 300     | #93c5fd     | Disabled states      |
+| 400     | #60a5fa     | Secondary actions    |
+| **500** | **#3b82f6** | **Primary actions**  |
+| 600     | #2563eb     | Primary hover        |
+| 700     | #1d4ed8     | Primary active       |
+| 800     | #1e40af     | Dark mode primary    |
+| 900     | #1e3a8a     | Darkest              |
 
 ### Neutral Colors (Grays)
 
 Used for text, borders, and backgrounds.
 
-| Shade | Hex | Usage |
-|-------|-----|-------|
-| 50 | #f9fafb | Lightest backgrounds |
-| 100 | #f3f4f6 | Light backgrounds |
-| 200 | #e5e7eb | Borders, dividers |
-| 300 | #d1d5db | Disabled text |
-| 400 | #9ca3af | Secondary text |
-| 500 | #6b7280 | Tertiary text |
-| 600 | #4b5563 | Body text |
-| 700 | #374151 | Headings |
-| 800 | #1f2937 | Dark text |
-| 900 | #111827 | Darkest text |
+| Shade | Hex     | Usage                |
+| ----- | ------- | -------------------- |
+| 50    | #f9fafb | Lightest backgrounds |
+| 100   | #f3f4f6 | Light backgrounds    |
+| 200   | #e5e7eb | Borders, dividers    |
+| 300   | #d1d5db | Disabled text        |
+| 400   | #9ca3af | Secondary text       |
+| 500   | #6b7280 | Tertiary text        |
+| 600   | #4b5563 | Body text            |
+| 700   | #374151 | Headings             |
+| 800   | #1f2937 | Dark text            |
+| 900   | #111827 | Darkest text         |
 
 ### Semantic Colors
 
-| Color | Light | Default | Dark | Usage |
-|-------|-------|---------|------|-------|
+| Color   | Light   | Default | Dark    | Usage                       |
+| ------- | ------- | ------- | ------- | --------------------------- |
 | Success | #d1fae5 | #10b981 | #065f46 | Confirmations, valid states |
-| Warning | #fef3c7 | #f59e0b | #92400e | Alerts, cautions |
-| Error | #fee2e2 | #ef4444 | #991b1b | Errors, destructive actions |
-| Info | #dbeafe | #3b82f6 | #1e40af | Information, hints |
+| Warning | #fef3c7 | #f59e0b | #92400e | Alerts, cautions            |
+| Error   | #fee2e2 | #ef4444 | #991b1b | Errors, destructive actions |
+| Info    | #dbeafe | #3b82f6 | #1e40af | Information, hints          |
 
 ### Using Colors in Tailwind
 
@@ -92,27 +92,27 @@ Used for text, borders, and backgrounds.
 
 ### Font Sizes
 
-| Size | Pixels | Usage |
-|------|--------|-------|
-| xs | 12px | Captions, small labels |
-| sm | 14px | Small text, helper text |
-| base | 16px | Body text (default) |
-| lg | 18px | Large body text |
-| xl | 20px | Subheadings |
-| 2xl | 24px | Section headings |
-| 3xl | 30px | Page headings |
-| 4xl | 36px | Large headings |
-| 5xl | 48px | Hero headings |
+| Size | Pixels | Usage                   |
+| ---- | ------ | ----------------------- |
+| xs   | 12px   | Captions, small labels  |
+| sm   | 14px   | Small text, helper text |
+| base | 16px   | Body text (default)     |
+| lg   | 18px   | Large body text         |
+| xl   | 20px   | Subheadings             |
+| 2xl  | 24px   | Section headings        |
+| 3xl  | 30px   | Page headings           |
+| 4xl  | 36px   | Large headings          |
+| 5xl  | 48px   | Hero headings           |
 
 ### Font Weights
 
-| Weight | Value | Usage |
-|--------|-------|-------|
-| Light | 300 | Subtle text |
-| Normal | 400 | Body text |
-| Medium | 500 | Emphasis |
-| Semibold | 600 | Subheadings, labels |
-| Bold | 700 | Headings, strong emphasis |
+| Weight   | Value | Usage                     |
+| -------- | ----- | ------------------------- |
+| Light    | 300   | Subtle text               |
+| Normal   | 400   | Body text                 |
+| Medium   | 500   | Emphasis                  |
+| Semibold | 600   | Subheadings, labels       |
+| Bold     | 700   | Headings, strong emphasis |
 
 ### Heading Styles
 
@@ -137,21 +137,21 @@ Used for text, borders, and backgrounds.
 
 The spacing scale is based on a 4px grid, making it easy to create consistent layouts.
 
-| Token | Pixels | Usage |
-|-------|--------|-------|
-| 0 | 0px | No space |
-| 1 | 4px | Tight spacing |
-| 2 | 8px | Compact spacing |
-| 3 | 12px | Small spacing |
-| 4 | 16px | Default spacing |
-| 5 | 20px | Medium spacing |
-| 6 | 24px | Comfortable spacing |
-| 8 | 32px | Large spacing |
-| 10 | 40px | Extra large spacing |
-| 12 | 48px | Huge spacing |
-| 16 | 64px | Massive spacing |
-| 20 | 80px | Extreme spacing |
-| 24 | 96px | Maximum spacing |
+| Token | Pixels | Usage               |
+| ----- | ------ | ------------------- |
+| 0     | 0px    | No space            |
+| 1     | 4px    | Tight spacing       |
+| 2     | 8px    | Compact spacing     |
+| 3     | 12px   | Small spacing       |
+| 4     | 16px   | Default spacing     |
+| 5     | 20px   | Medium spacing      |
+| 6     | 24px   | Comfortable spacing |
+| 8     | 32px   | Large spacing       |
+| 10    | 40px   | Extra large spacing |
+| 12    | 48px   | Huge spacing        |
+| 16    | 64px   | Massive spacing     |
+| 20    | 80px   | Extreme spacing     |
+| 24    | 96px   | Maximum spacing     |
 
 ### Using Spacing
 
@@ -164,16 +164,16 @@ The spacing scale is based on a 4px grid, making it easy to create consistent la
 
 ## Border Radius
 
-| Token | Pixels | Usage |
-|-------|--------|-------|
-| none | 0px | Sharp corners |
-| sm | 2px | Subtle rounding |
-| md | 6px | Slight rounding |
-| lg | 8px | Standard rounding |
-| xl | 12px | Comfortable rounding |
-| 2xl | 16px | Generous rounding |
-| 3xl | 24px | Large rounding |
-| full | 9999px | Circles, pills |
+| Token | Pixels | Usage                |
+| ----- | ------ | -------------------- |
+| none  | 0px    | Sharp corners        |
+| sm    | 2px    | Subtle rounding      |
+| md    | 6px    | Slight rounding      |
+| lg    | 8px    | Standard rounding    |
+| xl    | 12px   | Comfortable rounding |
+| 2xl   | 16px   | Generous rounding    |
+| 3xl   | 24px   | Large rounding       |
+| full  | 9999px | Circles, pills       |
 
 ### Using Border Radius
 
@@ -185,13 +185,13 @@ The spacing scale is based on a 4px grid, making it easy to create consistent la
 
 ## Shadows
 
-| Token | Usage |
-|-------|-------|
-| sm | Subtle elevation |
-| md | Standard elevation |
-| lg | Prominent elevation |
-| xl | Strong elevation |
-| 2xl | Maximum elevation |
+| Token | Usage               |
+| ----- | ------------------- |
+| sm    | Subtle elevation    |
+| md    | Standard elevation  |
+| lg    | Prominent elevation |
+| xl    | Strong elevation    |
+| 2xl   | Maximum elevation   |
 
 ### Using Shadows
 
@@ -221,19 +221,16 @@ All components follow the design system and use design tokens consistently.
 Example:
 
 ```tsx
-import { colors, spacing } from '@/design-system/tokens'
+import { colors, spacing } from '@/design-system/tokens';
 
 export function Button({ children, variant = 'primary' }) {
-  const bgColor = variant === 'primary' ? colors.brand[500] : colors.neutral[200]
-  
+  const bgColor = variant === 'primary' ? colors.brand[500] : colors.neutral[200];
+
   return (
-    <button
-      className={`px-4 py-2 rounded-lg font-semibold`}
-      style={{ backgroundColor: bgColor }}
-    >
+    <button className={`px-4 py-2 rounded-lg font-semibold`} style={{ backgroundColor: bgColor }}>
       {children}
     </button>
-  )
+  );
 }
 ```
 
@@ -266,24 +263,24 @@ Navigate to **Design System > Tokens** to see:
 ### Creating Component Stories
 
 ```tsx
-import type { Meta, StoryObj } from '@storybook/react'
-import { Button } from './Button'
+import type { Meta, StoryObj } from '@storybook/react';
+import { Button } from './Button';
 
 const meta: Meta<typeof Button> = {
   title: 'Components/Button',
   component: Button,
-}
+};
 
-export default meta
-type Story = StoryObj<typeof Button>
+export default meta;
+type Story = StoryObj<typeof Button>;
 
 export const Primary: Story = {
   args: { children: 'Click me', variant: 'primary' },
-}
+};
 
 export const Secondary: Story = {
   args: { children: 'Click me', variant: 'secondary' },
-}
+};
 ```
 
 ## Usage
@@ -291,7 +288,7 @@ export const Secondary: Story = {
 ### In Components
 
 ```tsx
-import { colors, spacing, typography } from '@/design-system/tokens'
+import { colors, spacing, typography } from '@/design-system/tokens';
 
 export function Card() {
   return (
@@ -305,29 +302,24 @@ export function Card() {
       <h2 className="text-2xl font-bold mb-4">Card Title</h2>
       <p className="text-neutral-600">Card content</p>
     </div>
-  )
+  );
 }
 ```
 
 ### In Tailwind
 
 ```tsx
-<div className="bg-brand-500 text-white p-4 rounded-lg shadow-lg">
-  Styled with Tailwind
-</div>
+<div className="bg-brand-500 text-white p-4 rounded-lg shadow-lg">Styled with Tailwind</div>
 ```
 
 ### Mixing Approaches
 
 ```tsx
-import { colors } from '@/design-system/tokens'
+import { colors } from '@/design-system/tokens';
 
-<div
-  className="p-4 rounded-lg shadow-md"
-  style={{ backgroundColor: colors.brand[500] }}
->
+<div className="p-4 rounded-lg shadow-md" style={{ backgroundColor: colors.brand[500] }}>
   Mixed styling
-</div>
+</div>;
 ```
 
 ## Best Practices

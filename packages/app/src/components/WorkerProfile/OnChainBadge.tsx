@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { ExternalLink } from "lucide-react";
-import { EXPLORER_CONTRACT_BASE } from "@/config/stellar";
+import { ExternalLink } from 'lucide-react';
+import { EXPLORER_CONTRACT_BASE } from '@/config/stellar';
 
 interface OnChainBadgeProps {
   contractId: string | null | undefined;

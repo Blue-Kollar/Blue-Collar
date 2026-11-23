@@ -17,6 +17,7 @@ This PR implements comprehensive testing infrastructure for Blue-Collar's paymen
 Provides production-grade mock implementations for Stellar blockchain interactions without hitting live Horizon or Soroban RPC servers.
 
 **Key Classes:**
+
 - **MockStellarServer**: Simulates Horizon API with account state management
   - `getAccount(publicKey)`: Returns mock account with balance & sequence
   - `submitTransaction(tx)`: Accepts & tracks transactions
@@ -31,20 +32,23 @@ Provides production-grade mock implementations for Stellar blockchain interactio
   - `getAccount(publicKey)`: Mock Soroban account data
 
 **Helper Functions:**
+
 - `createMockStellarClient(mockServer)`: Factory for mock StellarClient
 - `createMockTransaction()`: Generate realistic Stellar Transaction objects
 - `mockAccountFixture()`: Generate account fixtures (balance, sequence)
 - `mockTransactionFixture()`: Generate transaction fixtures with status
 
 **Usage Example:**
+
 ```typescript
-const mockServer = new MockStellarServer()
-const mockClient = createMockStellarClient(mockServer)
-mockServer.setAccountState('GXXXX...', { balance: '1000', sequence: 1 })
-const result = await mockClient.submitTransaction(tx)
+const mockServer = new MockStellarServer();
+const mockClient = createMockStellarClient(mockServer);
+mockServer.setAccountState('GXXXX...', { balance: '1000', sequence: 1 });
+const result = await mockClient.submitTransaction(tx);
 ```
 
 **Benefits:**
+
 - Zero external dependencies (no Horizon/Soroban API calls)
 - Deterministic test execution (same input = same output)
 - Full control over account state & transaction results
@@ -87,20 +91,23 @@ Provides factory functions for generating consistent test data across integratio
    - Default: 50 XLM amount, 7-day expiry
 
 **Helper Functions:**
+
 - `getOrCreateUserId(db)`: Create user with faker data if needed
 - `getOrCreateCategoryId(db)`: Create or retrieve category
 
 **Usage Example:**
+
 ```typescript
-const account = await createStellarAccount(db, { balance: 1000 })
+const account = await createStellarAccount(db, { balance: 1000 });
 const subscription = await createWebhookSubscription(db, {
   userId,
-  events: ['payment.created']
-})
-const booking = await createBooking(db, { workerId, requesterId })
+  events: ['payment.created'],
+});
+const booking = await createBooking(db, { workerId, requesterId });
 ```
 
 **Benefits:**
+
 - Consistent test data (deterministic via faker seeding)
 - Reduced boilerplate in integration tests
 - Automatic FK relationships (users created as needed)
@@ -138,6 +145,7 @@ Comprehensive integration tests for payment service covering tips, escrows, and 
    - ✅ Proper rounding for fractional fees
 
 **Coverage:**
+
 - 13 total test cases
 - Happy path scenarios (successful payments)
 - Error scenarios (insufficient balance, expired escrows)
@@ -145,12 +153,14 @@ Comprehensive integration tests for payment service covering tips, escrows, and 
 - Mock Stellar interactions (no live RPC calls)
 
 **Test Setup:**
+
 - Real Prisma database (via TEST_DATABASE_URL or DATABASE_URL)
 - MockStellarServer for blockchain simulation
 - DB fixtures for consistent test data
 - FK-safe table cleanup before each test
 
 **Usage:**
+
 ```bash
 # Run payment flow tests only
 pnpm test packages/api/src/__tests__/integration/payment-flow.integration.test.ts
@@ -196,6 +206,7 @@ Comprehensive integration tests for webhook subscription, signature verification
    - ✅ Preserve payload through retry cycles
 
 **Coverage:**
+
 - 18 total test cases
 - Happy path (successful subscription & delivery)
 - Error scenarios (failed requests, retries)
@@ -203,18 +214,21 @@ Comprehensive integration tests for webhook subscription, signature verification
 - Retry logic with exponential backoff simulation
 
 **Test Setup:**
+
 - Real Prisma database
 - WebhookService with dependency injection
 - DB fixtures for consistent test data
 - Mock HTTP interactions (no external webhook calls)
 
 **Key Security Tests:**
+
 - Timing-safe comparison prevents timing attack vulnerability
 - Signature verification prevents payload tampering
 - Authorization checks prevent unauthorized access
 - Stale timestamp rejection prevents replay attacks
 
 **Usage:**
+
 ```bash
 # Run webhook tests only
 pnpm test packages/api/src/__tests__/integration/webhook-delivery.integration.test.ts
@@ -227,14 +241,14 @@ pnpm test -- --coverage webhook-delivery.integration.test.ts
 
 ## Technical Stack
 
-| Component | Technology | Version |
-|-----------|-----------|---------|
-| Test Framework | Vitest | 3.2.6+ |
-| Database | PostgreSQL + Prisma | Latest |
-| Blockchain Mock | MockStellarServer (custom) | - |
-| HTTP Mock | Fetch API mocking | Node.js native |
-| Data Generation | @faker-js/faker | 8.x+ |
-| Crypto | Node.js crypto module | Native |
+| Component       | Technology                 | Version        |
+| --------------- | -------------------------- | -------------- |
+| Test Framework  | Vitest                     | 3.2.6+         |
+| Database        | PostgreSQL + Prisma        | Latest         |
+| Blockchain Mock | MockStellarServer (custom) | -              |
+| HTTP Mock       | Fetch API mocking          | Node.js native |
+| Data Generation | @faker-js/faker            | 8.x+           |
+| Crypto          | Node.js crypto module      | Native         |
 
 ---
 
@@ -259,12 +273,15 @@ packages/api/src/__tests__/integration/
 ## Running Tests
 
 ### Prerequisites
+
 Ensure `TEST_DATABASE_URL` or `DATABASE_URL` is set in `.env`:
+
 ```bash
 TEST_DATABASE_URL=postgresql://user:password@localhost:5432/bluecollar_test
 ```
 
 ### Run All Tests
+
 ```bash
 # Run all integration tests
 pnpm test packages/api/src/__tests__/integration/
@@ -277,7 +294,9 @@ pnpm test -- --coverage
 ```
 
 ### Database Migration
+
 Database schema is automatically applied via Prisma:
+
 ```bash
 pnpm exec prisma migrate deploy
 ```
@@ -285,26 +304,29 @@ pnpm exec prisma migrate deploy
 ---
 
 ## Breaking Changes
+
 None. All additions are backward compatible.
 
 ---
 
 ## Migration Guide
+
 No migration required. All utilities are opt-in and work alongside existing tests.
 
 **For New Tests:**
+
 ```typescript
 import {
   createStellarAccount,
   createWebhookSubscription,
   createBooking,
   createEscrowRecord,
-} from '@bluecollar/test-utils/db-fixtures'
+} from '@bluecollar/test-utils/db-fixtures';
 
 import {
   createMockStellarClient,
   MockStellarServer,
-} from '@bluecollar/test-utils/stellar-sdk-mock'
+} from '@bluecollar/test-utils/stellar-sdk-mock';
 
 // Usage in your tests...
 ```
@@ -327,6 +349,7 @@ import {
 ---
 
 ## Related Issues
+
 - Closes #1857 (Mock Stellar SDK)
 - Closes #1858 (DB fixtures/factories)
 - Closes #1859 (Payment flow integration tests)

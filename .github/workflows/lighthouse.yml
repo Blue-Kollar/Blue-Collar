@@ -3,11 +3,11 @@ name: Lighthouse CI
 on:
   pull_request:
     paths:
-      - "packages/app/**"
+      - 'packages/app/**'
   push:
     branches: [main]
     paths:
-      - "packages/app/**"
+      - 'packages/app/**'
 
 jobs:
   lighthouse:

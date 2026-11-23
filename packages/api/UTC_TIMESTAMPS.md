@@ -39,6 +39,7 @@ compared today. A follow-up could add a tz-database dependency
 ## Tests added
 
 `packages/api/src/services/availability.service.test.ts` covers:
+
 - same-offset overlap detection (regression baseline)
 - cross-offset overlap that naive string comparison would miss
 - cross-offset non-overlap that naive string comparison would falsely flag

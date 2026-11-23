@@ -22,9 +22,9 @@ import { check, group, sleep } from 'k6';
 import { Rate, Trend } from 'k6/metrics';
 
 // ── Custom metrics ────────────────────────────────────────────────────────────
-const errorRate       = new Rate('error_rate');
-const workerListP95   = new Trend('worker_list_duration', true);
-const categoryP95     = new Trend('category_duration', true);
+const errorRate = new Rate('error_rate');
+const workerListP95 = new Trend('worker_list_duration', true);
+const categoryP95 = new Trend('category_duration', true);
 const singleWorkerP95 = new Trend('single_worker_duration', true);
 
 // ── Scenario profiles ─────────────────────────────────────────────────────────
@@ -70,12 +70,12 @@ export const options = {
   },
   thresholds: {
     // Global SLOs
-    http_req_duration:    ['p(99)<1500'],
-    http_req_failed:      ['rate<0.02'],
-    error_rate:           ['rate<0.02'],
+    http_req_duration: ['p(99)<1500'],
+    http_req_failed: ['rate<0.02'],
+    error_rate: ['rate<0.02'],
     // Per-endpoint SLOs
     worker_list_duration: ['p(95)<500'],
-    category_duration:    ['p(95)<300'],
+    category_duration: ['p(95)<300'],
     single_worker_duration: ['p(95)<400'],
   },
 };
@@ -108,12 +108,15 @@ export default function (ctx) {
     workerListP95.add(Date.now() - t0);
 
     const listOk = check(listRes, {
-      'GET /workers → 200':       (r) => r.status === 200,
-      'GET /workers → has data':  (r) => {
-        try { return r.json('data') != null || Array.isArray(r.json()); }
-        catch { return false; }
+      'GET /workers → 200': (r) => r.status === 200,
+      'GET /workers → has data': (r) => {
+        try {
+          return r.json('data') != null || Array.isArray(r.json());
+        } catch {
+          return false;
+        }
       },
-      'GET /workers → <500ms':    (r) => r.timings.duration < 500,
+      'GET /workers → <500ms': (r) => r.timings.duration < 500,
     });
     errorRate.add(!listOk);
 
@@ -127,7 +130,7 @@ export default function (ctx) {
     categoryP95.add(Date.now() - t1);
 
     check(catRes, {
-      'GET /categories → 200':    (r) => r.status === 200,
+      'GET /categories → 200': (r) => r.status === 200,
       'GET /categories → <300ms': (r) => r.timings.duration < 300,
     });
 
@@ -142,7 +145,7 @@ export default function (ctx) {
       singleWorkerP95.add(Date.now() - t2);
 
       check(singleRes, {
-        'GET /workers/:id → 200':    (r) => r.status === 200,
+        'GET /workers/:id → 200': (r) => r.status === 200,
         'GET /workers/:id → <400ms': (r) => r.timings.duration < 400,
       });
 

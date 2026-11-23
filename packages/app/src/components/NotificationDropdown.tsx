@@ -1,35 +1,33 @@
-"use client";
+'use client';
 
-import { useRef, useState, useEffect } from "react";
-import { Bell, Check, CheckCheck, Trash2 } from "lucide-react";
-import Link from "next/link";
-import { useTranslations } from "next-intl";
-import { useNotifications } from "@/context/NotificationContext";
-import type { NotificationType } from "@/types";
-import { cn, formatRelativeTime } from "@/lib/utils";
+import { useRef, useState, useEffect } from 'react';
+import { Bell, Check, CheckCheck, Trash2 } from 'lucide-react';
+import Link from 'next/link';
+import { useTranslations } from 'next-intl';
+import { useNotifications } from '@/context/NotificationContext';
+import type { NotificationType } from '@/types';
+import { cn, formatRelativeTime } from '@/lib/utils';
 
 const TYPE_STYLES: Record<NotificationType, string> = {
-  tip: "bg-yellow-100 text-yellow-700",
-  review: "bg-blue-100 text-blue-700",
-  contact: "bg-green-100 text-green-700",
-  system: "bg-gray-100 text-gray-600",
-  message: "bg-purple-100 text-purple-700",
+  tip: 'bg-yellow-100 text-yellow-700',
+  review: 'bg-blue-100 text-blue-700',
+  contact: 'bg-green-100 text-green-700',
+  system: 'bg-gray-100 text-gray-600',
+  message: 'bg-purple-100 text-purple-700',
 };
 
 const TYPE_LABELS: Record<NotificationType, string> = {
-  tip: "Tip",
-  review: "Review",
-  contact: "Contact",
-  system: "System",
-  message: "Message",
+  tip: 'Tip',
+  review: 'Review',
+  contact: 'Contact',
+  system: 'System',
+  message: 'Message',
 };
 
-
 export default function NotificationDropdown() {
-  const { notifications, unreadCount, markRead, markAllRead, clearAll } =
-    useNotifications();
-  const t = useTranslations("notifications");
-  const componentT = useTranslations("componentText");
+  const { notifications, unreadCount, markRead, markAllRead, clearAll } = useNotifications();
+  const t = useTranslations('notifications');
+  const componentT = useTranslations('componentText');
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -40,34 +38,30 @@ export default function NotificationDropdown() {
         setOpen(false);
       }
     };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
   }, []);
 
   // Close on ESC
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === 'Escape') setOpen(false);
     };
-    document.addEventListener("keydown", handler);
-    return () => document.removeEventListener("keydown", handler);
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
   }, []);
 
   return (
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen((o) => !o)}
-        aria-label={
-          unreadCount > 0
-            ? t("buttonUnread", { count: unreadCount })
-            : t("button")
-        }
+        aria-label={unreadCount > 0 ? t('buttonUnread', { count: unreadCount }) : t('button')}
         className="relative flex h-9 w-9 items-center justify-center rounded-md text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 transition-colors"
       >
         <Bell size={18} />
         {unreadCount > 0 && (
           <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
-            {unreadCount > 9 ? "9+" : unreadCount}
+            {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
       </button>
@@ -77,14 +71,14 @@ export default function NotificationDropdown() {
           {/* Header */}
           <div className="flex items-center justify-between border-b px-4 py-3 dark:border-gray-700">
             <span className="text-sm font-semibold text-gray-800 dark:text-gray-100">
-              {componentT("notificationsTitle")}
+              {componentT('notificationsTitle')}
             </span>
             <div className="flex items-center gap-1">
               {unreadCount > 0 && (
                 <button
                   onClick={markAllRead}
-                  title={t("markAllRead")}
-                  aria-label={t("markAllRead")}
+                  title={t('markAllRead')}
+                  aria-label={t('markAllRead')}
                   className="flex h-7 w-7 items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                 >
                   <CheckCheck size={15} />
@@ -93,8 +87,8 @@ export default function NotificationDropdown() {
               {notifications.length > 0 && (
                 <button
                   onClick={clearAll}
-                  title={t("clearAllShort")}
-                  aria-label={t("clearAll")}
+                  title={t('clearAllShort')}
+                  aria-label={t('clearAll')}
                   className="flex h-7 w-7 items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                 >
                   <Trash2 size={14} />
@@ -108,21 +102,21 @@ export default function NotificationDropdown() {
             {notifications.length === 0 ? (
               <div className="flex flex-col items-center justify-center gap-2 py-10 text-gray-400">
                 <Bell size={28} className="opacity-30" />
-                <p className="text-sm">{componentT("noNotifications")}</p>
+                <p className="text-sm">{componentT('noNotifications')}</p>
               </div>
             ) : (
               notifications.map((n) => (
                 <div
                   key={n.id}
                   className={cn(
-                    "flex items-start gap-3 px-4 py-3 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800",
-                    !n.read && "bg-blue-50/60 dark:bg-blue-950/30"
+                    'flex items-start gap-3 px-4 py-3 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800',
+                    !n.read && 'bg-blue-50/60 dark:bg-blue-950/30',
                   )}
                 >
                   <span
                     className={cn(
-                      "mt-0.5 shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-semibold",
-                      TYPE_STYLES[n.type]
+                      'mt-0.5 shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-semibold',
+                      TYPE_STYLES[n.type],
                     )}
                   >
                     {TYPE_LABELS[n.type]}
@@ -131,7 +125,10 @@ export default function NotificationDropdown() {
                     {n.href ? (
                       <Link
                         href={n.href}
-                        onClick={() => { markRead(n.id); setOpen(false); }}
+                        onClick={() => {
+                          markRead(n.id);
+                          setOpen(false);
+                        }}
                         className="block text-sm font-medium text-gray-800 dark:text-gray-100 hover:text-blue-600 truncate"
                       >
                         {n.title}
@@ -144,13 +141,15 @@ export default function NotificationDropdown() {
                     <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 mt-0.5">
                       {n.message}
                     </p>
-                    <p className="text-[10px] text-gray-400 mt-1">{formatRelativeTime(n.createdAt)}</p>
+                    <p className="text-[10px] text-gray-400 mt-1">
+                      {formatRelativeTime(n.createdAt)}
+                    </p>
                   </div>
                   {!n.read && (
                     <button
                       onClick={() => markRead(n.id)}
-                      title={t("markRead")}
-                      aria-label={t("markRead")}
+                      title={t('markRead')}
+                      aria-label={t('markRead')}
                       className="mt-0.5 shrink-0 text-blue-400 hover:text-blue-600 transition-colors"
                     >
                       <Check size={14} />
@@ -168,7 +167,7 @@ export default function NotificationDropdown() {
               onClick={() => setOpen(false)}
               className="text-xs text-gray-400 hover:text-blue-600 transition-colors"
             >
-              {componentT("notificationPreferences")}
+              {componentT('notificationPreferences')}
             </Link>
           </div>
         </div>

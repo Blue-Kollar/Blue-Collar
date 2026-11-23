@@ -11,10 +11,10 @@
  * - Graceful degradation when Redis is unavailable
  */
 
-import type { Request, Response, NextFunction } from 'express'
-import { redis } from '@/config/redis.js'
-import { logger } from '@/config/logger.js'
-import { RATE_LIMIT_ALLOWLIST, type RateLimitConfig } from '@/config/rateLimits.js'
+import type { Request, Response, NextFunction } from 'express';
+import { redis } from '@/config/redis.js';
+import { logger } from '@/config/logger.js';
+import { RATE_LIMIT_ALLOWLIST, type RateLimitConfig } from '@/config/rateLimits.js';
 
 // ── Sliding window implementation ─────────────────────────────────────────────
 
@@ -32,37 +32,37 @@ async function slidingWindowCheck(
   limit: number,
   burstAllowance: number,
 ): Promise<{ count: number; allowed: boolean; remaining: number; resetAt: number }> {
-  const now = Date.now()
-  const windowMs = windowSec * 1000
-  const effectiveLimit = limit + burstAllowance
-  const key = `rl:sw:${identifier}`
+  const now = Date.now();
+  const windowMs = windowSec * 1000;
+  const effectiveLimit = limit + burstAllowance;
+  const key = `rl:sw:${identifier}`;
 
-  const pipeline = redis.pipeline()
+  const pipeline = redis.pipeline();
   // Remove expired entries
-  pipeline.zremrangebyscore(key, '-inf', now - windowMs)
+  pipeline.zremrangebyscore(key, '-inf', now - windowMs);
   // Add this request with score = timestamp
-  pipeline.zadd(key, now, `${now}-${Math.random()}`)
+  pipeline.zadd(key, now, `${now}-${Math.random()}`);
   // Count current requests in window
-  pipeline.zcard(key)
+  pipeline.zcard(key);
   // Set TTL
-  pipeline.expire(key, windowSec + 1)
+  pipeline.expire(key, windowSec + 1);
 
-  const results = await pipeline.exec()
-  const count = (results?.[2]?.[1] as number) ?? 1
-  const allowed = count <= effectiveLimit
-  const remaining = Math.max(0, effectiveLimit - count)
-  const resetAt = Math.floor((now + windowMs) / 1000)
+  const results = await pipeline.exec();
+  const count = (results?.[2]?.[1] as number) ?? 1;
+  const allowed = count <= effectiveLimit;
+  const remaining = Math.max(0, effectiveLimit - count);
+  const resetAt = Math.floor((now + windowMs) / 1000);
 
-  return { count, allowed, remaining, resetAt }
+  return { count, allowed, remaining, resetAt };
 }
 
 // ── Violation tracking ────────────────────────────────────────────────────────
 
 async function getViolationCount(identifier: string, windowSec: number): Promise<number> {
-  const key = `rl:violations:${identifier}`
-  const violations = await redis.incr(key)
-  await redis.expire(key, windowSec * 10)
-  return violations
+  const key = `rl:violations:${identifier}`;
+  const violations = await redis.incr(key);
+  await redis.expire(key, windowSec * 10);
+  return violations;
 }
 
 // ── Main factory ──────────────────────────────────────────────────────────────
@@ -77,21 +77,23 @@ async function getViolationCount(identifier: string, windowSec: number): Promise
  * router.post('/login', createRateLimiter(AUTH_STRICT), authController.login)
  */
 export function createRateLimiter(config: RateLimitConfig) {
-  const { windowSec, anonLimit, authLimit, adminLimit, burstAllowance } = config
+  const { windowSec, anonLimit, authLimit, adminLimit, burstAllowance } = config;
 
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const ip = (req.ip ?? req.socket.remoteAddress ?? 'unknown').replace('::ffff:', '')
+    const ip = (req.ip ?? req.socket.remoteAddress ?? 'unknown').replace('::ffff:', '');
 
     // IP allowlist bypass
-    if (RATE_LIMIT_ALLOWLIST.has(ip)) return next()
+    if (RATE_LIMIT_ALLOWLIST.has(ip)) return next();
 
     // Admin bypass (adminLimit === 0 means unlimited)
-    if (req.user?.role === 'admin' && adminLimit === 0) return next()
+    if (req.user?.role === 'admin' && adminLimit === 0) return next();
 
-    const isAuth = !!req.user
+    const isAuth = !!req.user;
     const limit = isAuth
-      ? (req.user?.role === 'admin' && adminLimit > 0 ? adminLimit : authLimit)
-      : anonLimit
+      ? req.user?.role === 'admin' && adminLimit > 0
+        ? adminLimit
+        : authLimit
+      : anonLimit;
 
     // Unauthenticated users with limit=0 are not allowed
     if (!isAuth && limit === 0) {
@@ -99,11 +101,11 @@ export function createRateLimiter(config: RateLimitConfig) {
         status: 'error',
         message: 'Authentication required for this endpoint.',
         code: 401,
-      })
-      return
+      });
+      return;
     }
 
-    const identifier = isAuth ? `user:${req.user!.id}` : `ip:${ip}`
+    const identifier = isAuth ? `user:${req.user!.id}` : `ip:${ip}`;
 
     try {
       const { allowed, remaining, resetAt, count } = await slidingWindowCheck(
@@ -111,39 +113,39 @@ export function createRateLimiter(config: RateLimitConfig) {
         windowSec,
         limit,
         burstAllowance,
-      )
+      );
 
       // Set standard RateLimit headers on every response
-      res.setHeader('RateLimit-Limit', limit + burstAllowance)
-      res.setHeader('RateLimit-Remaining', remaining)
-      res.setHeader('RateLimit-Reset', resetAt)
-      res.setHeader('RateLimit-Policy', `${limit};w=${windowSec}`)
+      res.setHeader('RateLimit-Limit', limit + burstAllowance);
+      res.setHeader('RateLimit-Remaining', remaining);
+      res.setHeader('RateLimit-Reset', resetAt);
+      res.setHeader('RateLimit-Policy', `${limit};w=${windowSec}`);
 
       if (!allowed) {
-        const violations = await getViolationCount(identifier, windowSec).catch(() => 1)
+        const violations = await getViolationCount(identifier, windowSec).catch(() => 1);
         // Exponential backoff: 1× → 2× → 4× … up to 1 hour
-        const backoff = Math.min(windowSec * Math.pow(2, violations - 1), 3_600)
+        const backoff = Math.min(windowSec * Math.pow(2, violations - 1), 3_600);
 
-        res.setHeader('Retry-After', backoff)
-        res.setHeader('RateLimit-Remaining', 0)
+        res.setHeader('Retry-After', backoff);
+        res.setHeader('RateLimit-Remaining', 0);
 
-        logger.warn({ identifier, count, limit, violations }, 'Rate limit exceeded')
+        logger.warn({ identifier, count, limit, violations }, 'Rate limit exceeded');
 
         res.status(429).json({
           status: 'error',
           message: 'Too many requests. Please slow down.',
           code: 429,
           retryAfter: backoff,
-        })
-        return
+        });
+        return;
       }
     } catch (err) {
       // Redis unavailable — fail open
-      logger.warn({ err }, 'Rate limiter Redis error — failing open')
+      logger.warn({ err }, 'Rate limiter Redis error — failing open');
     }
 
-    next()
-  }
+    next();
+  };
 }
 
 // ── Pre-built limiters for common use cases ───────────────────────────────────
@@ -159,34 +161,34 @@ import {
   JOBS_WRITE,
   DISPUTES_WRITE,
   PAYMENTS_WRITE,
-} from '@/config/rateLimits.js'
+} from '@/config/rateLimits.js';
 
 /** Strict auth limiter — login, register, forgot-password */
-export const strictAuthRateLimiter = createRateLimiter(AUTH_STRICT)
+export const strictAuthRateLimiter = createRateLimiter(AUTH_STRICT);
 
 /** Moderate auth limiter — email verification, resend */
-export const moderateAuthRateLimiter = createRateLimiter(AUTH_MODERATE)
+export const moderateAuthRateLimiter = createRateLimiter(AUTH_MODERATE);
 
 /** Worker read limiter — public listing and search */
-export const workersReadRateLimiter = createRateLimiter(WORKERS_READ)
+export const workersReadRateLimiter = createRateLimiter(WORKERS_READ);
 
 /** Worker write limiter — create/update/delete */
-export const workersWriteRateLimiter = createRateLimiter(WORKERS_WRITE)
+export const workersWriteRateLimiter = createRateLimiter(WORKERS_WRITE);
 
 /** Contact request limiter */
-export const contactRateLimit = createRateLimiter(CONTACT)
+export const contactRateLimit = createRateLimiter(CONTACT);
 
 /** General API limiter */
-export const generalRateLimit = createRateLimiter(GENERAL_API)
+export const generalRateLimit = createRateLimiter(GENERAL_API);
 
 /** Booking request limiter */
-export const bookingRateLimit = createRateLimiter(BOOKINGS)
+export const bookingRateLimit = createRateLimiter(BOOKINGS);
 
 /** Job mutation limiter — create/update/delete/apply/renew */
-export const jobsWriteRateLimiter = createRateLimiter(JOBS_WRITE)
+export const jobsWriteRateLimiter = createRateLimiter(JOBS_WRITE);
 
 /** Dispute mutation limiter — create/resolve */
-export const disputesWriteRateLimiter = createRateLimiter(DISPUTES_WRITE)
+export const disputesWriteRateLimiter = createRateLimiter(DISPUTES_WRITE);
 
 /** Payment mutation limiter — tips/escrow/fee updates */
-export const paymentsWriteRateLimiter = createRateLimiter(PAYMENTS_WRITE)
+export const paymentsWriteRateLimiter = createRateLimiter(PAYMENTS_WRITE);

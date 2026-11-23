@@ -1,9 +1,9 @@
 /**
  * Typed React Query hooks for Notifications and Conversations.
  */
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import * as api from "@/lib/api";
-import { queryKeys } from "@/lib/queryClient";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import * as api from '@/lib/api';
+import { queryKeys } from '@/lib/queryClient';
 
 // ── Notifications ─────────────────────────────────────────────────────────────
 

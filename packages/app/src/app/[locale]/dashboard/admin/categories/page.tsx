@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import { useEffect, useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
-import { useAuth } from "@/context/AuthContext";
-import { useToast } from "@/hooks/useToast";
-import { apiClient } from "@/lib/apiClient";
-import type { Category } from "@/types";
-import { CategoryList } from "@/components/dashboard/admin/categories/CategoryList";
+import { useEffect, useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import { ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
+import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/hooks/useToast';
+import { apiClient } from '@/lib/apiClient';
+import type { Category } from '@/types';
+import { CategoryList } from '@/components/dashboard/admin/categories/CategoryList';
 
 export default function AdminCategoriesPage() {
   const { user } = useAuth();
@@ -23,21 +23,21 @@ export default function AdminCategoriesPage() {
       const res = await apiClient.getCategories();
       setCategories(res.data ?? []);
     } catch {
-      toast("Failed to load categories", "error");
+      toast('Failed to load categories', 'error');
     } finally {
       setLoading(false);
     }
   }, [toast]);
 
   useEffect(() => {
-    if (user && user.role !== "admin") {
-      router.push("/");
+    if (user && user.role !== 'admin') {
+      router.push('/');
       return;
     }
     fetchCategories();
   }, [user, router, fetchCategories]);
 
-  if (!user || user.role !== "admin") return null;
+  if (!user || user.role !== 'admin') return null;
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">

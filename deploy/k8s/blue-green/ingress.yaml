@@ -16,14 +16,14 @@ metadata:
   labels:
     app.kubernetes.io/part-of: bluecollar
   annotations:
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: 'letsencrypt-prod'
+    nginx.ingress.kubernetes.io/ssl-redirect: 'true'
+    nginx.ingress.kubernetes.io/force-ssl-redirect: 'true'
     # Tune proxy timeouts to support long-running SSE/WS connections
-    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
-    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: '300'
+    nginx.ingress.kubernetes.io/proxy-send-timeout: '300'
     # Enable real-IP forwarding
-    nginx.ingress.kubernetes.io/use-forwarded-headers: "true"
+    nginx.ingress.kubernetes.io/use-forwarded-headers: 'true'
 spec:
   ingressClassName: nginx
   tls:
@@ -63,13 +63,13 @@ metadata:
   labels:
     app.kubernetes.io/part-of: bluecollar
   annotations:
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: 'letsencrypt-prod'
+    nginx.ingress.kubernetes.io/ssl-redirect: 'true'
     # Mark this as the canary ingress
-    nginx.ingress.kubernetes.io/canary: "true"
+    nginx.ingress.kubernetes.io/canary: 'true'
     # Weight is set to 0 by default; patched to 5/20/50 during canary rollouts
-    nginx.ingress.kubernetes.io/canary-weight: "0"
-    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+    nginx.ingress.kubernetes.io/canary-weight: '0'
+    nginx.ingress.kubernetes.io/proxy-read-timeout: '300'
 spec:
   ingressClassName: nginx
   tls:

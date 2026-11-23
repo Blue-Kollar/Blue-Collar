@@ -90,8 +90,11 @@ export function setup() {
   // Obtain a token once before the test
   const res = http.post(
     `${BASE_URL}/auth/login`,
-    JSON.stringify({ email: __ENV.TEST_EMAIL || 'loadtest@example.com', password: __ENV.TEST_PASSWORD || 'Password123!' }),
-    { headers: { 'Content-Type': 'application/json' } }
+    JSON.stringify({
+      email: __ENV.TEST_EMAIL || 'loadtest@example.com',
+      password: __ENV.TEST_PASSWORD || 'Password123!',
+    }),
+    { headers: { 'Content-Type': 'application/json' } },
   );
   if (res.status === 202) {
     return { token: res.json('token') };
@@ -114,7 +117,11 @@ export default function (data) {
     const workersOk = check(workersRes, {
       'GET /workers → 200': (r) => r.status === 200,
       'GET /workers → has data': (r) => {
-        try { return Array.isArray(r.json('data')); } catch { return false; }
+        try {
+          return Array.isArray(r.json('data'));
+        } catch {
+          return false;
+        }
       },
       'GET /workers → <500ms': (r) => r.timings.duration < 500,
     });
@@ -156,7 +163,7 @@ export default function (data) {
     const loginRes = http.post(
       `${BASE_URL}/auth/login`,
       JSON.stringify({ email: 'nonexistent@example.com', password: 'WrongPass!' }),
-      { headers: { 'Content-Type': 'application/json' } }
+      { headers: { 'Content-Type': 'application/json' } },
     );
     authDuration.add(Date.now() - t2);
     totalRequests.add(1);

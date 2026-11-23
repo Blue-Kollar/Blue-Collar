@@ -1,23 +1,23 @@
-'use client'
+'use client';
 
-import { useRouter } from 'next/navigation'
-import { useState } from 'react'
-import Link from 'next/link'
-import { ArrowRight } from 'lucide-react'
-import { useTranslations } from 'next-intl'
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import Link from 'next/link';
+import { ArrowRight } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 export default function Hero() {
-  const router = useRouter()
-  const t = useTranslations('hero')
-  const [category, setCategory] = useState('')
-  const [location, setLocation] = useState('')
+  const router = useRouter();
+  const t = useTranslations('hero');
+  const [category, setCategory] = useState('');
+  const [location, setLocation] = useState('');
 
   function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    const params = new URLSearchParams()
-    if (category) params.set('category', category)
-    if (location) params.set('location', location)
-    router.push(`/workers?${params.toString()}`)
+    e.preventDefault();
+    const params = new URLSearchParams();
+    if (category) params.set('category', category);
+    if (location) params.set('location', location);
+    router.push(`/workers?${params.toString()}`);
   }
 
   return (
@@ -76,5 +76,5 @@ export default function Hero() {
         </div>
       </div>
     </section>
-  )
+  );
 }

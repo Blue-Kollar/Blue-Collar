@@ -88,10 +88,10 @@ const SCENARIOS = {
     executor: 'ramping-vus',
     startVUs: 0,
     stages: [
-      { duration: '2m', target: 10 },   // warm-up
-      { duration: '5m', target: 50 },   // sustained load
-      { duration: '5m', target: 50 },   // hold
-      { duration: '2m', target: 0 },    // ramp down
+      { duration: '2m', target: 10 }, // warm-up
+      { duration: '5m', target: 50 }, // sustained load
+      { duration: '5m', target: 50 }, // hold
+      { duration: '2m', target: 0 }, // ramp down
     ],
   },
   /**
@@ -129,14 +129,14 @@ const SCENARIOS = {
 
 const THRESHOLDS = {
   // Overall HTTP request latency (all endpoints)
-  'http_req_duration':        ['p(95)<1000', 'p(99)<2500'],
-  'http_req_failed':          ['rate<0.05'],
+  http_req_duration: ['p(95)<1000', 'p(99)<2500'],
+  http_req_failed: ['rate<0.05'],
 
   // Payment-specific SLOs
-  'payment_error_rate':       ['rate<0.05'],
-  'tip_submit_duration':      ['p(95)<1500', 'p(99)<3000'],
-  'escrow_create_duration':   ['p(95)<1500', 'p(99)<3000'],
-  'escrow_release_duration':  ['p(95)<2000', 'p(99)<4000'],
+  payment_error_rate: ['rate<0.05'],
+  tip_submit_duration: ['p(95)<1500', 'p(99)<3000'],
+  escrow_create_duration: ['p(95)<1500', 'p(99)<3000'],
+  escrow_release_duration: ['p(95)<2000', 'p(99)<4000'],
 };
 
 export const options = {
@@ -148,10 +148,10 @@ export const options = {
 
 // ── Configuration ─────────────────────────────────────────────────────────────
 
-const BASE        = __ENV.BASE_URL      || 'http://localhost:3000/api';
-const TEST_EMAIL  = __ENV.TEST_EMAIL    || 'loadtest@example.com';
-const TEST_PASS   = __ENV.TEST_PASSWORD || 'Password123!';
-const JSON_HDRS   = { 'Content-Type': 'application/json' };
+const BASE = __ENV.BASE_URL || 'http://localhost:3000/api';
+const TEST_EMAIL = __ENV.TEST_EMAIL || 'loadtest@example.com';
+const TEST_PASS = __ENV.TEST_PASSWORD || 'Password123!';
+const JSON_HDRS = { 'Content-Type': 'application/json' };
 
 // ── Setup: obtain a shared auth token before the test starts ──────────────────
 
@@ -167,7 +167,9 @@ export function setup() {
   );
 
   if (loginRes.status !== 202) {
-    console.warn(`[setup] login failed with ${loginRes.status}; payment write scenarios will be skipped.`);
+    console.warn(
+      `[setup] login failed with ${loginRes.status}; payment write scenarios will be skipped.`,
+    );
     return { token: '', workerId: '', workerWallet: '' };
   }
 
@@ -183,7 +185,7 @@ export function setup() {
     try {
       const workers = workersRes.json('data');
       if (Array.isArray(workers) && workers.length > 0) {
-        workerId     = workers[0].id ?? '';
+        workerId = workers[0].id ?? '';
         workerWallet = workers[0].walletAddress ?? workers[0].wallet_address ?? '';
       }
     } catch (_) {}
@@ -196,12 +198,10 @@ export function setup() {
 
 export default function (data) {
   const { token, workerId, workerWallet } = data || {};
-  const hasAuth   = Boolean(token);
+  const hasAuth = Boolean(token);
   const hasWorker = Boolean(workerId);
 
-  const authHdrs = hasAuth
-    ? { ...JSON_HDRS, Authorization: `Bearer ${token}` }
-    : JSON_HDRS;
+  const authHdrs = hasAuth ? { ...JSON_HDRS, Authorization: `Bearer ${token}` } : JSON_HDRS;
 
   // ── Group A: Read-only worker discovery (no auth required) ─────────────────
   group('worker_discovery', () => {
@@ -209,10 +209,14 @@ export default function (data) {
       tags: { scenario: 'payment', phase: 'discovery' },
     });
     const listOk = check(listRes, {
-      'GET /workers → 200':         (r) => r.status === 200,
-      'GET /workers → <500ms':      (r) => r.timings.duration < 500,
+      'GET /workers → 200': (r) => r.status === 200,
+      'GET /workers → <500ms': (r) => r.timings.duration < 500,
       'GET /workers → has data key': (r) => {
-        try { return Array.isArray(r.json('data')); } catch { return false; }
+        try {
+          return Array.isArray(r.json('data'));
+        } catch {
+          return false;
+        }
       },
     });
     errorRate.add(!listOk);
@@ -222,7 +226,7 @@ export default function (data) {
         tags: { scenario: 'payment', phase: 'discovery' },
       });
       check(detailRes, {
-        'GET /workers/:id → 200':    (r) => r.status === 200,
+        'GET /workers/:id → 200': (r) => r.status === 200,
         'GET /workers/:id → <400ms': (r) => r.timings.duration < 400,
       });
     }
@@ -249,13 +253,13 @@ export default function (data) {
       JSON.stringify({
         workerId,
         workerWallet,
-        amountXlm:  1,          // smallest meaningful tip
-        memo:       'k6 load test — safe to ignore',
+        amountXlm: 1, // smallest meaningful tip
+        memo: 'k6 load test — safe to ignore',
         idempotencyKey,
       }),
       {
         headers: { ...authHdrs, 'Idempotency-Key': idempotencyKey },
-        tags:    { scenario: 'payment', phase: 'tip' },
+        tags: { scenario: 'payment', phase: 'tip' },
       },
     );
     tipDuration.add(Date.now() - t0);
@@ -264,8 +268,8 @@ export default function (data) {
       // 201 = tip created, 200 = idempotent replay, 422 = validation error
       // We accept 422 because the test user might not have a wallet configured.
       // We do NOT accept 5xx.
-      'POST /tips → not 5xx':     (r) => r.status < 500,
-      'POST /tips → <1500ms':     (r) => r.timings.duration < 1500,
+      'POST /tips → not 5xx': (r) => r.status < 500,
+      'POST /tips → <1500ms': (r) => r.timings.duration < 1500,
     });
     errorRate.add(!tipOk);
     paymentOps.add(1);
@@ -277,18 +281,18 @@ export default function (data) {
       JSON.stringify({
         workerId,
         workerWallet,
-        amountXlm:  1,
-        memo:       'k6 load test — idempotent retry',
+        amountXlm: 1,
+        memo: 'k6 load test — idempotent retry',
         idempotencyKey,
       }),
       {
         headers: { ...authHdrs, 'Idempotency-Key': idempotencyKey },
-        tags:    { scenario: 'payment', phase: 'tip_retry' },
+        tags: { scenario: 'payment', phase: 'tip_retry' },
       },
     );
     check(replayRes, {
       'POST /tips (retry) → same status as original': (r) => r.status === tipRes.status,
-      'POST /tips (retry) → not 5xx':                 (r) => r.status < 500,
+      'POST /tips (retry) → not 5xx': (r) => r.status < 500,
     });
   });
 
@@ -305,14 +309,14 @@ export default function (data) {
       const createRes = http.post(
         `${BASE}/escrow`,
         JSON.stringify({
-          payeeId:   workerId,
+          payeeId: workerId,
           amountXlm: 10,
           expiresAt,
-          jobId:     null,
+          jobId: null,
         }),
         {
           headers: authHdrs,
-          tags:    { scenario: 'payment', phase: 'escrow_create' },
+          tags: { scenario: 'payment', phase: 'escrow_create' },
         },
       );
       escrowCreateDuration.add(Date.now() - t0);
@@ -320,35 +324,33 @@ export default function (data) {
 
       const created = check(createRes, {
         'POST /escrow → 201 or 422': (r) => [201, 422].includes(r.status),
-        'POST /escrow → not 5xx':    (r) => r.status < 500,
-        'POST /escrow → <1500ms':    (r) => r.timings.duration < 1500,
+        'POST /escrow → not 5xx': (r) => r.status < 500,
+        'POST /escrow → <1500ms': (r) => r.timings.duration < 1500,
       });
       errorRate.add(!created);
 
       if (createRes.status === 201) {
         let escrowId;
-        try { escrowId = createRes.json('data.id') ?? createRes.json('id'); } catch (_) {}
+        try {
+          escrowId = createRes.json('data.id') ?? createRes.json('id');
+        } catch (_) {}
 
         if (escrowId) {
           sleep(0.3);
 
           // Release escrow (simulate payer confirming work is done)
           const t1 = Date.now();
-          const releaseRes = http.post(
-            `${BASE}/escrow/${escrowId}/release`,
-            null,
-            {
-              headers: authHdrs,
-              tags:    { scenario: 'payment', phase: 'escrow_release' },
-            },
-          );
+          const releaseRes = http.post(`${BASE}/escrow/${escrowId}/release`, null, {
+            headers: authHdrs,
+            tags: { scenario: 'payment', phase: 'escrow_release' },
+          });
           escrowReleaseDuration.add(Date.now() - t1);
           paymentOps.add(1);
 
           check(releaseRes, {
             'POST /escrow/:id/release → 200 or 403': (r) => [200, 403].includes(r.status),
-            'POST /escrow/:id/release → not 5xx':    (r) => r.status < 500,
-            'POST /escrow/:id/release → <2000ms':    (r) => r.timings.duration < 2000,
+            'POST /escrow/:id/release → not 5xx': (r) => r.status < 500,
+            'POST /escrow/:id/release → <2000ms': (r) => r.timings.duration < 2000,
           });
         }
       }
@@ -371,24 +373,26 @@ export function handleSummary(data) {
   const m = data.metrics;
 
   const summary = {
-    scenario:   SCENARIO_NAME,
+    scenario: SCENARIO_NAME,
     capturedAt: new Date().toISOString(),
     baseline: {
-      tip_submit_duration_p95:     m.tip_submit_duration?.values?.['p(95)']   ?? null,
-      tip_submit_duration_p99:     m.tip_submit_duration?.values?.['p(99)']   ?? null,
-      escrow_create_duration_p95:  m.escrow_create_duration?.values?.['p(95)'] ?? null,
-      escrow_create_duration_p99:  m.escrow_create_duration?.values?.['p(99)'] ?? null,
+      tip_submit_duration_p95: m.tip_submit_duration?.values?.['p(95)'] ?? null,
+      tip_submit_duration_p99: m.tip_submit_duration?.values?.['p(99)'] ?? null,
+      escrow_create_duration_p95: m.escrow_create_duration?.values?.['p(95)'] ?? null,
+      escrow_create_duration_p99: m.escrow_create_duration?.values?.['p(99)'] ?? null,
       escrow_release_duration_p95: m.escrow_release_duration?.values?.['p(95)'] ?? null,
       escrow_release_duration_p99: m.escrow_release_duration?.values?.['p(99)'] ?? null,
-      http_req_duration_p95:       m.http_req_duration?.values?.['p(95)']     ?? null,
-      http_req_duration_p99:       m.http_req_duration?.values?.['p(99)']     ?? null,
-      http_req_failed_rate:        m.http_req_failed?.values?.rate             ?? null,
-      payment_error_rate:          m.payment_error_rate?.values?.rate          ?? null,
-      payment_ops_total:           m.payment_ops_total?.values?.count          ?? null,
+      http_req_duration_p95: m.http_req_duration?.values?.['p(95)'] ?? null,
+      http_req_duration_p99: m.http_req_duration?.values?.['p(99)'] ?? null,
+      http_req_failed_rate: m.http_req_failed?.values?.rate ?? null,
+      payment_error_rate: m.payment_error_rate?.values?.rate ?? null,
+      payment_ops_total: m.payment_ops_total?.values?.count ?? null,
     },
     thresholds: {
       passed: Object.entries(data.metrics)
-        .filter(([, v]) => v.thresholds && Object.values(v.thresholds).every((t) => !t.ok === false))
+        .filter(
+          ([, v]) => v.thresholds && Object.values(v.thresholds).every((t) => !t.ok === false),
+        )
         .map(([k]) => k),
       failed: Object.entries(data.metrics)
         .filter(([, v]) => v.thresholds && Object.values(v.thresholds).some((t) => !t.ok))

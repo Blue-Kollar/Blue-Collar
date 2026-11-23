@@ -13,9 +13,9 @@ groups:
           team: indexer
           service: indexer
         annotations:
-          summary: "Indexer lag exceeds 5 minutes"
-          description: "Indexer is {{ $value }}s behind"
-          runbook: "https://github.com/Blue-Kollar/Blue-Collar/docs/INCIDENT_RUNBOOK.md#indexer-lag"
+          summary: 'Indexer lag exceeds 5 minutes'
+          description: 'Indexer is {{ $value }}s behind'
+          runbook: 'https://github.com/Blue-Kollar/Blue-Collar/docs/INCIDENT_RUNBOOK.md#indexer-lag'
 
       # Indexer Not Processing Alert
       - alert: IndexerNotProcessing
@@ -27,9 +27,9 @@ groups:
           team: indexer
           service: indexer
         annotations:
-          summary: "Indexer is not processing blocks"
-          description: "No blocks processed in the last 10 minutes"
-          runbook: "https://github.com/Blue-Kollar/Blue-Collar/docs/INCIDENT_RUNBOOK.md#indexer-not-processing"
+          summary: 'Indexer is not processing blocks'
+          description: 'No blocks processed in the last 10 minutes'
+          runbook: 'https://github.com/Blue-Kollar/Blue-Collar/docs/INCIDENT_RUNBOOK.md#indexer-not-processing'
 
       # Indexer Error Rate Alert
       - alert: IndexerHighErrorRate
@@ -45,5 +45,5 @@ groups:
           team: indexer
           service: indexer
         annotations:
-          summary: "Indexer error rate exceeds 10%"
-          description: "Error rate is {{ $value | humanizePercentage }} over the last 5 minutes"
+          summary: 'Indexer error rate exceeds 10%'
+          description: 'Error rate is {{ $value | humanizePercentage }} over the last 5 minutes'

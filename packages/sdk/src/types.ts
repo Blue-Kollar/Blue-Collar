@@ -5,27 +5,8 @@ export type {
   TxStatus,
   SdkConfig,
   WorkerRegistration,
-  ReputationSync
-} from '@bluecollar/types'
-
-// Re-export shared cache/retry helpers and types (issue #1805)
-export {
-  DEFAULT_CACHE_TTL_MS,
-  DEFAULT_STALE_TIME_MS,
-  DEFAULT_MAX_RETRIES,
-  DEFAULT_RETRY_DELAY_MS,
-  DEFAULT_CACHE_CONFIG,
-  DEFAULT_RETRY_CONFIG,
-  resolveCacheConfig,
-  isCacheStale,
-  isCacheExpired,
-  resolveRetryConfig,
-  getRetryDelay,
-  shouldRetry,
-  executeWithRetry
-} from './types'
-
-export type { CacheConfig, RetryConfig } from './types'
+  ReputationSync,
+} from '@bluecollar/types';
 
 // SDK-specific types not shared elsewhere
 export interface UnsignedTxParams {
@@ -53,10 +34,10 @@ export interface UnsignedTxParams {
  * API handlers in packages/api.
  */
 export interface Meta {
-  total: number
-  page: number
-  limit: number
-  pages: number
+  total: number;
+  page: number;
+  limit: number;
+  pages: number;
 }
 
 /**
@@ -70,26 +51,26 @@ export interface Meta {
  * - `meta`    — pagination metadata (list endpoints only)
  */
 export interface ApiResponse<T = undefined> {
-  status: 'success' | 'error'
-  message?: string
-  code: number
-  data?: T
-  token?: string
-  meta?: Meta
+  status: 'success' | 'error';
+  message?: string;
+  code: number;
+  data?: T;
+  token?: string;
+  meta?: Meta;
 }
 
 /**
  * Paginated list response — convenience alias for endpoints that always
  * return a page of items with full pagination metadata.
  */
-export type PaginatedResult<T> = ApiResponse<T[]> & { meta: Meta }
+export type PaginatedResult<T> = ApiResponse<T[]> & { meta: Meta };
 
 /**
  * Alias kept for backwards-compatibility with packages/app which previously
  * used `PaginatedResponse`.  New code should use `PaginatedResult`.
  * @deprecated Use `PaginatedResult` instead.
  */
-export type PaginatedResponse<T> = PaginatedResult<T>
+export type PaginatedResponse<T> = PaginatedResult<T>;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Shared mobile/app logic — issue #1805
@@ -100,30 +81,30 @@ export type PaginatedResponse<T> = PaginatedResult<T>
 // ─────────────────────────────────────────────────────────────────────────────
 
 /** Default cache time-to-live in milliseconds (5 minutes). */
-export const DEFAULT_CACHE_TTL_MS = 5 * 60 * 1000
+export const DEFAULT_CACHE_TTL_MS = 5 * 60 * 1000;
 
 /** Default stale time in milliseconds (30 seconds). */
-export const DEFAULT_STALE_TIME_MS = 30 * 1000
+export const DEFAULT_STALE_TIME_MS = 30 * 1000;
 
 /** Default maximum number of retry attempts for queued actions. */
-export const DEFAULT_MAX_RETRIES = 3
+export const DEFAULT_MAX_RETRIES = 3;
 
 /** Default base delay (ms) between queued-action retries. */
-export const DEFAULT_RETRY_DELAY_MS = 1000
+export const DEFAULT_RETRY_DELAY_MS = 1000;
 
 /** Cache timing configuration shared by mobile and app data layers. */
 export interface CacheConfig {
   /** How long cached data remains valid, in milliseconds. */
-  ttlMs: number
+  ttlMs: number;
   /** How long cached data is considered fresh, in milliseconds. */
-  staleTimeMs: number
+  staleTimeMs: number;
 }
 
 /** Default cache configuration used when none is supplied. */
 export const DEFAULT_CACHE_CONFIG: CacheConfig = {
   ttlMs: DEFAULT_CACHE_TTL_MS,
-  staleTimeMs: DEFAULT_STALE_TIME_MS
-}
+  staleTimeMs: DEFAULT_STALE_TIME_MS,
+};
 
 /**
  * Merge a partial cache configuration with the shared defaults.
@@ -131,8 +112,8 @@ export const DEFAULT_CACHE_CONFIG: CacheConfig = {
 export function resolveCacheConfig(config?: Partial<CacheConfig>): CacheConfig {
   return {
     ttlMs: config?.ttlMs ?? DEFAULT_CACHE_TTL_MS,
-    staleTimeMs: config?.staleTimeMs ?? DEFAULT_STALE_TIME_MS
-  }
+    staleTimeMs: config?.staleTimeMs ?? DEFAULT_STALE_TIME_MS,
+  };
 }
 
 /**
@@ -145,10 +126,10 @@ export function resolveCacheConfig(config?: Partial<CacheConfig>): CacheConfig {
 export function isCacheStale(
   cachedAt: number,
   now: number = Date.now(),
-  config?: Partial<CacheConfig>
+  config?: Partial<CacheConfig>,
 ): boolean {
-  const { staleTimeMs } = resolveCacheConfig(config)
-  return now - cachedAt >= staleTimeMs
+  const { staleTimeMs } = resolveCacheConfig(config);
+  return now - cachedAt >= staleTimeMs;
 }
 
 /**
@@ -161,25 +142,25 @@ export function isCacheStale(
 export function isCacheExpired(
   cachedAt: number,
   now: number = Date.now(),
-  config?: Partial<CacheConfig>
+  config?: Partial<CacheConfig>,
 ): boolean {
-  const { ttlMs } = resolveCacheConfig(config)
-  return now - cachedAt >= ttlMs
+  const { ttlMs } = resolveCacheConfig(config);
+  return now - cachedAt >= ttlMs;
 }
 
 /** Configuration controlling queued-action retry behaviour. */
 export interface RetryConfig {
   /** Maximum number of retry attempts. */
-  maxRetries: number
+  maxRetries: number;
   /** Base delay between retries, in milliseconds. */
-  retryDelayMs: number
+  retryDelayMs: number;
 }
 
 /** Default retry configuration used when none is supplied. */
 export const DEFAULT_RETRY_CONFIG: RetryConfig = {
   maxRetries: DEFAULT_MAX_RETRIES,
-  retryDelayMs: DEFAULT_RETRY_DELAY_MS
-}
+  retryDelayMs: DEFAULT_RETRY_DELAY_MS,
+};
 
 /**
  * Merge a partial retry configuration with the shared defaults.
@@ -187,8 +168,8 @@ export const DEFAULT_RETRY_CONFIG: RetryConfig = {
 export function resolveRetryConfig(config?: Partial<RetryConfig>): RetryConfig {
   return {
     maxRetries: config?.maxRetries ?? DEFAULT_MAX_RETRIES,
-    retryDelayMs: config?.retryDelayMs ?? DEFAULT_RETRY_DELAY_MS
-  }
+    retryDelayMs: config?.retryDelayMs ?? DEFAULT_RETRY_DELAY_MS,
+  };
 }
 
 /**
@@ -197,13 +178,10 @@ export function resolveRetryConfig(config?: Partial<RetryConfig>): RetryConfig {
  * @param attempt   Zero-based retry attempt index.
  * @param config    Optional retry configuration overrides.
  */
-export function getRetryDelay(
-  attempt: number,
-  config?: Partial<RetryConfig>
-): number {
-  const { retryDelayMs } = resolveRetryConfig(config)
-  const safeAttempt = Math.max(0, Math.floor(attempt))
-  return retryDelayMs * Math.pow(2, safeAttempt)
+export function getRetryDelay(attempt: number, config?: Partial<RetryConfig>): number {
+  const { retryDelayMs } = resolveRetryConfig(config);
+  const safeAttempt = Math.max(0, Math.floor(attempt));
+  return retryDelayMs * Math.pow(2, safeAttempt);
 }
 
 /**
@@ -212,12 +190,9 @@ export function getRetryDelay(
  * @param attempt   Number of attempts already made.
  * @param config    Optional retry configuration overrides.
  */
-export function shouldRetry(
-  attempt: number,
-  config?: Partial<RetryConfig>
-): boolean {
-  const { maxRetries } = resolveRetryConfig(config)
-  return attempt < maxRetries
+export function shouldRetry(attempt: number, config?: Partial<RetryConfig>): boolean {
+  const { maxRetries } = resolveRetryConfig(config);
+  return attempt < maxRetries;
 }
 
 /**
@@ -232,22 +207,20 @@ export function shouldRetry(
 export async function executeWithRetry<T>(
   action: () => Promise<T>,
   config?: Partial<RetryConfig>,
-  sleep: (ms: number) => Promise<void> = (ms) =>
-    new Promise((resolve) => setTimeout(resolve, ms))
+  sleep: (ms: number) => Promise<void> = (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
 ): Promise<T> {
-  const resolved = resolveRetryConfig(config)
-  let attempt = 0
+  const resolved = resolveRetryConfig(config);
+  let attempt = 0;
 
-  // eslint-disable-next-line no-constant-condition
   while (true) {
     try {
-      return await action()
+      return await action();
     } catch (error) {
       if (!shouldRetry(attempt, resolved)) {
-        throw error
+        throw error;
       }
-      await sleep(getRetryDelay(attempt, resolved))
-      attempt += 1
+      await sleep(getRetryDelay(attempt, resolved));
+      attempt += 1;
     }
   }
 }

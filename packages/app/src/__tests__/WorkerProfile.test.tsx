@@ -3,100 +3,100 @@
  * Closes #1374 — tests for WorkerProfile subcomponents
  */
 
-import { render, screen, within } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // Test fixture data
 const mockWorkerData = {
-  id: "worker-123",
-  name: "John Smith",
-  title: "Electrician",
+  id: 'worker-123',
+  name: 'John Smith',
+  title: 'Electrician',
   rating: 4.8,
   reviewCount: 42,
   hourlyRate: 65,
-  location: "San Francisco, CA",
-  bio: "Licensed electrician with 15+ years experience",
+  location: 'San Francisco, CA',
+  bio: 'Licensed electrician with 15+ years experience',
   verified: true,
-  skills: ["Wiring", "Installation", "Troubleshooting"],
+  skills: ['Wiring', 'Installation', 'Troubleshooting'],
 };
 
 const mockReviews = [
   {
-    id: "review-1",
-    authorName: "Alice Johnson",
+    id: 'review-1',
+    authorName: 'Alice Johnson',
     rating: 5,
-    text: "Excellent work, very professional",
-    date: "2024-09-20",
+    text: 'Excellent work, very professional',
+    date: '2024-09-20',
   },
   {
-    id: "review-2",
-    authorName: "Bob Wilson",
+    id: 'review-2',
+    authorName: 'Bob Wilson',
     rating: 4,
-    text: "Good job, completed on time",
-    date: "2024-09-15",
+    text: 'Good job, completed on time',
+    date: '2024-09-15',
   },
 ];
 
-describe("WorkerProfileHeader", () => {
-  it("renders worker name and title", () => {
+describe('WorkerProfileHeader', () => {
+  it('renders worker name and title', () => {
     const { container } = render(
       <div data-testid="worker-header">
         <h1>{mockWorkerData.name}</h1>
         <p>{mockWorkerData.title}</p>
-      </div>
+      </div>,
     );
 
-    expect(screen.getByText("John Smith")).toBeInTheDocument();
-    expect(screen.getByText("Electrician")).toBeInTheDocument();
+    expect(screen.getByText('John Smith')).toBeInTheDocument();
+    expect(screen.getByText('Electrician')).toBeInTheDocument();
   });
 
-  it("displays verification badge when verified", () => {
+  it('displays verification badge when verified', () => {
     const { container } = render(
       <div data-testid="worker-header">
         <h1>{mockWorkerData.name}</h1>
         {mockWorkerData.verified && <span data-testid="verified-badge">Verified</span>}
-      </div>
+      </div>,
     );
 
-    expect(screen.getByTestId("verified-badge")).toBeInTheDocument();
+    expect(screen.getByTestId('verified-badge')).toBeInTheDocument();
   });
 
-  it("displays worker location", () => {
+  it('displays worker location', () => {
     render(
       <div data-testid="worker-header">
         <span data-testid="location">{mockWorkerData.location}</span>
-      </div>
+      </div>,
     );
 
-    expect(screen.getByTestId("location")).toHaveTextContent("San Francisco, CA");
+    expect(screen.getByTestId('location')).toHaveTextContent('San Francisco, CA');
   });
 });
 
-describe("WorkerProfileStats", () => {
-  it("renders rating and review count", () => {
+describe('WorkerProfileStats', () => {
+  it('renders rating and review count', () => {
     render(
       <div data-testid="worker-stats">
         <span data-testid="rating">{mockWorkerData.rating}</span>
         <span data-testid="review-count">({mockWorkerData.reviewCount})</span>
-      </div>
+      </div>,
     );
 
-    expect(screen.getByTestId("rating")).toHaveTextContent("4.8");
-    expect(screen.getByTestId("review-count")).toHaveTextContent("42");
+    expect(screen.getByTestId('rating')).toHaveTextContent('4.8');
+    expect(screen.getByTestId('review-count')).toHaveTextContent('42');
   });
 
-  it("renders hourly rate", () => {
+  it('renders hourly rate', () => {
     render(
       <div data-testid="worker-stats">
         <span data-testid="rate">${mockWorkerData.hourlyRate}/hr</span>
-      </div>
+      </div>,
     );
 
-    expect(screen.getByTestId("rate")).toHaveTextContent("$65/hr");
+    expect(screen.getByTestId('rate')).toHaveTextContent('$65/hr');
   });
 
-  it("renders skills list", () => {
+  it('renders skills list', () => {
     render(
       <div data-testid="worker-stats">
         <div data-testid="skills">
@@ -104,17 +104,17 @@ describe("WorkerProfileStats", () => {
             <span key={skill}>{skill}</span>
           ))}
         </div>
-      </div>
+      </div>,
     );
 
-    expect(screen.getByText("Wiring")).toBeInTheDocument();
-    expect(screen.getByText("Installation")).toBeInTheDocument();
-    expect(screen.getByText("Troubleshooting")).toBeInTheDocument();
+    expect(screen.getByText('Wiring')).toBeInTheDocument();
+    expect(screen.getByText('Installation')).toBeInTheDocument();
+    expect(screen.getByText('Troubleshooting')).toBeInTheDocument();
   });
 });
 
-describe("WorkerProfileReviews", () => {
-  it("renders list of reviews", () => {
+describe('WorkerProfileReviews', () => {
+  it('renders list of reviews', () => {
     render(
       <div data-testid="reviews-section">
         {mockReviews.map((review) => (
@@ -124,7 +124,7 @@ describe("WorkerProfileReviews", () => {
             <p>{review.text}</p>
           </div>
         ))}
-      </div>
+      </div>,
     );
 
     mockReviews.forEach((review) => {
@@ -133,7 +133,7 @@ describe("WorkerProfileReviews", () => {
     });
   });
 
-  it("displays review rating stars", () => {
+  it('displays review rating stars', () => {
     render(
       <div data-testid="reviews-section">
         {mockReviews.map((review) => (
@@ -141,14 +141,14 @@ describe("WorkerProfileReviews", () => {
             <div data-testid={`rating-${review.id}`}>{review.rating} stars</div>
           </div>
         ))}
-      </div>
+      </div>,
     );
 
-    expect(screen.getByTestId("rating-review-1")).toHaveTextContent("5 stars");
-    expect(screen.getByTestId("rating-review-2")).toHaveTextContent("4 stars");
+    expect(screen.getByTestId('rating-review-1')).toHaveTextContent('5 stars');
+    expect(screen.getByTestId('rating-review-2')).toHaveTextContent('4 stars');
   });
 
-  it("displays review text and date", () => {
+  it('displays review text and date', () => {
     render(
       <div data-testid="reviews-section">
         {mockReviews.map((review) => (
@@ -157,68 +157,68 @@ describe("WorkerProfileReviews", () => {
             <span data-testid={`review-date-${review.id}`}>{review.date}</span>
           </div>
         ))}
-      </div>
+      </div>,
     );
 
-    expect(screen.getByTestId("review-text-review-1")).toHaveTextContent(
-      "Excellent work, very professional"
+    expect(screen.getByTestId('review-text-review-1')).toHaveTextContent(
+      'Excellent work, very professional',
     );
-    expect(screen.getByTestId("review-date-review-1")).toHaveTextContent("2024-09-20");
+    expect(screen.getByTestId('review-date-review-1')).toHaveTextContent('2024-09-20');
   });
 });
 
-describe("WorkerProfileActions", () => {
-  it("renders contact button", () => {
+describe('WorkerProfileActions', () => {
+  it('renders contact button', () => {
     const handleContact = vi.fn();
     render(
       <div data-testid="actions">
         <button onClick={handleContact} data-testid="contact-btn">
           Contact
         </button>
-      </div>
+      </div>,
     );
 
-    const btn = screen.getByTestId("contact-btn");
+    const btn = screen.getByTestId('contact-btn');
     expect(btn).toBeInTheDocument();
   });
 
-  it("calls handler when contact button clicked", async () => {
+  it('calls handler when contact button clicked', async () => {
     const handleContact = vi.fn();
     render(
       <div data-testid="actions">
         <button onClick={handleContact} data-testid="contact-btn">
           Contact
         </button>
-      </div>
+      </div>,
     );
 
-    await userEvent.click(screen.getByTestId("contact-btn"));
+    await userEvent.click(screen.getByTestId('contact-btn'));
     expect(handleContact).toHaveBeenCalledOnce();
   });
 
-  it("renders hire button", () => {
+  it('renders hire button', () => {
     const handleHire = vi.fn();
     render(
       <div data-testid="actions">
         <button onClick={handleHire} data-testid="hire-btn">
           Hire
         </button>
-      </div>
+      </div>,
     );
 
-    expect(screen.getByTestId("hire-btn")).toBeInTheDocument();
+    expect(screen.getByTestId('hire-btn')).toBeInTheDocument();
   });
 
-  it("renders favorite/bookmark button", () => {
+  it('renders favorite/bookmark button', () => {
     const handleFavorite = vi.fn();
     render(
       <div data-testid="actions">
         <button onClick={handleFavorite} data-testid="favorite-btn">
           ♡
         </button>
-      </div>
+      </div>,
     );
 
-    expect(screen.getByTestId("favorite-btn")).toBeInTheDocument();
+    expect(screen.getByTestId('favorite-btn')).toBeInTheDocument();
   });
 });

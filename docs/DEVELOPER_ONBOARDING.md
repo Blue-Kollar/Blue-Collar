@@ -24,14 +24,14 @@
 
 Install the following tools before you begin. Exact minimum versions are listed — newer patch releases are fine.
 
-| Tool | Min version | Install |
-|------|-------------|---------|
-| Node.js | 20 | [nodejs.org](https://nodejs.org) or `nvm install 20` |
-| pnpm | 9 | `npm install -g pnpm@9` |
-| Docker + Compose | 24 / 2.24 | [docs.docker.com](https://docs.docker.com/get-docker/) |
-| Rust + Cargo | 1.79 | `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \| sh` |
-| Stellar CLI | 21 | `cargo install --locked stellar-cli` (takes 15–30 min) |
-| WASM target | — | `rustup target add wasm32v1-none` |
+| Tool             | Min version | Install                                                           |
+| ---------------- | ----------- | ----------------------------------------------------------------- |
+| Node.js          | 20          | [nodejs.org](https://nodejs.org) or `nvm install 20`              |
+| pnpm             | 9           | `npm install -g pnpm@9`                                           |
+| Docker + Compose | 24 / 2.24   | [docs.docker.com](https://docs.docker.com/get-docker/)            |
+| Rust + Cargo     | 1.79        | `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \| sh` |
+| Stellar CLI      | 21          | `cargo install --locked stellar-cli` (takes 15–30 min)            |
+| WASM target      | —           | `rustup target add wasm32v1-none`                                 |
 
 Verify your setup:
 
@@ -68,19 +68,19 @@ cp packages/api/.env.example packages/api/.env
 
 Open `packages/api/.env` and set the following values:
 
-| Variable | What to set locally |
-|----------|---------------------|
-| `DATABASE_URL` | `postgresql://bluecollar:bluecollar@localhost:5432/bluecollar` |
-| `TEST_DATABASE_URL` | `postgresql://bluecollar:bluecollar@localhost:5432/bluecollar_test` |
-| `JWT_SECRET` | Any long random string — `openssl rand -hex 32` |
-| `APP_URL` | `http://localhost:3001` |
-| `ALLOWED_ORIGINS` | `http://localhost:3001` |
-| `REDIS_URL` | `redis://localhost:6379` |
-| `GOOGLE_CLIENT_ID` | `placeholder` (must be non-empty) |
-| `GOOGLE_CLIENT_SECRET` | `placeholder` |
-| `MAIL_HOST` | `localhost` |
-| `MAIL_USER` | `dev@localhost` |
-| `MAIL_PASS` | `dev` |
+| Variable               | What to set locally                                                 |
+| ---------------------- | ------------------------------------------------------------------- |
+| `DATABASE_URL`         | `postgresql://bluecollar:bluecollar@localhost:5432/bluecollar`      |
+| `TEST_DATABASE_URL`    | `postgresql://bluecollar:bluecollar@localhost:5432/bluecollar_test` |
+| `JWT_SECRET`           | Any long random string — `openssl rand -hex 32`                     |
+| `APP_URL`              | `http://localhost:3001`                                             |
+| `ALLOWED_ORIGINS`      | `http://localhost:3001`                                             |
+| `REDIS_URL`            | `redis://localhost:6379`                                            |
+| `GOOGLE_CLIENT_ID`     | `placeholder` (must be non-empty)                                   |
+| `GOOGLE_CLIENT_SECRET` | `placeholder`                                                       |
+| `MAIL_HOST`            | `localhost`                                                         |
+| `MAIL_USER`            | `dev@localhost`                                                     |
+| `MAIL_PASS`            | `dev`                                                               |
 
 The config module marks Google OAuth and SMTP vars as **required** at startup. Set them to the placeholder values above for local development — features that depend on real credentials (OAuth login, email) will gracefully no-op.
 
@@ -120,13 +120,13 @@ cd packages/api && pnpm seed && cd ../..
 pnpm docker:down
 ```
 
-| Service | URL |
-|---------|-----|
-| API | http://localhost:3000 |
+| Service         | URL                   |
+| --------------- | --------------------- |
+| API             | http://localhost:3000 |
 | Adminer (DB UI) | http://localhost:8080 |
-| PostgreSQL | localhost:5432 |
-| Redis | localhost:6379 |
-| Loki | http://localhost:3100 |
+| PostgreSQL      | localhost:5432        |
+| Redis           | localhost:6379        |
+| Loki            | http://localhost:3100 |
 
 Then start the Next.js frontend in a separate terminal:
 
@@ -195,12 +195,12 @@ cargo build --release --target wasm32v1-none
 
 This produces WASM binaries for all workspace members:
 
-| Contract | WASM output |
-|---|---|
-| Registry | `target/wasm32v1-none/release/bluecollar_registry.wasm` |
-| Market | `target/wasm32v1-none/release/bluecollar_market.wasm` |
-| Dispute | `target/wasm32v1-none/release/bluecollar_dispute.wasm` |
-| Fuzz (lib-only) | — |
+| Contract        | WASM output                                             |
+| --------------- | ------------------------------------------------------- |
+| Registry        | `target/wasm32v1-none/release/bluecollar_registry.wasm` |
+| Market          | `target/wasm32v1-none/release/bluecollar_market.wasm`   |
+| Dispute         | `target/wasm32v1-none/release/bluecollar_dispute.wasm`  |
+| Fuzz (lib-only) | —                                                       |
 
 > `fee_distribution` and `insurance_pool` contracts exist but are not yet in the workspace. Build them individually from their directories.
 
@@ -523,7 +523,6 @@ PRs are squash-merged. The CI pipeline runs tests, build, and lint automatically
 
 For questions, join the [Telegram community](https://t.me/bluecollar) or open a [GitHub Discussion](https://github.com/Fidelis900/Blue-Collar/discussions).
 
-
 ---
 
 ## Seeding the database
@@ -532,12 +531,12 @@ For questions, join the [Telegram community](https://t.me/bluecollar) or open a 
 
 Running `pnpm seed` creates:
 
-| Entity | Count | Details |
-|--------|-------|---------|
-| Categories | 10 | Plumber, Electrician, Carpenter, Welder, Mason, Painter, Roofer, HVAC, Landscaper, General Contractor |
-| Admin user | 1 | `admin@bluecollar.dev` |
-| Curator users | 3 | `curator1–3@bluecollar.dev` |
-| Workers | 20 | 2 per category, assigned round-robin to curators |
+| Entity        | Count | Details                                                                                               |
+| ------------- | ----- | ----------------------------------------------------------------------------------------------------- |
+| Categories    | 10    | Plumber, Electrician, Carpenter, Welder, Mason, Painter, Roofer, HVAC, Landscaper, General Contractor |
+| Admin user    | 1     | `admin@bluecollar.dev`                                                                                |
+| Curator users | 3     | `curator1–3@bluecollar.dev`                                                                           |
+| Workers       | 20    | 2 per category, assigned round-robin to curators                                                      |
 
 ### Available commands
 
@@ -559,9 +558,9 @@ NODE_ENV=staging pnpm seed:staging
 
 ### Default credentials (development only)
 
-| Role | Email | Password |
-|------|-------|----------|
-| Admin | `admin@bluecollar.dev` | `Admin1234!` |
+| Role    | Email                     | Password       |
+| ------- | ------------------------- | -------------- |
+| Admin   | `admin@bluecollar.dev`    | `Admin1234!`   |
 | Curator | `curator1@bluecollar.dev` | `Curator1234!` |
 | Curator | `curator2@bluecollar.dev` | `Curator1234!` |
 | Curator | `curator3@bluecollar.dev` | `Curator1234!` |
@@ -571,16 +570,16 @@ NODE_ENV=staging pnpm seed:staging
 
 ### Environment variables
 
-| Variable | Default | Purpose |
-|----------|---------|---------|
-| `SEED_ADMIN_EMAIL` | `admin@bluecollar.dev` | Admin account email |
-| `SEED_ADMIN_PASSWORD` | `Admin1234!` (dev only) | Admin password |
-| `SEED_CURATOR1_EMAIL` | `curator1@bluecollar.dev` | Curator 1 email |
-| `SEED_CURATOR1_PASSWORD` | `Curator1234!` (dev only) | Curator 1 password |
-| `SEED_CURATOR2_EMAIL` | `curator2@bluecollar.dev` | Curator 2 email |
-| `SEED_CURATOR2_PASSWORD` | `Curator1234!` (dev only) | Curator 2 password |
-| `SEED_CURATOR3_EMAIL` | `curator3@bluecollar.dev` | Curator 3 email |
-| `SEED_CURATOR3_PASSWORD` | `Curator1234!` (dev only) | Curator 3 password |
+| Variable                 | Default                   | Purpose             |
+| ------------------------ | ------------------------- | ------------------- |
+| `SEED_ADMIN_EMAIL`       | `admin@bluecollar.dev`    | Admin account email |
+| `SEED_ADMIN_PASSWORD`    | `Admin1234!` (dev only)   | Admin password      |
+| `SEED_CURATOR1_EMAIL`    | `curator1@bluecollar.dev` | Curator 1 email     |
+| `SEED_CURATOR1_PASSWORD` | `Curator1234!` (dev only) | Curator 1 password  |
+| `SEED_CURATOR2_EMAIL`    | `curator2@bluecollar.dev` | Curator 2 email     |
+| `SEED_CURATOR2_PASSWORD` | `Curator1234!` (dev only) | Curator 2 password  |
+| `SEED_CURATOR3_EMAIL`    | `curator3@bluecollar.dev` | Curator 3 email     |
+| `SEED_CURATOR3_PASSWORD` | `Curator1234!` (dev only) | Curator 3 password  |
 
 ### Idempotency
 

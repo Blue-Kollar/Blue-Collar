@@ -48,26 +48,27 @@
 **Severity:** Critical | High | Medium | Low
 **OWASP category:** A0X – <name>
 **Steps to reproduce:**
+
 1. …
-**Expected:** …
-**Actual:** …
-**Remediation:** …
-**Owner:** @handle
-**Re-test due:** YYYY-MM-DD
+   **Expected:** …
+   **Actual:** …
+   **Remediation:** …
+   **Owner:** @handle
+   **Re-test due:** YYYY-MM-DD
 ```
 
 ---
 
 ## Scope
 
-| Target | In scope | Notes |
-|--------|----------|-------|
-| `https://staging.bluecollar.app/api` | ✅ | REST API |
-| `https://staging.bluecollar.app` | ✅ | Next.js frontend |
-| Soroban contracts (testnet) | ✅ | Registry, Market, Dispute, FeeDistribution, InsurancePool |
-| Production environment | ❌ | Never test against production |
-| Third-party OAuth (Google) | ❌ | Out of scope |
-| Stellar Horizon / Soroban RPC | ❌ | External — out of scope |
+| Target                               | In scope | Notes                                                     |
+| ------------------------------------ | -------- | --------------------------------------------------------- |
+| `https://staging.bluecollar.app/api` | ✅       | REST API                                                  |
+| `https://staging.bluecollar.app`     | ✅       | Next.js frontend                                          |
+| Soroban contracts (testnet)          | ✅       | Registry, Market, Dispute, FeeDistribution, InsurancePool |
+| Production environment               | ❌       | Never test against production                             |
+| Third-party OAuth (Google)           | ❌       | Out of scope                                              |
+| Stellar Horizon / Soroban RPC        | ❌       | External — out of scope                                   |
 
 ---
 
@@ -125,7 +126,7 @@
 ### SQL Injection
 
 - [ ] **Auth endpoints:** Try SQLi payloads in `email` and `password` fields of `/api/auth/login` and `/api/auth/register`.  
-  Payloads: `' OR '1'='1`, `'; DROP TABLE users; --`, `admin'--`
+      Payloads: `' OR '1'='1`, `'; DROP TABLE users; --`, `admin'--`
 - [ ] **Worker search/filter:** Inject into any query parameter that filters worker listings (`?name=`, `?category=`, `?location=`).
 - [ ] **Prisma ORM protection:** All DB queries must use Prisma's parameterised API (no raw interpolated SQL). Verify by code review.
 - [ ] **Stored → reflected injection:** Create a worker with a name containing `<script>alert(1)</script>`. Verify it is escaped in the listing page.
@@ -229,7 +230,7 @@
 
 ## SC01 – Smart Contract & Wallet Checks
 
-*Mapped to OWASP Smart Contract Top 10 and BlueCollar-specific flows.*
+_Mapped to OWASP Smart Contract Top 10 and BlueCollar-specific flows._
 
 ### Authorization & Access Control
 
@@ -281,7 +282,7 @@
 
 ## Rate-Limit Bypass
 
-*All rate-limit bypass tests should be run with different IP headers to simulate evasion.*
+_All rate-limit bypass tests should be run with different IP headers to simulate evasion._
 
 - [ ] **IP rotation bypass:** Send requests with varying `X-Forwarded-For` headers. Verify the rate limiter uses the real client IP (or rejects spoofed headers).
 - [ ] **Login endpoint:** Exceed the login rate limit (e.g., 10 failed logins/minute). Expect `429 Too Many Requests`.
@@ -297,9 +298,9 @@
 
 Open findings are tracked as GitHub issues with label `security`. The table below is updated after each pentest run.
 
-| ID | Category | Severity | Description | Status | Owner | Issue |
-|----|----------|----------|-------------|--------|-------|-------|
-| PT-001 | Template | — | Example placeholder | — | — | — |
+| ID     | Category | Severity | Description         | Status | Owner | Issue |
+| ------ | -------- | -------- | ------------------- | ------ | ----- | ----- |
+| PT-001 | Template | —        | Example placeholder | —      | —     | —     |
 
 **Statuses:** `Open` · `In Progress` · `Fixed` · `Accepted Risk` · `N/A`
 
@@ -317,16 +318,16 @@ Open findings are tracked as GitHub issues with label `security`. The table belo
 
 ## CI Integration
 
-| Tool | Workflow | Trigger | Gate |
-|------|----------|---------|------|
-| Gitleaks | `security-scan.yml` | Every push/PR | Block on any detected secret |
-| TruffleHog | `security-scan.yml` | Every push/PR | Block on verified secret |
-| pnpm audit | `security-scan.yml` | Every push/PR | Block on HIGH+ advisory |
-| cargo audit | `security-scan.yml` | Every push/PR | Block on any advisory |
-| Trivy | `security-scan.yml` | Every push/PR | Block on HIGH/CRITICAL CVE |
-| OWASP ZAP baseline | `dast.yml` | Push to main + weekly | Block on new HIGH finding |
-| OWASP ZAP full scan | `dast.yml` | Manual `workflow_dispatch` | Block on new HIGH finding |
-| Unit security tests | `ci.yml` | Every PR | Block on test failure |
+| Tool                | Workflow            | Trigger                    | Gate                         |
+| ------------------- | ------------------- | -------------------------- | ---------------------------- |
+| Gitleaks            | `security-scan.yml` | Every push/PR              | Block on any detected secret |
+| TruffleHog          | `security-scan.yml` | Every push/PR              | Block on verified secret     |
+| pnpm audit          | `security-scan.yml` | Every push/PR              | Block on HIGH+ advisory      |
+| cargo audit         | `security-scan.yml` | Every push/PR              | Block on any advisory        |
+| Trivy               | `security-scan.yml` | Every push/PR              | Block on HIGH/CRITICAL CVE   |
+| OWASP ZAP baseline  | `dast.yml`          | Push to main + weekly      | Block on new HIGH finding    |
+| OWASP ZAP full scan | `dast.yml`          | Manual `workflow_dispatch` | Block on new HIGH finding    |
+| Unit security tests | `ci.yml`            | Every PR                   | Block on test failure        |
 
 ZAP false positives are suppressed via `.zap/rules.tsv`. To add a suppression:
 
@@ -338,10 +339,10 @@ ZAP false positives are suppressed via `.zap/rules.tsv`. To add a suppression:
 
 ## Finding Severity Reference
 
-| Severity | CVSS | Description | SLA |
-|----------|------|-------------|-----|
-| Critical | 9.0–10.0 | Direct financial loss, full system compromise, private key exposure | Fix within 24h |
-| High | 7.0–8.9 | Privilege escalation, mass data exposure, auth bypass | Fix within 7 days |
-| Medium | 4.0–6.9 | Limited data exposure, partial auth bypass, IDOR on non-sensitive data | Fix within 30 days |
-| Low | 0.1–3.9 | Information disclosure, minor misconfig | Fix within 90 days |
-| Informational | 0.0 | Best-practice deviation, no direct risk | Fix at discretion |
+| Severity      | CVSS     | Description                                                            | SLA                |
+| ------------- | -------- | ---------------------------------------------------------------------- | ------------------ |
+| Critical      | 9.0–10.0 | Direct financial loss, full system compromise, private key exposure    | Fix within 24h     |
+| High          | 7.0–8.9  | Privilege escalation, mass data exposure, auth bypass                  | Fix within 7 days  |
+| Medium        | 4.0–6.9  | Limited data exposure, partial auth bypass, IDOR on non-sensitive data | Fix within 30 days |
+| Low           | 0.1–3.9  | Information disclosure, minor misconfig                                | Fix within 90 days |
+| Informational | 0.0      | Best-practice deviation, no direct risk                                | Fix at discretion  |

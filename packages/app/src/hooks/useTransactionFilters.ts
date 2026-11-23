@@ -5,7 +5,7 @@
  * Horizon payment records. Keeps filter state isolated from fetching and
  * pagination concerns.
  */
-import { useMemo, useState } from "react";
+import { useMemo, useState } from 'react';
 
 export interface TransactionFilterOptions {
   /** When set, only payments originating from this address are kept. */

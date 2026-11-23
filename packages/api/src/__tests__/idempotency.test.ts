@@ -1,8 +1,8 @@
 /**
  * Tests for idempotency middleware (#517)
  */
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import type { Request, Response, NextFunction } from 'express'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import type { Request, Response, NextFunction } from 'express';
 
 vi.mock('../db.js', () => ({
   db: {
@@ -11,65 +11,65 @@ vi.mock('../db.js', () => ({
       upsert: vi.fn().mockResolvedValue({}),
     },
   },
-}))
+}));
 
-import { idempotency } from '../middleware/idempotency.js'
-import { db } from '../db.js'
+import { idempotency } from '../middleware/idempotency.js';
+import { db } from '../db.js';
 
 function makeReqRes(headers: Record<string, string> = {}, userId?: string) {
   const req = {
     headers,
     user: userId ? { id: userId, role: 'curator' } : undefined,
     params: {},
-  } as unknown as Request
+  } as unknown as Request;
 
-  const jsonMock = vi.fn().mockReturnThis()
-  const statusMock = vi.fn().mockReturnThis()
+  const jsonMock = vi.fn().mockReturnThis();
+  const statusMock = vi.fn().mockReturnThis();
   const res = {
     json: jsonMock,
     status: statusMock,
     statusCode: 201,
-  } as unknown as Response
+  } as unknown as Response;
   // make status().json() chain work
-  statusMock.mockReturnValue({ json: jsonMock })
+  statusMock.mockReturnValue({ json: jsonMock });
 
-  const next = vi.fn() as unknown as NextFunction
-  return { req, res, next, jsonMock, statusMock }
+  const next = vi.fn() as unknown as NextFunction;
+  return { req, res, next, jsonMock, statusMock };
 }
 
 // Fixed wall clock so `expiresAt` comparisons never depend on when the suite runs.
-const NOW = new Date('2026-01-15T12:00:00.000Z')
+const NOW = new Date('2026-01-15T12:00:00.000Z');
 
 /** Let pending promise callbacks (the middleware's `.then` chain) settle. */
-const flushPromises = () => new Promise<void>((resolve) => setImmediate(resolve))
+const flushPromises = () => new Promise<void>((resolve) => setImmediate(resolve));
 
 describe('idempotency middleware', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
-    vi.mocked(db.idempotencyKey.upsert).mockResolvedValue({} as any)
+    vi.clearAllMocks();
+    vi.mocked(db.idempotencyKey.upsert).mockResolvedValue({} as any);
     // Only Date is faked: the middleware reads `new Date()`, nothing waits on timers.
-    vi.useFakeTimers({ toFake: ['Date'] })
-    vi.setSystemTime(NOW)
-  })
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(NOW);
+  });
 
   afterEach(() => {
-    vi.useRealTimers()
-  })
+    vi.useRealTimers();
+  });
 
   it('calls next() when no Idempotency-Key header is present', async () => {
-    const { req, res, next } = makeReqRes()
-    idempotency(req, res, next)
-    await flushPromises()
-    expect(next).toHaveBeenCalled()
-  })
+    const { req, res, next } = makeReqRes();
+    idempotency(req, res, next);
+    await flushPromises();
+    expect(next).toHaveBeenCalled();
+  });
 
   it('calls next() on first request (no stored response)', async () => {
-    vi.mocked(db.idempotencyKey.findUnique).mockResolvedValue(null)
-    const { req, res, next } = makeReqRes({ 'idempotency-key': 'key-abc' }, 'user-1')
-    idempotency(req, res, next)
-    await flushPromises()
-    expect(next).toHaveBeenCalled()
-  })
+    vi.mocked(db.idempotencyKey.findUnique).mockResolvedValue(null);
+    const { req, res, next } = makeReqRes({ 'idempotency-key': 'key-abc' }, 'user-1');
+    idempotency(req, res, next);
+    await flushPromises();
+    expect(next).toHaveBeenCalled();
+  });
 
   it('returns cached response on retry', async () => {
     const stored = {
@@ -80,15 +80,18 @@ describe('idempotency middleware', () => {
       statusCode: 201,
       createdAt: new Date(),
       expiresAt: new Date(NOW.getTime() + 60_000),
-    }
-    vi.mocked(db.idempotencyKey.findUnique).mockResolvedValue(stored as any)
-    const { req, res, next, statusMock, jsonMock } = makeReqRes({ 'idempotency-key': 'key-abc' }, 'user-1')
-    idempotency(req, res, next)
-    await flushPromises()
-    expect(next).not.toHaveBeenCalled()
-    expect(statusMock).toHaveBeenCalledWith(201)
-    expect(jsonMock).toHaveBeenCalledWith(stored.responseBody)
-  })
+    };
+    vi.mocked(db.idempotencyKey.findUnique).mockResolvedValue(stored as any);
+    const { req, res, next, statusMock, jsonMock } = makeReqRes(
+      { 'idempotency-key': 'key-abc' },
+      'user-1',
+    );
+    idempotency(req, res, next);
+    await flushPromises();
+    expect(next).not.toHaveBeenCalled();
+    expect(statusMock).toHaveBeenCalledWith(201);
+    expect(jsonMock).toHaveBeenCalledWith(stored.responseBody);
+  });
 
   it('calls next() when stored response is expired', async () => {
     const stored = {
@@ -99,23 +102,23 @@ describe('idempotency middleware', () => {
       statusCode: 201,
       createdAt: new Date(),
       expiresAt: new Date(NOW.getTime() - 1000), // expired
-    }
-    vi.mocked(db.idempotencyKey.findUnique).mockResolvedValue(stored as any)
-    const { req, res, next } = makeReqRes({ 'idempotency-key': 'key-expired' }, 'user-1')
-    idempotency(req, res, next)
-    await flushPromises()
-    expect(next).toHaveBeenCalled()
-  })
+    };
+    vi.mocked(db.idempotencyKey.findUnique).mockResolvedValue(stored as any);
+    const { req, res, next } = makeReqRes({ 'idempotency-key': 'key-expired' }, 'user-1');
+    idempotency(req, res, next);
+    await flushPromises();
+    expect(next).toHaveBeenCalled();
+  });
 
   it('stores response after successful processing', async () => {
-    vi.mocked(db.idempotencyKey.findUnique).mockResolvedValue(null)
-    const { req, res, next } = makeReqRes({ 'idempotency-key': 'key-store' }, 'user-2')
-    idempotency(req, res, next)
-    await flushPromises()
+    vi.mocked(db.idempotencyKey.findUnique).mockResolvedValue(null);
+    const { req, res, next } = makeReqRes({ 'idempotency-key': 'key-store' }, 'user-2');
+    idempotency(req, res, next);
+    await flushPromises();
     // Simulate controller calling res.json
-    ;(res as any).statusCode = 201
-    res.json({ status: 'success', data: { id: 'new-worker' } })
-    await flushPromises()
-    expect(db.idempotencyKey.upsert).toHaveBeenCalled()
-  })
-})
+    (res as any).statusCode = 201;
+    res.json({ status: 'success', data: { id: 'new-worker' } });
+    await flushPromises();
+    expect(db.idempotencyKey.upsert).toHaveBeenCalled();
+  });
+});

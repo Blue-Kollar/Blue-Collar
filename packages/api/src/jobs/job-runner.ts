@@ -25,30 +25,30 @@
  * ```
  */
 
-import { logger } from '@/config/logger.js'
+import { logger } from '@/config/logger.js';
 
 export interface JobRunnerOptions {
   /** Interval between job executions in milliseconds. */
-  intervalMs: number
+  intervalMs: number;
   /** Whether to execute the job immediately on start() (default: true). */
-  runOnStart?: boolean
+  runOnStart?: boolean;
 }
 
 export class JobRunner {
-  private readonly name: string
-  private readonly fn: () => Promise<void>
-  private readonly intervalMs: number
-  private readonly runOnStart: boolean
+  private readonly name: string;
+  private readonly fn: () => Promise<void>;
+  private readonly intervalMs: number;
+  private readonly runOnStart: boolean;
 
-  private timer: ReturnType<typeof setInterval> | null = null
-  private running = false
-  private started = false
+  private timer: ReturnType<typeof setInterval> | null = null;
+  private running = false;
+  private started = false;
 
   constructor(name: string, fn: () => Promise<void>, options: JobRunnerOptions) {
-    this.name = name
-    this.fn = fn
-    this.intervalMs = options.intervalMs
-    this.runOnStart = options.runOnStart ?? true
+    this.name = name;
+    this.fn = fn;
+    this.intervalMs = options.intervalMs;
+    this.runOnStart = options.runOnStart ?? true;
   }
 
   /**
@@ -58,18 +58,21 @@ export class JobRunner {
    */
   start(): void {
     if (this.started) {
-      logger.warn({ job: this.name }, 'JobRunner.start() called on already-started runner — ignoring')
-      return
+      logger.warn(
+        { job: this.name },
+        'JobRunner.start() called on already-started runner — ignoring',
+      );
+      return;
     }
-    this.started = true
+    this.started = true;
 
-    logger.info({ job: this.name, intervalMs: this.intervalMs }, 'Job runner starting')
+    logger.info({ job: this.name, intervalMs: this.intervalMs }, 'Job runner starting');
 
     if (this.runOnStart) {
-      this.execute()
+      this.execute();
     }
 
-    this.timer = setInterval(() => this.execute(), this.intervalMs)
+    this.timer = setInterval(() => this.execute(), this.intervalMs);
   }
 
   /**
@@ -78,41 +81,44 @@ export class JobRunner {
    */
   stop(): void {
     if (this.timer !== null) {
-      clearInterval(this.timer)
-      this.timer = null
+      clearInterval(this.timer);
+      this.timer = null;
     }
-    this.started = false
-    logger.info({ job: this.name }, 'Job runner stopped')
+    this.started = false;
+    logger.info({ job: this.name }, 'Job runner stopped');
   }
 
   /** Whether the runner is currently active (timer running). */
   get isRunning(): boolean {
-    return this.started && this.timer !== null
+    return this.started && this.timer !== null;
   }
 
   // ── Private ─────────────────────────────────────────────────────────────────
 
   private execute(): void {
     if (this.running) {
-      logger.warn({ job: this.name }, 'Job still in progress from previous tick — skipping this execution')
-      return
+      logger.warn(
+        { job: this.name },
+        'Job still in progress from previous tick — skipping this execution',
+      );
+      return;
     }
 
-    this.running = true
-    const startMs = Date.now()
-    logger.info({ job: this.name }, 'Job execution started')
+    this.running = true;
+    const startMs = Date.now();
+    logger.info({ job: this.name }, 'Job execution started');
 
     this.fn()
       .then(() => {
-        const durationMs = Date.now() - startMs
-        logger.info({ job: this.name, durationMs, outcome: 'success' }, 'Job execution completed')
+        const durationMs = Date.now() - startMs;
+        logger.info({ job: this.name, durationMs, outcome: 'success' }, 'Job execution completed');
       })
       .catch((err: unknown) => {
-        const durationMs = Date.now() - startMs
-        logger.error({ job: this.name, durationMs, outcome: 'error', err }, 'Job execution failed')
+        const durationMs = Date.now() - startMs;
+        logger.error({ job: this.name, durationMs, outcome: 'error', err }, 'Job execution failed');
       })
       .finally(() => {
-        this.running = false
-      })
+        this.running = false;
+      });
   }
 }

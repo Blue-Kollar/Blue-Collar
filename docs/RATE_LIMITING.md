@@ -30,10 +30,10 @@ When a limit is exceeded the API responds with HTTP `429 Too Many Requests` and 
 
 The following endpoints are protected by the `authRateLimiter`:
 
-| Endpoint | Method | Limit | Window |
-|---|---|---|---|
-| `/api/auth/login` | `POST` | 10 requests | 15 minutes |
-| `/api/auth/register` | `POST` | 10 requests | 15 minutes |
+| Endpoint                    | Method | Limit       | Window     |
+| --------------------------- | ------ | ----------- | ---------- |
+| `/api/auth/login`           | `POST` | 10 requests | 15 minutes |
+| `/api/auth/register`        | `POST` | 10 requests | 15 minutes |
 | `/api/auth/forgot-password` | `POST` | 10 requests | 15 minutes |
 
 These limits exist to prevent brute-force attacks against user credentials and to slow down automated account creation.
@@ -42,26 +42,26 @@ These limits exist to prevent brute-force attacks against user credentials and t
 
 The following endpoints are publicly accessible and not currently rate-limited:
 
-| Endpoint | Method | Notes |
-|---|---|---|
-| `/api/workers` | `GET` | Paginated worker listing |
-| `/api/workers/:id` | `GET` | Single worker |
-| `/api/categories` | `GET` | Category listing |
-| `/api/categories/:id` | `GET` | Single category |
-| `/health` | `GET` | Health check |
+| Endpoint              | Method | Notes                    |
+| --------------------- | ------ | ------------------------ |
+| `/api/workers`        | `GET`  | Paginated worker listing |
+| `/api/workers/:id`    | `GET`  | Single worker            |
+| `/api/categories`     | `GET`  | Category listing         |
+| `/api/categories/:id` | `GET`  | Single category          |
+| `/health`             | `GET`  | Health check             |
 
 ### Authenticated endpoints (no rate limit)
 
 Endpoints that require a valid JWT are not rate-limited beyond the auth endpoints. The authentication requirement itself acts as a barrier against anonymous abuse.
 
-| Endpoint | Auth required |
-|---|---|
-| `POST /api/workers` | Curator |
-| `PUT /api/workers/:id` | Curator |
-| `DELETE /api/workers/:id` | Curator |
-| `GET /api/workers/mine` | Curator / Admin |
-| `GET /api/admin/*` | Admin |
-| `GET /api/users/me/bookmarks` | User |
+| Endpoint                      | Auth required   |
+| ----------------------------- | --------------- |
+| `POST /api/workers`           | Curator         |
+| `PUT /api/workers/:id`        | Curator         |
+| `DELETE /api/workers/:id`     | Curator         |
+| `GET /api/workers/mine`       | Curator / Admin |
+| `GET /api/admin/*`            | Admin           |
+| `GET /api/users/me/bookmarks` | User            |
 
 ---
 
@@ -77,11 +77,11 @@ RateLimit-Remaining: 7
 RateLimit-Reset: 1714000800
 ```
 
-| Header | Description |
-|---|---|
-| `RateLimit-Limit` | Maximum number of requests allowed in the current window |
-| `RateLimit-Remaining` | Number of requests remaining in the current window |
-| `RateLimit-Reset` | Unix timestamp (seconds) when the window resets |
+| Header                | Description                                              |
+| --------------------- | -------------------------------------------------------- |
+| `RateLimit-Limit`     | Maximum number of requests allowed in the current window |
+| `RateLimit-Remaining` | Number of requests remaining in the current window       |
+| `RateLimit-Reset`     | Unix timestamp (seconds) when the window resets          |
 
 ### Headers returned on 429 responses
 
@@ -119,12 +119,12 @@ const response = await fetch('/api/auth/login', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({ email, password }),
-})
+});
 
 if (response.status === 429) {
-  const retryAfter = response.headers.get('Retry-After')
-  const waitSeconds = retryAfter ? parseInt(retryAfter, 10) : 60
-  console.warn(`Rate limited. Retry after ${waitSeconds}s`)
+  const retryAfter = response.headers.get('Retry-After');
+  const waitSeconds = retryAfter ? parseInt(retryAfter, 10) : 60;
+  console.warn(`Rate limited. Retry after ${waitSeconds}s`);
   // surface a user-friendly message, do not retry immediately
 }
 ```
@@ -135,9 +135,9 @@ Always read `Retry-After` rather than hardcoding a wait time:
 
 ```ts
 function getRetryDelay(headers: Headers): number {
-  const retryAfter = headers.get('Retry-After')
-  if (!retryAfter) return 60_000 // fallback: 60 seconds
-  return parseInt(retryAfter, 10) * 1000 // convert to milliseconds
+  const retryAfter = headers.get('Retry-After');
+  if (!retryAfter) return 60_000; // fallback: 60 seconds
+  return parseInt(retryAfter, 10) * 1000; // convert to milliseconds
 }
 ```
 
@@ -147,8 +147,8 @@ For login and registration forms, display a clear message rather than a generic 
 
 ```ts
 if (response.status === 429) {
-  const body = await response.json()
-  showError('Too many attempts. Please wait a few minutes before trying again.')
+  const body = await response.json();
+  showError('Too many attempts. Please wait a few minutes before trying again.');
 }
 ```
 
@@ -163,17 +163,17 @@ Use **exponential backoff with jitter** when retrying after a 429. Do not retry 
 ```ts
 async function fetchWithRetry(url: string, options: RequestInit, maxRetries = 3) {
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
-    const response = await fetch(url, options)
+    const response = await fetch(url, options);
 
-    if (response.status !== 429) return response
+    if (response.status !== 429) return response;
 
-    if (attempt === maxRetries) throw new Error('Max retries exceeded')
+    if (attempt === maxRetries) throw new Error('Max retries exceeded');
 
-    const retryAfter = response.headers.get('Retry-After')
-    const baseDelay = retryAfter ? parseInt(retryAfter, 10) * 1000 : 60_000
+    const retryAfter = response.headers.get('Retry-After');
+    const baseDelay = retryAfter ? parseInt(retryAfter, 10) * 1000 : 60_000;
     // Add jitter: wait between 100% and 150% of the base delay
-    const jitter = Math.random() * 0.5 * baseDelay
-    await new Promise(resolve => setTimeout(resolve, baseDelay + jitter))
+    const jitter = Math.random() * 0.5 * baseDelay;
+    await new Promise((resolve) => setTimeout(resolve, baseDelay + jitter));
   }
 }
 ```
@@ -185,16 +185,16 @@ async function fetchWithRetry(url: string, options: RequestInit, maxRetries = 3)
 
 ```ts
 function startRetryCountdown(seconds: number, buttonEl: HTMLButtonElement) {
-  buttonEl.disabled = true
+  buttonEl.disabled = true;
   const interval = setInterval(() => {
-    seconds--
-    buttonEl.textContent = `Try again in ${seconds}s`
+    seconds--;
+    buttonEl.textContent = `Try again in ${seconds}s`;
     if (seconds <= 0) {
-      clearInterval(interval)
-      buttonEl.disabled = false
-      buttonEl.textContent = 'Log in'
+      clearInterval(interval);
+      buttonEl.disabled = false;
+      buttonEl.textContent = 'Log in';
     }
-  }, 1000)
+  }, 1000);
 }
 ```
 
@@ -224,10 +224,10 @@ If you need to call `/api/auth/me` or `/api/auth/logout` frequently, those endpo
 
 Rate limit parameters can be tuned via environment variables in `packages/api/.env`:
 
-| Variable | Default | Description |
-|---|---|---|
-| `RATE_LIMIT_WINDOW_MS` | `900000` (15 min) | Time window in milliseconds |
-| `RATE_LIMIT_MAX` | `10` | Max requests per window per IP |
+| Variable               | Default           | Description                    |
+| ---------------------- | ----------------- | ------------------------------ |
+| `RATE_LIMIT_WINDOW_MS` | `900000` (15 min) | Time window in milliseconds    |
+| `RATE_LIMIT_MAX`       | `10`              | Max requests per window per IP |
 
 Example — tighten limits in production:
 

@@ -1,8 +1,8 @@
-import type { Prisma } from '@prisma/client'
-import { db } from '@/db.js'
-import { AppError } from '@/utils/app-error.js'
-import { nowUtc, addUtcMs } from '@/utils/date.js'
-import { Gauge, Counter, Histogram } from 'prom-client'
+import type { Prisma } from '@prisma/client';
+import { db } from '@/db.js';
+import { AppError } from '@/utils/app-error.js';
+import { nowUtc, addUtcMs } from '@/utils/date.js';
+import { Gauge, Counter, Histogram } from 'prom-client';
 
 // ── Prometheus metrics ────────────────────────────────────────────────────────
 
@@ -10,31 +10,31 @@ const lagGauge = new Gauge({
   name: 'indexer_lag_ledgers',
   help: 'Ledgers the indexer cursor is behind the chain head',
   labelNames: ['contractId'],
-})
+});
 
 const batchIngestCounter = new Counter({
   name: 'indexer_batch_ingest_events_total',
   help: 'Total events ingested via batch operations',
   labelNames: ['contractId'],
-})
+});
 
 const coldStartHistogram = new Histogram({
   name: 'indexer_cold_start_duration_ms',
   help: 'Milliseconds taken to catch up from a cold start',
   buckets: [500, 1000, 5000, 10_000, 30_000, 60_000, 120_000],
-})
+});
 
 // Backpressure: pause ingestion when the indexer falls this many ledgers behind
-const MAX_LAG_BACKPRESSURE = BigInt(500)
+const MAX_LAG_BACKPRESSURE = BigInt(500);
 
 interface ContractEventData {
-  contractId: string
-  eventName: string
-  ledger: bigint
-  txIndex: number
-  eventIndex: number
-  indexed: Record<string, unknown>
-  data?: Record<string, unknown>
+  contractId: string;
+  eventName: string;
+  ledger: bigint;
+  txIndex: number;
+  eventIndex: number;
+  indexed: Record<string, unknown>;
+  data?: Record<string, unknown>;
 }
 
 /**
@@ -63,7 +63,7 @@ export async function ingestContractEvent(event: ContractEventData) {
       indexed: event.indexed as Prisma.InputJsonValue,
       data: event.data as Prisma.InputJsonValue | undefined,
     },
-  })
+  });
 }
 
 /**
@@ -79,24 +79,20 @@ export async function getOrCreateCursor(contractId: string) {
       ledger: BigInt(0),
       txIndex: 0,
     },
-  })
+  });
 }
 
 /**
  * Update the indexer cursor after processing events.
  * Only updates if the new cursor is ahead of the current one.
  */
-export async function updateCursor(
-  contractId: string,
-  ledger: bigint,
-  txIndex: number,
-) {
+export async function updateCursor(contractId: string, ledger: bigint, txIndex: number) {
   const current = await db.eventIndexerCursor.findUnique({
     where: { contractId },
-  })
+  });
 
   if (!current) {
-    throw new AppError('Cursor not found for contract', 404)
+    throw new AppError('Cursor not found for contract', 404);
   }
 
   // Only update if we're moving forward
@@ -108,24 +104,19 @@ export async function updateCursor(
         txIndex,
         updatedAt: nowUtc(),
       },
-    })
+    });
   }
 
-  return current
+  return current;
 }
 
 /**
  * Query indexed events by contract and event name.
  * Supports pagination for fast REST API responses.
  */
-export async function queryEvents(
-  contractId: string,
-  eventName?: string,
-  limit = 50,
-  offset = 0,
-) {
-  const where: { contractId: string; eventName?: string } = { contractId }
-  if (eventName) where.eventName = eventName
+export async function queryEvents(contractId: string, eventName?: string, limit = 50, offset = 0) {
+  const where: { contractId: string; eventName?: string } = { contractId };
+  if (eventName) where.eventName = eventName;
 
   const [events, total] = await Promise.all([
     db.contractEvent.findMany({
@@ -135,18 +126,15 @@ export async function queryEvents(
       skip: offset,
     }),
     db.contractEvent.count({ where }),
-  ])
+  ]);
 
-  return { events, total, limit, offset }
+  return { events, total, limit, offset };
 }
 
 /**
  * Get worker registration events by owner address.
  */
-export async function getWorkerRegistrationEvents(
-  contractId: string,
-  ownerAddress: string,
-) {
+export async function getWorkerRegistrationEvents(contractId: string, ownerAddress: string) {
   return db.contractEvent.findMany({
     where: {
       contractId,
@@ -157,7 +145,7 @@ export async function getWorkerRegistrationEvents(
       },
     },
     orderBy: { ledger: 'desc' },
-  })
+  });
 }
 
 /**
@@ -165,19 +153,19 @@ export async function getWorkerRegistrationEvents(
  * Called after restart to ensure no events are missed.
  */
 export async function reconcileEvents(contractId: string) {
-  const cursor = await getOrCreateCursor(contractId)
+  const cursor = await getOrCreateCursor(contractId);
 
   // Find the last ingested event
   const lastEvent = await db.contractEvent.findFirst({
     where: { contractId },
     orderBy: { ledger: 'desc' },
-  })
+  });
 
   if (lastEvent && lastEvent.ledger > cursor.ledger) {
-    await updateCursor(contractId, lastEvent.ledger, lastEvent.txIndex)
+    await updateCursor(contractId, lastEvent.ledger, lastEvent.txIndex);
   }
 
-  return cursor
+  return cursor;
 }
 
 /**
@@ -185,14 +173,14 @@ export async function reconcileEvents(contractId: string) {
  * Keeps events for the last N days (default: 90 days).
  */
 export async function cleanupOldEvents(contractId: string, retentionDays = 90) {
-  const cutoffDate = addUtcMs(nowUtc(), -retentionDays * 24 * 60 * 60 * 1000)
+  const cutoffDate = addUtcMs(nowUtc(), -retentionDays * 24 * 60 * 60 * 1000);
 
   return db.contractEvent.deleteMany({
     where: {
       contractId,
       createdAt: { lt: cutoffDate },
     },
-  })
+  });
 }
 
 // ── Batch ingestion ───────────────────────────────────────────────────────────
@@ -203,7 +191,7 @@ export async function cleanupOldEvents(contractId: string, retentionDays = 90) {
  * already-indexed events is safe.  Returns the number of net-new rows written.
  */
 export async function ingestBatch(events: ContractEventData[]): Promise<number> {
-  if (events.length === 0) return 0
+  if (events.length === 0) return 0;
 
   const result = await db.contractEvent.createMany({
     data: events.map((e) => ({
@@ -216,10 +204,10 @@ export async function ingestBatch(events: ContractEventData[]): Promise<number> 
       data: (e.data ?? {}) as Prisma.InputJsonValue,
     })),
     skipDuplicates: true,
-  })
+  });
 
-  batchIngestCounter.labels(events[0]?.contractId ?? 'unknown').inc(result.count)
-  return result.count
+  batchIngestCounter.labels(events[0]?.contractId ?? 'unknown').inc(result.count);
+  return result.count;
 }
 
 // ── Lag metrics & backpressure ────────────────────────────────────────────────
@@ -228,15 +216,12 @@ export async function ingestBatch(events: ContractEventData[]): Promise<number> 
  * Compute how many ledgers the indexer is behind the given chain-head ledger.
  * Updates the Prometheus lag gauge so dashboards/alerts stay current.
  */
-export async function getIndexerLag(
-  contractId: string,
-  chainHeadLedger: bigint,
-): Promise<bigint> {
-  const cursor = await db.eventIndexerCursor.findUnique({ where: { contractId } })
-  const cursorLedger = cursor?.ledger ?? BigInt(0)
-  const lag = chainHeadLedger > cursorLedger ? chainHeadLedger - cursorLedger : BigInt(0)
-  lagGauge.labels(contractId).set(Number(lag))
-  return lag
+export async function getIndexerLag(contractId: string, chainHeadLedger: bigint): Promise<bigint> {
+  const cursor = await db.eventIndexerCursor.findUnique({ where: { contractId } });
+  const cursorLedger = cursor?.ledger ?? BigInt(0);
+  const lag = chainHeadLedger > cursorLedger ? chainHeadLedger - cursorLedger : BigInt(0);
+  lagGauge.labels(contractId).set(Number(lag));
+  return lag;
 }
 
 /**
@@ -245,7 +230,7 @@ export async function getIndexerLag(
  * Threshold is MAX_LAG_BACKPRESSURE ledgers.
  */
 export function isBackpressureActive(lag: bigint): boolean {
-  return lag > MAX_LAG_BACKPRESSURE
+  return lag > MAX_LAG_BACKPRESSURE;
 }
 
 // ── Cold-start benchmark ──────────────────────────────────────────────────────
@@ -260,5 +245,5 @@ export function isBackpressureActive(lag: bigint): boolean {
  *   recordColdStartDuration(Date.now() - t0)
  */
 export function recordColdStartDuration(ms: number): void {
-  coldStartHistogram.observe(ms)
+  coldStartHistogram.observe(ms);
 }

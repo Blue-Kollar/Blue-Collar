@@ -1,13 +1,13 @@
-import { insuranceRepository as defaultInsuranceRepository } from '@/repositories/insurance.repository.js'
-import { AppError } from '@/utils/app-error.js'
-import { sendInsuranceRenewalReminder } from '@/mailer/index.js'
-import { nowUtc, addUtcMs } from '@/utils/date.js'
-import type { InsuranceServiceDeps } from '@/container/types.js'
+import { insuranceRepository as defaultInsuranceRepository } from '@/repositories/insurance.repository.js';
+import { AppError } from '@/utils/app-error.js';
+import { sendInsuranceRenewalReminder } from '@/mailer/index.js';
+import { nowUtc, addUtcMs } from '@/utils/date.js';
+import type { InsuranceServiceDeps } from '@/container/types.js';
 
 // ── Factory ───────────────────────────────────────────────────────────────────
 
 export function createInsuranceService(deps: InsuranceServiceDeps) {
-  const { insuranceRepository: repo } = deps
+  const { insuranceRepository: repo } = deps;
 
   return {
     async uploadInsurance(
@@ -17,20 +17,20 @@ export function createInsuranceService(deps: InsuranceServiceDeps) {
       provider?: string,
       policyNumber?: string,
     ) {
-      const worker = await repo.findWorkerById(workerId)
-      if (!worker) throw new AppError('Worker not found', 404)
+      const worker = await repo.findWorkerById(workerId);
+      if (!worker) throw new AppError('Worker not found', 404);
 
-      return repo.createDocument({ workerId, documentUrl, expiresAt, provider, policyNumber })
+      return repo.createDocument({ workerId, documentUrl, expiresAt, provider, policyNumber });
     },
 
     async getWorkerInsurance(workerId: string) {
-      return repo.findByWorker(workerId)
+      return repo.findByWorker(workerId);
     },
 
     async updateInsuranceStatus(id: string, status: 'verified' | 'rejected') {
-      const doc = await repo.findDocumentById(id)
-      if (!doc) throw new AppError('Insurance document not found', 404)
-      return repo.updateStatus(id, status)
+      const doc = await repo.findDocumentById(id);
+      if (!doc) throw new AppError('Insurance document not found', 404);
+      return repo.updateStatus(id, status);
     },
 
     /**
@@ -38,30 +38,26 @@ export function createInsuranceService(deps: InsuranceServiceDeps) {
      * Called by a scheduled job / cron.
      */
     async sendRenewalReminders(daysAhead = 30) {
-      const threshold = addUtcMs(nowUtc(), daysAhead * 24 * 60 * 60 * 1000)
+      const threshold = addUtcMs(nowUtc(), daysAhead * 24 * 60 * 60 * 1000);
 
-      const expiring = await repo.findExpiring(threshold)
+      const expiring = await repo.findExpiring(threshold);
 
       await Promise.allSettled(
         expiring.map((doc) =>
-          sendInsuranceRenewalReminder(
-            doc.worker.curator.email,
-            doc.worker.name,
-            doc.expiresAt,
-          ),
+          sendInsuranceRenewalReminder(doc.worker.curator.email, doc.worker.name, doc.expiresAt),
         ),
-      )
+      );
 
-      return expiring.length
+      return expiring.length;
     },
-  }
+  };
 }
 
 // ── Default service instance (backward-compatible module-level API) ───────────
 
 const _defaultService = createInsuranceService({
   insuranceRepository: defaultInsuranceRepository,
-})
+});
 
 export async function uploadInsurance(
   workerId: string,
@@ -70,17 +66,17 @@ export async function uploadInsurance(
   provider?: string,
   policyNumber?: string,
 ) {
-  return _defaultService.uploadInsurance(workerId, documentUrl, expiresAt, provider, policyNumber)
+  return _defaultService.uploadInsurance(workerId, documentUrl, expiresAt, provider, policyNumber);
 }
 
 export async function getWorkerInsurance(workerId: string) {
-  return _defaultService.getWorkerInsurance(workerId)
+  return _defaultService.getWorkerInsurance(workerId);
 }
 
 export async function updateInsuranceStatus(id: string, status: 'verified' | 'rejected') {
-  return _defaultService.updateInsuranceStatus(id, status)
+  return _defaultService.updateInsuranceStatus(id, status);
 }
 
 export async function sendRenewalReminders(daysAhead = 30) {
-  return _defaultService.sendRenewalReminders(daysAhead)
+  return _defaultService.sendRenewalReminders(daysAhead);
 }

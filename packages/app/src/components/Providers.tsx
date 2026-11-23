@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import type { ReactNode } from "react";
-import { QueryClientProvider } from "@tanstack/react-query";
-import { NextIntlClientProvider, type AbstractIntlMessages } from "next-intl";
-import { ThemeProvider } from "next-themes";
-import { Toaster } from "sonner";
-import { queryClient } from "@/lib/queryClient";
+import type { ReactNode } from 'react';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { NextIntlClientProvider, type AbstractIntlMessages } from 'next-intl';
+import { ThemeProvider } from 'next-themes';
+import { Toaster } from 'sonner';
+import { queryClient } from '@/lib/queryClient';
 
 interface ProvidersProps {
   children: ReactNode;

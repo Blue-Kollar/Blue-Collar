@@ -1,11 +1,10 @@
-"use client";
+'use client';
 
-import { useState, useCallback } from "react";
-import { X, ChevronRight, ChevronLeft, Search, Bookmark, Wallet, Star } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { useOnboardingState } from "@/hooks/useOnboardingState";
-import { useTranslations } from "next-intl";
-
+import { useState, useCallback } from 'react';
+import { X, ChevronRight, ChevronLeft, Search, Bookmark, Wallet, Star } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { useOnboardingState } from '@/hooks/useOnboardingState';
+import { useTranslations } from 'next-intl';
 
 interface Step {
   icon: React.ReactNode;
@@ -14,15 +13,31 @@ interface Step {
 }
 
 export default function OnboardingTour() {
-  const t = useTranslations("componentText");
+  const t = useTranslations('componentText');
   const { needsOnboarding, markDone } = useOnboardingState();
   const [step, setStep] = useState(0);
   const visible = needsOnboarding;
   const steps: Step[] = [
-    { icon: <Search size={28} className="text-blue-500" />, title: t("tourFindWorkersTitle"), description: t("tourFindWorkersDescription") },
-    { icon: <Bookmark size={28} className="text-blue-500" />, title: t("tourSaveWorkersTitle"), description: t("tourSaveWorkersDescription") },
-    { icon: <Wallet size={28} className="text-blue-500" />, title: t("tourPayTitle"), description: t("tourPayDescription") },
-    { icon: <Star size={28} className="text-blue-500" />, title: t("tourReviewTitle"), description: t("tourReviewDescription") },
+    {
+      icon: <Search size={28} className="text-blue-500" />,
+      title: t('tourFindWorkersTitle'),
+      description: t('tourFindWorkersDescription'),
+    },
+    {
+      icon: <Bookmark size={28} className="text-blue-500" />,
+      title: t('tourSaveWorkersTitle'),
+      description: t('tourSaveWorkersDescription'),
+    },
+    {
+      icon: <Wallet size={28} className="text-blue-500" />,
+      title: t('tourPayTitle'),
+      description: t('tourPayDescription'),
+    },
+    {
+      icon: <Star size={28} className="text-blue-500" />,
+      title: t('tourReviewTitle'),
+      description: t('tourReviewDescription'),
+    },
   ];
 
   const close = useCallback(() => {
@@ -48,7 +63,7 @@ export default function OnboardingTour() {
       onClick={close}
       role="dialog"
       aria-modal="true"
-      aria-label={t("onboardingTour")}
+      aria-label={t('onboardingTour')}
     >
       {/* Card — stop propagation so clicking inside doesn't close */}
       <div
@@ -59,7 +74,7 @@ export default function OnboardingTour() {
         <button
           type="button"
           onClick={close}
-          aria-label={t("skipTour")}
+          aria-label={t('skipTour')}
           className="absolute right-4 top-4 rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
         >
           <X size={16} />
@@ -83,10 +98,10 @@ export default function OnboardingTour() {
               key={i}
               type="button"
               onClick={() => setStep(i)}
-              aria-label={t("goToStep", { step: i + 1 })}
+              aria-label={t('goToStep', { step: i + 1 })}
               className={cn(
-                "h-2 rounded-full transition-all",
-                i === step ? "w-5 bg-blue-500" : "w-2 bg-gray-200"
+                'h-2 rounded-full transition-all',
+                i === step ? 'w-5 bg-blue-500' : 'w-2 bg-gray-200',
               )}
             />
           ))}
@@ -100,7 +115,7 @@ export default function OnboardingTour() {
             disabled={step === 0}
             className="flex items-center gap-1 rounded-lg px-3 py-2 text-sm text-gray-500 hover:bg-gray-100 disabled:opacity-0 transition-colors"
           >
-            <ChevronLeft size={15} /> {t("back")}
+            <ChevronLeft size={15} /> {t('back')}
           </button>
 
           <button
@@ -109,9 +124,11 @@ export default function OnboardingTour() {
             className="flex items-center gap-1 rounded-lg bg-blue-600 px-5 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
           >
             {step < steps.length - 1 ? (
-              <>{t("next")} <ChevronRight size={15} /></>
+              <>
+                {t('next')} <ChevronRight size={15} />
+              </>
             ) : (
-              t("getStarted")
+              t('getStarted')
             )}
           </button>
         </div>
@@ -120,7 +137,7 @@ export default function OnboardingTour() {
         {step < steps.length - 1 && (
           <p className="mt-3 text-center text-xs text-gray-400">
             <button type="button" onClick={close} className="hover:underline">
-              {t("skipTour")}
+              {t('skipTour')}
             </button>
           </p>
         )}

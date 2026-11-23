@@ -1,9 +1,10 @@
-import Link from "next/link";
-import { useTranslations } from "next-intl";
-import { Search, Bookmark, Star, Users, Wallet } from "lucide-react";
-import { colors, spacing, radius, typography } from "@blue-collar/design-tokens";
+import Link from 'next/link';
+import { useTranslations } from 'next-intl';
+import { Search, Bookmark, Star, Users, Wallet } from 'lucide-react';
+import { colors, spacing, radius, typography } from '@blue-collar/design-tokens';
 
-type Variant = "no-workers" | "no-bookmarks" | "no-reviews" | "no-search-results" | "no-transactions";
+type Variant =
+  'no-workers' | 'no-bookmarks' | 'no-reviews' | 'no-search-results' | 'no-transactions';
 
 interface EmptyStateProps {
   variant: Variant;
@@ -23,49 +24,45 @@ const config: Record<
     defaultHref: string;
   }
 > = {
-  "no-workers": {
+  'no-workers': {
     icon: <Users size={48} className={colors.iconMuted} />,
-    title: "No workers listed yet",
-    description: "Be the first to add a skilled worker to the community.",
-    cta: "Add a Worker",
-    defaultHref: "/dashboard/workers/new",
+    title: 'No workers listed yet',
+    description: 'Be the first to add a skilled worker to the community.',
+    cta: 'Add a Worker',
+    defaultHref: '/dashboard/workers/new',
   },
-  "no-bookmarks": {
+  'no-bookmarks': {
     icon: <Bookmark size={48} className={colors.iconMuted} />,
-    title: "No saved workers yet",
-    description: "Bookmark workers you like to find them quickly later.",
-    cta: "Browse Workers",
-    defaultHref: "/workers",
+    title: 'No saved workers yet',
+    description: 'Bookmark workers you like to find them quickly later.',
+    cta: 'Browse Workers',
+    defaultHref: '/workers',
   },
-  "no-reviews": {
+  'no-reviews': {
     icon: <Star size={48} className={colors.iconMuted} />,
-    title: "No reviews yet",
-    description: "Be the first to share your experience with this worker.",
-    cta: "Write a Review",
-    defaultHref: "#review-form",
+    title: 'No reviews yet',
+    description: 'Be the first to share your experience with this worker.',
+    cta: 'Write a Review',
+    defaultHref: '#review-form',
   },
-  "no-search-results": {
+  'no-search-results': {
     icon: <Search size={48} className={colors.iconMuted} />,
-    title: "No results found",
-    description: "Try different keywords, a broader location, or remove some filters.",
-    cta: "Clear Filters",
-    defaultHref: "/workers",
+    title: 'No results found',
+    description: 'Try different keywords, a broader location, or remove some filters.',
+    cta: 'Clear Filters',
+    defaultHref: '/workers',
   },
-  "no-transactions": {
+  'no-transactions': {
     icon: <Wallet size={48} className={colors.iconMuted} />,
-    title: "No transaction history",
-    description: "Your tips and payments will appear here.",
-    cta: "Send a Tip",
-    defaultHref: "/workers",
+    title: 'No transaction history',
+    description: 'Your tips and payments will appear here.',
+    cta: 'Send a Tip',
+    defaultHref: '/workers',
   },
 };
 
-export default function EmptyState({
-  variant,
-  ctaHref,
-  ctaText,
-}: EmptyStateProps) {
-  const t = useTranslations("emptyState");
+export default function EmptyState({ variant, ctaHref, ctaText }: EmptyStateProps) {
+  const t = useTranslations('emptyState');
   const { icon, titleKey, descriptionKey, ctaKey, defaultHref } = config[variant];
   const href = ctaHref ?? defaultHref;
   const buttonText = ctaText ?? t(ctaKey);
@@ -80,9 +77,7 @@ export default function EmptyState({
         {icon}
       </div>
       <p className={`${typography.heading} ${colors.textPrimary}`}>{title}</p>
-      <p className={`mt-2 max-w-sm ${typography.body} ${colors.textSecondary}`}>
-        {description}
-      </p>
+      <p className={`mt-2 max-w-sm ${typography.body} ${colors.textSecondary}`}>{description}</p>
       <Link
         href={href}
         className={`${spacing.emptyStateCtaTop} ${radius.md} ${colors.primaryBg} px-6 py-2.5 ${typography.body} font-medium ${colors.primaryText} ${colors.primaryHoverBg} transition-colors`}

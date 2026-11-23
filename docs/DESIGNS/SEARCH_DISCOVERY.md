@@ -32,12 +32,12 @@ Redesigned discovery surface combining a **filter rail**, **results list**, and 
 
 ## Design Principles
 
-| Principle | Rule |
-|---|---|
-| **Context-first** | Map and list are always in sync — panning the map refines the list. |
-| **Progressive disclosure** | Advanced filters (availability time range, verified-only) are behind an "More filters" expand. |
-| **Mobile parity** | Every filter and state available on desktop is reachable on mobile via the toggle + sheet pattern. |
-| **Backend fidelity** | Every filter control maps 1-to-1 to an API query parameter — no client-side-only filtering. |
+| Principle                  | Rule                                                                                               |
+| -------------------------- | -------------------------------------------------------------------------------------------------- |
+| **Context-first**          | Map and list are always in sync — panning the map refines the list.                                |
+| **Progressive disclosure** | Advanced filters (availability time range, verified-only) are behind an "More filters" expand.     |
+| **Mobile parity**          | Every filter and state available on desktop is reachable on mobile via the toggle + sheet pattern. |
+| **Backend fidelity**       | Every filter control maps 1-to-1 to an API query parameter — no client-side-only filtering.        |
 
 ---
 
@@ -121,12 +121,12 @@ Range slider, only active when the browser has provided geolocation or the user 
 Radio button group for minimum star threshold.
 
 | UI label | `minRating` param value |
-|---|---|
-| Any | _(omitted)_ |
-| 1+ stars | `1` |
-| 2+ stars | `2` |
-| 3+ stars | `3` |
-| 4+ stars | `4` |
+| -------- | ----------------------- |
+| Any      | _(omitted)_             |
+| 1+ stars | `1`                     |
+| 2+ stars | `2`                     |
+| 3+ stars | `3`                     |
+| 4+ stars | `4`                     |
 
 ---
 
@@ -136,18 +136,19 @@ Two-level control: day-of-week select + optional time range (under "More filters
 
 Day select options:
 
-| UI label | `available` (dayOfWeek) param |
-|---|---|
-| Any day | _(omitted)_ |
-| Sunday | `0` |
-| Monday | `1` |
-| Tuesday | `2` |
-| Wednesday | `3` |
-| Thursday | `4` |
-| Friday | `5` |
-| Saturday | `6` |
+| UI label  | `available` (dayOfWeek) param |
+| --------- | ----------------------------- |
+| Any day   | _(omitted)_                   |
+| Sunday    | `0`                           |
+| Monday    | `1`                           |
+| Tuesday   | `2`                           |
+| Wednesday | `3`                           |
+| Thursday  | `4`                           |
+| Friday    | `5`                           |
+| Saturday  | `6`                           |
 
 Time range (advanced, maps to `GET /workers/search/advanced`):
+
 - `startTime=HH:MM`
 - `endTime=HH:MM`
 
@@ -157,20 +158,20 @@ Time range (advanced, maps to `GET /workers/search/advanced`):
 
 Full mapping of every filter control to its backend parameter:
 
-| Filter control | API endpoint | Query parameter |
-|---|---|---|
-| Category (single) | `GET /workers` | `category=<id>` |
-| Category (multi) | `GET /workers` | `categories=<id1>,<id2>` |
-| Distance slider | `GET /workers` | `lat=<lat>&lng=<lng>&radius=<km>` |
-| City text fallback | `GET /workers` | `city=<city>` |
-| Rating minimum | `GET /workers` | `minRating=<1-5>` |
-| Availability day | `GET /workers` | `available=<0-6>` |
-| Availability day + time | `GET /workers/search/advanced` | `dayOfWeek=<0-6>&startTime=HH:MM&endTime=HH:MM` |
-| Verified only | `GET /workers` | `isVerified=true` |
-| Keyword search | `GET /workers` | `search=<query>` |
-| Full-text + geo | `GET /workers/search/advanced` | `query=<text>&lat=&lng=&radius=` |
-| Sort | `GET /workers` | `sortBy=rating\|newest\|oldest\|name&sortOrder=asc\|desc` |
-| Pagination | `GET /workers` | `page=<n>&limit=<n>` or `cursor=<id>` |
+| Filter control          | API endpoint                   | Query parameter                                           |
+| ----------------------- | ------------------------------ | --------------------------------------------------------- |
+| Category (single)       | `GET /workers`                 | `category=<id>`                                           |
+| Category (multi)        | `GET /workers`                 | `categories=<id1>,<id2>`                                  |
+| Distance slider         | `GET /workers`                 | `lat=<lat>&lng=<lng>&radius=<km>`                         |
+| City text fallback      | `GET /workers`                 | `city=<city>`                                             |
+| Rating minimum          | `GET /workers`                 | `minRating=<1-5>`                                         |
+| Availability day        | `GET /workers`                 | `available=<0-6>`                                         |
+| Availability day + time | `GET /workers/search/advanced` | `dayOfWeek=<0-6>&startTime=HH:MM&endTime=HH:MM`           |
+| Verified only           | `GET /workers`                 | `isVerified=true`                                         |
+| Keyword search          | `GET /workers`                 | `search=<query>`                                          |
+| Full-text + geo         | `GET /workers/search/advanced` | `query=<text>&lat=&lng=&radius=`                          |
+| Sort                    | `GET /workers`                 | `sortBy=rating\|newest\|oldest\|name&sortOrder=asc\|desc` |
+| Pagination              | `GET /workers`                 | `page=<n>&limit=<n>` or `cursor=<id>`                     |
 
 ---
 
@@ -284,6 +285,7 @@ On mobile (< 1024 px) the filter rail is hidden behind a sheet and the list/map 
 ```
 
 **Behaviour**:
+
 - Triggers on keystroke after 2 characters, debounced 300 ms.
 - Uses `GET /workers/search/advanced?query=<text>&limit=5` for worker name matches.
 - Category suggestions come from the cached `GET /categories` response (client-side filter, no extra request).
@@ -407,16 +409,16 @@ Map shows a neutral empty state ("No workers in this area") with the same zoom l
 
 ## Accessibility Notes
 
-| Element | Requirement |
-|---|---|
-| Search input | `role="combobox"`, `aria-expanded`, `aria-autocomplete="list"`, `aria-controls` pointing to suggestions list |
-| Suggestions list | `role="listbox"`, each item `role="option"`, `aria-selected` |
-| Filter rail / sheet | `role="region"`, `aria-label="Search filters"` |
-| Map container | `role="application"`, `aria-label="Worker locations map"` |
-| Map pins | Each pin has `aria-label="<Worker name>, <category>, <distance>"` |
-| Cluster badges | `aria-label="<n> workers in this area, click to zoom in"` |
-| Result list | `aria-live="polite"` region wraps list so screen readers announce count changes |
-| Loading skeleton | `aria-busy="true"` on list container; removed when results render |
-| List/map toggle (mobile) | `role="tablist"` + `role="tab"` + `aria-selected` |
-| Filter sheet (mobile) | `role="dialog"`, `aria-modal="true"`, focus trap, Escape to close |
-| Range slider (distance) | Native `<input type="range">` with `aria-valuemin`, `aria-valuemax`, `aria-valuenow`, `aria-valuetext="25 km"` |
+| Element                  | Requirement                                                                                                    |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------- |
+| Search input             | `role="combobox"`, `aria-expanded`, `aria-autocomplete="list"`, `aria-controls` pointing to suggestions list   |
+| Suggestions list         | `role="listbox"`, each item `role="option"`, `aria-selected`                                                   |
+| Filter rail / sheet      | `role="region"`, `aria-label="Search filters"`                                                                 |
+| Map container            | `role="application"`, `aria-label="Worker locations map"`                                                      |
+| Map pins                 | Each pin has `aria-label="<Worker name>, <category>, <distance>"`                                              |
+| Cluster badges           | `aria-label="<n> workers in this area, click to zoom in"`                                                      |
+| Result list              | `aria-live="polite"` region wraps list so screen readers announce count changes                                |
+| Loading skeleton         | `aria-busy="true"` on list container; removed when results render                                              |
+| List/map toggle (mobile) | `role="tablist"` + `role="tab"` + `aria-selected`                                                              |
+| Filter sheet (mobile)    | `role="dialog"`, `aria-modal="true"`, focus trap, Escape to close                                              |
+| Range slider (distance)  | Native `<input type="range">` with `aria-valuemin`, `aria-valuemax`, `aria-valuenow`, `aria-valuetext="25 km"` |

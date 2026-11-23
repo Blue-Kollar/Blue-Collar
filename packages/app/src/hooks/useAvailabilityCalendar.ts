@@ -1,5 +1,5 @@
-import { useState, useMemo, useCallback } from "react";
-import type { Slot } from "@/components/AvailabilityCalendar";
+import { useState, useMemo, useCallback } from 'react';
+import type { Slot } from '@/components/AvailabilityCalendar';
 
 export function useAvailabilityCalendar(availability: Slot[]) {
   const today = new Date();
@@ -10,32 +10,36 @@ export function useAvailabilityCalendar(availability: Slot[]) {
 
   const [showSlotEditor, setShowSlotEditor] = useState(false);
   const [bulkDays, setBulkDays] = useState<number[]>([]);
-  const [bulkStart, setBulkStart] = useState("09:00");
-  const [bulkEnd, setBulkEnd] = useState("17:00");
+  const [bulkStart, setBulkStart] = useState('09:00');
+  const [bulkEnd, setBulkEnd] = useState('17:00');
 
-  const availableDays = useMemo(() => new Set(availability.map((s) => s.dayOfWeek)), [availability]);
+  const availableDays = useMemo(
+    () => new Set(availability.map((s) => s.dayOfWeek)),
+    [availability],
+  );
   const slotMap = useMemo(
     () => Object.fromEntries(availability.map((s) => [s.dayOfWeek, s])),
-    [availability]
+    [availability],
   );
 
   const toggleBulkDay = useCallback((day: number) => {
-    setBulkDays((prev) =>
-      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
-    );
+    setBulkDays((prev) => (prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]));
   }, []);
 
-  const handleBulkApply = useCallback((onBulkSet?: (slots: Slot[]) => void) => {
-    if (bulkDays.length === 0 || !onBulkSet) return;
-    const slots = bulkDays.map((dayOfWeek) => ({
-      dayOfWeek,
-      startTime: bulkStart,
-      endTime: bulkEnd,
-    }));
-    onBulkSet(slots);
-    setBulkDays([]);
-    setShowSlotEditor(false);
-  }, [bulkDays, bulkStart, bulkEnd]);
+  const handleBulkApply = useCallback(
+    (onBulkSet?: (slots: Slot[]) => void) => {
+      if (bulkDays.length === 0 || !onBulkSet) return;
+      const slots = bulkDays.map((dayOfWeek) => ({
+        dayOfWeek,
+        startTime: bulkStart,
+        endTime: bulkEnd,
+      }));
+      onBulkSet(slots);
+      setBulkDays([]);
+      setShowSlotEditor(false);
+    },
+    [bulkDays, bulkStart, bulkEnd],
+  );
 
   const handleSelectWeekdays = useCallback(() => {
     setBulkDays([1, 2, 3, 4, 5]);
@@ -46,29 +50,36 @@ export function useAvailabilityCalendar(availability: Slot[]) {
   }, []);
 
   const prevMonth = useCallback(() => {
-    if (month === 0) { setMonth(11); setYear(y => y - 1); }
-    else setMonth(m => m - 1);
+    if (month === 0) {
+      setMonth(11);
+      setYear((y) => y - 1);
+    } else setMonth((m) => m - 1);
   }, [month]);
 
   const nextMonth = useCallback(() => {
-    if (month === 11) { setMonth(0); setYear(y => y + 1); }
-    else setMonth(m => m + 1);
+    if (month === 11) {
+      setMonth(0);
+      setYear((y) => y + 1);
+    } else setMonth((m) => m + 1);
   }, [month]);
 
-  const handleDayClick = useCallback((date: Date) => {
-    if (!availableDays.has(date.getDay())) return;
-    if (!rangeStart || (rangeStart && rangeEnd)) {
-      setRangeStart(date);
-      setRangeEnd(null);
-    } else {
-      if (date < rangeStart) {
+  const handleDayClick = useCallback(
+    (date: Date) => {
+      if (!availableDays.has(date.getDay())) return;
+      if (!rangeStart || (rangeStart && rangeEnd)) {
         setRangeStart(date);
         setRangeEnd(null);
       } else {
-        setRangeEnd(date);
+        if (date < rangeStart) {
+          setRangeStart(date);
+          setRangeEnd(null);
+        } else {
+          setRangeEnd(date);
+        }
       }
-    }
-  }, [rangeStart, rangeEnd, availableDays]);
+    },
+    [rangeStart, rangeEnd, availableDays],
+  );
 
   return {
     year,

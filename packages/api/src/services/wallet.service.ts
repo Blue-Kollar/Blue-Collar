@@ -1,6 +1,6 @@
-import { walletRepository as defaultWalletRepository } from '@/repositories/wallet.repository.js'
-import { stellarClient as defaultStellarClient, StellarClient } from '@/clients/stellar.client.js'
-import { AppError, ErrorCode } from '@/utils/app-error.js'
+import { walletRepository as defaultWalletRepository } from '@/repositories/wallet.repository.js';
+import { stellarClient as defaultStellarClient, StellarClient } from '@/clients/stellar.client.js';
+import { AppError, ErrorCode } from '@/utils/app-error.js';
 
 /**
  * WalletService encapsulates wallet business logic.
@@ -11,12 +11,13 @@ import { AppError, ErrorCode } from '@/utils/app-error.js'
 // ── Factory ───────────────────────────────────────────────────────────────────
 
 export interface WalletServiceDeps {
-  walletRepository?: typeof defaultWalletRepository
-  stellarClient?: StellarClient
+  walletRepository?: typeof defaultWalletRepository;
+  stellarClient?: StellarClient;
 }
 
 export function createWalletService(deps: WalletServiceDeps = {}) {
-  const { walletRepository: repo = defaultWalletRepository, stellarClient = defaultStellarClient } = deps
+  const { walletRepository: repo = defaultWalletRepository, stellarClient = defaultStellarClient } =
+    deps;
 
   return {
     /**
@@ -24,26 +25,26 @@ export function createWalletService(deps: WalletServiceDeps = {}) {
      * Fetches current balance and sequence from Horizon.
      */
     async syncStellarAccount(userId: string, publicKey: string) {
-      const accountInfo = await stellarClient.getAccountInfo(publicKey)
+      const accountInfo = await stellarClient.getAccountInfo(publicKey);
 
-      return repo.upsertAccount(publicKey, userId, accountInfo.balance, accountInfo.sequence)
+      return repo.upsertAccount(publicKey, userId, accountInfo.balance, accountInfo.sequence);
     },
 
     /**
      * Get cached balance for a user's Stellar account.
      */
     async getUserBalance(userId: string) {
-      const account = await repo.findByUserId(userId)
+      const account = await repo.findByUserId(userId);
 
       if (!account) {
-        throw new AppError('Stellar account not linked', 404, true, ErrorCode.NOT_FOUND)
+        throw new AppError('Stellar account not linked', 404, true, ErrorCode.NOT_FOUND);
       }
 
       return {
         publicKey: account.publicKey,
         balance: account.balance,
         lastSyncedAt: account.lastSyncedAt,
-      }
+      };
     },
 
     /**
@@ -55,14 +56,14 @@ export function createWalletService(deps: WalletServiceDeps = {}) {
       amount: string,
       memo?: string,
     ) {
-      const account = await repo.findByPublicKey(sourcePublicKey)
+      const account = await repo.findByPublicKey(sourcePublicKey);
 
       if (!account) {
-        throw new AppError('Source account not found', 404, true, ErrorCode.NOT_FOUND)
+        throw new AppError('Source account not found', 404, true, ErrorCode.NOT_FOUND);
       }
 
-      const current = await stellarClient.getAccountInfo(sourcePublicKey)
-      const nextSequence = (current.sequence + BigInt(1)).toString()
+      const current = await stellarClient.getAccountInfo(sourcePublicKey);
+      const nextSequence = (current.sequence + BigInt(1)).toString();
 
       return {
         sourcePublicKey,
@@ -71,44 +72,49 @@ export function createWalletService(deps: WalletServiceDeps = {}) {
         memo: memo || '',
         sequence: nextSequence,
         description: 'Use stellar-sdk to sign this transaction and then broadcast',
-      }
+      };
     },
 
     /**
      * Register a user's Stellar account for the first time.
      */
     async linkStellarAccount(userId: string, publicKey: string) {
-      await stellarClient.getAccountInfo(publicKey)
+      await stellarClient.getAccountInfo(publicKey);
 
-      const existing = await repo.findByPublicKey(publicKey)
+      const existing = await repo.findByPublicKey(publicKey);
 
       if (existing && existing.userId !== userId) {
-        throw new AppError('Wallet already linked to another account', 409, true, ErrorCode.CONFLICT)
+        throw new AppError(
+          'Wallet already linked to another account',
+          409,
+          true,
+          ErrorCode.CONFLICT,
+        );
       }
 
-      const accountInfo = await stellarClient.getAccountInfo(publicKey)
-      return repo.upsertAccount(publicKey, userId, accountInfo.balance, accountInfo.sequence)
+      const accountInfo = await stellarClient.getAccountInfo(publicKey);
+      return repo.upsertAccount(publicKey, userId, accountInfo.balance, accountInfo.sequence);
     },
-  }
+  };
 }
 
 // ── Standalone Stellar network helpers (for backward compatibility) ──────────
 // These re-export from StellarClient for callers not yet using the new client directly
 
 export async function getAccountInfo(publicKey: string) {
-  return defaultStellarClient.getAccountInfo(publicKey)
+  return defaultStellarClient.getAccountInfo(publicKey);
 }
 
 export async function broadcastTransaction(signedXdr: string) {
-  return defaultStellarClient.broadcastTransaction(signedXdr)
+  return defaultStellarClient.broadcastTransaction(signedXdr);
 }
 
 export async function pollTransactionStatus(txHash: string) {
-  return defaultStellarClient.pollTransactionStatus(txHash)
+  return defaultStellarClient.pollTransactionStatus(txHash);
 }
 
 export async function fundTestnetAccount(publicKey: string) {
-  return defaultStellarClient.fundTestnetAccount(publicKey)
+  return defaultStellarClient.fundTestnetAccount(publicKey);
 }
 
 export async function getAccountTransactions(
@@ -116,21 +122,21 @@ export async function getAccountTransactions(
   limit = 50,
   order: 'asc' | 'desc' = 'desc',
 ) {
-  return defaultStellarClient.getAccountTransactions(publicKey, limit, order)
+  return defaultStellarClient.getAccountTransactions(publicKey, limit, order);
 }
 
 // ── Default service instance (backward-compatible module-level API) ───────────
 
 const _defaultService = createWalletService({
   walletRepository: defaultWalletRepository,
-})
+});
 
 export async function syncStellarAccount(userId: string, publicKey: string) {
-  return _defaultService.syncStellarAccount(userId, publicKey)
+  return _defaultService.syncStellarAccount(userId, publicKey);
 }
 
 export async function getUserBalance(userId: string) {
-  return _defaultService.getUserBalance(userId)
+  return _defaultService.getUserBalance(userId);
 }
 
 export async function buildUnsignedTx(
@@ -139,9 +145,9 @@ export async function buildUnsignedTx(
   amount: string,
   memo?: string,
 ) {
-  return _defaultService.buildUnsignedTx(sourcePublicKey, destinationPublicKey, amount, memo)
+  return _defaultService.buildUnsignedTx(sourcePublicKey, destinationPublicKey, amount, memo);
 }
 
 export async function linkStellarAccount(userId: string, publicKey: string) {
-  return _defaultService.linkStellarAccount(userId, publicKey)
+  return _defaultService.linkStellarAccount(userId, publicKey);
 }

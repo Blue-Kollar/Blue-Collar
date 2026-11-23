@@ -7,24 +7,24 @@ on:
   push:
     branches: [main]
     paths:
-      - "packages/api/load/**"
-      - "packages/api/src/**"
-      - ".github/workflows/load.yml"
+      - 'packages/api/load/**'
+      - 'packages/api/src/**'
+      - '.github/workflows/load.yml'
   pull_request:
     paths:
-      - "packages/api/load/**"
-      - "packages/api/src/**"
-      - ".github/workflows/load.yml"
+      - 'packages/api/load/**'
+      - 'packages/api/src/**'
+      - '.github/workflows/load.yml'
   schedule:
-    - cron: "0 2 * * *"
+    - cron: '0 2 * * *'
   workflow_dispatch:
     inputs:
       scenario:
-        description: "k6 scenario (smoke | load | stress | soak)"
+        description: 'k6 scenario (smoke | load | stress | soak)'
         required: false
-        default: "load"
+        default: 'load'
       base_url:
-        description: "API base URL (default: staging)"
+        description: 'API base URL (default: staging)'
         required: false
 
 jobs:

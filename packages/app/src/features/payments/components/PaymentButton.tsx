@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { Wallet } from "lucide-react";
-import TipModal from "@/components/TipModal";
-import { usePaymentFlow } from "@/context/PaymentFlowContext";
+import { Wallet } from 'lucide-react';
+import TipModal from '@/components/TipModal';
+import { usePaymentFlow } from '@/context/PaymentFlowContext';
 
 interface PaymentButtonProps {
   workerName?: string;
@@ -13,7 +13,7 @@ interface PaymentButtonProps {
 export default function PaymentButton({
   workerName: workerNameProp,
   walletAddress: walletAddressProp,
-  label = "Pay / Tip",
+  label = 'Pay / Tip',
 }: PaymentButtonProps) {
   const paymentFlow = usePaymentFlow();
   const workerName = workerNameProp ?? paymentFlow?.workerName;

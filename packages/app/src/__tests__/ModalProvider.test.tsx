@@ -11,11 +11,11 @@
  * Closes #1210
  */
 
-import { describe, it, expect, vi } from "vitest";
-import { render, screen, fireEvent, act } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
-import { ModalProvider, useModal } from "@/context/ModalContext";
-import { type ReactNode } from "react";
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen, fireEvent, act } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { ModalProvider, useModal } from '@/context/ModalContext';
+import { type ReactNode } from 'react';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -24,15 +24,7 @@ function Wrapper({ children }: { children: ReactNode }) {
 }
 
 /** A simple button that opens a modal when clicked. */
-function Opener({
-  id,
-  label,
-  dismissible,
-}: {
-  id: string;
-  label: string;
-  dismissible?: boolean;
-}) {
+function Opener({ id, label, dismissible }: { id: string; label: string; dismissible?: boolean }) {
   const { openModal } = useModal();
   return (
     <button
@@ -53,7 +45,7 @@ function Opener({
 /** A button that reads the current stack length. */
 function StackDisplay() {
   const { stack } = useModal();
-  return <span data-testid="stack">{stack.join(",")}</span>;
+  return <span data-testid="stack">{stack.join(',')}</span>;
 }
 
 /** A button that closes all modals. */
@@ -64,30 +56,30 @@ function CloseAllButton() {
 
 // ─── Tests ───────────────────────────────────────────────────────────────────
 
-describe("ModalProvider — openModal / closeModal / closeAll", () => {
-  it("opens a modal and renders its content", async () => {
+describe('ModalProvider — openModal / closeModal / closeAll', () => {
+  it('opens a modal and renders its content', async () => {
     const user = userEvent.setup();
     render(
       <Wrapper>
         <Opener id="tip" label="Tip" />
-      </Wrapper>
+      </Wrapper>,
     );
 
-    await user.click(screen.getByText("Open Tip"));
-    expect(screen.getByTestId("modal-content-tip")).toBeInTheDocument();
+    await user.click(screen.getByText('Open Tip'));
+    expect(screen.getByTestId('modal-content-tip')).toBeInTheDocument();
   });
 
-  it("closeModal removes the modal from the DOM", async () => {
+  it('closeModal removes the modal from the DOM', async () => {
     const user = userEvent.setup();
 
     function ClosingOpener() {
       const { openModal, closeModal } = useModal();
       return (
         <>
-          <button onClick={() => openModal({ id: "x", content: <p data-testid="x-content">X</p> })}>
+          <button onClick={() => openModal({ id: 'x', content: <p data-testid="x-content">X</p> })}>
             Open X
           </button>
-          <button onClick={() => closeModal("x")}>Close X</button>
+          <button onClick={() => closeModal('x')}>Close X</button>
         </>
       );
     }
@@ -95,17 +87,17 @@ describe("ModalProvider — openModal / closeModal / closeAll", () => {
     render(
       <Wrapper>
         <ClosingOpener />
-      </Wrapper>
+      </Wrapper>,
     );
 
-    await user.click(screen.getByText("Open X"));
-    expect(screen.getByTestId("x-content")).toBeInTheDocument();
+    await user.click(screen.getByText('Open X'));
+    expect(screen.getByTestId('x-content')).toBeInTheDocument();
 
-    await user.click(screen.getByText("Close X"));
-    expect(screen.queryByTestId("x-content")).not.toBeInTheDocument();
+    await user.click(screen.getByText('Close X'));
+    expect(screen.queryByTestId('x-content')).not.toBeInTheDocument();
   });
 
-  it("closeAll removes every open modal", async () => {
+  it('closeAll removes every open modal', async () => {
     const user = userEvent.setup();
     render(
       <Wrapper>
@@ -113,133 +105,133 @@ describe("ModalProvider — openModal / closeModal / closeAll", () => {
         <Opener id="b" label="B" />
         <CloseAllButton />
         <StackDisplay />
-      </Wrapper>
+      </Wrapper>,
     );
 
-    await user.click(screen.getByText("Open A"));
-    await user.click(screen.getByText("Open B"));
-    expect(screen.getByTestId("stack").textContent).toBe("a,b");
+    await user.click(screen.getByText('Open A'));
+    await user.click(screen.getByText('Open B'));
+    expect(screen.getByTestId('stack').textContent).toBe('a,b');
 
-    await user.click(screen.getByText("Close all"));
-    expect(screen.getByTestId("stack").textContent).toBe("");
-    expect(screen.queryByTestId("modal-content-a")).not.toBeInTheDocument();
-    expect(screen.queryByTestId("modal-content-b")).not.toBeInTheDocument();
+    await user.click(screen.getByText('Close all'));
+    expect(screen.getByTestId('stack').textContent).toBe('');
+    expect(screen.queryByTestId('modal-content-a')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('modal-content-b')).not.toBeInTheDocument();
   });
 
-  it("opening the same id twice replaces, not duplicates, the entry", async () => {
+  it('opening the same id twice replaces, not duplicates, the entry', async () => {
     const user = userEvent.setup();
     render(
       <Wrapper>
         <Opener id="dup" label="Dup" />
         <StackDisplay />
-      </Wrapper>
+      </Wrapper>,
     );
 
-    await user.click(screen.getByText("Open Dup"));
-    await user.click(screen.getByText("Open Dup"));
+    await user.click(screen.getByText('Open Dup'));
+    await user.click(screen.getByText('Open Dup'));
 
     // Only one entry in the stack
-    expect(screen.getByTestId("stack").textContent).toBe("dup");
+    expect(screen.getByTestId('stack').textContent).toBe('dup');
   });
 });
 
-describe("ModalProvider — stack ordering", () => {
-  it("later-opened modals appear after earlier ones in the stack", async () => {
+describe('ModalProvider — stack ordering', () => {
+  it('later-opened modals appear after earlier ones in the stack', async () => {
     const user = userEvent.setup();
     render(
       <Wrapper>
         <Opener id="first" label="First" />
         <Opener id="second" label="Second" />
         <StackDisplay />
-      </Wrapper>
+      </Wrapper>,
     );
 
-    await user.click(screen.getByText("Open First"));
-    await user.click(screen.getByText("Open Second"));
+    await user.click(screen.getByText('Open First'));
+    await user.click(screen.getByText('Open Second'));
 
-    expect(screen.getByTestId("stack").textContent).toBe("first,second");
+    expect(screen.getByTestId('stack').textContent).toBe('first,second');
   });
 });
 
-describe("ModalProvider — Escape-key dismissal", () => {
-  it("pressing Escape closes the topmost dismissible modal", async () => {
+describe('ModalProvider — Escape-key dismissal', () => {
+  it('pressing Escape closes the topmost dismissible modal', async () => {
     const user = userEvent.setup();
     render(
       <Wrapper>
         <Opener id="esc-modal" label="Escape" />
-      </Wrapper>
+      </Wrapper>,
     );
 
-    await user.click(screen.getByText("Open Escape"));
-    expect(screen.getByTestId("modal-content-esc-modal")).toBeInTheDocument();
+    await user.click(screen.getByText('Open Escape'));
+    expect(screen.getByTestId('modal-content-esc-modal')).toBeInTheDocument();
 
-    await user.keyboard("{Escape}");
-    expect(screen.queryByTestId("modal-content-esc-modal")).not.toBeInTheDocument();
+    await user.keyboard('{Escape}');
+    expect(screen.queryByTestId('modal-content-esc-modal')).not.toBeInTheDocument();
   });
 });
 
-describe("ModalProvider — non-dismissible modals", () => {
-  it("a modal with dismissible=false is not closed by Escape", async () => {
+describe('ModalProvider — non-dismissible modals', () => {
+  it('a modal with dismissible=false is not closed by Escape', async () => {
     const user = userEvent.setup();
     render(
       <Wrapper>
         <Opener id="nd" label="NonDismissible" dismissible={false} />
-      </Wrapper>
+      </Wrapper>,
     );
 
-    await user.click(screen.getByText("Open NonDismissible"));
-    expect(screen.getByTestId("modal-content-nd")).toBeInTheDocument();
+    await user.click(screen.getByText('Open NonDismissible'));
+    expect(screen.getByTestId('modal-content-nd')).toBeInTheDocument();
 
-    await user.keyboard("{Escape}");
+    await user.keyboard('{Escape}');
     // Modal should still be present
-    expect(screen.getByTestId("modal-content-nd")).toBeInTheDocument();
+    expect(screen.getByTestId('modal-content-nd')).toBeInTheDocument();
   });
 
-  it("a non-dismissible modal has no close button", async () => {
+  it('a non-dismissible modal has no close button', async () => {
     const user = userEvent.setup();
     render(
       <Wrapper>
         <Opener id="nd2" label="ND2" dismissible={false} />
-      </Wrapper>
+      </Wrapper>,
     );
 
-    await user.click(screen.getByText("Open ND2"));
-    expect(screen.queryByRole("button", { name: /close modal/i })).not.toBeInTheDocument();
+    await user.click(screen.getByText('Open ND2'));
+    expect(screen.queryByRole('button', { name: /close modal/i })).not.toBeInTheDocument();
   });
 });
 
-describe("ModalProvider — focus management", () => {
-  it("the close button is rendered and accessible", async () => {
+describe('ModalProvider — focus management', () => {
+  it('the close button is rendered and accessible', async () => {
     const user = userEvent.setup();
     render(
       <Wrapper>
         <Opener id="focus-test" label="FocusTest" />
-      </Wrapper>
+      </Wrapper>,
     );
 
-    await user.click(screen.getByText("Open FocusTest"));
-    const closeBtn = screen.getByRole("button", { name: /close modal/i });
+    await user.click(screen.getByText('Open FocusTest'));
+    const closeBtn = screen.getByRole('button', { name: /close modal/i });
     expect(closeBtn).toBeInTheDocument();
   });
 
-  it("clicking the close button dismisses the modal", async () => {
+  it('clicking the close button dismisses the modal', async () => {
     const user = userEvent.setup();
     render(
       <Wrapper>
         <Opener id="close-btn" label="CloseBtnModal" />
-      </Wrapper>
+      </Wrapper>,
     );
 
-    await user.click(screen.getByText("Open CloseBtnModal"));
-    expect(screen.getByTestId("modal-content-close-btn")).toBeInTheDocument();
+    await user.click(screen.getByText('Open CloseBtnModal'));
+    expect(screen.getByTestId('modal-content-close-btn')).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: /close modal/i }));
-    expect(screen.queryByTestId("modal-content-close-btn")).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /close modal/i }));
+    expect(screen.queryByTestId('modal-content-close-btn')).not.toBeInTheDocument();
   });
 });
 
-describe("useModal — context values", () => {
-  it("hasOpenModals is false when no modals are open", () => {
+describe('useModal — context values', () => {
+  it('hasOpenModals is false when no modals are open', () => {
     function Reader() {
       const { hasOpenModals } = useModal();
       return <span data-testid="has-open">{String(hasOpenModals)}</span>;
@@ -248,13 +240,13 @@ describe("useModal — context values", () => {
     render(
       <Wrapper>
         <Reader />
-      </Wrapper>
+      </Wrapper>,
     );
 
-    expect(screen.getByTestId("has-open").textContent).toBe("false");
+    expect(screen.getByTestId('has-open').textContent).toBe('false');
   });
 
-  it("hasOpenModals is true after opening a modal", async () => {
+  it('hasOpenModals is true after opening a modal', async () => {
     const user = userEvent.setup();
 
     function Reader() {
@@ -266,11 +258,11 @@ describe("useModal — context values", () => {
       <Wrapper>
         <Opener id="hom" label="HOM" />
         <Reader />
-      </Wrapper>
+      </Wrapper>,
     );
 
-    expect(screen.getByTestId("has-open").textContent).toBe("false");
-    await user.click(screen.getByText("Open HOM"));
-    expect(screen.getByTestId("has-open").textContent).toBe("true");
+    expect(screen.getByTestId('has-open').textContent).toBe('false');
+    await user.click(screen.getByText('Open HOM'));
+    expect(screen.getByTestId('has-open').textContent).toBe('true');
   });
 });

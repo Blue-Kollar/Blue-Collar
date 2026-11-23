@@ -9,15 +9,15 @@ This document describes the outcome of enabling TypeScript strict mode across al
 **`strict: true` was already present in every package's `tsconfig.json` before this issue was
 addressed.** No tsconfig changes were required. The audit confirmed:
 
-| Package              | `strict: true` before #1288 |
-|----------------------|:--------------------------:|
-| `packages/types`     | ✅ already set             |
-| `packages/sdk`       | ✅ already set             |
-| `packages/api`       | ✅ already set             |
-| `packages/app`       | ✅ already set             |
-| `packages/mobile`    | ✅ already set             |
-| `packages/monitoring`| ✅ already set             |
-| `packages/test-utils`| ✅ already set             |
+| Package               | `strict: true` before #1288 |
+| --------------------- | :-------------------------: |
+| `packages/types`      |       ✅ already set        |
+| `packages/sdk`        |       ✅ already set        |
+| `packages/api`        |       ✅ already set        |
+| `packages/app`        |       ✅ already set        |
+| `packages/mobile`     |       ✅ already set        |
+| `packages/monitoring` |       ✅ already set        |
+| `packages/test-utils` |       ✅ already set        |
 
 ## Type Errors Fixed
 
@@ -35,16 +35,19 @@ Enabling strict checking surfaced several pre-existing errors that were fixed as
 
 - **`index.ts` — `AuthUser`**: `interface AuthUser extends User {}` is an empty interface, flagged
   by `@typescript-eslint/no-empty-object-type`. Converted to a type alias:
+
   ```ts
-  export type AuthUser = User
+  export type AuthUser = User;
   ```
+
   This is a **non-breaking change** for consumers — `type AuthUser = User` is structurally
   identical to the empty extending interface for all practical use.
 
-- **`index.ts` — `UpdateWorkerDTO`**: Same pattern. `interface UpdateWorkerDTO extends Partial<CreateWorkerDTO> {}` 
+- **`index.ts` — `UpdateWorkerDTO`**: Same pattern. `interface UpdateWorkerDTO extends Partial<CreateWorkerDTO> {}`
   converted to:
+
   ```ts
-  export type UpdateWorkerDTO = Partial<CreateWorkerDTO>
+  export type UpdateWorkerDTO = Partial<CreateWorkerDTO>;
   ```
 
 - **`__tests__/regression.shared-types.test.ts` line 152**: Useless escape `[\{<]` in a regex
@@ -67,13 +70,15 @@ controller/service code, and stale test fixtures. A separate issue should be ope
 ### `AuthUser`
 
 Before (interface extending empty):
+
 ```ts
 export interface AuthUser extends User {}
 ```
 
 After (type alias):
+
 ```ts
-export type AuthUser = User
+export type AuthUser = User;
 ```
 
 **Impact:** None. Type aliases and empty-extending interfaces behave identically for structural
@@ -83,25 +88,27 @@ typing. You can use `AuthUser` exactly as before. If you were checking `instance
 ### `UpdateWorkerDTO`
 
 Before:
+
 ```ts
 export interface UpdateWorkerDTO extends Partial<CreateWorkerDTO> {}
 ```
 
 After:
+
 ```ts
-export type UpdateWorkerDTO = Partial<CreateWorkerDTO>
+export type UpdateWorkerDTO = Partial<CreateWorkerDTO>;
 ```
 
 **Impact:** None. Same structural type.
 
 ## Downstream Build Status
 
-| Package  | `tsc --noEmit` after #1288 | Notes |
-|----------|:-------------------------:|-------|
-| `types`  | ✅ clean                  | 0 errors |
-| `sdk`    | ✅ clean                  | 0 errors (2 fixed) |
-| `api`    | ❌ pre-existing errors    | ~150 errors unrelated to #1288 |
-| `app`    | ✅ clean                  | 0 errors |
+| Package | `tsc --noEmit` after #1288 | Notes                          |
+| ------- | :------------------------: | ------------------------------ |
+| `types` |          ✅ clean          | 0 errors                       |
+| `sdk`   |          ✅ clean          | 0 errors (2 fixed)             |
+| `api`   |   ❌ pre-existing errors   | ~150 errors unrelated to #1288 |
+| `app`   |          ✅ clean          | 0 errors                       |
 
 ## Related Issues
 

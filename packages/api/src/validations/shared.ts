@@ -10,4 +10,4 @@ export {
   tokenField,
   phoneField,
   stellarAddressField,
-} from '@bluecollar/types'
+} from '@bluecollar/types';

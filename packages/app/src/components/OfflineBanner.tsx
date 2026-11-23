@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { WifiOff, Loader2 } from "lucide-react";
-import { getOfflineQueue } from "@/lib/offlineQueue";
-import { useTranslations } from "next-intl";
+import { useEffect, useState } from 'react';
+import { WifiOff, Loader2 } from 'lucide-react';
+import { getOfflineQueue } from '@/lib/offlineQueue';
+import { useTranslations } from 'next-intl';
 
 export default function OfflineBanner() {
-  const t = useTranslations("offline");
+  const t = useTranslations('offline');
   const [offline, setOffline] = useState(false);
   const [queueCount, setQueueCount] = useState(0);
   const [syncing, setSyncing] = useState(false);
@@ -17,20 +17,20 @@ export default function OfflineBanner() {
     const on = () => setOffline(false);
     const off = () => setOffline(true);
 
-    window.addEventListener("online", on);
-    window.addEventListener("offline", off);
+    window.addEventListener('online', on);
+    window.addEventListener('offline', off);
 
-    if ("serviceWorker" in navigator) {
+    if ('serviceWorker' in navigator) {
       navigator.serviceWorker.controller?.postMessage({
-        type: "GET_QUEUE_COUNT",
+        type: 'GET_QUEUE_COUNT',
       });
 
       navigator.serviceWorker.onmessage = (event) => {
-        if (event.data.type === "SYNC_SUCCESS") {
+        if (event.data.type === 'SYNC_SUCCESS') {
           setQueueCount((prev) => Math.max(0, prev - 1));
-        } else if (event.data.type === "SYNC_START") {
+        } else if (event.data.type === 'SYNC_START') {
           setSyncing(true);
-        } else if (event.data.type === "SYNC_END") {
+        } else if (event.data.type === 'SYNC_END') {
           setSyncing(false);
         }
       };
@@ -41,7 +41,7 @@ export default function OfflineBanner() {
         const queue = await getOfflineQueue();
         setQueueCount(queue.length);
       } catch (error) {
-        console.warn("[OfflineBanner] Failed to check queue:", error);
+        console.warn('[OfflineBanner] Failed to check queue:', error);
       }
     };
 
@@ -50,20 +50,20 @@ export default function OfflineBanner() {
 
     return () => {
       clearInterval(interval);
-      window.removeEventListener("online", on);
-      window.removeEventListener("offline", off);
+      window.removeEventListener('online', on);
+      window.removeEventListener('offline', off);
     };
   }, []);
 
   if (!offline && queueCount === 0) return null;
 
   const statusText = offline
-    ? t("offline")
+    ? t('offline')
     : syncing
-    ? t("syncing", { count: queueCount })
-    : queueCount > 0
-    ? t("pending", { count: queueCount })
-    : null;
+      ? t('syncing', { count: queueCount })
+      : queueCount > 0
+        ? t('pending', { count: queueCount })
+        : null;
 
   if (!statusText) return null;
 

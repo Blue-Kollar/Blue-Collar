@@ -15,7 +15,8 @@ import { TESTNET_HORIZON_URL } from '@bluecollar/sdk';
 // ── Schema ────────────────────────────────────────────────────────────────────
 
 const nonEmpty = (name: string) =>
-  z.string({ required_error: `required env var "${name}" is missing or empty` })
+  z
+    .string({ required_error: `required env var "${name}" is missing or empty` })
     .min(1, `required env var "${name}" is missing or empty`);
 
 export const envSchema = z.object({

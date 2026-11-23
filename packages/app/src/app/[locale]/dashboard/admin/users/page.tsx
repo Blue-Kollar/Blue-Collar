@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import LoadingState from "@/components/LoadingState";
-import { useEffect, useState, useMemo } from "react";
-import { useRouter } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
-import { useAuth } from "@/hooks/useAuth";
-import { useToast } from "@/hooks/useToast";
-import { useDebounce } from "@/hooks/useDebounce";
+import LoadingState from '@/components/LoadingState';
+import { useEffect, useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
+import { ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/useToast';
+import { useDebounce } from '@/hooks/useDebounce';
 import {
   useAdminUsers,
   useSuspendUser,
@@ -16,12 +16,12 @@ import {
   useChangeUserRole,
   useBulkSuspendUsers,
   useBulkUnsuspendUsers,
-} from "@/hooks/queries";
-import type { AdminUser } from "@/lib/api";
-import AdminUsersFilters, { type Role } from "@/components/dashboard/admin/users/AdminUsersFilters";
-import AdminUsersBulkBar from "@/components/dashboard/admin/users/AdminUsersBulkBar";
-import AdminUsersTable from "@/components/dashboard/admin/users/AdminUsersTable";
-import AdminUsersPagination from "@/components/dashboard/admin/users/AdminUsersPagination";
+} from '@/hooks/queries';
+import type { AdminUser } from '@/lib/api';
+import AdminUsersFilters, { type Role } from '@/components/dashboard/admin/users/AdminUsersFilters';
+import AdminUsersBulkBar from '@/components/dashboard/admin/users/AdminUsersBulkBar';
+import AdminUsersTable from '@/components/dashboard/admin/users/AdminUsersTable';
+import AdminUsersPagination from '@/components/dashboard/admin/users/AdminUsersPagination';
 
 export default function AdminUsersPage() {
   const { user } = useAuth();
@@ -30,12 +30,12 @@ export default function AdminUsersPage() {
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState('');
   const debouncedSearch = useDebounce(search, 300);
-  const [roleFilter, setRoleFilter] = useState<"" | Role>("");
-  const [statusFilter, setStatusFilter] = useState<"" | "active" | "suspended">("");
+  const [roleFilter, setRoleFilter] = useState<'' | Role>('');
+  const [statusFilter, setStatusFilter] = useState<'' | 'active' | 'suspended'>('');
 
-  const params: Record<string, string> = { page: String(page), limit: "20" };
+  const params: Record<string, string> = { page: String(page), limit: '20' };
   if (debouncedSearch) params.search = debouncedSearch;
   if (roleFilter) params.role = roleFilter;
   if (statusFilter) params.status = statusFilter;
@@ -61,8 +61,8 @@ export default function AdminUsersPage() {
   const bulkLoading = bulkSuspendUsers.isPending || bulkUnsuspendUsers.isPending;
 
   useEffect(() => {
-    if (user && user.role !== "admin") {
-      router.push("/");
+    if (user && user.role !== 'admin') {
+      router.push('/');
     }
   }, [user, router]);
 
@@ -77,28 +77,33 @@ export default function AdminUsersPage() {
   }, [usersQuery.data]);
 
   useEffect(() => {
-    if (usersQuery.isError) toast("Failed to load users", "error");
+    if (usersQuery.isError) toast('Failed to load users', 'error');
   }, [usersQuery.isError, toast]);
 
   const handleSuspend = (userId: string) => {
     suspendUser.mutate(userId, {
-      onSuccess: () => toast("User suspended", "success"),
-      onError: () => toast("Failed to suspend user", "error"),
+      onSuccess: () => toast('User suspended', 'success'),
+      onError: () => toast('Failed to suspend user', 'error'),
     });
   };
 
   const handleUnsuspend = (userId: string) => {
     unsuspendUser.mutate(userId, {
-      onSuccess: () => toast("User unsuspended", "success"),
-      onError: () => toast("Failed to unsuspend user", "error"),
+      onSuccess: () => toast('User unsuspended', 'success'),
+      onError: () => toast('Failed to unsuspend user', 'error'),
     });
   };
 
   const handleBan = (userId: string) => {
-    if (!confirm("Are you sure you want to permanently ban this user? This will delete their account.")) return;
+    if (
+      !confirm(
+        'Are you sure you want to permanently ban this user? This will delete their account.',
+      )
+    )
+      return;
     banUser.mutate(userId, {
-      onSuccess: () => toast("User banned", "success"),
-      onError: () => toast("Failed to ban user", "error"),
+      onSuccess: () => toast('User banned', 'success'),
+      onError: () => toast('Failed to ban user', 'error'),
     });
   };
 
@@ -106,9 +111,9 @@ export default function AdminUsersPage() {
     changeUserRole.mutate(
       { userId, role },
       {
-        onSuccess: () => toast("Role updated", "success"),
-        onError: () => toast("Failed to update role", "error"),
-      }
+        onSuccess: () => toast('Role updated', 'success'),
+        onError: () => toast('Failed to update role', 'error'),
+      },
     );
   };
 
@@ -121,8 +126,9 @@ export default function AdminUsersPage() {
     });
   };
 
-  const selectableUsers = useMemo(() => users.filter((u) => u.role !== "admin"), [users]);
-  const allSelectableSelected = selectableUsers.length > 0 && selectableUsers.every((u) => selected.has(u.id));
+  const selectableUsers = useMemo(() => users.filter((u) => u.role !== 'admin'), [users]);
+  const allSelectableSelected =
+    selectableUsers.length > 0 && selectableUsers.every((u) => selected.has(u.id));
 
   const toggleSelectAll = () => {
     setSelected((prev) => {
@@ -135,8 +141,8 @@ export default function AdminUsersPage() {
     if (selected.size === 0) return;
     const count = selected.size;
     bulkSuspendUsers.mutate(Array.from(selected), {
-      onSuccess: () => toast(`Suspended ${count} user(s)`, "success"),
-      onError: () => toast("Failed to bulk suspend users", "error"),
+      onSuccess: () => toast(`Suspended ${count} user(s)`, 'success'),
+      onError: () => toast('Failed to bulk suspend users', 'error'),
     });
   };
 
@@ -144,14 +150,14 @@ export default function AdminUsersPage() {
     if (selected.size === 0) return;
     const count = selected.size;
     bulkUnsuspendUsers.mutate(Array.from(selected), {
-      onSuccess: () => toast(`Unsuspended ${count} user(s)`, "success"),
-      onError: () => toast("Failed to bulk unsuspend users", "error"),
+      onSuccess: () => toast(`Unsuspended ${count} user(s)`, 'success'),
+      onError: () => toast('Failed to bulk unsuspend users', 'error'),
     });
   };
 
   const isSuspended = (u: AdminUser) => u.deletedAt != null;
 
-  if (!user || user.role !== "admin") return null;
+  if (!user || user.role !== 'admin') return null;
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">

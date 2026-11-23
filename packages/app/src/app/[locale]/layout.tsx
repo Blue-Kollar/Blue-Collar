@@ -1,17 +1,17 @@
-import type { ReactNode } from "react";
-import { Suspense } from "react";
-import { CompareProvider } from "@/context/CompareContext";
-import { NotificationProvider } from "@/context/NotificationContext";
-import { ModalProvider } from "@/context/ModalContext";
-import { Providers } from "@/components/Providers";
-import { getMessages } from 'next-intl/server'
-import CompareDrawer from "@/components/CompareDrawer";
-import BottomNav from "@/components/BottomNav";
-import OnboardingTour from "@/components/OnboardingTour";
-import { HORIZON_URL } from "@/config/stellar";
-import WebVitalsReporter from "@/components/WebVitalsReporter";
-import OfflineBanner from "@/components/OfflineBanner";
-import InstallPrompt from "@/components/InstallPrompt";
+import type { ReactNode } from 'react';
+import { Suspense } from 'react';
+import { CompareProvider } from '@/context/CompareContext';
+import { NotificationProvider } from '@/context/NotificationContext';
+import { ModalProvider } from '@/context/ModalContext';
+import { Providers } from '@/components/Providers';
+import { getMessages } from 'next-intl/server';
+import CompareDrawer from '@/components/CompareDrawer';
+import BottomNav from '@/components/BottomNav';
+import OnboardingTour from '@/components/OnboardingTour';
+import { HORIZON_URL } from '@/config/stellar';
+import WebVitalsReporter from '@/components/WebVitalsReporter';
+import OfflineBanner from '@/components/OfflineBanner';
+import InstallPrompt from '@/components/InstallPrompt';
 
 // ── Deferred (non-critical) component wrappers to reduce CLS ─────────────────
 function DeferredNonCritical() {
@@ -26,21 +26,24 @@ function DeferredNonCritical() {
   );
 }
 
-export default async function LocaleLayout({ 
-  children, 
-  params: { locale } 
-}: { 
-  children: ReactNode
-  params: { locale: string } 
+export default async function LocaleLayout({
+  children,
+  params: { locale },
+}: {
+  children: ReactNode;
+  params: { locale: string };
 }) {
-  const messages = await getMessages()
+  const messages = await getMessages();
 
   return (
     <html lang={locale} suppressHydrationWarning>
       <body>
         {/* ═══ Resource hints for Core Web Vitals ═══ */}
-        <link rel="preconnect" href={process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000"} />
-        <link rel="dns-prefetch" href={process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000"} />
+        <link rel="preconnect" href={process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000'} />
+        <link
+          rel="dns-prefetch"
+          href={process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000'}
+        />
         <link rel="preconnect" href={HORIZON_URL} />
         <link rel="dns-prefetch" href={HORIZON_URL} />
         <link rel="preconnect" href="https://unpkg.com" />

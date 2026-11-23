@@ -7,20 +7,20 @@ on:
   push:
     branches: [main]
     paths:
-      - "packages/types/**"
-      - "packages/api/src/**"
-      - "packages/app/src/**"
-      - ".github/workflows/type-check.yml"
+      - 'packages/types/**'
+      - 'packages/api/src/**'
+      - 'packages/app/src/**'
+      - '.github/workflows/type-check.yml'
   pull_request:
     paths:
-      - "packages/types/**"
-      - "packages/api/src/**"
-      - "packages/app/src/**"
-      - ".github/workflows/type-check.yml"
+      - 'packages/types/**'
+      - 'packages/api/src/**'
+      - 'packages/app/src/**'
+      - '.github/workflows/type-check.yml'
   workflow_dispatch:
 
 env:
-  CI: "true"
+  CI: 'true'
 
 jobs:
   type-check:

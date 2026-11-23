@@ -3,7 +3,7 @@ name: bluecollar
 description: BlueCollar - Find Skilled Workers Near You
 type: application
 version: 1.0.0
-appVersion: "1.0.0"
+appVersion: '1.0.0'
 keywords:
   - bluecollar
   - workers

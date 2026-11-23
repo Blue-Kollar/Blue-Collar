@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useWallet } from "@/context/WalletContext";
+import { useWallet } from '@/context/WalletContext';
 
 /**
  * Single entry point for Freighter signing inside the payments feature.

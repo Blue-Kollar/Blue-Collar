@@ -25,12 +25,12 @@ Design specification for the review submission and display system. Covers the ra
 
 ## Design Goals
 
-| Goal | Approach |
-|---|---|
-| **Trust** | Verified-transaction reviews are visually distinct and prioritised. |
-| **Abuse resistance** | One review per user per worker. Edit window of 48h. Report affordances on every review. |
-| **Signal quality** | "Helpful" voting surfaces the most useful reviews. Verified reviews are weighted higher in the average. |
-| **Accessibility** | Star input is keyboard-navigable (arrow keys). All interactive elements have ARIA labels. |
+| Goal                 | Approach                                                                                                |
+| -------------------- | ------------------------------------------------------------------------------------------------------- |
+| **Trust**            | Verified-transaction reviews are visually distinct and prioritised.                                     |
+| **Abuse resistance** | One review per user per worker. Edit window of 48h. Report affordances on every review.                 |
+| **Signal quality**   | "Helpful" voting surfaces the most useful reviews. Verified reviews are weighted higher in the average. |
+| **Accessibility**    | Star input is keyboard-navigable (arrow keys). All interactive elements have ARIA labels.               |
 
 ---
 
@@ -82,12 +82,12 @@ Label:
 
 ### Interactive States
 
-| State | Behaviour |
-|---|---|
-| **Idle** | All stars empty (gray-300) |
-| **Hover** | Stars 1 through hovered index fill with yellow-300 (preview) |
-| **Selected** | Stars 1 through selected index fill with yellow-400 |
-| **Disabled** | opacity-50, cursor-not-allowed |
+| State                   | Behaviour                                                       |
+| ----------------------- | --------------------------------------------------------------- |
+| **Idle**                | All stars empty (gray-300)                                      |
+| **Hover**               | Stars 1 through hovered index fill with yellow-300 (preview)    |
+| **Selected**            | Stars 1 through selected index fill with yellow-400             |
+| **Disabled**            | opacity-50, cursor-not-allowed                                  |
 | **Required validation** | Red ring around the star group + "Please select a rating" error |
 
 ---
@@ -167,22 +167,22 @@ Info banner:
 
 ### Validation Rules
 
-| Field | Rule | Error message |
-|---|---|---|
-| Rating | Required, 1-5 | "Please select a rating" |
-| Review text | Required, min 10 chars, max 1000 chars | "Review must be at least 10 characters" / "Review must be under 1000 characters" |
-| One per worker | Server-enforced | "You've already reviewed this worker" |
+| Field          | Rule                                   | Error message                                                                    |
+| -------------- | -------------------------------------- | -------------------------------------------------------------------------------- |
+| Rating         | Required, 1-5                          | "Please select a rating"                                                         |
+| Review text    | Required, min 10 chars, max 1000 chars | "Review must be at least 10 characters" / "Review must be under 1000 characters" |
+| One per worker | Server-enforced                        | "You've already reviewed this worker"                                            |
 
 ### Submission States
 
-| State | UI |
-|---|---|
-| **Idle** | Normal form |
-| **Submitting** | Button shows spinner + "Submitting...". Fields disabled. |
-| **Success** | Toast: "Review submitted successfully". Composer collapses. New review appears at top of list. |
-| **Already reviewed** | Composer replaced with: "You've already reviewed this worker. [Edit your review →]" |
-| **Not logged in** | Composer replaced with: "Log in to leave a review. [Log in →]" |
-| **Error** | Toast: "Failed to submit review. Please try again." Fields remain filled. |
+| State                | UI                                                                                             |
+| -------------------- | ---------------------------------------------------------------------------------------------- |
+| **Idle**             | Normal form                                                                                    |
+| **Submitting**       | Button shows spinner + "Submitting...". Fields disabled.                                       |
+| **Success**          | Toast: "Review submitted successfully". Composer collapses. New review appears at top of list. |
+| **Already reviewed** | Composer replaced with: "You've already reviewed this worker. [Edit your review →]"            |
+| **Not logged in**    | Composer replaced with: "Log in to leave a review. [Log in →]"                                 |
+| **Error**            | Toast: "Failed to submit review. Please try again." Fields remain filled.                      |
 
 ---
 
@@ -309,9 +309,9 @@ Footer:
 
 ## Sorting & Filtering
 
-| Control | Type | Options |
-|---|---|---|
-| **Sort** | Dropdown | Most Recent (default), Highest Rated, Lowest Rated, Most Helpful |
+| Control    | Type     | Options                                                                          |
+| ---------- | -------- | -------------------------------------------------------------------------------- |
+| **Sort**   | Dropdown | Most Recent (default), Highest Rated, Lowest Rated, Most Helpful                 |
 | **Filter** | Dropdown | All Reviews (default), Verified Only, 5 Stars, 4 Stars, 3 Stars, 2 Stars, 1 Star |
 
 **Dropdown spec:**
@@ -342,20 +342,20 @@ Dropdown menu:
 
 ### Behaviour
 
-| Rule | Detail |
-|---|---|
-| One vote per user per review | Toggle behaviour: click again to remove vote |
-| Login required | If not logged in, clicking shows: "Log in to vote" toast |
-| Own review | Cannot vote on your own review. Button hidden on own reviews. |
-| Optimistic update | Count updates immediately. Reverted on failure. |
+| Rule                         | Detail                                                        |
+| ---------------------------- | ------------------------------------------------------------- |
+| One vote per user per review | Toggle behaviour: click again to remove vote                  |
+| Login required               | If not logged in, clicking shows: "Log in to vote" toast      |
+| Own review                   | Cannot vote on your own review. Button hidden on own reviews. |
+| Optimistic update            | Count updates immediately. Reverted on failure.               |
 
 ### States
 
-| State | Visual |
-|---|---|
-| **Not voted** | `text-gray-400` — "Helpful (12)" |
-| **Voted** | `text-blue-600 font-medium` — "Helpful (13)" with filled thumb |
-| **Hover** | `text-blue-500` on the button |
+| State         | Visual                                                         |
+| ------------- | -------------------------------------------------------------- |
+| **Not voted** | `text-gray-400` — "Helpful (12)"                               |
+| **Voted**     | `text-blue-600 font-medium` — "Helpful (13)" with filled thumb |
+| **Hover**     | `text-blue-500` on the button                                  |
 
 ---
 
@@ -388,12 +388,12 @@ Badge:
 
 ### Verified vs. Unverified Treatment
 
-| Aspect | Verified | Unverified |
-|---|---|---|
-| Badge | Green "Verified Transaction" badge | No badge |
-| Sort weight | Higher in "Most Helpful" | Normal |
-| Average rating weight | 1.5x weight | 1x weight |
-| Visual prominence | Slightly larger avatar, green-50 left border | Standard card |
+| Aspect                | Verified                                     | Unverified    |
+| --------------------- | -------------------------------------------- | ------------- |
+| Badge                 | Green "Verified Transaction" badge           | No badge      |
+| Sort weight           | Higher in "Most Helpful"                     | Normal        |
+| Average rating weight | 1.5x weight                                  | 1x weight     |
+| Visual prominence     | Slightly larger avatar, green-50 left border | Standard card |
 
 **Verified card accent:**
 
@@ -456,23 +456,23 @@ Submit button:
 
 From the admin dashboard, moderators can:
 
-| Action | Effect |
-|---|---|
-| **Hide review** | Review hidden from public view. Author sees "Review under moderation". |
-| **Remove review** | Review permanently deleted. Author notified. |
-| **Dismiss report** | Report closed, review remains visible. |
-| **Ban reviewer** | All reviews from user hidden. Account banned. |
+| Action             | Effect                                                                 |
+| ------------------ | ---------------------------------------------------------------------- |
+| **Hide review**    | Review hidden from public view. Author sees "Review under moderation". |
+| **Remove review**  | Review permanently deleted. Author notified.                           |
+| **Dismiss report** | Report closed, review remains visible.                                 |
+| **Ban reviewer**   | All reviews from user hidden. Account banned.                          |
 
 ### Anti-Abuse Rules
 
-| Rule | Enforcement |
-|---|---|
-| One review per user per worker | Server-enforced unique constraint |
-| Edit window | 48 hours after submission. After that, review is locked. |
-| Minimum character count | 10 characters minimum |
-| Rate limiting | Max 5 reviews per user per day |
-| Profanity filter | Server-side check; flagged reviews go to moderation queue |
-| Self-review prevention | Cannot review a worker listing you curated |
+| Rule                           | Enforcement                                               |
+| ------------------------------ | --------------------------------------------------------- |
+| One review per user per worker | Server-enforced unique constraint                         |
+| Edit window                    | 48 hours after submission. After that, review is locked.  |
+| Minimum character count        | 10 characters minimum                                     |
+| Rate limiting                  | Max 5 reviews per user per day                            |
+| Profanity filter               | Server-side check; flagged reviews go to moderation queue |
+| Self-review prevention         | Cannot review a worker listing you curated                |
 
 ---
 

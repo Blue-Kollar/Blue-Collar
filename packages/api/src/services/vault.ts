@@ -1,6 +1,6 @@
 import NodeVault from 'node-vault';
-import { logger } from '@/config/logger.js'
-import { config } from '@/config/config.js'
+import { logger } from '@/config/logger.js';
+import { config } from '@/config/config.js';
 
 // All Vault connection settings come from the centralized, boot-validated config.
 const vault = NodeVault({
@@ -32,7 +32,7 @@ export async function getSecret(path: string): Promise<Record<string, string>> {
     const secret = await vault.read(`kv/data/bluecollar/${path}`);
     return parseSecretPayload(secret?.data?.data);
   } catch (error) {
-    logger.error({ err: error, path }, 'Failed to retrieve secret')
+    logger.error({ err: error, path }, 'Failed to retrieve secret');
     throw error;
   }
 }
@@ -41,7 +41,7 @@ export async function setSecret(path: string, data: Record<string, string>): Pro
   try {
     await vault.write(`kv/data/bluecollar/${path}`, { data });
   } catch (error) {
-    logger.error({ err: error, path }, 'Failed to set secret')
+    logger.error({ err: error, path }, 'Failed to set secret');
     throw error;
   }
 }
@@ -49,9 +49,9 @@ export async function setSecret(path: string, data: Record<string, string>): Pro
 export async function rotateSecret(path: string, newData: Record<string, string>): Promise<void> {
   try {
     await setSecret(path, newData);
-    logger.info({ path }, 'Secret rotated')
+    logger.info({ path }, 'Secret rotated');
   } catch (error) {
-    logger.error({ err: error, path }, 'Failed to rotate secret')
+    logger.error({ err: error, path }, 'Failed to rotate secret');
     throw error;
   }
 }
@@ -59,9 +59,9 @@ export async function rotateSecret(path: string, newData: Record<string, string>
 export async function deleteSecret(path: string): Promise<void> {
   try {
     await vault.delete(`kv/data/bluecollar/${path}`);
-    logger.info({ path }, 'Secret deleted')
+    logger.info({ path }, 'Secret deleted');
   } catch (error) {
-    logger.error({ err: error, path }, 'Failed to delete secret')
+    logger.error({ err: error, path }, 'Failed to delete secret');
     throw error;
   }
 }
@@ -71,7 +71,7 @@ export async function listSecrets(path: string): Promise<string[]> {
     const result = await vault.list(`kv/metadata/bluecollar/${path}`);
     return result.data.keys;
   } catch (error) {
-    logger.error({ err: error, path }, 'Failed to list secrets')
+    logger.error({ err: error, path }, 'Failed to list secrets');
     throw error;
   }
 }

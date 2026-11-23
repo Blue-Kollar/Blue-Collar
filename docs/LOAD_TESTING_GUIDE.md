@@ -33,11 +33,11 @@ docker run -i grafana/k6 run - < script.js
 
 The following k6 scripts are maintained under `packages/api/load/`:
 
-| Script | Purpose | Endpoints |
-|--------|---------|-----------|
-| `search.js` | Search & discovery (read-heavy) | `GET /api/workers`, `GET /api/workers/:id`, `GET /api/categories`, `GET /api/workers?category=...` |
-| `auth.js` | Authentication flows | `POST /api/auth/login` |
-| `workers.js` | Worker CRUD (curator-gated writes) | `POST /api/workers`, update via method-override, `DELETE /api/workers/:id` |
+| Script       | Purpose                            | Endpoints                                                                                          |
+| ------------ | ---------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `search.js`  | Search & discovery (read-heavy)    | `GET /api/workers`, `GET /api/workers/:id`, `GET /api/categories`, `GET /api/workers?category=...` |
+| `auth.js`    | Authentication flows               | `POST /api/auth/login`                                                                             |
+| `workers.js` | Worker CRUD (curator-gated writes) | `POST /api/workers`, update via method-override, `DELETE /api/workers/:id`                         |
 
 ## 2. Load Testing Scenarios
 
@@ -52,6 +52,7 @@ k6 run --env SCENARIO=load packages/api/load/search.js
 **Available scenarios**: `smoke` (1 VU, 1 min), `load` (0→100 VUs), `stress` (0→300 VUs), `soak` (50 VUs, 30 min)
 
 **SLOs**:
+
 - `p(95) < 500ms` for worker list
 - `p(95) < 300ms` for categories
 - `p(95) < 400ms` for single worker
@@ -68,6 +69,7 @@ k6 run --env BASE_URL=https://staging.bluecollar.app/api packages/api/load/auth.
 ```
 
 **SLOs**:
+
 - `p(95) < 800ms` for login
 - `error rate < 5%`
 
@@ -80,6 +82,7 @@ k6 run --env AUTH_TOKEN=<jwt> packages/api/load/workers.js
 ```
 
 **SLOs**:
+
 - `p(95) < 1000ms` for writes
 - `p(99) < 2000ms` globally
 - `error rate < 5%`
@@ -137,6 +140,7 @@ docker run -i grafana/k6 run \
 ### 4.3 Performance Bottlenecks
 
 Common issues identified:
+
 - High response times (> 1000ms)
 - High error rates (> 5%)
 - Memory leaks under load
@@ -153,17 +157,18 @@ name: Load Testing
 on:
   pull_request:
     paths:
-      - "packages/api/load/**"
-      - "packages/api/src/**"
+      - 'packages/api/load/**'
+      - 'packages/api/src/**'
   schedule:
-    - cron: '0 2 * * *'  # Daily at 2 AM UTC
+    - cron: '0 2 * * *' # Daily at 2 AM UTC
   workflow_dispatch:
     inputs:
-      scenario:  # smoke | load | stress | soak
-      base_url:  # Custom API endpoint
+      scenario: # smoke | load | stress | soak
+      base_url: # Custom API endpoint
 ```
 
 **Jobs**:
+
 - **Smoke Test (PR Only)**: Fast (`smoke` profile) runs on every PR — validates thresholds
 - **Nightly Load Test**: Full suite (search + auth + workers) with configurable scenarios
 
@@ -175,8 +180,8 @@ name: Performance Testing
 on:
   pull_request:
     paths:
-      - "packages/api/load/**"
-      - "packages/api/src/**"
+      - 'packages/api/load/**'
+      - 'packages/api/src/**'
 ```
 
 **Job**: `performance` — runs on every PR with a shortened `load` profile (~5 min) to catch regressions early.
@@ -244,6 +249,7 @@ Based on load test results:
 `deploy/load-tests/payment-load-test.js`
 
 Tests three flows:
+
 - **Tip submission** — `POST /api/tips` with idempotency-key retry
 - **Escrow lifecycle** — `POST /api/escrow` → `POST /api/escrow/:id/release`
 - **Worker discovery** — `GET /api/workers` + `GET /api/workers/:id` (read-only warm-up)
@@ -270,26 +276,26 @@ k6 run --env SCENARIO=load \
 
 ### 8.3 Scenarios
 
-| `SCENARIO=` | VUs | Duration | Purpose |
-|---|---|---|---|
-| `smoke` | 1 | 1 min | Sanity check — fails if something is fundamentally broken |
-| `load` | 0 → 50 | ~14 min | **Baseline capture** — use this to set thresholds |
-| `stress` | 0 → 150 | ~15 min | Find the degradation point |
-| `soak` | 20 | 30 min | Detect memory leaks / connection-pool exhaustion |
+| `SCENARIO=` | VUs     | Duration | Purpose                                                   |
+| ----------- | ------- | -------- | --------------------------------------------------------- |
+| `smoke`     | 1       | 1 min    | Sanity check — fails if something is fundamentally broken |
+| `load`      | 0 → 50  | ~14 min  | **Baseline capture** — use this to set thresholds         |
+| `stress`    | 0 → 150 | ~15 min  | Find the degradation point                                |
+| `soak`      | 20      | 30 min   | Detect memory leaks / connection-pool exhaustion          |
 
 ### 8.4 SLO thresholds
 
 These are the acceptance criteria for the payment path. A CI run that exceeds
 any of these values should block the deploy.
 
-| Metric | p(95) threshold | p(99) threshold | Rationale |
-|---|---|---|---|
-| `tip_submit_duration` | < 1 500 ms | < 3 000 ms | Tip is user-initiated; > 1.5 s feels slow |
-| `escrow_create_duration` | < 1 500 ms | < 3 000 ms | Same UX reasoning as tip |
-| `escrow_release_duration` | < 2 000 ms | < 4 000 ms | Release involves a DB write + notification dispatch |
-| `http_req_duration` (all) | < 1 000 ms | < 2 500 ms | Catch regressions in discovery + auth endpoints |
-| `payment_error_rate` | — | — | < 5% of payment VU iterations |
-| `http_req_failed` | — | — | < 5% of all HTTP requests |
+| Metric                    | p(95) threshold | p(99) threshold | Rationale                                           |
+| ------------------------- | --------------- | --------------- | --------------------------------------------------- |
+| `tip_submit_duration`     | < 1 500 ms      | < 3 000 ms      | Tip is user-initiated; > 1.5 s feels slow           |
+| `escrow_create_duration`  | < 1 500 ms      | < 3 000 ms      | Same UX reasoning as tip                            |
+| `escrow_release_duration` | < 2 000 ms      | < 4 000 ms      | Release involves a DB write + notification dispatch |
+| `http_req_duration` (all) | < 1 000 ms      | < 2 500 ms      | Catch regressions in discovery + auth endpoints     |
+| `payment_error_rate`      | —               | —               | < 5% of payment VU iterations                       |
+| `http_req_failed`         | —               | —               | < 5% of all HTTP requests                           |
 
 > **Tightening thresholds after baseline capture:** once you have a real
 > `results/payment-baseline.json`, set each p(95) threshold to
@@ -301,12 +307,12 @@ any of these values should block the deploy.
 > These will be `null` until the first `load` scenario run completes.
 > Update this table by pasting the values from `results/payment-baseline.json`.
 
-| Metric | p(95) | p(99) | Captured at |
-|---|---|---|---|
-| `tip_submit_duration` | TBD | TBD | — |
-| `escrow_create_duration` | TBD | TBD | — |
-| `escrow_release_duration` | TBD | TBD | — |
-| `http_req_duration` (all) | TBD | TBD | — |
+| Metric                    | p(95) | p(99) | Captured at |
+| ------------------------- | ----- | ----- | ----------- |
+| `tip_submit_duration`     | TBD   | TBD   | —           |
+| `escrow_create_duration`  | TBD   | TBD   | —           |
+| `escrow_release_duration` | TBD   | TBD   | —           |
+| `http_req_duration` (all) | TBD   | TBD   | —           |
 
 ### 8.6 CI integration
 

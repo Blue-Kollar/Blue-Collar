@@ -59,12 +59,12 @@ entropy     = 3.5
 
 ### Pattern explanation
 
-| Regex component | Meaning |
-|---|---|
-| `(?:^|[^A-Z2-7])` | Word-boundary prefix — ensures `S` is not preceded by another base-32 character (prevents substring matches inside longer tokens) |
-| `S` | The mandatory `S` prefix of every Stellar secret seed |
+| Regex component  | Meaning                                                                    |
+| ---------------- | -------------------------------------------------------------------------- |
+| `(?:^            | [^A-Z2-7])`                                                                | Word-boundary prefix — ensures `S` is not preceded by another base-32 character (prevents substring matches inside longer tokens) |
+| `S`              | The mandatory `S` prefix of every Stellar secret seed                      |
 | `([A-Z2-7]{55})` | Exactly 55 base-32 characters (the payload portion of the StrKey encoding) |
-| `(?:[^A-Z2-7]|$)` | Word-boundary suffix — ensures the key ends cleanly and is not part of a longer base-32 sequence |
+| `(?:[^A-Z2-7]    | $)`                                                                        | Word-boundary suffix — ensures the key ends cleanly and is not part of a longer base-32 sequence                                  |
 
 ### Entropy threshold
 
@@ -84,6 +84,7 @@ SDUMMYSEEDABCDEFGHIJKLMNOPQRSTUVWXYZ234567ABCDEFGHIJKLMNO
 ```
 
 This string:
+
 - Starts with `S`
 - Has exactly 55 base-32 characters following `S`
 - Is **not** present in the repo

@@ -54,23 +54,23 @@ export type {
   PaymentServiceDeps,
   IMailer,
   IDbClient,
-} from './types.js'
+} from './types.js';
 
-export { createCategoryService } from '@/services/category.service.js'
-export { createUserService } from '@/services/user.service.js'
-export { createAuthService } from '@/services/auth.service.js'
-export { createJobService } from '@/services/job.service.js'
-export { createBookingService } from '@/services/booking.service.js'
-export { createDisputeService } from '@/services/dispute.service.js'
-export { createReviewService } from '@/services/review.service.js'
-export { createMessagingService } from '@/services/messaging.service.js'
-export { createNotificationService } from '@/services/notification.service.js'
-export { createEscrowService } from '@/services/escrow.service.js'
-export { createWalletService } from '@/services/wallet.service.js'
-export { createBookmarkService } from '@/services/bookmark.service.js'
-export { createInsuranceService } from '@/services/insurance.service.js'
-export { createReferralService } from '@/services/referral.service.js'
-export { createVerificationService } from '@/services/verification.service.js'
-export { createContactRequestService } from '@/services/contact-request.service.js'
-export { createAvailabilityService } from '@/services/availability.service.js'
-export { createPaymentService } from '@/services/payment.service.js'
+export { createCategoryService } from '@/services/category.service.js';
+export { createUserService } from '@/services/user.service.js';
+export { createAuthService } from '@/services/auth.service.js';
+export { createJobService } from '@/services/job.service.js';
+export { createBookingService } from '@/services/booking.service.js';
+export { createDisputeService } from '@/services/dispute.service.js';
+export { createReviewService } from '@/services/review.service.js';
+export { createMessagingService } from '@/services/messaging.service.js';
+export { createNotificationService } from '@/services/notification.service.js';
+export { createEscrowService } from '@/services/escrow.service.js';
+export { createWalletService } from '@/services/wallet.service.js';
+export { createBookmarkService } from '@/services/bookmark.service.js';
+export { createInsuranceService } from '@/services/insurance.service.js';
+export { createReferralService } from '@/services/referral.service.js';
+export { createVerificationService } from '@/services/verification.service.js';
+export { createContactRequestService } from '@/services/contact-request.service.js';
+export { createAvailabilityService } from '@/services/availability.service.js';
+export { createPaymentService } from '@/services/payment.service.js';

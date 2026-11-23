@@ -1,7 +1,7 @@
-import pino from 'pino'
-import { config } from './config'
+import pino from 'pino';
+import { config } from './config';
 
-const isDev = config.nodeEnv !== 'production'
+const isDev = config.nodeEnv !== 'production';
 
 export const REDACT_PATHS = [
   'req.headers.authorization',
@@ -16,7 +16,7 @@ export const REDACT_PATHS = [
   '*.email',
   'phone',
   '*.phone',
-]
+];
 
 export const logger = pino({
   level: process.env.LOG_LEVEL ?? 'info',
@@ -31,4 +31,4 @@ export const logger = pino({
       options: { colorize: true, ignore: 'pid,hostname' },
     },
   }),
-})
+});

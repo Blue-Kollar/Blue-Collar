@@ -5,10 +5,12 @@ This document describes the comprehensive integration tests that serve as the de
 ## Overview
 
 The integration tests cover two primary workflows:
+
 1. **Happy Path Lifecycle** - Successful job completion with payment and reputation update
 2. **Dispute Path Lifecycle** - Job completion with dispute resolution and arbitration
 
 These tests exercise the full spectrum of contract interactions and serve as:
+
 - **Integration verification** - Ensuring all contracts work together correctly
 - **Workflow documentation** - Canonical reference for expected behavior
 - **Regression testing** - Preventing changes that break contract interactions
@@ -17,9 +19,11 @@ These tests exercise the full spectrum of contract interactions and serve as:
 ## Test Files
 
 ### `job_lifecycle_happy_path.rs`
+
 **Purpose**: Tests the complete successful job lifecycle from posting to completion.
 
 **Flow**:
+
 ```
 1. Worker Registration (Registry Contract)
    ├── Admin sets up curator roles
@@ -43,6 +47,7 @@ These tests exercise the full spectrum of contract interactions and serve as:
 ```
 
 **Key Validations**:
+
 - ✅ Worker registration and profile verification
 - ✅ Escrow creation and fund locking
 - ✅ Fee calculation and distribution (2.5% protocol fee)
@@ -51,9 +56,11 @@ These tests exercise the full spectrum of contract interactions and serve as:
 - ✅ End-to-end payment flow integrity
 
 ### `job_lifecycle_dispute_path.rs`
+
 **Purpose**: Tests the complete dispute resolution lifecycle including arbitration.
 
 **Flow**:
+
 ```
 1. Initial Setup (Multiple Contracts)
    ├── Worker registered in registry
@@ -87,6 +94,7 @@ These tests exercise the full spectrum of contract interactions and serve as:
 ```
 
 **Key Validations**:
+
 - ✅ Dispute filing with evidence submission
 - ✅ Multi-party evidence collection
 - ✅ Arbitrator decision process
@@ -98,21 +106,23 @@ These tests exercise the full spectrum of contract interactions and serve as:
 
 The integration tests validate interactions between:
 
-| Contract | Role | Functions Tested |
-|----------|------|------------------|
-| **Registry** | Worker Management | `register`, `add_curator`, `get_worker` |
-| **Market** | Payment Processing | `tip`, `initialize`, fee calculation |
-| **Escrow** | Fund Management | `create_escrow`, `cancel_escrow`, `get_escrow` |
-| **Dispute** | Conflict Resolution | `file_dispute`, `submit_evidence`, `decide`, `execute` |
-| **Reputation** | Rating System | `add_rating`, `get_worker_stats`, role management |
+| Contract       | Role                | Functions Tested                                       |
+| -------------- | ------------------- | ------------------------------------------------------ |
+| **Registry**   | Worker Management   | `register`, `add_curator`, `get_worker`                |
+| **Market**     | Payment Processing  | `tip`, `initialize`, fee calculation                   |
+| **Escrow**     | Fund Management     | `create_escrow`, `cancel_escrow`, `get_escrow`         |
+| **Dispute**    | Conflict Resolution | `file_dispute`, `submit_evidence`, `decide`, `execute` |
+| **Reputation** | Rating System       | `add_rating`, `get_worker_stats`, role management      |
 
 ## Test Scenarios Covered
 
 ### Happy Path Scenarios
+
 1. **Standard Job Completion** - Worker completes job, receives payment and positive rating
 2. **Escrow Expiry** - Client can cancel expired escrow and recover funds
 
 ### Dispute Path Scenarios
+
 1. **Client-Favored Resolution** - Client wins dispute with 70/30 split
 2. **Worker-Favored Resolution** - Worker vindicated with 90/10 split in their favor
 3. **Timeout Handling** - Disputes that remain unresolved (pending arbitration)
@@ -143,12 +153,14 @@ cargo test --package bluecollar-integration -- --nocapture
 ## Expected Outcomes
 
 ### Happy Path Results
+
 - Worker receives: 9,750 tokens (10,000 - 2.5% fee)
-- Protocol fee: 250 tokens 
+- Protocol fee: 250 tokens
 - Worker rating: 5/5 stars
 - All contract states consistent
 
 ### Dispute Path Results
+
 - Dispute resolution: 70% to client, 30% to worker (example)
 - Worker rating: 2/5 stars (due to dispute)
 - All dispute lifecycle states properly transitioned
@@ -157,12 +169,14 @@ cargo test --package bluecollar-integration -- --nocapture
 ## Development Notes
 
 ### Known Compilation Issues (To Fix)
+
 1. **Lifetime Annotations**: Setup functions need proper lifetime specifications
 2. **Parameter Types**: Some contract initialization parameters need reference types
 3. **Enum Variants**: Dispute outcome and status enums need correct variant names
 4. **Return Types**: Some initialization methods return `()` instead of `Result<(), Error>`
 
 ### Future Enhancements
+
 1. **Multi-milestone Jobs**: Tests for complex job structures
 2. **Batch Operations**: Multiple job processing scenarios
 3. **Edge Cases**: Network failures, invalid inputs, boundary conditions
@@ -172,6 +186,7 @@ cargo test --package bluecollar-integration -- --nocapture
 ## Integration with CI/CD
 
 These integration tests should be:
+
 - ✅ Run automatically on all contract changes
 - ✅ Required to pass before merging PRs
 - ✅ Executed on multiple Soroban versions
@@ -183,21 +198,22 @@ These integration tests should be:
 The integration tests in this directory serve as the **single source of truth** for BlueCollar contract interactions. They document expected behavior, validate cross-contract functionality, and ensure system reliability.
 
 Any changes to contract interfaces or business logic should be reflected in these tests first, following a test-driven development approach for critical protocol functionality.
+
 ## Shared Deployment Helpers
 
 Contract deployment lives in `tests/common/mod.rs`; flow files should call these
 helpers rather than registering and initialising contracts themselves:
 
-| Helper | Deploys |
-|---|---|
-| `deploy_token` / `mint` | Stellar asset contract, optionally minting to a holder |
-| `deploy_registry` | Registry with `curator_mgr` granted to the admin |
-| `deploy_market` | Market with fee and fee recipient |
-| `deploy_escrow` | Escrow |
-| `deploy_escrow_with_arbitrator` | Escrow plus the `arbitrator` role |
-| `deploy_dispute` | Dispute contract with `arbitrator` approved |
-| `deploy_insurance_pool` | Insurance pool with `claims_mgr` granted |
-| `deploy_reputation` | Reputation with `rep_mgr` granted |
-| `zero_hash` | 32 zero bytes |
+| Helper                          | Deploys                                                |
+| ------------------------------- | ------------------------------------------------------ |
+| `deploy_token` / `mint`         | Stellar asset contract, optionally minting to a holder |
+| `deploy_registry`               | Registry with `curator_mgr` granted to the admin       |
+| `deploy_market`                 | Market with fee and fee recipient                      |
+| `deploy_escrow`                 | Escrow                                                 |
+| `deploy_escrow_with_arbitrator` | Escrow plus the `arbitrator` role                      |
+| `deploy_dispute`                | Dispute contract with `arbitrator` approved            |
+| `deploy_insurance_pool`         | Insurance pool with `claims_mgr` granted               |
+| `deploy_reputation`             | Reputation with `rep_mgr` granted                      |
+| `zero_hash`                     | 32 zero bytes                                          |
 
 Run the crate with `cargo test -p bluecollar-integration`.

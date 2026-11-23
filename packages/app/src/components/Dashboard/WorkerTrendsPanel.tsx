@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import dynamic from "next/dynamic";
-import { X } from "lucide-react";
-import type { ViewTrend } from "@/types";
+import dynamic from 'next/dynamic';
+import { X } from 'lucide-react';
+import type { ViewTrend } from '@/types';
 
 const ViewTrendsChart = dynamic(
-  () => import("@/components/charts/CuratorCharts").then((m) => m.ViewTrendsChart),
+  () => import('@/components/charts/CuratorCharts').then((m) => m.ViewTrendsChart),
   {
     ssr: false,
     loading: () => <div className="h-[250px] rounded-lg bg-gray-50 animate-pulse" />,
-  }
+  },
 );
 
 interface WorkerTrendsPanelProps {
@@ -34,11 +34,7 @@ export function WorkerTrendsPanel({
           <X size={16} />
         </button>
       </div>
-      <ViewTrendsChart
-        trends={trends}
-        trendsLoading={trendsLoading}
-        workerName={workerName}
-      />
+      <ViewTrendsChart trends={trends} trendsLoading={trendsLoading} workerName={workerName} />
     </div>
   );
 }

@@ -34,11 +34,11 @@ function mockViewport(width: number) {
 }
 
 const VIEWPORTS = {
-  mobileSmall: 320,   // iPhone SE
-  mobileMedium: 375,  // iPhone 14
-  mobileLarge: 414,   // iPhone 14 Plus
-  tablet: 768,        // iPad
-  desktop: 1280,      // Desktop
+  mobileSmall: 320, // iPhone SE
+  mobileMedium: 375, // iPhone 14
+  mobileLarge: 414, // iPhone 14 Plus
+  tablet: 768, // iPad
+  desktop: 1280, // Desktop
 } as const;
 
 const baseWorker: Worker = {
@@ -53,7 +53,11 @@ const baseWorker: Worker = {
 // ── Mocks ─────────────────────────────────────────────────────────────────────
 
 vi.mock('next/link', () => ({
-  default: ({ href, children, ...props }: any) => <a href={href} {...props}>{children}</a>,
+  default: ({ href, children, ...props }: any) => (
+    <a href={href} {...props}>
+      {children}
+    </a>
+  ),
 }));
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn(), pathname: '/' }),
@@ -194,7 +198,7 @@ describe('Mobile Compatibility – Performance', () => {
         {workers.map((w) => (
           <WorkerCard key={w.id} worker={w} />
         ))}
-      </div>
+      </div>,
     );
     const duration = performance.now() - start;
 

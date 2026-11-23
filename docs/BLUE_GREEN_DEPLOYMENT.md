@@ -5,6 +5,7 @@ This guide covers implementing zero-downtime deployments using the blue-green de
 ## Overview
 
 Blue-green deployment maintains two identical production environments:
+
 - **Blue**: Current production environment
 - **Green**: New version being deployed
 
@@ -56,9 +57,9 @@ services:
       - DATABASE_URL=${DATABASE_URL}
       - PORT=3000
     ports:
-      - "3001:3000"
+      - '3001:3000'
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      test: ['CMD', 'curl', '-f', 'http://localhost:3000/health']
       interval: 10s
       timeout: 5s
       retries: 3
@@ -71,9 +72,9 @@ services:
     environment:
       - NEXT_PUBLIC_API_URL=http://api-blue:3000
     ports:
-      - "3011:3000"
+      - '3011:3000'
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      test: ['CMD', 'curl', '-f', 'http://localhost:3000/health']
       interval: 10s
       timeout: 5s
       retries: 3
@@ -89,9 +90,9 @@ services:
       - DATABASE_URL=${DATABASE_URL}
       - PORT=3000
     ports:
-      - "3002:3000"
+      - '3002:3000'
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      test: ['CMD', 'curl', '-f', 'http://localhost:3000/health']
       interval: 10s
       timeout: 5s
       retries: 3
@@ -106,9 +107,9 @@ services:
     environment:
       - NEXT_PUBLIC_API_URL=http://api-green:3000
     ports:
-      - "3012:3000"
+      - '3012:3000'
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      test: ['CMD', 'curl', '-f', 'http://localhost:3000/health']
       interval: 10s
       timeout: 5s
       retries: 3
@@ -122,8 +123,8 @@ services:
     image: nginx:alpine
     container_name: nginx-lb
     ports:
-      - "80:80"
-      - "443:443"
+      - '80:80'
+      - '443:443'
     volumes:
       - ./deploy/nginx/bluecollar.conf:/etc/nginx/conf.d/default.conf
       - ./deploy/nginx/ssl:/etc/nginx/ssl
@@ -333,7 +334,7 @@ if [ "$TARGET" = "green" ]; then
     echo "Routing traffic to green..."
     # Update load balancer to route to green
     docker exec nginx-lb nginx -s reload
-    
+
     # Update environment variable
     export ACTIVE_ENVIRONMENT=green
 else
@@ -404,28 +405,28 @@ SUCCESS_COUNT=0
 while true; do
     CURRENT_TIME=$(date +%s)
     ELAPSED=$((CURRENT_TIME - START_TIME))
-    
+
     if [ $ELAPSED -gt $DURATION ]; then
         break
     fi
-    
+
     # Check API health
     HEALTH=$(curl -s -o /dev/null -w "%{http_code}" $API_URL/health)
-    
+
     if [ "$HEALTH" = "200" ]; then
         SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
     else
         ERROR_COUNT=$((ERROR_COUNT + 1))
         echo "⚠️  Health check failed: $HEALTH"
     fi
-    
+
     # Check error rate
     if [ $ERROR_COUNT -gt 5 ]; then
         echo "❌ Too many errors detected, initiating rollback..."
         ./deploy/scripts/rollback.sh
         exit 1
     fi
-    
+
     sleep 5
 done
 
@@ -489,6 +490,7 @@ jobs:
 ### CloudWatch Metrics
 
 Monitor these key metrics:
+
 - API response time
 - Error rate (4xx, 5xx)
 - Request count
@@ -503,11 +505,11 @@ Alerts:
   - name: HighErrorRate
     condition: error_rate > 5%
     action: trigger_rollback
-  
+
   - name: HighLatency
     condition: p99_latency > 2000ms
     action: notify_team
-  
+
   - name: DatabaseConnectionPoolExhausted
     condition: db_connections > 90%
     action: trigger_rollback
@@ -518,6 +520,7 @@ Alerts:
 ### Automatic Rollback
 
 Triggered when:
+
 - Health checks fail
 - Error rate exceeds threshold
 - Performance degrades significantly

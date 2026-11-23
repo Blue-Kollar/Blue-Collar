@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { useAvailabilityCalendar } from "@/hooks/useAvailabilityCalendar";
-import CalendarHeader from "@/components/AvailabilityCalendar/CalendarHeader";
-import CalendarGrid from "@/components/AvailabilityCalendar/CalendarGrid";
-import CalendarLegend from "@/components/AvailabilityCalendar/CalendarLegend";
-import SlotEditor from "@/components/AvailabilityCalendar/SlotEditor";
-import SelectionSummary from "@/components/AvailabilityCalendar/SelectionSummary";
+import { useAvailabilityCalendar } from '@/hooks/useAvailabilityCalendar';
+import CalendarHeader from '@/components/AvailabilityCalendar/CalendarHeader';
+import CalendarGrid from '@/components/AvailabilityCalendar/CalendarGrid';
+import CalendarLegend from '@/components/AvailabilityCalendar/CalendarLegend';
+import SlotEditor from '@/components/AvailabilityCalendar/SlotEditor';
+import SelectionSummary from '@/components/AvailabilityCalendar/SelectionSummary';
 
 export interface Slot {
   dayOfWeek: number; // 0 = Sun … 6 = Sat

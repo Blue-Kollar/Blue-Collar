@@ -1,26 +1,26 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { X, Zap } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useState } from 'react';
+import { X, Zap } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface FriendbotBannerProps {
   walletAddress: string;
   xlmBalance: number;
 }
 
-import { IS_TESTNET } from "@/config/stellar";
-import { useFriendbotFunding } from "@/hooks/useFriendbotFunding";
+import { IS_TESTNET } from '@/config/stellar';
+import { useFriendbotFunding } from '@/hooks/useFriendbotFunding';
 
 export default function FriendbotBanner({ walletAddress, xlmBalance }: FriendbotBannerProps) {
-  const t = useTranslations("componentText");
+  const t = useTranslations('componentText');
   const [dismissed, setDismissed] = useState(false);
-  const [toast, setToast] = useState("");
+  const [toast, setToast] = useState('');
   const funding = useFriendbotFunding();
 
   const showToast = (message: string) => {
     setToast(message);
-    setTimeout(() => setToast(""), 4000);
+    setTimeout(() => setToast(''), 4000);
   };
 
   if (!IS_TESTNET || xlmBalance > 0) return null;
@@ -31,10 +31,10 @@ export default function FriendbotBanner({ walletAddress, xlmBalance }: Friendbot
     try {
       await funding.mutateAsync(walletAddress);
 
-      showToast(t("friendbotFunded"));
+      showToast(t('friendbotFunded'));
       setDismissed(true);
     } catch {
-      showToast(t("friendbotFundingFailed"));
+      showToast(t('friendbotFundingFailed'));
     }
   };
 
@@ -51,10 +51,8 @@ export default function FriendbotBanner({ walletAddress, xlmBalance }: Friendbot
               <Zap size={18} aria-hidden="true" />
             </div>
             <div>
-              <p className="font-semibold">{t("friendbotNoBalance")}</p>
-              <p className="text-yellow-700">
-                {t("friendbotDescription")}
-              </p>
+              <p className="font-semibold">{t('friendbotNoBalance')}</p>
+              <p className="text-yellow-700">{t('friendbotDescription')}</p>
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-2">
@@ -64,12 +62,12 @@ export default function FriendbotBanner({ walletAddress, xlmBalance }: Friendbot
               disabled={funding.isPending}
               className="rounded-lg bg-yellow-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-yellow-600 disabled:opacity-50"
             >
-              {funding.isPending ? t("friendbotFunding") : t("friendbotFundButton")}
+              {funding.isPending ? t('friendbotFunding') : t('friendbotFundButton')}
             </button>
             <button
               type="button"
               onClick={() => setDismissed(true)}
-              aria-label={t("dismissBanner")}
+              aria-label={t('dismissBanner')}
               className="rounded-md p-1 text-yellow-700 hover:bg-yellow-100"
             >
               <X size={16} aria-hidden="true" />

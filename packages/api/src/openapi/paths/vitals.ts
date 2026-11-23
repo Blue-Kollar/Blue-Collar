@@ -1,8 +1,10 @@
-import { z } from 'zod'
-import { registry } from '@/openapi/registry.js'
+import { z } from 'zod';
+import { registry } from '@/openapi/registry.js';
 
 registry.registerPath({
-  method: 'post', path: '/api/vitals', tags: ['System'],
+  method: 'post',
+  path: '/api/vitals',
+  tags: ['System'],
   summary: 'Report a Web Vitals measurement from the client (public, fire-and-forget)',
   request: {
     body: {
@@ -19,4 +21,4 @@ registry.registerPath({
     },
   },
   responses: { 204: { description: 'Accepted, no content' } },
-})
+});

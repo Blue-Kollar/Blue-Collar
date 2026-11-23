@@ -1,5 +1,5 @@
-import { MapPin, Mail, Phone } from "lucide-react";
-import type { Worker } from "@/types";
+import { MapPin, Mail, Phone } from 'lucide-react';
+import type { Worker } from '@/types';
 
 export function WorkerContactDetails({ worker }: { worker: Worker }) {
   if (!worker.location && !worker.email && !worker.phone) return null;

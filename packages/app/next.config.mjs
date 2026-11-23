@@ -1,6 +1,6 @@
-import createNextIntlPlugin from 'next-intl/plugin'
+import createNextIntlPlugin from 'next-intl/plugin';
 
-const withNextIntl = createNextIntlPlugin('./src/i18n.ts')
+const withNextIntl = createNextIntlPlugin('./src/i18n.ts');
 
 // Heavy libraries that should be split into their own chunks so they are not
 // bundled into the initial/main bundle. See issue #1791.
@@ -23,7 +23,7 @@ const HEAVY_LIB_CHUNKS = [
     priority: 10,
     enforce: true,
   },
-]
+];
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -67,7 +67,7 @@ const nextConfig = {
   ...(process.env.ANALYZE === 'true' && {
     webpack: (config, { isServer }) => {
       if (!isServer) {
-        config.resolve.fallback = { ...config.resolve.fallback, "sodium-native": false };
+        config.resolve.fallback = { ...config.resolve.fallback, 'sodium-native': false };
       }
       return config;
     },
@@ -75,7 +75,7 @@ const nextConfig = {
 
   webpack: (config, { isServer }) => {
     if (!isServer) {
-      config.resolve.fallback = { ...config.resolve.fallback, "sodium-native": false };
+      config.resolve.fallback = { ...config.resolve.fallback, 'sodium-native': false };
 
       // ── Split heavy libraries (Stellar SDK, crypto) into dedicated chunks ──
       // This keeps the initial bundle small and lets the Stellar SDK be
@@ -97,7 +97,7 @@ const nextConfig = {
                   enforce,
                   reuseExistingChunk: true,
                 },
-              ])
+              ]),
             ),
           },
         },
@@ -112,33 +112,33 @@ const nextConfig = {
       headers: [
         {
           key: 'Cache-Control',
-          value: 'public, max-age=0, must-revalidate'
+          value: 'public, max-age=0, must-revalidate',
         },
         {
           key: 'Service-Worker-Allowed',
-          value: '/'
-        }
-      ]
+          value: '/',
+        },
+      ],
     },
     {
       source: '/manifest.json',
       headers: [
         {
           key: 'Content-Type',
-          value: 'application/manifest+json'
-        }
-      ]
+          value: 'application/manifest+json',
+        },
+      ],
     },
     {
       source: '/offline.html',
       headers: [
         {
           key: 'Cache-Control',
-          value: 'public, max-age=0, must-revalidate'
-        }
-      ]
-    }
-  ]
+          value: 'public, max-age=0, must-revalidate',
+        },
+      ],
+    },
+  ],
 };
 
 export default withNextIntl(nextConfig);

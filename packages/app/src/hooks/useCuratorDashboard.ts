@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import { useState, useCallback, useEffect } from "react";
-import { useAuth } from "@/context/AuthContext";
-import { useWallet } from "@/hooks/useWallet";
-import type { CuratorAnalytics, ViewTrend } from "@/types";
-import type { DashboardWorker } from "@/components/Dashboard";
+import { useState, useCallback, useEffect } from 'react';
+import { useAuth } from '@/context/AuthContext';
+import { useWallet } from '@/hooks/useWallet';
+import type { CuratorAnalytics, ViewTrend } from '@/types';
+import type { DashboardWorker } from '@/components/Dashboard';
 
-import { HORIZON_URL, IS_TESTNET } from "@/config/stellar";
+import { HORIZON_URL, IS_TESTNET } from '@/config/stellar';
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/api";
+const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000/api';
 const HORIZON_TESTNET = HORIZON_URL;
 const IS_STELLAR_TESTNET = IS_TESTNET;
 
@@ -26,10 +26,10 @@ export function useCuratorDashboard() {
   const [analyticsLoading, setAnalyticsLoading] = useState(true);
 
   const [selectedWorkerTrends, setSelectedWorkerTrends] = useState<ViewTrend[] | null>(null);
-  const [selectedWorkerName, setSelectedWorkerName] = useState<string>("");
+  const [selectedWorkerName, setSelectedWorkerName] = useState<string>('');
   const [trendsLoading, setTrendsLoading] = useState(false);
 
-  const [activeTab, setActiveTab] = useState<"workers" | "analytics">("workers");
+  const [activeTab, setActiveTab] = useState<'workers' | 'analytics'>('workers');
   const [deleteTarget, setDeleteTarget] = useState<DashboardWorker | null>(null);
   const [deleting, setDeleting] = useState(false);
 
@@ -41,11 +41,11 @@ export function useCuratorDashboard() {
       const res = await fetch(`${API}/workers/mine`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (!res.ok) throw new Error("Failed to load workers");
+      if (!res.ok) throw new Error('Failed to load workers');
       const json = await res.json();
       setWorkers(json.data);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      setError(err instanceof Error ? err.message : 'Something went wrong');
     } finally {
       setLoading(false);
     }
@@ -58,7 +58,7 @@ export function useCuratorDashboard() {
       const res = await fetch(`${API}/analytics/curator`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (!res.ok) throw new Error("Failed to load analytics");
+      if (!res.ok) throw new Error('Failed to load analytics');
       const json = await res.json();
       setAnalytics(json.data);
     } catch {
@@ -68,24 +68,26 @@ export function useCuratorDashboard() {
     }
   }, [token]);
 
-  const fetchWorkerTrends = useCallback(async (workerId: string, workerName: string) => {
-    if (!token) return;
-    setTrendsLoading(true);
-    setSelectedWorkerName(workerName);
-    try {
-      const res = await fetch(
-        `${API}/workers/${workerId}/analytics/trends?days=30`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      if (!res.ok) throw new Error("Failed to load trends");
-      const json = await res.json();
-      setSelectedWorkerTrends(json.data);
-    } catch {
-      setSelectedWorkerTrends(null);
-    } finally {
-      setTrendsLoading(false);
-    }
-  }, [token]);
+  const fetchWorkerTrends = useCallback(
+    async (workerId: string, workerName: string) => {
+      if (!token) return;
+      setTrendsLoading(true);
+      setSelectedWorkerName(workerName);
+      try {
+        const res = await fetch(`${API}/workers/${workerId}/analytics/trends?days=30`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) throw new Error('Failed to load trends');
+        const json = await res.json();
+        setSelectedWorkerTrends(json.data);
+      } catch {
+        setSelectedWorkerTrends(null);
+      } finally {
+        setTrendsLoading(false);
+      }
+    },
+    [token],
+  );
 
   useEffect(() => {
     if (!authLoading && token) {
@@ -103,34 +105,37 @@ export function useCuratorDashboard() {
     fetch(`${HORIZON_TESTNET}/accounts/${publicKey}`)
       .then((res) => {
         if (res.status === 404) return null;
-        if (!res.ok) throw new Error("Failed to load wallet balance");
+        if (!res.ok) throw new Error('Failed to load wallet balance');
         return res.json();
       })
       .then((account) => {
         const nativeBalance = account?.balances?.find(
-          (b: { asset_type: string }) => b.asset_type === "native"
+          (b: { asset_type: string }) => b.asset_type === 'native',
         );
         setXlmBalance(nativeBalance ? Number(nativeBalance.balance) : 0);
       })
       .catch(() => setXlmBalance(null));
   }, [publicKey]);
 
-  const handleToggle = useCallback(async (worker: DashboardWorker) => {
-    setWorkers((prev) =>
-      prev.map((w) => (w.id === worker.id ? { ...w, isActive: !w.isActive } : w))
-    );
-    try {
-      const res = await fetch(`${API}/workers/${worker.id}/toggle`, {
-        method: "PATCH",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error("Toggle failed");
-    } catch {
+  const handleToggle = useCallback(
+    async (worker: DashboardWorker) => {
       setWorkers((prev) =>
-        prev.map((w) => (w.id === worker.id ? { ...w, isActive: worker.isActive } : w))
+        prev.map((w) => (w.id === worker.id ? { ...w, isActive: !w.isActive } : w)),
       );
-    }
-  }, [token]);
+      try {
+        const res = await fetch(`${API}/workers/${worker.id}/toggle`, {
+          method: 'PATCH',
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) throw new Error('Toggle failed');
+      } catch {
+        setWorkers((prev) =>
+          prev.map((w) => (w.id === worker.id ? { ...w, isActive: worker.isActive } : w)),
+        );
+      }
+    },
+    [token],
+  );
 
   const handleDelete = useCallback(async () => {
     if (!deleteTarget) return;
@@ -142,10 +147,10 @@ export function useCuratorDashboard() {
 
     try {
       const res = await fetch(`${API}/workers/${target.id}`, {
-        method: "DELETE",
+        method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (!res.ok) throw new Error("Delete failed");
+      if (!res.ok) throw new Error('Delete failed');
     } catch {
       setWorkers((prev) => [target, ...prev]);
     } finally {
@@ -155,9 +160,9 @@ export function useCuratorDashboard() {
 
   const handleExportCsv = useCallback(() => {
     if (!token) return;
-    const link = document.createElement("a");
+    const link = document.createElement('a');
     link.href = `${API}/analytics/export/curator`;
-    link.setAttribute("download", "worker-analytics.csv");
+    link.setAttribute('download', 'worker-analytics.csv');
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

@@ -5,9 +5,14 @@
  * This file only contains mobile-specific overrides on top of the shared set.
  */
 
-'use strict'
+'use strict';
 
-const { tsRules, baseRules, productionOnlyRules, filenameRules } = require('../../eslint-base-rules.js')
+const {
+  tsRules,
+  baseRules,
+  productionOnlyRules,
+  filenameRules,
+} = require('../../eslint-base-rules.js');
 
 /** @type {import('eslint').Linter.Config} */
 module.exports = {
@@ -19,10 +24,7 @@ module.exports = {
     ecmaFeatures: { jsx: true },
   },
   plugins: ['@typescript-eslint', 'unicorn'],
-  extends: [
-    'eslint:recommended',
-    'plugin:@typescript-eslint/recommended',
-  ],
+  extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended'],
   env: {
     browser: true,
     es2022: true,
@@ -35,11 +37,17 @@ module.exports = {
     ...filenameRules,
     // React Native uses console for debugging; relax for dev ergonomics.
     'no-console': ['warn', { allow: ['warn', 'error'] }],
+    '@typescript-eslint/no-unused-expressions': 'off',
   },
   overrides: [
     {
       // Test files — allow console freely and relax no-explicit-any.
-      files: ['**/__tests__/**/*.{ts,tsx}', '**/*.test.{ts,tsx}', 'jest.setup.ts', 'e2e/**/*.{ts,tsx}'],
+      files: [
+        '**/__tests__/**/*.{ts,tsx}',
+        '**/*.test.{ts,tsx}',
+        'jest.setup.ts',
+        'e2e/**/*.{ts,tsx}',
+      ],
       rules: {
         'no-console': 'off',
         '@typescript-eslint/no-explicit-any': 'warn',
@@ -47,4 +55,4 @@ module.exports = {
     },
   ],
   ignorePatterns: ['node_modules/', 'dist/', 'build/', '.expo/'],
-}
+};

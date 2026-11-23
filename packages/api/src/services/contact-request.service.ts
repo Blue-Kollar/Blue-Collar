@@ -1,62 +1,69 @@
-import { contactRequestRepository as defaultContactRequestRepository } from '@/repositories/contact-request.repository.js'
-import { AppError } from '@/utils/app-error.js'
-import { sanitizeText } from '@/utils/sanitize.js'
-import { sendContactRequestEmail } from '@/mailer/index.js'
-import { nowUtc, parseUtcDate, addUtcMs, formatUtcIso } from '@/utils/date.js'
-import type { ContactRequestServiceDeps } from '@/container/types.js'
+import { contactRequestRepository as defaultContactRequestRepository } from '@/repositories/contact-request.repository.js';
+import { AppError } from '@/utils/app-error.js';
+import { sanitizeText } from '@/utils/sanitize.js';
+import { sendContactRequestEmail } from '@/mailer/index.js';
+import { nowUtc, parseUtcDate, addUtcMs, formatUtcIso } from '@/utils/date.js';
+import type { ContactRequestServiceDeps } from '@/container/types.js';
 
 // ── Factory ───────────────────────────────────────────────────────────────────
 
 export function createContactRequestService(deps: ContactRequestServiceDeps) {
-  const { contactRequestRepository: repo } = deps
+  const { contactRequestRepository: repo } = deps;
 
   return {
     async createContactRequest(workerId: string, fromUserId: string, message: string) {
-      const worker = await repo.findWorkerWithCurator(workerId)
-      if (!worker) throw new AppError('Worker not found', 404)
+      const worker = await repo.findWorkerWithCurator(workerId);
+      if (!worker) throw new AppError('Worker not found', 404);
 
-      const sanitizedMessage = sanitizeText(message)
+      const sanitizedMessage = sanitizeText(message);
 
       const contactRequest = await repo.createContactRequest({
         workerId,
         fromUserId,
         message: sanitizedMessage,
         status: 'pending',
-      })
+      });
 
       // Send email to curator
-      await sendContactRequestEmail(worker.curator.email, worker.name, contactRequest.fromUser.firstName)
+      await sendContactRequestEmail(
+        worker.curator.email,
+        worker.name,
+        contactRequest.fromUser.firstName,
+      );
 
-      return contactRequest
+      return contactRequest;
     },
 
     async getContactRequests(workerId: string) {
-      return repo.findContactRequests(workerId)
+      return repo.findContactRequests(workerId);
     },
 
     async updateContactRequestStatus(requestId: string, status: 'accepted' | 'declined') {
-      const request = await repo.findContactRequestById(requestId)
-      if (!request) throw new AppError('Contact request not found', 404)
+      const request = await repo.findContactRequestById(requestId);
+      if (!request) throw new AppError('Contact request not found', 404);
 
-      return repo.updateContactRequestStatus(requestId, status)
+      return repo.updateContactRequestStatus(requestId, status);
     },
-  }
+  };
 }
 
 // ── Default service instance (backward-compatible module-level API) ───────────
 
 const _defaultService = createContactRequestService({
   contactRequestRepository: defaultContactRequestRepository,
-})
+});
 
 export async function createContactRequest(workerId: string, fromUserId: string, message: string) {
-  return _defaultService.createContactRequest(workerId, fromUserId, message)
+  return _defaultService.createContactRequest(workerId, fromUserId, message);
 }
 
 export async function getContactRequests(workerId: string) {
-  return _defaultService.getContactRequests(workerId)
+  return _defaultService.getContactRequests(workerId);
 }
 
-export async function updateContactRequestStatus(requestId: string, status: 'accepted' | 'declined') {
-  return _defaultService.updateContactRequestStatus(requestId, status)
+export async function updateContactRequestStatus(
+  requestId: string,
+  status: 'accepted' | 'declined',
+) {
+  return _defaultService.updateContactRequestStatus(requestId, status);
 }

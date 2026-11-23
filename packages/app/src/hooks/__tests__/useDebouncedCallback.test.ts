@@ -127,9 +127,7 @@ describe('useDebouncedCallback', () => {
 
   it('clears the pending timer on unmount', () => {
     const callback = jest.fn();
-    const { result, unmount } = renderHook(() =>
-      useDebouncedCallback(callback, 100),
-    );
+    const { result, unmount } = renderHook(() => useDebouncedCallback(callback, 100));
 
     act(() => {
       result.current('a');
@@ -144,9 +142,7 @@ describe('useDebouncedCallback', () => {
 
   it('keeps a stable identity across renders', () => {
     const callback = jest.fn();
-    const { result, rerender } = renderHook(() =>
-      useDebouncedCallback(callback, 100),
-    );
+    const { result, rerender } = renderHook(() => useDebouncedCallback(callback, 100));
     const first = result.current;
 
     rerender();

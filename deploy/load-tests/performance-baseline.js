@@ -5,14 +5,14 @@ export const options = {
   vus: 10,
   duration: '30s',
   thresholds: {
-    'http_req_duration': ['p(95)<500', 'p(99)<1000'],
-    'http_req_failed': ['rate<0.1'],
+    http_req_duration: ['p(95)<500', 'p(99)<1000'],
+    http_req_failed: ['rate<0.1'],
   },
 };
 
 export default function () {
   const baseUrl = 'http://localhost:3000';
-  
+
   // Test worker list endpoint
   const listRes = http.get(`${baseUrl}/api/workers`);
   check(listRes, {
@@ -41,9 +41,9 @@ export function handleSummary(data) {
     p99: data.metrics.http_req_duration.values['p(99)'],
     rps: data.metrics.http_reqs.value / 30,
   };
-  
+
   const fs = require('fs');
   fs.writeFileSync('perf-metrics.json', JSON.stringify(metrics));
-  
+
   return {};
 }

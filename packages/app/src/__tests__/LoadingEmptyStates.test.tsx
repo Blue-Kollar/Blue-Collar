@@ -9,13 +9,13 @@
  *
  * Closes #1203
  */
-import { screen } from "@testing-library/react";
-import { renderWithIntl as render } from "@/__tests__/renderWithIntl";
-import { describe, it, expect, vi } from "vitest";
+import { screen } from '@testing-library/react';
+import { renderWithIntl as render } from '@/__tests__/renderWithIntl';
+import { describe, it, expect, vi } from 'vitest';
 
 // ── Shared mocks ──────────────────────────────────────────────────────────────
 
-vi.mock("next/link", () => ({
+vi.mock('next/link', () => ({
   default: ({ href, children, ...props }: any) => (
     <a href={href} {...props}>
       {children}
@@ -23,11 +23,11 @@ vi.mock("next/link", () => ({
   ),
 }));
 
-vi.mock("next/image", () => ({
+vi.mock('next/image', () => ({
   default: ({ src, alt, ...props }: any) => <img src={src} alt={alt} {...props} />,
 }));
 
-vi.mock("lucide-react", () => ({
+vi.mock('lucide-react', () => ({
   Bookmark: (props: any) => <svg {...props} data-icon="bookmark" />,
   Star: (props: any) => <svg {...props} data-icon="star" />,
   MessageSquare: (props: any) => <svg {...props} data-icon="message-square" />,
@@ -44,7 +44,7 @@ vi.mock("lucide-react", () => ({
 
 // Skeleton stubs — just render a div with a data attribute so we can assert
 // presence without caring about internal markup.
-vi.mock("@/components/Skeleton", () => ({
+vi.mock('@/components/Skeleton', () => ({
   default: ({ className }: any) => <div data-testid="skeleton" className={className} />,
   WorkerCardSkeleton: () => <div data-testid="worker-card-skeleton" />,
   DashboardTableSkeleton: () => <div data-testid="dashboard-table-skeleton" />,
@@ -52,49 +52,49 @@ vi.mock("@/components/Skeleton", () => ({
 
 // ── SavedWorkers ──────────────────────────────────────────────────────────────
 
-import { SavedWorkers } from "@/components/Dashboard/SavedWorkers";
+import { SavedWorkers } from '@/components/Dashboard/SavedWorkers';
 
 const WORKER_STUB = {
-  id: "w1",
-  name: "Alice Smith",
+  id: 'w1',
+  name: 'Alice Smith',
   avatar: null,
-  category: { id: "c1", name: "Plumber" },
+  category: { id: 'c1', name: 'Plumber' },
   averageRating: 4.5,
-  location: "New York",
+  location: 'New York',
 };
 
-describe("SavedWorkers", () => {
-  it("renders skeleton placeholders while loading", () => {
+describe('SavedWorkers', () => {
+  it('renders skeleton placeholders while loading', () => {
     render(<SavedWorkers workers={[]} loading />);
-    expect(screen.getAllByTestId("worker-card-skeleton").length).toBeGreaterThan(0);
+    expect(screen.getAllByTestId('worker-card-skeleton').length).toBeGreaterThan(0);
   });
 
-  it("marks the container as busy while loading", () => {
+  it('marks the container as busy while loading', () => {
     const { container } = render(<SavedWorkers workers={[]} loading />);
     expect(container.querySelector("[aria-busy='true']")).not.toBeNull();
   });
 
-  it("renders the empty-state bookmark icon when not loading and list is empty", () => {
+  it('renders the empty-state bookmark icon when not loading and list is empty', () => {
     render(<SavedWorkers workers={[]} />);
     expect(screen.getByText(/no saved workers/i)).toBeInTheDocument();
   });
 
-  it("renders a browse workers link in the empty state", () => {
+  it('renders a browse workers link in the empty state', () => {
     render(<SavedWorkers workers={[]} />);
-    expect(screen.getByRole("link", { name: /browse workers/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /browse workers/i })).toBeInTheDocument();
   });
 
-  it("renders worker names when populated", () => {
+  it('renders worker names when populated', () => {
     render(<SavedWorkers workers={[WORKER_STUB]} />);
-    expect(screen.getByText("Alice Smith")).toBeInTheDocument();
+    expect(screen.getByText('Alice Smith')).toBeInTheDocument();
   });
 
-  it("does not render skeletons when not loading", () => {
+  it('does not render skeletons when not loading', () => {
     render(<SavedWorkers workers={[WORKER_STUB]} />);
-    expect(screen.queryByTestId("worker-card-skeleton")).toBeNull();
+    expect(screen.queryByTestId('worker-card-skeleton')).toBeNull();
   });
 
-  it("does not render the empty state when the list is populated", () => {
+  it('does not render the empty state when the list is populated', () => {
     render(<SavedWorkers workers={[WORKER_STUB]} />);
     expect(screen.queryByText(/no saved workers/i)).not.toBeInTheDocument();
   });
@@ -102,61 +102,59 @@ describe("SavedWorkers", () => {
 
 // ── MessagesPreview ───────────────────────────────────────────────────────────
 
-import { MessagesPreview } from "@/components/Dashboard/MessagesPreview";
+import { MessagesPreview } from '@/components/Dashboard/MessagesPreview';
 
 const CONV_STUB: any = {
-  id: "conv1",
-  subject: "Job inquiry",
+  id: 'conv1',
+  subject: 'Job inquiry',
   unreadCount: 1,
   participants: [
-    { userId: "u1", user: { firstName: "Bob", lastName: "Jones", avatar: null } },
-    { userId: "me", user: { firstName: "Me", lastName: "User", avatar: null } },
+    { userId: 'u1', user: { firstName: 'Bob', lastName: 'Jones', avatar: null } },
+    { userId: 'me', user: { firstName: 'Me', lastName: 'User', avatar: null } },
   ],
   messages: [
     {
-      id: "m1",
-      body: "Hello there",
-      senderId: "u1",
+      id: 'm1',
+      body: 'Hello there',
+      senderId: 'u1',
       createdAt: new Date().toISOString(),
     },
   ],
 };
 
-describe("MessagesPreview", () => {
-  it("renders skeleton rows while loading", () => {
+describe('MessagesPreview', () => {
+  it('renders skeleton rows while loading', () => {
     render(<MessagesPreview conversations={[]} currentUserId="me" loading />);
-    expect(screen.getAllByTestId("skeleton").length).toBeGreaterThan(0);
+    expect(screen.getAllByTestId('skeleton').length).toBeGreaterThan(0);
   });
 
-  it("marks the container as busy while loading", () => {
-    const { container } = render(
-      <MessagesPreview conversations={[]} currentUserId="me" loading />
-    );
+  it('marks the container as busy while loading', () => {
+    const { container } = render(<MessagesPreview conversations={[]} currentUserId="me" loading />);
     expect(container.querySelector("[aria-busy='true']")).not.toBeNull();
   });
 
-  it("renders the empty-state message when not loading and list is empty", () => {
+  it('renders the empty-state message when not loading and list is empty', () => {
     render(<MessagesPreview conversations={[]} currentUserId="me" />);
     expect(screen.getByText(/no messages yet/i)).toBeInTheDocument();
   });
 
-  it("does not render skeletons in the empty state", () => {
+  it('does not render skeletons in the empty state', () => {
     render(<MessagesPreview conversations={[]} currentUserId="me" />);
-    expect(screen.queryByTestId("skeleton")).toBeNull();
+    expect(screen.queryByTestId('skeleton')).toBeNull();
   });
 
-  it("renders conversation participants when populated", () => {
+  it('renders conversation participants when populated', () => {
     render(<MessagesPreview conversations={[CONV_STUB]} currentUserId="me" />);
     expect(screen.getByText(/Bob Jones/i)).toBeInTheDocument();
   });
 
-  it("renders the last message body when populated", () => {
+  it('renders the last message body when populated', () => {
     render(<MessagesPreview conversations={[CONV_STUB]} currentUserId="me" />);
-    expect(screen.getByText("Hello there")).toBeInTheDocument();
+    expect(screen.getByText('Hello there')).toBeInTheDocument();
   });
 
-  it("does not show skeletons when populated", () => {
+  it('does not show skeletons when populated', () => {
     render(<MessagesPreview conversations={[CONV_STUB]} currentUserId="me" />);
-    expect(screen.queryByTestId("skeleton")).toBeNull();
+    expect(screen.queryByTestId('skeleton')).toBeNull();
   });
 });

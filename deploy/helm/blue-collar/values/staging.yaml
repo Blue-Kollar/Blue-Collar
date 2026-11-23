@@ -5,11 +5,11 @@ api:
   replicas: 2
   resources:
     requests:
-      memory: "256Mi"
-      cpu: "250m"
+      memory: '256Mi'
+      cpu: '250m'
     limits:
-      memory: "512Mi"
-      cpu: "500m"
+      memory: '512Mi'
+      cpu: '500m'
   hpa:
     enabled: true
     minReplicas: 2
@@ -25,4 +25,4 @@ postgresql:
   primary:
     persistence:
       enabled: true
-      size: "10Gi"
+      size: '10Gi'

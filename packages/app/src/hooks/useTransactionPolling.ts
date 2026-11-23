@@ -7,7 +7,7 @@
  * Useful for refreshing Horizon payment lists without wiring up the
  * fetching and filtering concerns inside the same hook.
  */
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from 'react';
 
 export interface UseTransactionPollingOptions {
   /** Interval between polls in milliseconds. Defaults to 30 000 (30 s). */
@@ -42,7 +42,7 @@ export function useTransactionPolling(
     if (!enabled) return;
 
     const tick = () => {
-      if (document.visibilityState !== "hidden") {
+      if (document.visibilityState !== 'hidden') {
         stableCallback();
       }
     };
@@ -51,16 +51,16 @@ export function useTransactionPolling(
 
     const handleVisibility = () => {
       // Resume immediately when the tab becomes visible again.
-      if (document.visibilityState === "visible") {
+      if (document.visibilityState === 'visible') {
         stableCallback();
       }
     };
 
-    document.addEventListener("visibilitychange", handleVisibility);
+    document.addEventListener('visibilitychange', handleVisibility);
 
     return () => {
       clearInterval(id);
-      document.removeEventListener("visibilitychange", handleVisibility);
+      document.removeEventListener('visibilitychange', handleVisibility);
     };
   }, [enabled, intervalMs, stableCallback]);
 }

@@ -1,5 +1,5 @@
-import type { Meta, StoryObj } from '@storybook/react'
-import { Badge } from '@/components/ui/badge'
+import type { Meta, StoryObj } from '@storybook/react';
+import { Badge } from '@/components/ui/badge';
 
 const meta: Meta<typeof Badge> = {
   title: 'Design System/Badge',
@@ -11,12 +11,12 @@ const meta: Meta<typeof Badge> = {
       options: ['default', 'secondary', 'destructive', 'outline'],
     },
   },
-}
-export default meta
+};
+export default meta;
 
-type Story = StoryObj<typeof Badge>
+type Story = StoryObj<typeof Badge>;
 
-export const Default: Story = { args: { children: 'Plumber' } }
-export const Secondary: Story = { args: { variant: 'secondary', children: 'Curator' } }
-export const Destructive: Story = { args: { variant: 'destructive', children: 'Inactive' } }
-export const Outline: Story = { args: { variant: 'outline', children: 'Verified' } }
+export const Default: Story = { args: { children: 'Plumber' } };
+export const Secondary: Story = { args: { variant: 'secondary', children: 'Curator' } };
+export const Destructive: Story = { args: { variant: 'destructive', children: 'Inactive' } };
+export const Outline: Story = { args: { variant: 'outline', children: 'Verified' } };

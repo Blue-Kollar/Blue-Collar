@@ -1,22 +1,22 @@
-import { messagingRepository as defaultMessagingRepository } from '@/repositories/messaging.repository.js'
-import { AppError, ErrorCode } from '@/utils/app-error.js'
-import { parseUtcDate } from '@/utils/date.js'
-import { sanitizeText } from '@/utils/sanitize.js'
-import type { MessagingServiceDeps } from '@/container/types.js'
+import { messagingRepository as defaultMessagingRepository } from '@/repositories/messaging.repository.js';
+import { AppError, ErrorCode } from '@/utils/app-error.js';
+import { parseUtcDate } from '@/utils/date.js';
+import { sanitizeText } from '@/utils/sanitize.js';
+import type { MessagingServiceDeps } from '@/container/types.js';
 
 // ── Factory ───────────────────────────────────────────────────────────────────
 
 export function createMessagingService(deps: MessagingServiceDeps) {
-  const { messagingRepository: repo } = deps
+  const { messagingRepository: repo } = deps;
 
   return {
     async createConversation(participantIds: string[], subject?: string) {
       return repo.createConversation({
         subject: subject === undefined ? undefined : sanitizeText(subject),
         participants: {
-          create: participantIds.map(id => ({ userId: id })),
+          create: participantIds.map((id) => ({ userId: id })),
         },
-      })
+      });
     },
 
     async getConversation(conversationId: string, userId: string) {
@@ -25,13 +25,14 @@ export function createMessagingService(deps: MessagingServiceDeps) {
           participants: { select: { userId: true, lastReadAt: true } },
           messages: { orderBy: { createdAt: 'desc' }, take: 1 },
         },
-      })
-      if (!conversation) throw new AppError('Conversation not found', 404, true, ErrorCode.NOT_FOUND)
-      return conversation
+      });
+      if (!conversation)
+        throw new AppError('Conversation not found', 404, true, ErrorCode.NOT_FOUND);
+      return conversation;
     },
 
     async getUserConversations(userId: string, page = 1, limit = 20) {
-      const skip = (page - 1) * limit
+      const skip = (page - 1) * limit;
       const { data, total } = await repo.findUserConversations(userId, {
         skip,
         take: limit,
@@ -39,30 +40,32 @@ export function createMessagingService(deps: MessagingServiceDeps) {
           participants: { select: { userId: true, lastReadAt: true } },
           messages: { orderBy: { createdAt: 'desc' }, take: 1 },
         },
-      })
+      });
       return {
         data,
         meta: { total, page, limit, pages: Math.ceil(total / limit) },
-      }
+      };
     },
 
     async searchMessages(conversationId: string, query: string, userId: string) {
-      const conversation = await repo.findConversation(conversationId, userId)
-      if (!conversation) throw new AppError('Conversation not found', 404, true, ErrorCode.NOT_FOUND)
+      const conversation = await repo.findConversation(conversationId, userId);
+      if (!conversation)
+        throw new AppError('Conversation not found', 404, true, ErrorCode.NOT_FOUND);
 
-      return repo.searchMessages(conversationId, sanitizeText(query))
+      return repo.searchMessages(conversationId, sanitizeText(query));
     },
 
     async deleteMessage(messageId: string, userId: string) {
-      const message = await repo.findMessage(messageId)
-      if (!message) throw new AppError('Message not found', 404, true, ErrorCode.NOT_FOUND)
-      if (message.senderId !== userId) throw new AppError('Unauthorized', 403, true, ErrorCode.FORBIDDEN)
+      const message = await repo.findMessage(messageId);
+      if (!message) throw new AppError('Message not found', 404, true, ErrorCode.NOT_FOUND);
+      if (message.senderId !== userId)
+        throw new AppError('Unauthorized', 403, true, ErrorCode.FORBIDDEN);
 
-      return repo.updateMessage(messageId, { body: '[deleted]' })
+      return repo.updateMessage(messageId, { body: '[deleted]' });
     },
 
     async markConversationAsRead(conversationId: string, userId: string) {
-      return repo.updateParticipantReadAt(conversationId, userId)
+      return repo.updateParticipantReadAt(conversationId, userId);
     },
 
     async getUnreadCount(userId: string) {
@@ -76,48 +79,50 @@ export function createMessagingService(deps: MessagingServiceDeps) {
           },
           messages: { select: { createdAt: true } },
         },
-      })
+      });
 
       return conversations.reduce((count: number, conv) => {
-        const lastReadAt = conv.participants[0]?.lastReadAt
-        if (!lastReadAt) return count + conv.messages.length
-        const lastReadAtDate = parseUtcDate(lastReadAt)
-        return count + conv.messages.filter((m) => parseUtcDate(m.createdAt) > lastReadAtDate).length
-      }, 0)
+        const lastReadAt = conv.participants[0]?.lastReadAt;
+        if (!lastReadAt) return count + conv.messages.length;
+        const lastReadAtDate = parseUtcDate(lastReadAt);
+        return (
+          count + conv.messages.filter((m) => parseUtcDate(m.createdAt) > lastReadAtDate).length
+        );
+      }, 0);
     },
-  }
+  };
 }
 
 // ── Default service instance (backward-compatible module-level API) ───────────
 
 const _defaultService = createMessagingService({
   messagingRepository: defaultMessagingRepository,
-})
+});
 
 export async function createConversation(participantIds: string[], subject?: string) {
-  return _defaultService.createConversation(participantIds, subject)
+  return _defaultService.createConversation(participantIds, subject);
 }
 
 export async function getConversation(conversationId: string, userId: string) {
-  return _defaultService.getConversation(conversationId, userId)
+  return _defaultService.getConversation(conversationId, userId);
 }
 
 export async function getUserConversations(userId: string, page = 1, limit = 20) {
-  return _defaultService.getUserConversations(userId, page, limit)
+  return _defaultService.getUserConversations(userId, page, limit);
 }
 
 export async function searchMessages(conversationId: string, query: string, userId: string) {
-  return _defaultService.searchMessages(conversationId, query, userId)
+  return _defaultService.searchMessages(conversationId, query, userId);
 }
 
 export async function deleteMessage(messageId: string, userId: string) {
-  return _defaultService.deleteMessage(messageId, userId)
+  return _defaultService.deleteMessage(messageId, userId);
 }
 
 export async function markConversationAsRead(conversationId: string, userId: string) {
-  return _defaultService.markConversationAsRead(conversationId, userId)
+  return _defaultService.markConversationAsRead(conversationId, userId);
 }
 
 export async function getUnreadCount(userId: string) {
-  return _defaultService.getUnreadCount(userId)
+  return _defaultService.getUnreadCount(userId);
 }

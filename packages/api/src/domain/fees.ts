@@ -20,13 +20,13 @@
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 /** Basis points per 100% */
-export const BASIS_POINTS_SCALE = 10_000
+export const BASIS_POINTS_SCALE = 10_000;
 
 /** Minimum valid basis points (no fee) */
-export const MIN_BASIS_POINTS = 0
+export const MIN_BASIS_POINTS = 0;
 
 /** Maximum valid basis points (100% fee) */
-export const MAX_BASIS_POINTS = 10_000
+export const MAX_BASIS_POINTS = 10_000;
 
 // ── Pure fee calculation functions ────────────────────────────────────────────
 
@@ -49,8 +49,8 @@ export const MAX_BASIS_POINTS = 10_000
  * calculateFee(1, 500)       // → 0 (rounds down)
  */
 export function calculateFee(amount: number, feeBps: number): number {
-  validateBasisPoints(feeBps)
-  return Math.floor((amount * feeBps) / BASIS_POINTS_SCALE)
+  validateBasisPoints(feeBps);
+  return Math.floor((amount * feeBps) / BASIS_POINTS_SCALE);
 }
 
 /**
@@ -70,9 +70,9 @@ export function calculateFee(amount: number, feeBps: number): number {
  * splitFee(1, 500)       // → [0, 1]
  */
 export function splitFee(amount: number, feeBps: number): [fee: number, net: number] {
-  const fee = calculateFee(amount, feeBps)
-  const net = amount - fee
-  return [fee, net]
+  const fee = calculateFee(amount, feeBps);
+  const net = amount - fee;
+  return [fee, net];
 }
 
 /**
@@ -94,8 +94,8 @@ export function splitFee(amount: number, feeBps: number): [fee: number, net: num
  * bpsShare(1, 5_000)         // → 0 (rounds down)
  */
 export function bpsShare(amount: number, bps: number): number {
-  validateBasisPoints(bps)
-  return Math.floor((amount * bps) / BASIS_POINTS_SCALE)
+  validateBasisPoints(bps);
+  return Math.floor((amount * bps) / BASIS_POINTS_SCALE);
 }
 
 // ── Validation ────────────────────────────────────────────────────────────────
@@ -109,8 +109,8 @@ export function bpsShare(amount: number, bps: number): number {
 export function validateBasisPoints(bps: number): void {
   if (!Number.isInteger(bps) || bps < MIN_BASIS_POINTS || bps > MAX_BASIS_POINTS) {
     throw new RangeError(
-      `Basis points must be an integer between ${MIN_BASIS_POINTS} and ${MAX_BASIS_POINTS}, got ${bps}`
-    )
+      `Basis points must be an integer between ${MIN_BASIS_POINTS} and ${MAX_BASIS_POINTS}, got ${bps}`,
+    );
   }
 }
 
@@ -126,7 +126,7 @@ export function isValidBasisPoints(bps: unknown): boolean {
     Number.isInteger(bps) &&
     bps >= MIN_BASIS_POINTS &&
     bps <= MAX_BASIS_POINTS
-  )
+  );
 }
 
 // ── Invariant checks (for testing and debugging) ─────────────────────────────
@@ -141,8 +141,8 @@ export function isValidBasisPoints(bps: unknown): boolean {
  * @returns true if fee + net = amount (should always be true)
  */
 export function invariantBalanceConserved(amount: number, feeBps: number): boolean {
-  const [fee, net] = splitFee(amount, feeBps)
-  return fee + net === amount
+  const [fee, net] = splitFee(amount, feeBps);
+  return fee + net === amount;
 }
 
 /**
@@ -155,8 +155,8 @@ export function invariantBalanceConserved(amount: number, feeBps: number): boole
  * @returns true if fee ≤ amount (should always be true)
  */
 export function invariantFeeNeverExceedsAmount(amount: number, feeBps: number): boolean {
-  const fee = calculateFee(amount, feeBps)
-  return fee <= amount
+  const fee = calculateFee(amount, feeBps);
+  return fee <= amount;
 }
 
 /**
@@ -169,6 +169,6 @@ export function invariantFeeNeverExceedsAmount(amount: number, feeBps: number): 
  * @returns true if net ≥ 0 (should always be true)
  */
 export function invariantNetNeverNegative(amount: number, feeBps: number): boolean {
-  const [_fee, net] = splitFee(amount, feeBps)
-  return net >= 0
+  const [_fee, net] = splitFee(amount, feeBps);
+  return net >= 0;
 }

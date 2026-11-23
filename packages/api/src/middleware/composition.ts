@@ -1,7 +1,7 @@
-import type { RequestHandler } from "express";
-import { authenticate, authorize } from "./auth.js";
-import { validate } from "./validate.js";
-import type { ZodSchema } from "zod";
+import type { RequestHandler } from 'express';
+import { authenticate, authorize } from './auth.js';
+import { validate } from './validate.js';
+import type { ZodSchema } from 'zod';
 
 /**
  * Compose authenticate + optional authorize into a single middleware array.
@@ -24,9 +24,6 @@ export function withAuth(...roles: string[]): RequestHandler[] {
  * @example
  * router.post('/', withAuthAndValidation('curator', createWorkerRules), handler)
  */
-export function withAuthAndValidation(
-  role: string,
-  schema: ZodSchema
-): RequestHandler[] {
+export function withAuthAndValidation(role: string, schema: ZodSchema): RequestHandler[] {
   return [authenticate, authorize(role), validate(schema)];
 }

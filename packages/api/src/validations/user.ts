@@ -1,14 +1,12 @@
-import { z } from 'zod'
-import { nameField, phoneField } from './shared.js'
+import { z } from 'zod';
+import { nameField, phoneField } from './shared.js';
 
 /**
  * User validation schemas for the API.
  * Core schemas are imported from @bluecollar/types to stay in sync with the App.
  */
 
-export {
-  changePasswordSchema as changePasswordRules,
-} from '@bluecollar/types'
+export { changePasswordSchema as changePasswordRules } from '@bluecollar/types';
 
 /**
  * Sanitised free-text field.
@@ -33,7 +31,7 @@ export const sanitisedTextField = (min: number, max: number, label: string) =>
         .string()
         .min(min, `${label} must be at least ${min} characters`)
         .max(max, `${label} must be at most ${max} characters`),
-    )
+    );
 
 /**
  * API-specific update profile rules.
@@ -45,7 +43,7 @@ export const updateProfileRules = z.object({
   lastName: sanitisedTextField(1, 50, 'Last name').optional(),
   bio: sanitisedTextField(0, 500, 'Bio').optional(),
   phone: phoneField.optional(),
-})
+});
 
 // POST /users/me/push-subscription — API-only
 export const pushSubscriptionRules = z.object({
@@ -54,12 +52,12 @@ export const pushSubscriptionRules = z.object({
     auth: z.string().min(1),
     p256dh: z.string().min(1),
   }),
-})
+});
 
 // DELETE /users/me/push-subscription — API-only
 export const deletePushSubscriptionRules = z.object({
   endpoint: z.string().url('Must be a valid URL'),
-})
+});
 
 // POST /users/onboarding/complete — API-only, no body fields required
-export const completeOnboardingRules = z.object({})
+export const completeOnboardingRules = z.object({});

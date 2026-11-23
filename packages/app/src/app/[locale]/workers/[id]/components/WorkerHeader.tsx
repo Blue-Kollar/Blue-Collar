@@ -1,14 +1,14 @@
-import { BadgeCheck } from "lucide-react";
-import dynamic from "next/dynamic";
-import StarRating from "@/components/StarRating";
-import BookmarkButton from "@/components/BookmarkButton";
-import ZoomableAvatar from "@/components/ZoomableAvatar";
-import ShareWorkerButton from "@/components/ShareWorkerButton";
-import type { Worker } from "@/types";
+import { BadgeCheck } from 'lucide-react';
+import dynamic from 'next/dynamic';
+import StarRating from '@/components/StarRating';
+import BookmarkButton from '@/components/BookmarkButton';
+import ZoomableAvatar from '@/components/ZoomableAvatar';
+import ShareWorkerButton from '@/components/ShareWorkerButton';
+import type { Worker } from '@/types';
 
 // Interaction-gated widgets — split out so they aren't bundled into the initial route chunk.
-const QRCodeButton = dynamic(() => import("@/components/QRCodeButton"));
-const ContactModal = dynamic(() => import("@/components/ContactModal"));
+const QRCodeButton = dynamic(() => import('@/components/QRCodeButton'));
+const ContactModal = dynamic(() => import('@/components/ContactModal'));
 
 interface Props {
   worker: Worker;
@@ -18,10 +18,10 @@ interface Props {
 
 export function WorkerHeader({ worker, averageRating, reviewCount }: Props) {
   const initials = worker.name
-    .split(" ")
+    .split(' ')
     .map((n) => n[0])
     .slice(0, 2)
-    .join("")
+    .join('')
     .toUpperCase();
 
   return (
@@ -54,7 +54,7 @@ export function WorkerHeader({ worker, averageRating, reviewCount }: Props) {
           <div className="mt-2 flex items-center gap-1.5">
             <StarRating rating={averageRating} />
             <span className="text-sm text-gray-500">
-              {averageRating.toFixed(1)} ({reviewCount} review{reviewCount !== 1 ? "s" : ""})
+              {averageRating.toFixed(1)} ({reviewCount} review{reviewCount !== 1 ? 's' : ''})
             </span>
           </div>
         )}

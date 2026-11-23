@@ -10,7 +10,16 @@
  * Issue #1857: Mock Stellar SDK test utility
  */
 
-import { Account, TransactionBuilder, Networks, Operation, FeeBumpTransaction, Transaction, Keypair, Asset } from '@stellar/js-sdk'
+import {
+  Account,
+  TransactionBuilder,
+  Networks,
+  Operation,
+  FeeBumpTransaction,
+  Transaction,
+  Keypair,
+  Asset,
+} from '@stellar/js-sdk';
 
 /**
  * Mock account fixture with common test values
@@ -44,7 +53,7 @@ export const mockAccountFixture = () => ({
   last_modified_ledger: 12345,
   last_modified_time: new Date().toISOString(),
   subentry_count: 0,
-})
+});
 
 /**
  * Mock transaction fixture
@@ -61,22 +70,23 @@ export const mockTransactionFixture = () => ({
   max_fee: '100',
   operation_count: 1,
   transaction_successful: true,
-  envelope_xdr: 'AAAAAgAAAABLJXzRPWCaAJ4t5C1XqXcLOa6vrvYk1VmWjJSJzF8bAAABhADpGBYAAAD5AAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAMm/2ASABQAAAAAAAAAP7w8AA'
-})
+  envelope_xdr:
+    'AAAAAgAAAABLJXzRPWCaAJ4t5C1XqXcLOa6vrvYk1VmWjJSJzF8bAAABhADpGBYAAAD5AAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAMm/2ASABQAAAAAAAAAP7w8AA',
+});
 
 /**
  * Mock Stellar Server implementation for testing
  */
 export class MockStellarServer {
-  private accountResponses: Map<string, object> = new Map()
-  private transactionResponses: Map<string, object> = new Map()
-  private failureMode: 'success' | 'not_found' | 'server_error' | 'network_error' = 'success'
+  private accountResponses: Map<string, object> = new Map();
+  private transactionResponses: Map<string, object> = new Map();
+  private failureMode: 'success' | 'not_found' | 'server_error' | 'network_error' = 'success';
 
   /**
    * Set up account response
    */
   setAccountResponse(publicKey: string, accountData: object) {
-    this.accountResponses.set(publicKey, accountData)
+    this.accountResponses.set(publicKey, accountData);
   }
 
   /**
@@ -84,21 +94,21 @@ export class MockStellarServer {
    */
   async getAccount(publicKey: string) {
     if (this.failureMode === 'not_found') {
-      throw new Error(`Account not found: ${publicKey}`)
+      throw new Error(`Account not found: ${publicKey}`);
     }
     if (this.failureMode === 'server_error') {
-      throw new Error('Server error')
+      throw new Error('Server error');
     }
     if (this.failureMode === 'network_error') {
-      throw new Error('Network error')
+      throw new Error('Network error');
     }
 
-    const account = this.accountResponses.get(publicKey)
+    const account = this.accountResponses.get(publicKey);
     if (!account) {
       // Return default account
-      return mockAccountFixture()
+      return mockAccountFixture();
     }
-    return account
+    return account;
   }
 
   /**
@@ -106,17 +116,17 @@ export class MockStellarServer {
    */
   async submitTransaction(transaction: string) {
     if (this.failureMode === 'server_error') {
-      throw new Error('Server error')
+      throw new Error('Server error');
     }
     if (this.failureMode === 'network_error') {
-      throw new Error('Network error')
+      throw new Error('Network error');
     }
 
     return {
       hash: '3ce2250d527c0bae4d12c61aaa7432ebb337a32170b2a34f44b03c63e5ef9e36',
       result_xdr: 'AAAAAAAAAGQAAAAAAAAAAA==',
       result_meta_xdr: 'AAAAAgAAAAIAAAADACYaAQAAAAA=',
-    }
+    };
   }
 
   /**
@@ -124,21 +134,24 @@ export class MockStellarServer {
    */
   async getTransaction(hash: string) {
     if (this.failureMode === 'not_found') {
-      throw new Error(`Transaction not found: ${hash}`)
+      throw new Error(`Transaction not found: ${hash}`);
     }
     if (this.failureMode === 'server_error') {
-      throw new Error('Server error')
+      throw new Error('Server error');
     }
 
-    return mockTransactionFixture()
+    return mockTransactionFixture();
   }
 
   /**
    * Get account transactions (simulates Horizon GET /accounts/:id/transactions endpoint)
    */
-  async getAccountTransactions(publicKey: string, options?: { limit?: number; cursor?: string; order?: 'asc' | 'desc' }) {
+  async getAccountTransactions(
+    publicKey: string,
+    options?: { limit?: number; cursor?: string; order?: 'asc' | 'desc' },
+  ) {
     if (this.failureMode === 'server_error') {
-      throw new Error('Server error')
+      throw new Error('Server error');
     }
 
     return {
@@ -150,23 +163,23 @@ export class MockStellarServer {
       _embedded: {
         records: [mockTransactionFixture()],
       },
-    }
+    };
   }
 
   /**
    * Set failure mode for testing error scenarios
    */
   setFailureMode(mode: 'success' | 'not_found' | 'server_error' | 'network_error') {
-    this.failureMode = mode
+    this.failureMode = mode;
   }
 
   /**
    * Reset mock state
    */
   reset() {
-    this.accountResponses.clear()
-    this.transactionResponses.clear()
-    this.failureMode = 'success'
+    this.accountResponses.clear();
+    this.transactionResponses.clear();
+    this.failureMode = 'success';
   }
 }
 
@@ -174,15 +187,15 @@ export class MockStellarServer {
  * Mock Soroban RPC Server for contract testing
  */
 export class MockSorobanRpcServer {
-  private simulationResponses: Map<string, object> = new Map()
-  private failureMode: 'success' | 'not_found' | 'server_error' | 'network_error' = 'success'
+  private simulationResponses: Map<string, object> = new Map();
+  private failureMode: 'success' | 'not_found' | 'server_error' | 'network_error' = 'success';
 
   /**
    * Simulate transaction (simulates /simulateTransaction endpoint)
    */
   async simulateTransaction(transactionXdr: string) {
     if (this.failureMode === 'server_error') {
-      throw new Error('Server error')
+      throw new Error('Server error');
     }
 
     return {
@@ -196,7 +209,7 @@ export class MockSorobanRpcServer {
       latestLedger: 12345,
       minFeeA: 100,
       minFeeB: 542,
-    }
+    };
   }
 
   /**
@@ -204,14 +217,14 @@ export class MockSorobanRpcServer {
    */
   async sendTransaction(transactionXdr: string) {
     if (this.failureMode === 'server_error') {
-      throw new Error('Server error')
+      throw new Error('Server error');
     }
 
     return {
       id: '123e4567-e89b-12d3-a456-426614174000',
       status: 'PENDING',
       latestLedger: 12345,
-    }
+    };
   }
 
   /**
@@ -219,7 +232,7 @@ export class MockSorobanRpcServer {
    */
   async getTransaction(transactionId: string) {
     if (this.failureMode === 'not_found') {
-      throw new Error(`Transaction not found: ${transactionId}`)
+      throw new Error(`Transaction not found: ${transactionId}`);
     }
 
     return {
@@ -233,7 +246,7 @@ export class MockSorobanRpcServer {
       envelopeXdr: 'AAAAAgAAAAB...',
       resultXdr: 'AAAAAAAAAGQAAAAAAAAAAA==',
       resultMetaXdr: 'AAAAAgAAAAI...',
-    }
+    };
   }
 
   /**
@@ -241,7 +254,7 @@ export class MockSorobanRpcServer {
    */
   async getAccount(accountId: string) {
     if (this.failureMode === 'not_found') {
-      throw new Error(`Account not found: ${accountId}`)
+      throw new Error(`Account not found: ${accountId}`);
     }
 
     return {
@@ -254,22 +267,22 @@ export class MockSorobanRpcServer {
           asset: 'native',
         },
       ],
-    }
+    };
   }
 
   /**
    * Set failure mode for testing error scenarios
    */
   setFailureMode(mode: 'success' | 'not_found' | 'server_error' | 'network_error') {
-    this.failureMode = mode
+    this.failureMode = mode;
   }
 
   /**
    * Reset mock state
    */
   reset() {
-    this.simulationResponses.clear()
-    this.failureMode = 'success'
+    this.simulationResponses.clear();
+    this.failureMode = 'success';
   }
 }
 
@@ -277,40 +290,46 @@ export class MockSorobanRpcServer {
  * Create a mock Stellar client for testing
  */
 export function createMockStellarClient(overrides?: {
-  getAccountInfo?: (publicKey: string) => Promise<any>
-  broadcastTransaction?: (xdr: string) => Promise<any>
-  pollTransactionStatus?: (hash: string) => Promise<any>
-  getAccountTransactions?: (publicKey: string) => Promise<any>
+  getAccountInfo?: (publicKey: string) => Promise<any>;
+  broadcastTransaction?: (xdr: string) => Promise<any>;
+  pollTransactionStatus?: (hash: string) => Promise<any>;
+  getAccountTransactions?: (publicKey: string) => Promise<any>;
 }) {
-  const horizonServer = new MockStellarServer()
-  const sorobanServer = new MockSorobanRpcServer()
+  const horizonServer = new MockStellarServer();
+  const sorobanServer = new MockSorobanRpcServer();
 
   return {
     horizonServer,
     sorobanServer,
-    getAccountInfo: overrides?.getAccountInfo || ((publicKey: string) => horizonServer.getAccount(publicKey)),
-    broadcastTransaction: overrides?.broadcastTransaction || ((xdr: string) => horizonServer.submitTransaction(xdr)),
-    pollTransactionStatus: overrides?.pollTransactionStatus || ((hash: string) => horizonServer.getTransaction(hash)),
-    getAccountTransactions: overrides?.getAccountTransactions || ((publicKey: string) => horizonServer.getAccountTransactions(publicKey)),
-  }
+    getAccountInfo:
+      overrides?.getAccountInfo || ((publicKey: string) => horizonServer.getAccount(publicKey)),
+    broadcastTransaction:
+      overrides?.broadcastTransaction || ((xdr: string) => horizonServer.submitTransaction(xdr)),
+    pollTransactionStatus:
+      overrides?.pollTransactionStatus || ((hash: string) => horizonServer.getTransaction(hash)),
+    getAccountTransactions:
+      overrides?.getAccountTransactions ||
+      ((publicKey: string) => horizonServer.getAccountTransactions(publicKey)),
+  };
 }
 
 /**
  * Create a mock transaction for testing
  */
 export function createMockTransaction(options?: {
-  sourcePublicKey?: string
-  operationType?: string
-  amount?: string
-  destination?: string
+  sourcePublicKey?: string;
+  operationType?: string;
+  amount?: string;
+  destination?: string;
 }) {
-  const sourceKey = options?.sourcePublicKey || 'GCZZZ3YJBIE2MTSW36X4MSAAGVH7PNXK34FCZWJ2GCYKWW22KWXLOZH'
-  const account = new Account(sourceKey, '100')
+  const sourceKey =
+    options?.sourcePublicKey || 'GCZZZ3YJBIE2MTSW36X4MSAAGVH7PNXK34FCZWJ2GCYKWW22KWXLOZH';
+  const account = new Account(sourceKey, '100');
 
   const builder = new TransactionBuilder(account, {
     fee: '100',
     networkPassphrase: Networks.TESTNET_NETWORK_PASSPHRASE,
-  })
+  });
 
   if (options?.operationType === 'payment' && options?.destination && options?.amount) {
     builder.addOperation(
@@ -318,14 +337,9 @@ export function createMockTransaction(options?: {
         destination: options.destination,
         asset: Asset.native(),
         amount: options.amount,
-      })
-    )
+      }),
+    );
   }
 
-  return builder.setTimeout(300).build()
+  return builder.setTimeout(300).build();
 }
-
-/**
- * Export mock fixtures and utilities
- */
-export { mockAccountFixture, mockTransactionFixture }

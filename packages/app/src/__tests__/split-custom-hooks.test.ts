@@ -15,8 +15,8 @@
  * Closes #1397
  */
 
-import { renderHook, act } from "@testing-library/react";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { renderHook, act } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // ── Mock dependencies ─────────────────────────────────────────────────────────
 
@@ -29,8 +29,8 @@ beforeEach(() => {
 
 // ── Hook splitting patterns ────────────────────────────────────────────────────
 
-describe("Hook responsibility splitting", () => {
-  it("identifies hooks exceeding recommended line count", () => {
+describe('Hook responsibility splitting', () => {
+  it('identifies hooks exceeding recommended line count', () => {
     // Simulate hook complexity analysis
     const hookLines = {
       useForm: 45,
@@ -45,18 +45,18 @@ describe("Hook responsibility splitting", () => {
       .filter(([, lines]) => lines > 80)
       .map(([name]) => name);
 
-    expect(oversizedHooks).toContain("useCuratorDashboard");
-    expect(oversizedHooks).toContain("useTransactionList");
+    expect(oversizedHooks).toContain('useCuratorDashboard');
+    expect(oversizedHooks).toContain('useTransactionList');
   });
 
-  it("validates hook responsibilities are clearly separated", () => {
+  it('validates hook responsibilities are clearly separated', () => {
     const hookResponsibilities = {
-      "useWorkersFetch": ["fetch workers data", "handle loading", "handle errors"],
-      "useCuratorAnalytics": ["fetch analytics data", "handle analytics loading"],
-      "useWorkerTrends": ["fetch trends data", "track trends loading"],
-      "useXlmBalance": ["fetch XLM balance", "handle wallet state"],
-      "useCuratorActions": ["toggle worker status", "delete worker", "export CSV"],
-      "useCuratorUI": ["manage active tab", "manage delete modal state"],
+      useWorkersFetch: ['fetch workers data', 'handle loading', 'handle errors'],
+      useCuratorAnalytics: ['fetch analytics data', 'handle analytics loading'],
+      useWorkerTrends: ['fetch trends data', 'track trends loading'],
+      useXlmBalance: ['fetch XLM balance', 'handle wallet state'],
+      useCuratorActions: ['toggle worker status', 'delete worker', 'export CSV'],
+      useCuratorUI: ['manage active tab', 'manage delete modal state'],
     };
 
     Object.entries(hookResponsibilities).forEach(([hookName, responsibilities]) => {
@@ -68,22 +68,22 @@ describe("Hook responsibility splitting", () => {
     });
   });
 
-  it("ensures split hooks have single clear purpose", () => {
+  it('ensures split hooks have single clear purpose', () => {
     const hookPurposes = {
-      "useWorkersFetch": "Data fetching",
-      "useCuratorAnalytics": "Data fetching",
-      "useWorkerTrends": "Data fetching",
-      "useXlmBalance": "Data fetching",
-      "useCuratorActions": "State mutations",
-      "useCuratorUI": "UI state",
+      useWorkersFetch: 'Data fetching',
+      useCuratorAnalytics: 'Data fetching',
+      useWorkerTrends: 'Data fetching',
+      useXlmBalance: 'Data fetching',
+      useCuratorActions: 'State mutations',
+      useCuratorUI: 'UI state',
     };
 
     const dataFetchingHooks = Object.entries(hookPurposes)
-      .filter(([, purpose]) => purpose === "Data fetching")
+      .filter(([, purpose]) => purpose === 'Data fetching')
       .map(([name]) => name);
 
     const stateMutationHooks = Object.entries(hookPurposes)
-      .filter(([, purpose]) => purpose === "State mutations")
+      .filter(([, purpose]) => purpose === 'State mutations')
       .map(([name]) => name);
 
     expect(dataFetchingHooks.length).toBeGreaterThan(0);
@@ -93,12 +93,12 @@ describe("Hook responsibility splitting", () => {
 
 // ── Data fetching hook tests ───────────────────────────────────────────────────
 
-describe("useWorkersFetch - split data fetching hook", () => {
-  it("fetches workers data on mount with token", async () => {
-    const mockToken = "test-token";
+describe('useWorkersFetch - split data fetching hook', () => {
+  it('fetches workers data on mount with token', async () => {
+    const mockToken = 'test-token';
     mockFetch.mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ data: [{ id: "w1", name: "Alice" }] }),
+      json: async () => ({ data: [{ id: 'w1', name: 'Alice' }] }),
     });
 
     const useWorkersFetch = (token: string | null) => {
@@ -119,8 +119,8 @@ describe("useWorkersFetch - split data fetching hook", () => {
     expect(mockFetch).toHaveBeenCalled();
   });
 
-  it("handles error state when fetch fails", async () => {
-    mockFetch.mockRejectedValueOnce(new Error("Network error"));
+  it('handles error state when fetch fails', async () => {
+    mockFetch.mockRejectedValueOnce(new Error('Network error'));
 
     const useWorkersFetch = (token: string | null) => {
       const [error, setError] = vi.fn();
@@ -128,28 +128,28 @@ describe("useWorkersFetch - split data fetching hook", () => {
       return { workers: [], loading: false, error: null, refetch: vi.fn() };
     };
 
-    const { result } = renderHook(() => useWorkersFetch("token"));
+    const { result } = renderHook(() => useWorkersFetch('token'));
 
     expect(result.current.error).toBeNull();
   });
 
-  it("clears error when refetching", async () => {
+  it('clears error when refetching', async () => {
     const useWorkersFetch = (token: string | null) => {
       const [error, setError] = vi.fn();
 
-      return { workers: [], loading: false, error: "Previous error", refetch: vi.fn() };
+      return { workers: [], loading: false, error: 'Previous error', refetch: vi.fn() };
     };
 
-    const { result } = renderHook(() => useWorkersFetch("token"));
+    const { result } = renderHook(() => useWorkersFetch('token'));
 
     await act(async () => {
       result.current.refetch();
     });
 
-    expect(result.current.error).toBe("Previous error");
+    expect(result.current.error).toBe('Previous error');
   });
 
-  it("provides refetch method for manual data refresh", async () => {
+  it('provides refetch method for manual data refresh', async () => {
     const useWorkersFetch = (token: string | null) => {
       return {
         workers: [],
@@ -159,9 +159,9 @@ describe("useWorkersFetch - split data fetching hook", () => {
       };
     };
 
-    const { result } = renderHook(() => useWorkersFetch("token"));
+    const { result } = renderHook(() => useWorkersFetch('token'));
 
-    expect(typeof result.current.refetch).toBe("function");
+    expect(typeof result.current.refetch).toBe('function');
 
     await act(async () => {
       await result.current.refetch();
@@ -173,8 +173,8 @@ describe("useWorkersFetch - split data fetching hook", () => {
 
 // ── Analytics fetching hook ────────────────────────────────────────────────────
 
-describe("useCuratorAnalytics - analytics data fetching hook", () => {
-  it("fetches analytics on mount", async () => {
+describe('useCuratorAnalytics - analytics data fetching hook', () => {
+  it('fetches analytics on mount', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({ data: { totalJobs: 42, avgRating: 4.5 } }),
@@ -188,7 +188,7 @@ describe("useCuratorAnalytics - analytics data fetching hook", () => {
       };
     };
 
-    const { result } = renderHook(() => useCuratorAnalytics("token"));
+    const { result } = renderHook(() => useCuratorAnalytics('token'));
 
     await act(async () => {
       // Trigger fetch (no real timing wait needed in mock scenario)
@@ -198,8 +198,8 @@ describe("useCuratorAnalytics - analytics data fetching hook", () => {
     expect(mockFetch).toHaveBeenCalled();
   });
 
-  it("handles analytics load error gracefully", async () => {
-    mockFetch.mockRejectedValueOnce(new Error("Analytics unavailable"));
+  it('handles analytics load error gracefully', async () => {
+    mockFetch.mockRejectedValueOnce(new Error('Analytics unavailable'));
 
     const useCuratorAnalytics = (token: string | null) => {
       return {
@@ -209,13 +209,13 @@ describe("useCuratorAnalytics - analytics data fetching hook", () => {
       };
     };
 
-    const { result } = renderHook(() => useCuratorAnalytics("token"));
+    const { result } = renderHook(() => useCuratorAnalytics('token'));
 
     expect(result.current.error).toBeNull();
     expect(result.current.analytics).toBeNull();
   });
 
-  it("does not fetch when token is null", () => {
+  it('does not fetch when token is null', () => {
     const useCuratorAnalytics = (token: string | null) => {
       return {
         analytics: null,
@@ -233,11 +233,11 @@ describe("useCuratorAnalytics - analytics data fetching hook", () => {
 
 // ── Worker trends fetching hook ────────────────────────────────────────────────
 
-describe("useWorkerTrends - worker trends data fetching hook", () => {
-  it("fetches trends for specified worker", async () => {
+describe('useWorkerTrends - worker trends data fetching hook', () => {
+  it('fetches trends for specified worker', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ data: [{ date: "2024-09-01", views: 42 }] }),
+      json: async () => ({ data: [{ date: '2024-09-01', views: 42 }] }),
     });
 
     const useWorkerTrends = () => {
@@ -256,13 +256,13 @@ describe("useWorkerTrends - worker trends data fetching hook", () => {
     const { result } = renderHook(() => useWorkerTrends());
 
     await act(async () => {
-      await result.current.fetchTrends("worker-123");
+      await result.current.fetchTrends('worker-123');
     });
 
-    expect(result.current.fetchTrends).toHaveBeenCalledWith("worker-123");
+    expect(result.current.fetchTrends).toHaveBeenCalledWith('worker-123');
   });
 
-  it("sets loading state while fetching trends", async () => {
+  it('sets loading state while fetching trends', async () => {
     const useWorkerTrends = () => {
       const [loading, setLoading] = vi.fn();
 
@@ -281,14 +281,14 @@ describe("useWorkerTrends - worker trends data fetching hook", () => {
     expect(result.current.loading).toBe(true);
   });
 
-  it("clears trends when fetch fails", async () => {
-    mockFetch.mockRejectedValueOnce(new Error("Trends unavailable"));
+  it('clears trends when fetch fails', async () => {
+    mockFetch.mockRejectedValueOnce(new Error('Trends unavailable'));
 
     const useWorkerTrends = () => {
       return {
         trends: null,
         loading: false,
-        error: "Failed to load trends",
+        error: 'Failed to load trends',
         fetchTrends: vi.fn(),
       };
     };
@@ -302,14 +302,14 @@ describe("useWorkerTrends - worker trends data fetching hook", () => {
 
 // ── XLM balance fetching hook ──────────────────────────────────────────────────
 
-describe("useXlmBalance - XLM balance fetching hook", () => {
-  it("fetches XLM balance from Horizon testnet", async () => {
-    const publicKey = "GBBD47UZQ5E7XNLRY3ELYQ2YZKOXZ5DJQLNBPMFXO32VVKKQMKQP5XY";
+describe('useXlmBalance - XLM balance fetching hook', () => {
+  it('fetches XLM balance from Horizon testnet', async () => {
+    const publicKey = 'GBBD47UZQ5E7XNLRY3ELYQ2YZKOXZ5DJQLNBPMFXO32VVKKQMKQP5XY';
 
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({
-        balances: [{ asset_type: "native", balance: "100.5" }],
+        balances: [{ asset_type: 'native', balance: '100.5' }],
       }),
     });
 
@@ -326,7 +326,7 @@ describe("useXlmBalance - XLM balance fetching hook", () => {
     expect(result.current.xlmBalance).toBeNull();
   });
 
-  it("does not fetch when public key is null", () => {
+  it('does not fetch when public key is null', () => {
     const useXlmBalance = (publicKey: string | null, isTestnet: boolean) => {
       return {
         xlmBalance: null,
@@ -341,7 +341,7 @@ describe("useXlmBalance - XLM balance fetching hook", () => {
     expect(result.current.xlmBalance).toBeNull();
   });
 
-  it("does not fetch when on mainnet", () => {
+  it('does not fetch when on mainnet', () => {
     const useXlmBalance = (publicKey: string | null, isTestnet: boolean) => {
       return {
         xlmBalance: null,
@@ -350,14 +350,14 @@ describe("useXlmBalance - XLM balance fetching hook", () => {
       };
     };
 
-    const publicKey = "GBBD47UZQ5E7XNLRY3ELYQ2YZKOXZ5DJQLNBPMFXO32VVKKQMKQP5XY";
+    const publicKey = 'GBBD47UZQ5E7XNLRY3ELYQ2YZKOXZ5DJQLNBPMFXO32VVKKQMKQP5XY';
     const { result } = renderHook(() => useXlmBalance(publicKey, false));
 
     expect(mockFetch).not.toHaveBeenCalled();
     expect(result.current.xlmBalance).toBeNull();
   });
 
-  it("handles 404 response from Horizon gracefully", async () => {
+  it('handles 404 response from Horizon gracefully', async () => {
     mockFetch.mockResolvedValueOnce({
       status: 404,
       ok: false,
@@ -371,7 +371,7 @@ describe("useXlmBalance - XLM balance fetching hook", () => {
       };
     };
 
-    const publicKey = "GBBD47UZQ5E7XNLRY3ELYQ2YZKOXZ5DJQLNBPMFXO32VVKKQMKQP5XY";
+    const publicKey = 'GBBD47UZQ5E7XNLRY3ELYQ2YZKOXZ5DJQLNBPMFXO32VVKKQMKQP5XY';
     const { result } = renderHook(() => useXlmBalance(publicKey, true));
 
     expect(result.current.xlmBalance).toBe(0);
@@ -380,9 +380,9 @@ describe("useXlmBalance - XLM balance fetching hook", () => {
 
 // ── Curator actions hook ───────────────────────────────────────────────────────
 
-describe("useCuratorActions - worker state mutation hook", () => {
-  it("toggles worker active status optimistically", async () => {
-    const worker = { id: "w1", name: "Alice", isActive: true };
+describe('useCuratorActions - worker state mutation hook', () => {
+  it('toggles worker active status optimistically', async () => {
+    const worker = { id: 'w1', name: 'Alice', isActive: true };
 
     const useCuratorActions = () => {
       return {
@@ -403,13 +403,13 @@ describe("useCuratorActions - worker state mutation hook", () => {
     expect(result.current.handleToggle).toHaveBeenCalledWith(worker);
   });
 
-  it("reverts optimistic update on toggle failure", async () => {
-    mockFetch.mockRejectedValueOnce(new Error("Toggle failed"));
+  it('reverts optimistic update on toggle failure', async () => {
+    mockFetch.mockRejectedValueOnce(new Error('Toggle failed'));
 
     const useCuratorActions = () => {
       return {
         handleToggle: vi.fn(async () => {
-          throw new Error("Toggle failed");
+          throw new Error('Toggle failed');
         }),
       };
     };
@@ -418,12 +418,12 @@ describe("useCuratorActions - worker state mutation hook", () => {
 
     await expect(
       act(async () => {
-        await result.current.handleToggle({ id: "w1", isActive: true });
-      })
+        await result.current.handleToggle({ id: 'w1', isActive: true });
+      }),
     ).rejects.toThrow();
   });
 
-  it("deletes worker optimistically then confirms", async () => {
+  it('deletes worker optimistically then confirms', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({ success: true }),
@@ -448,7 +448,7 @@ describe("useCuratorActions - worker state mutation hook", () => {
     expect(result.current.handleDelete).toHaveBeenCalled();
   });
 
-  it("exports analytics CSV", async () => {
+  it('exports analytics CSV', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       blob: async () => new Blob(),
@@ -470,23 +470,23 @@ describe("useCuratorActions - worker state mutation hook", () => {
 
 // ── Curator UI state hook ──────────────────────────────────────────────────────
 
-describe("useCuratorUI - UI state management hook", () => {
-  it("manages active tab state", () => {
+describe('useCuratorUI - UI state management hook', () => {
+  it('manages active tab state', () => {
     const useCuratorUI = () => {
       const [activeTab, setActiveTab] = vi.fn();
 
       return {
-        activeTab: "workers" as "workers" | "analytics",
+        activeTab: 'workers' as 'workers' | 'analytics',
         setActiveTab,
       };
     };
 
     const { result } = renderHook(() => useCuratorUI());
 
-    expect(["workers", "analytics"]).toContain(result.current.activeTab);
+    expect(['workers', 'analytics']).toContain(result.current.activeTab);
   });
 
-  it("manages delete confirmation modal state", () => {
+  it('manages delete confirmation modal state', () => {
     const useCuratorUI = () => {
       const [deleteTarget, setDeleteTarget] = vi.fn();
       const [deleting, setDeleting] = vi.fn();
@@ -505,7 +505,7 @@ describe("useCuratorUI - UI state management hook", () => {
     expect(result.current.deleting).toBe(false);
   });
 
-  it("closes trends view", () => {
+  it('closes trends view', () => {
     const useCuratorUI = () => {
       const [selectedWorkerTrends, setSelectedWorkerTrends] = vi.fn();
 
@@ -525,13 +525,13 @@ describe("useCuratorUI - UI state management hook", () => {
 
 // ── Composite hook composition ─────────────────────────────────────────────────
 
-describe("Split hooks working together", () => {
-  it("combines fetch and UI hooks for complete dashboard", () => {
+describe('Split hooks working together', () => {
+  it('combines fetch and UI hooks for complete dashboard', () => {
     const useCompleteDashboard = (token: string | null) => {
       // Simulate composition of split hooks
       const workers = { workers: [], loading: true, error: null };
       const analytics = { analytics: null, loading: true, error: null };
-      const ui = { activeTab: "workers" as const, setActiveTab: vi.fn() };
+      const ui = { activeTab: 'workers' as const, setActiveTab: vi.fn() };
       const actions = { handleToggle: vi.fn(), handleDelete: vi.fn() };
 
       return {
@@ -542,12 +542,12 @@ describe("Split hooks working together", () => {
       };
     };
 
-    const { result } = renderHook(() => useCompleteDashboard("token"));
+    const { result } = renderHook(() => useCompleteDashboard('token'));
 
-    expect(result.current).toHaveProperty("workers");
-    expect(result.current).toHaveProperty("analytics");
-    expect(result.current).toHaveProperty("activeTab");
-    expect(result.current).toHaveProperty("handleToggle");
+    expect(result.current).toHaveProperty('workers');
+    expect(result.current).toHaveProperty('analytics');
+    expect(result.current).toHaveProperty('activeTab');
+    expect(result.current).toHaveProperty('handleToggle');
   });
 
   it("ensures split hooks don't duplicate state", () => {
@@ -565,24 +565,24 @@ describe("Split hooks working together", () => {
 
 // ── Performance and testability improvements ────────────────────────────────────
 
-describe("Split hooks improve testability", () => {
-  it("data fetching hooks can be tested independently", () => {
+describe('Split hooks improve testability', () => {
+  it('data fetching hooks can be tested independently', () => {
     const useWorkersFetch = (token: string | null) => ({
       workers: [],
       loading: false,
       error: null,
     });
 
-    const { result } = renderHook(() => useWorkersFetch("token"));
+    const { result } = renderHook(() => useWorkersFetch('token'));
 
-    expect(result.current).toHaveProperty("workers");
-    expect(result.current).toHaveProperty("loading");
-    expect(result.current).toHaveProperty("error");
+    expect(result.current).toHaveProperty('workers');
+    expect(result.current).toHaveProperty('loading');
+    expect(result.current).toHaveProperty('error');
   });
 
-  it("UI state hooks can be tested without API calls", () => {
+  it('UI state hooks can be tested without API calls', () => {
     const useCuratorUI = () => ({
-      activeTab: "workers" as const,
+      activeTab: 'workers' as const,
       setActiveTab: vi.fn(),
       deleteTarget: null,
       setDeleteTarget: vi.fn(),
@@ -591,13 +591,13 @@ describe("Split hooks improve testability", () => {
     const { result } = renderHook(() => useCuratorUI());
 
     act(() => {
-      (result.current.setActiveTab as any)("analytics");
+      (result.current.setActiveTab as any)('analytics');
     });
 
-    expect(result.current.setActiveTab).toHaveBeenCalledWith("analytics");
+    expect(result.current.setActiveTab).toHaveBeenCalledWith('analytics');
   });
 
-  it("action hooks can verify mutation behavior", () => {
+  it('action hooks can verify mutation behavior', () => {
     const useCuratorActions = () => ({
       handleToggle: vi.fn(async () => {}),
       handleDelete: vi.fn(async () => {}),

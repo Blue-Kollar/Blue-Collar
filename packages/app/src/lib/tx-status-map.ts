@@ -1,19 +1,8 @@
 import type { TxStatusValue } from '@bluecollar/types';
 
-export type TxStatusIcon =
-  | 'clock'
-  | 'spinner'
-  | 'check'
-  | 'x'
-  | 'alert'
-  | 'ban';
+export type TxStatusIcon = 'clock' | 'spinner' | 'check' | 'x' | 'alert' | 'ban';
 
-export type TxStatusTone =
-  | 'neutral'
-  | 'info'
-  | 'success'
-  | 'error'
-  | 'warning';
+export type TxStatusTone = 'neutral' | 'info' | 'success' | 'error' | 'warning';
 
 export interface TxStatusMeta {
   /** Translation key for the status label. */
@@ -130,9 +119,7 @@ export const TX_STATUS_MAP: Record<TxStatusValue, TxStatusMeta> = {
  * `unknown` entry when the status is not recognized at runtime.
  */
 export function getTxStatusMeta(status: TxStatusValue | string): TxStatusMeta {
-  return (
-    TX_STATUS_MAP[status as TxStatusValue] ?? TX_STATUS_MAP.unknown
-  );
+  return TX_STATUS_MAP[status as TxStatusValue] ?? TX_STATUS_MAP.unknown;
 }
 
 /**

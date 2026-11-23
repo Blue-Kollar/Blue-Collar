@@ -12,6 +12,7 @@ Blue Collar API implements multi-tier rate limiting to protect public and authen
 **Limit:** 5 requests per IP
 
 **Applied to:**
+
 - `POST /api/auth/login` — Login attempts
 - `POST /api/auth/forgot-password` — Password reset requests
 
@@ -23,6 +24,7 @@ Blue Collar API implements multi-tier rate limiting to protect public and authen
 **Limit:** 20 requests per IP
 
 **Applied to:**
+
 - `POST /api/auth/register` — Account creation
 - `POST /api/auth/verify-account` — Email verification
 - `POST /api/auth/resend-verification` — Resend verification email
@@ -35,6 +37,7 @@ Blue Collar API implements multi-tier rate limiting to protect public and authen
 **Limit:** 100 requests per IP
 
 **Applied to:**
+
 - `GET /api/categories` — List categories
 - `GET /api/categories/:id` — Get category details
 - `GET /api/reviews` — List reviews
@@ -56,6 +59,7 @@ Blue Collar API implements multi-tier rate limiting to protect public and authen
 **Limit:** 10 requests per IP
 
 **Applied to:**
+
 - `POST /api/wallet/testnet-fund` — Fund testnet account
 - `POST /api/wallet/broadcast` — Broadcast Stellar transaction
 
@@ -74,19 +78,19 @@ Rate limiter configuration is centralized in `packages/api/src/config/rateLimite
 
 ```typescript
 export const strictAuthRateLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,  // 15 minutes
-  max: 5,                    // 5 requests
-  standardHeaders: true,     // RateLimit-* headers
-  legacyHeaders: false,      // X-RateLimit-* headers
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // 5 requests
+  standardHeaders: true, // RateLimit-* headers
+  legacyHeaders: false, // X-RateLimit-* headers
   handler: (_req, res) => {
-    res.setHeader('Retry-After', '900') // 900 seconds = 15 minutes
+    res.setHeader('Retry-After', '900'); // 900 seconds = 15 minutes
     res.status(429).json({
       status: 'error',
       message: 'Too many requests, please try again later.',
       code: 429,
-    })
+    });
   },
-})
+});
 ```
 
 ## Response Format
@@ -102,6 +106,7 @@ When rate limit is exceeded, the API returns HTTP 429 with:
 ```
 
 **Headers:**
+
 - `RateLimit-Limit`: Maximum requests in window
 - `RateLimit-Remaining`: Requests remaining in current window
 - `RateLimit-Reset`: UNIX timestamp when limit resets
@@ -182,21 +187,21 @@ done
 To apply a different rate limiter to a specific route:
 
 ```typescript
-import { publicReadRateLimiter, publicWriteRateLimiter } from '../config/rateLimiter.js'
+import { publicReadRateLimiter, publicWriteRateLimiter } from '../config/rateLimiter.js';
 
 // Use public read limit
-router.get('/list', publicReadRateLimiter, listHandler)
+router.get('/list', publicReadRateLimiter, listHandler);
 
 // Use stricter public write limit
-router.post('/fund', publicWriteRateLimiter, fundHandler)
+router.post('/fund', publicWriteRateLimiter, fundHandler);
 
 // Create custom limit for specific route
-import rateLimit from 'express-rate-limit'
+import rateLimit from 'express-rate-limit';
 const customLimiter = rateLimit({
-  windowMs: 60 * 1000,  // 1 minute
-  max: 2,               // 2 requests
-})
-router.post('/critical', customLimiter, handler)
+  windowMs: 60 * 1000, // 1 minute
+  max: 2, // 2 requests
+});
+router.post('/critical', customLimiter, handler);
 ```
 
 ### Dynamic Rate Limiting
@@ -205,21 +210,21 @@ For advanced use cases, implement dynamic rate limiting based on user tier or re
 
 ```typescript
 const dynamicLimiter = (req, res, next) => {
-  const user = req.user
-  const limit = user?.tier === 'premium' ? 1000 : 100
+  const user = req.user;
+  const limit = user?.tier === 'premium' ? 1000 : 100;
   // Apply rate limit logic...
-  next()
-}
+  next();
+};
 ```
 
 ## Troubleshooting
 
-| Issue | Cause | Solution |
-|-------|-------|----------|
-| "Too many requests" error | Rate limit exceeded | Wait for reset (Retry-After header) or upgrade to premium tier |
-| Rate limits not working | Redis unavailable | Check Redis connectivity; limiter fails open (allows all requests) |
-| X-Forwarded-For mismatch | Proxy misconfiguration | Ensure X-Forwarded-For header is properly set by load balancer |
-| Legitimate traffic blocked | Limits too strict | Increase limits or implement user-specific higher tiers |
+| Issue                      | Cause                  | Solution                                                           |
+| -------------------------- | ---------------------- | ------------------------------------------------------------------ |
+| "Too many requests" error  | Rate limit exceeded    | Wait for reset (Retry-After header) or upgrade to premium tier     |
+| Rate limits not working    | Redis unavailable      | Check Redis connectivity; limiter fails open (allows all requests) |
+| X-Forwarded-For mismatch   | Proxy misconfiguration | Ensure X-Forwarded-For header is properly set by load balancer     |
+| Legitimate traffic blocked | Limits too strict      | Increase limits or implement user-specific higher tiers            |
 
 ## References
 

@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import LoadingState from "@/components/LoadingState";
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { ArrowLeft, Search } from "lucide-react";
-import Link from "next/link";
-import { useAuth } from "@/context/AuthContext";
-import { useToast } from "@/hooks/useToast";
-import { useModerationQueue, useModerateReview } from "@/hooks/queries";
-import ModerationReviewCard from "@/components/dashboard/admin/moderation/ModerationReviewCard";
+import LoadingState from '@/components/LoadingState';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { ArrowLeft, Search } from 'lucide-react';
+import Link from 'next/link';
+import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/hooks/useToast';
+import { useModerationQueue, useModerateReview } from '@/hooks/queries';
+import ModerationReviewCard from '@/components/dashboard/admin/moderation/ModerationReviewCard';
 
 export default function AdminModerationPage() {
   const { user } = useAuth();
@@ -20,29 +20,31 @@ export default function AdminModerationPage() {
   const loading = queueQuery.isLoading;
 
   const moderateReview = useModerateReview();
-  const actionLoading = moderateReview.isPending ? moderateReview.variables?.reviewId ?? null : null;
+  const actionLoading = moderateReview.isPending
+    ? (moderateReview.variables?.reviewId ?? null)
+    : null;
 
   useEffect(() => {
-    if (user && user.role !== "admin") {
-      router.push("/");
+    if (user && user.role !== 'admin') {
+      router.push('/');
     }
   }, [user, router]);
 
   useEffect(() => {
-    if (queueQuery.isError) toast("Failed to load moderation queue", "error");
+    if (queueQuery.isError) toast('Failed to load moderation queue', 'error');
   }, [queueQuery.isError, toast]);
 
-  const handleModerate = (reviewId: string, action: "approve" | "reject") => {
+  const handleModerate = (reviewId: string, action: 'approve' | 'reject') => {
     moderateReview.mutate(
       { reviewId, action },
       {
-        onSuccess: () => toast(`Review ${action}d`, "success"),
-        onError: () => toast("Failed to moderate review", "error"),
-      }
+        onSuccess: () => toast(`Review ${action}d`, 'success'),
+        onError: () => toast('Failed to moderate review', 'error'),
+      },
     );
   };
 
-  if (!user || user.role !== "admin") return null;
+  if (!user || user.role !== 'admin') return null;
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">

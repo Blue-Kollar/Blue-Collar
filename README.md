@@ -169,16 +169,16 @@ boundaries) are recorded in the [ADR index](docs/adr/README.md).
 
 ## Packages
 
-| Package | Purpose |
-| --- | --- |
-| [API](packages/api/README.md) | REST API for the BlueCollar platform and its worker listings. |
-| [App](packages/app/README.md) | Next.js web frontend for discovering and connecting with skilled workers. |
-| [Contracts](packages/contracts/README.md) | Stellar Soroban smart contracts that power the BlueCollar protocol. |
-| [Mobile](packages/mobile/README.md) | Expo-based React Native app for browsing workers and using BlueCollar services. |
-| [Monitoring](packages/monitoring/README.md) | Contract event monitoring, balance tracking, and alerting. |
-| [SDK](packages/sdk/README.md) | Shared SDK for interacting with Stellar and BlueCollar contracts. See the [SDK usage guide](packages/sdk/README.md) for install instructions, public methods, and examples. |
-| [Test Utils](packages/test-utils/README.md) | Shared test factories and rendering helpers for workspace packages. |
-| [Types](packages/types/README.md) | Shared TypeScript types, DTOs, and Zod validation schemas. |
+| Package                                     | Purpose                                                                                                                                                                     |
+| ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [API](packages/api/README.md)               | REST API for the BlueCollar platform and its worker listings.                                                                                                               |
+| [App](packages/app/README.md)               | Next.js web frontend for discovering and connecting with skilled workers.                                                                                                   |
+| [Contracts](packages/contracts/README.md)   | Stellar Soroban smart contracts that power the BlueCollar protocol.                                                                                                         |
+| [Mobile](packages/mobile/README.md)         | Expo-based React Native app for browsing workers and using BlueCollar services.                                                                                             |
+| [Monitoring](packages/monitoring/README.md) | Contract event monitoring, balance tracking, and alerting.                                                                                                                  |
+| [SDK](packages/sdk/README.md)               | Shared SDK for interacting with Stellar and BlueCollar contracts. See the [SDK usage guide](packages/sdk/README.md) for install instructions, public methods, and examples. |
+| [Test Utils](packages/test-utils/README.md) | Shared test factories and rendering helpers for workspace packages.                                                                                                         |
+| [Types](packages/types/README.md)           | Shared TypeScript types, DTOs, and Zod validation schemas.                                                                                                                  |
 
 All top-level packages currently have a README; no missing-README follow-up is needed.
 
@@ -206,13 +206,13 @@ Stellar **Soroban** smart contracts written in **Rust**.
 
 Five contracts are deployed across the protocol:
 
-| Contract | Location | Purpose |
-|---|---|---|
-| **Registry** | `contracts/registry/` | Worker registration, reputation, staking, categories, badges |
-| **Market** | `contracts/market/` | Tips, escrow, multi-sig payments, arbitration |
-| **Dispute** | `contracts/dispute/` | Dispute filing, evidence, arbitrator resolution |
-| **FeeDistribution** | `contracts/fee_distribution/` | Fee collection, multi-recipient splits |
-| **InsurancePool** | `contracts/insurance_pool/` | Contribution pool, claims management |
+| Contract            | Location                      | Purpose                                                      |
+| ------------------- | ----------------------------- | ------------------------------------------------------------ |
+| **Registry**        | `contracts/registry/`         | Worker registration, reputation, staking, categories, badges |
+| **Market**          | `contracts/market/`           | Tips, escrow, multi-sig payments, arbitration                |
+| **Dispute**         | `contracts/dispute/`          | Dispute filing, evidence, arbitrator resolution              |
+| **FeeDistribution** | `contracts/fee_distribution/` | Fee collection, multi-recipient splits                       |
+| **InsurancePool**   | `contracts/insurance_pool/`   | Contribution pool, claims management                         |
 
 All contracts are compiled to WASM and deployed to the Stellar network (testnet / mainnet).
 
@@ -232,13 +232,13 @@ React Native mobile app built with **Expo**. Features secure authentication with
 
 **Key modules:**
 
-| Module | Purpose |
-|--------|---------|
-| `auth/SecureStorage.ts` | Hardware-backed token storage (Keychain/Keystore) |
-| `auth/BiometricAuth.ts` | Biometric authentication (Face ID, Touch ID, Fingerprint) |
-| `context/AuthContext.tsx` | Authentication state management |
-| `screens/BiometricSettingsScreen.tsx` | Biometric unlock settings |
-| `screens/AppLockScreen.tsx` | Biometric unlock prompt |
+| Module                                | Purpose                                                   |
+| ------------------------------------- | --------------------------------------------------------- |
+| `auth/SecureStorage.ts`               | Hardware-backed token storage (Keychain/Keystore)         |
+| `auth/BiometricAuth.ts`               | Biometric authentication (Face ID, Touch ID, Fingerprint) |
+| `context/AuthContext.tsx`             | Authentication state management                           |
+| `screens/BiometricSettingsScreen.tsx` | Biometric unlock settings                                 |
+| `screens/AppLockScreen.tsx`           | Biometric unlock prompt                                   |
 
 **Tech stack:** React Native · Expo · expo-secure-store · expo-local-authentication
 
@@ -520,6 +520,7 @@ Use the production runbook in [docs/PRODUCTION_DEPLOYMENT.md](./docs/PRODUCTION_
 Check service health and uptime status at [status.bluecollar.app](https://status.bluecollar.app)
 
 We monitor critical endpoints every 60 seconds:
+
 - API health check (`/health`)
 - API readiness check (`/ready`)
 - Frontend application
@@ -546,12 +547,12 @@ All PRs require passing CI checks.
 
 ### Contribution Areas
 
-| Area | Guide |
-|---|---|
-| Code (API, App, Contracts) | [CONTRIBUTING.md](./CONTRIBUTING.md) |
-| First contribution walkthrough | [docs/CONTRIBUTING_GUIDE.md](./docs/CONTRIBUTING_GUIDE.md) |
-| Translations & localization | [docs/i18n-translations.md](./docs/i18n-translations.md) |
-| Stellar wallet integration | [docs/stellar-wallet-integration.md](./docs/stellar-wallet-integration.md) |
+| Area                           | Guide                                                                      |
+| ------------------------------ | -------------------------------------------------------------------------- |
+| Code (API, App, Contracts)     | [CONTRIBUTING.md](./CONTRIBUTING.md)                                       |
+| First contribution walkthrough | [docs/CONTRIBUTING_GUIDE.md](./docs/CONTRIBUTING_GUIDE.md)                 |
+| Translations & localization    | [docs/i18n-translations.md](./docs/i18n-translations.md)                   |
+| Stellar wallet integration     | [docs/stellar-wallet-integration.md](./docs/stellar-wallet-integration.md) |
 
 ---
 
@@ -562,7 +563,9 @@ MIT © BlueCollar Contributors
 ## Handsoff notes
 
 <!-- handsoff-issue-1453 -->
+
 - #1453: [Testing] Add E2E coverage for dispute-filing and resolution flow
 
 <!-- handsoff-issue-1456 -->
+
 - #1456: [Testing] Add unit tests for `packages/mobile/src/auth` achieving 90%+ coverage

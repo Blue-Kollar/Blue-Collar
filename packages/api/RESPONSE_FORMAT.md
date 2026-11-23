@@ -22,16 +22,16 @@ All Blue-Collar API endpoints return JSON responses with a consistent structure.
   "status": "success",
   "code": 200,
   "message": "Optional human-readable message",
-  "data": { }
+  "data": {}
 }
 ```
 
-| Field     | Type                     | Required | Description                                                 |
-|-----------|--------------------------|----------|-------------------------------------------------------------|
-| `status`  | `"success"`              | Yes      | Always `"success"` for non-error responses                  |
-| `code`    | `number`                 | Yes      | Mirrors the HTTP status code (`200`, `201`, `202`, etc.)    |
-| `data`    | `object` \| `array`      | No       | The returned resource or collection; omitted for 204 and message-only responses |
-| `message` | `string`                 | No       | Present on action endpoints (login, verify, delete, etc.)   |
+| Field     | Type                | Required | Description                                                                     |
+| --------- | ------------------- | -------- | ------------------------------------------------------------------------------- |
+| `status`  | `"success"`         | Yes      | Always `"success"` for non-error responses                                      |
+| `code`    | `number`            | Yes      | Mirrors the HTTP status code (`200`, `201`, `202`, etc.)                        |
+| `data`    | `object` \| `array` | No       | The returned resource or collection; omitted for 204 and message-only responses |
+| `message` | `string`            | No       | Present on action endpoints (login, verify, delete, etc.)                       |
 
 ### Single Resource — 200 OK
 
@@ -171,15 +171,15 @@ All errors follow one of two shapes depending on where they originate.
 }
 ```
 
-| Field             | Type      | Required | Description                                                                         |
-|-------------------|-----------|----------|-------------------------------------------------------------------------------------|
-| `status`          | `"error"` | Yes      | Always `"error"`                                                                    |
-| `message`         | `string`  | Yes      | Human-readable description of what went wrong                                       |
-| `code`            | `number`  | Yes      | HTTP status code                                                                    |
-| `errorCode`       | `string`  | No       | Machine-readable error code (see [Error Codes](#error-codes) below)                 |
+| Field             | Type      | Required | Description                                                                              |
+| ----------------- | --------- | -------- | ---------------------------------------------------------------------------------------- |
+| `status`          | `"error"` | Yes      | Always `"error"`                                                                         |
+| `message`         | `string`  | Yes      | Human-readable description of what went wrong                                            |
+| `code`            | `number`  | Yes      | HTTP status code                                                                         |
+| `errorCode`       | `string`  | No       | Machine-readable error code (see [Error Codes](#error-codes) below)                      |
 | `traceId`         | `string`  | No       | OpenTelemetry trace ID; present in production for debugging with the observability stack |
-| `stack`           | `string`  | No       | Stack trace — development environment only                                           |
-| `originalMessage` | `string`  | No       | Underlying error message — development environment only                              |
+| `stack`           | `string`  | No       | Stack trace — development environment only                                               |
+| `originalMessage` | `string`  | No       | Underlying error message — development environment only                                  |
 
 ### Structure (Validation Errors)
 
@@ -197,27 +197,27 @@ Validation failures from the Zod middleware include a field-level `errors` map i
 }
 ```
 
-| Field    | Type                              | Description                                                      |
-|----------|-----------------------------------|------------------------------------------------------------------|
-| `errors` | `Record<string, string[]>`        | Map of field path → array of validation messages for that field  |
+| Field    | Type                       | Description                                                     |
+| -------- | -------------------------- | --------------------------------------------------------------- |
+| `errors` | `Record<string, string[]>` | Map of field path → array of validation messages for that field |
 
 ### Error Codes
 
 The `errorCode` field uses the following string values:
 
-| `errorCode`            | HTTP Status | Scenario                                              |
-|------------------------|-------------|-------------------------------------------------------|
-| `UNAUTHORIZED`         | 401         | Request requires authentication                       |
-| `FORBIDDEN`            | 403         | Authenticated user lacks permission                   |
-| `INVALID_CREDENTIALS`  | 401         | Email/password combination is incorrect               |
-| `ACCOUNT_NOT_VERIFIED` | 403         | Email address has not been verified                   |
-| `TOKEN_EXPIRED`        | 401         | JWT access or refresh token has expired               |
-| `TOKEN_INVALID`        | 401         | JWT token is malformed or tampered                    |
-| `NOT_FOUND`            | 404         | Requested resource does not exist                     |
-| `CONFLICT`             | 409         | Resource already exists (e.g. duplicate email)        |
-| `VALIDATION_ERROR`     | 400         | Input failed schema validation                        |
-| `INTERNAL_ERROR`       | 500         | Unexpected server error                               |
-| `SERVICE_UNAVAILABLE`  | 503         | Downstream dependency is unavailable                  |
+| `errorCode`            | HTTP Status | Scenario                                       |
+| ---------------------- | ----------- | ---------------------------------------------- |
+| `UNAUTHORIZED`         | 401         | Request requires authentication                |
+| `FORBIDDEN`            | 403         | Authenticated user lacks permission            |
+| `INVALID_CREDENTIALS`  | 401         | Email/password combination is incorrect        |
+| `ACCOUNT_NOT_VERIFIED` | 403         | Email address has not been verified            |
+| `TOKEN_EXPIRED`        | 401         | JWT access or refresh token has expired        |
+| `TOKEN_INVALID`        | 401         | JWT token is malformed or tampered             |
+| `NOT_FOUND`            | 404         | Requested resource does not exist              |
+| `CONFLICT`             | 409         | Resource already exists (e.g. duplicate email) |
+| `VALIDATION_ERROR`     | 400         | Input failed schema validation                 |
+| `INTERNAL_ERROR`       | 500         | Unexpected server error                        |
+| `SERVICE_UNAVAILABLE`  | 503         | Downstream dependency is unavailable           |
 
 ### 400 Validation Error
 
@@ -328,7 +328,7 @@ Used by endpoints that accept `page` and `limit` query parameters (e.g. `GET /ap
 {
   "status": "success",
   "code": 200,
-  "data": [ ],
+  "data": [],
   "meta": {
     "total": 142,
     "page": 2,
@@ -338,12 +338,12 @@ Used by endpoints that accept `page` and `limit` query parameters (e.g. `GET /ap
 }
 ```
 
-| `meta` Field | Type      | Description                              |
-|--------------|-----------|------------------------------------------|
-| `total`      | `number`  | Total records matching the applied filter |
-| `page`       | `number`  | Current page number (1-based)            |
-| `limit`      | `number`  | Maximum records returned per page        |
-| `pages`      | `number`  | Total number of pages (`ceil(total / limit)`) |
+| `meta` Field | Type     | Description                                   |
+| ------------ | -------- | --------------------------------------------- |
+| `total`      | `number` | Total records matching the applied filter     |
+| `page`       | `number` | Current page number (1-based)                 |
+| `limit`      | `number` | Maximum records returned per page             |
+| `pages`      | `number` | Total number of pages (`ceil(total / limit)`) |
 
 **cURL example — page 2 of workers:**
 
@@ -431,17 +431,17 @@ Used by the workers list endpoint when no `page` parameter is supplied. The clie
 {
   "status": "success",
   "code": 200,
-  "data": [ ],
+  "data": [],
   "nextCursor": "clx9abc123",
   "limit": 20
 }
 ```
 
-| Field        | Type              | Description                                                       |
-|--------------|-------------------|-------------------------------------------------------------------|
-| `data`       | `array`           | The current page of results                                       |
-| `nextCursor` | `string` \| `null`| ID of the last item in this page; `null` when there are no more results |
-| `limit`      | `number`          | Number of records requested                                       |
+| Field        | Type               | Description                                                             |
+| ------------ | ------------------ | ----------------------------------------------------------------------- |
+| `data`       | `array`            | The current page of results                                             |
+| `nextCursor` | `string` \| `null` | ID of the last item in this page; `null` when there are no more results |
+| `limit`      | `number`           | Number of records requested                                             |
 
 **cURL example — first page:**
 
@@ -485,7 +485,7 @@ When `nextCursor` is `null`, the last page has been reached:
 {
   "status": "success",
   "code": 200,
-  "data": [ ],
+  "data": [],
   "nextCursor": null,
   "limit": 20
 }

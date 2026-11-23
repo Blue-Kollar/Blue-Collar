@@ -11,7 +11,7 @@ export {
   sanitize,
   sanitizeBody,
   sanitizeParams,
-} from '@/middleware/sanitize.js'
+} from '@/middleware/sanitize.js';
 
 /** Backwards-compatible alias for {@link sanitizeText}. */
-export { sanitizeText as sanitizeString } from '@/middleware/sanitize.js'
+export { sanitizeText as sanitizeString } from '@/middleware/sanitize.js';

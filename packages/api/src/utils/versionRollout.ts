@@ -3,20 +3,20 @@
  * Supports canary deployments, traffic splitting, and feature flags
  */
 
-import type { Request, Response, NextFunction } from 'express'
+import type { Request, Response, NextFunction } from 'express';
 
 export interface RolloutConfig {
-  version: string
-  enabled: boolean
-  trafficPercentage: number
-  userGroups?: string[]
-  featureFlags?: Record<string, boolean>
+  version: string;
+  enabled: boolean;
+  trafficPercentage: number;
+  userGroups?: string[];
+  featureFlags?: Record<string, boolean>;
 }
 
 declare global {
   namespace Express {
     interface Request {
-      rolloutConfig?: RolloutConfig
+      rolloutConfig?: RolloutConfig;
     }
   }
 }
@@ -40,73 +40,73 @@ export const ROLLOUT_CONFIG: Record<string, RolloutConfig> = {
       twoFactorAuth: true,
     },
   },
-}
+};
 
 /**
  * Check if version should handle request based on rollout config
  */
 export function isVersionEnabled(version: string, userId?: string): boolean {
-  const config = ROLLOUT_CONFIG[version]
-  if (!config || !config.enabled) return false
+  const config = ROLLOUT_CONFIG[version];
+  if (!config || !config.enabled) return false;
 
   // Check traffic percentage
   if (config.trafficPercentage < 100) {
     // Use consistent hashing for user-based canary
     if (userId) {
-      const hash = hashUserId(userId)
-      return (hash % 100) < config.trafficPercentage
+      const hash = hashUserId(userId);
+      return hash % 100 < config.trafficPercentage;
     }
     // Use random for anonymous
-    return Math.random() * 100 < config.trafficPercentage
+    return Math.random() * 100 < config.trafficPercentage;
   }
 
-  return true
+  return true;
 }
 
 /**
  * Simple hash function for user ID-based routing
  */
 function hashUserId(userId: string): number {
-  let hash = 0
+  let hash = 0;
   for (let i = 0; i < userId.length; i++) {
-    const char = userId.charCodeAt(i)
-    hash = (hash << 5) - hash + char
-    hash = hash & hash // Convert to 32-bit integer
+    const char = userId.charCodeAt(i);
+    hash = (hash << 5) - hash + char;
+    hash = hash & hash; // Convert to 32-bit integer
   }
-  return Math.abs(hash)
+  return Math.abs(hash);
 }
 
 /**
  * Get canary deployment statistics
  */
 export function getCanaryStats(version: string): {
-  enabled: boolean
-  trafficPercentage: number
-  status: 'stable' | 'canary' | 'disabled'
+  enabled: boolean;
+  trafficPercentage: number;
+  status: 'stable' | 'canary' | 'disabled';
 } {
-  const config = ROLLOUT_CONFIG[version]
-  
+  const config = ROLLOUT_CONFIG[version];
+
   if (!config || !config.enabled) {
-    return { enabled: false, trafficPercentage: 0, status: 'disabled' }
+    return { enabled: false, trafficPercentage: 0, status: 'disabled' };
   }
 
   if (config.trafficPercentage === 100) {
-    return { enabled: true, trafficPercentage: 100, status: 'stable' }
+    return { enabled: true, trafficPercentage: 100, status: 'stable' };
   }
 
   return {
     enabled: true,
     trafficPercentage: config.trafficPercentage,
     status: 'canary',
-  }
+  };
 }
 
 /**
  * Middleware to enforce version rollout policies
  */
 export function versionRolloutMiddleware(req: Request, res: Response, next: NextFunction) {
-  const version = req.apiVersion || 'v1'
-  const userId = req.user?.id
+  const version = req.apiVersion || 'v1';
+  const userId = req.user?.id;
 
   if (!isVersionEnabled(version, userId)) {
     return res.status(503).json({
@@ -114,24 +114,24 @@ export function versionRolloutMiddleware(req: Request, res: Response, next: Next
       message: `Version ${version} is not currently available. Please use v1.`,
       code: 503,
       availableVersions: Object.keys(ROLLOUT_CONFIG)
-        .filter(v => isVersionEnabled(v, userId))
-        .map(v => ({ version: v, ...getCanaryStats(v) })),
-    })
+        .filter((v) => isVersionEnabled(v, userId))
+        .map((v) => ({ version: v, ...getCanaryStats(v) })),
+    });
   }
 
   // Store rollout info in request
-  req.rolloutConfig = ROLLOUT_CONFIG[version]
+  req.rolloutConfig = ROLLOUT_CONFIG[version];
 
-  next()
+  next();
 }
 
 /**
  * Get feature flag status for a version
  */
 export function isFeatureEnabled(version: string, featureName: string): boolean {
-  const config = ROLLOUT_CONFIG[version]
-  if (!config) return false
-  return config.featureFlags?.[featureName] ?? false
+  const config = ROLLOUT_CONFIG[version];
+  if (!config) return false;
+  return config.featureFlags?.[featureName] ?? false;
 }
 
 /**
@@ -139,7 +139,7 @@ export function isFeatureEnabled(version: string, featureName: string): boolean 
  */
 export function featureFlagMiddleware(featureName: string) {
   return (req: Request, res: Response, next: NextFunction) => {
-    const version = req.apiVersion || 'v1'
+    const version = req.apiVersion || 'v1';
 
     if (!isFeatureEnabled(version, featureName)) {
       return res.status(400).json({
@@ -147,13 +147,13 @@ export function featureFlagMiddleware(featureName: string) {
         message: `Feature ${featureName} is not available in version ${version}`,
         code: 400,
         availableIn: Object.keys(ROLLOUT_CONFIG)
-          .filter(v => isFeatureEnabled(v, featureName))
-          .map(v => ({ version: v, ...getCanaryStats(v) })),
-      })
+          .filter((v) => isFeatureEnabled(v, featureName))
+          .map((v) => ({ version: v, ...getCanaryStats(v) })),
+      });
     }
 
-    next()
-  }
+    next();
+  };
 }
 
 /**
@@ -161,20 +161,20 @@ export function featureFlagMiddleware(featureName: string) {
  */
 export function updateRolloutConfig(
   version: string,
-  updates: Partial<RolloutConfig>
+  updates: Partial<RolloutConfig>,
 ): RolloutConfig | null {
-  const current = ROLLOUT_CONFIG[version]
+  const current = ROLLOUT_CONFIG[version];
   if (!current) {
-    return null
+    return null;
   }
 
   const updated: RolloutConfig = {
     ...current,
     ...updates,
-  }
+  };
 
-  ROLLOUT_CONFIG[version] = updated
-  return updated
+  ROLLOUT_CONFIG[version] = updated;
+  return updated;
 }
 
 /**
@@ -189,82 +189,82 @@ export function getRolloutStatus(): Record<string, unknown> {
         trafficPercentage: config.trafficPercentage,
         status: getCanaryStats(version).status,
         featureFlags: config.featureFlags || {},
-      }
-      return acc
+      };
+      return acc;
     },
-    {} as Record<string, unknown>
-  )
+    {} as Record<string, unknown>,
+  );
 }
 
 /**
  * Endpoint for querying rollout status
  */
 export function getRolloutStatusEndpoint(req: Request, res: Response) {
-  const status = getRolloutStatus()
+  const status = getRolloutStatus();
   res.json({
     status: 'success',
     data: status,
     timestamp: new Date().toISOString(),
-  })
+  });
 }
 
 /**
  * Admin endpoint to update rollout configuration
  */
 export function updateRolloutEndpoint(req: Request, res: Response) {
-  const { version, trafficPercentage, enabled, featureFlags } = req.body
+  const { version, trafficPercentage, enabled, featureFlags } = req.body;
 
   if (!version) {
     return res.status(400).json({
       status: 'error',
       message: 'version is required',
       code: 400,
-    })
+    });
   }
 
   const updated = updateRolloutConfig(version, {
     trafficPercentage,
     enabled,
     featureFlags,
-  })
+  });
 
   if (!updated) {
     return res.status(404).json({
       status: 'error',
       message: `Version ${version} not found`,
       code: 404,
-    })
+    });
   }
 
   res.json({
     status: 'success',
     message: `Updated rollout config for ${version}`,
     data: updated,
-  })
+  });
 }
 
 /**
  * Gradual rollout helper for phased deployments
  */
 export class GradualRollout {
-  private version: string
-  private phases: Array<{ percentage: number; durationMs: number }>
-  private currentPhaseIndex: number
-  private phaseStartTime: number
+  private version: string;
+  private phases: Array<{ percentage: number; durationMs: number }>;
+  private currentPhaseIndex: number;
+  private phaseStartTime: number;
 
   constructor(version: string, phases: Array<{ percentage: number; durationMs: number }>) {
-    this.version = version
-    this.phases = phases
-    this.currentPhaseIndex = 0
-    this.phaseStartTime = Date.now()
+    this.version = version;
+    this.phases = phases;
+    this.currentPhaseIndex = 0;
+    this.phaseStartTime = Date.now();
   }
 
   /**
    * Get current phase percentage
    */
   getCurrentPercentage(): number {
-    const phase = this.phases[this.currentPhaseIndex]
-    return phase?.percentage ?? 0
+    const phase = this.phases[this.currentPhaseIndex];
+    return phase?.percentage ?? 0;
   }
 
   /**
@@ -272,22 +272,22 @@ export class GradualRollout {
    */
   checkAdvance(): boolean {
     if (this.currentPhaseIndex >= this.phases.length - 1) {
-      return false
+      return false;
     }
 
-    const currentPhase = this.phases[this.currentPhaseIndex]
-    const elapsed = Date.now() - this.phaseStartTime
+    const currentPhase = this.phases[this.currentPhaseIndex];
+    const elapsed = Date.now() - this.phaseStartTime;
 
     if (currentPhase && elapsed > currentPhase.durationMs) {
-      this.currentPhaseIndex++
-      this.phaseStartTime = Date.now()
+      this.currentPhaseIndex++;
+      this.phaseStartTime = Date.now();
       updateRolloutConfig(this.version, {
         trafficPercentage: this.getCurrentPercentage(),
-      })
-      return true
+      });
+      return true;
     }
 
-    return false
+    return false;
   }
 
   /**
@@ -301,6 +301,6 @@ export class GradualRollout {
       currentPercentage: this.getCurrentPercentage(),
       phases: this.phases,
       timeInCurrentPhase: Date.now() - this.phaseStartTime,
-    }
+    };
   }
 }

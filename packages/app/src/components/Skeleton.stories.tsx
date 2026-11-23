@@ -1,24 +1,24 @@
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/react';
 
 const Skeleton = ({ width = 'w-full', height = 'h-4', className = '' }: any) => (
   <div className={`${width} ${height} bg-gray-200 rounded animate-pulse ${className}`} />
-)
+);
 
 const meta: Meta<typeof Skeleton> = {
   title: 'Components/Skeleton',
   component: Skeleton,
   tags: ['autodocs'],
-}
+};
 
-export default meta
-type Story = StoryObj<typeof meta>
+export default meta;
+type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   args: {
     width: 'w-full',
     height: 'h-4',
   },
-}
+};
 
 export const Card: Story = {
   render: () => (
@@ -29,7 +29,7 @@ export const Card: Story = {
       <Skeleton height="h-8 w-1/3" />
     </div>
   ),
-}
+};
 
 export const Avatar: Story = {
   args: {
@@ -37,4 +37,4 @@ export const Avatar: Story = {
     height: 'h-12',
     className: 'rounded-full',
   },
-}
+};

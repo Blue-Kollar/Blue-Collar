@@ -52,12 +52,12 @@ make fuzz-tip
 
 ### Fuzzing Options
 
-| Option | Description |
-|--------|-------------|
-| `-max_len=N` | Maximum input size in bytes (default: 4096) |
-| `-timeout=N` | Timeout per input in seconds (default: 1200) |
-| `-runs=N` | Number of fuzzing iterations (default: unlimited) |
-| `-artifact_prefix=DIR` | Directory to save crash artifacts |
+| Option                 | Description                                       |
+| ---------------------- | ------------------------------------------------- |
+| `-max_len=N`           | Maximum input size in bytes (default: 4096)       |
+| `-timeout=N`           | Timeout per input in seconds (default: 1200)      |
+| `-runs=N`              | Number of fuzzing iterations (default: unlimited) |
+| `-artifact_prefix=DIR` | Directory to save crash artifacts                 |
 
 Example: Run for 1 hour with crash artifacts:
 
@@ -76,6 +76,7 @@ cargo +nightly fuzz run fuzz_register -- \
 **What it tests:** Registry contract's `register` function with arbitrary worker names, categories, and IDs.
 
 **Invariants checked:**
+
 - Function never panics with arbitrary string inputs
 - Registered workers are stored correctly
 - Worker is marked as active after registration
@@ -87,6 +88,7 @@ cargo +nightly fuzz run fuzz_register -- \
 **What it tests:** Market contract's `tip` function with arbitrary amounts and fee rates.
 
 **Invariants checked:**
+
 - Function never panics with arbitrary amounts
 - Fee calculations are correct
 - Token transfers are accurate
@@ -145,7 +147,7 @@ Or run on a weekly schedule:
 ```yaml
 on:
   schedule:
-    - cron: '0 0 * * 0'  # Weekly on Sunday
+    - cron: '0 0 * * 0' # Weekly on Sunday
 ```
 
 ## Common Issues

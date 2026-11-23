@@ -21,14 +21,14 @@ A step-by-step walkthrough for new contributors to get the BlueCollar monorepo r
 
 Install these tools before you start:
 
-| Tool | Version | Install |
-|---|---|---|
-| Node.js | >= 20 | [nodejs.org](https://nodejs.org) |
-| pnpm | >= 9 | `npm i -g pnpm` |
-| PostgreSQL | >= 14 | [postgresql.org](https://www.postgresql.org/download/) or Docker |
-| Git | any | [git-scm.com](https://git-scm.com) |
-| Rust | stable | `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \| sh` |
-| Docker (optional) | any | [docker.com](https://www.docker.com/get-started/) |
+| Tool              | Version | Install                                                           |
+| ----------------- | ------- | ----------------------------------------------------------------- |
+| Node.js           | >= 20   | [nodejs.org](https://nodejs.org)                                  |
+| pnpm              | >= 9    | `npm i -g pnpm`                                                   |
+| PostgreSQL        | >= 14   | [postgresql.org](https://www.postgresql.org/download/) or Docker  |
+| Git               | any     | [git-scm.com](https://git-scm.com)                                |
+| Rust              | stable  | `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \| sh` |
+| Docker (optional) | any     | [docker.com](https://www.docker.com/get-started/)                 |
 
 Verify your setup:
 
@@ -83,23 +83,23 @@ cp packages/api/.env.example packages/api/.env
 
 Open `packages/api/.env` and fill in the required values:
 
-| Variable | Required | Example |
-|---|---|---|
-| `DATABASE_URL` | Yes | `postgresql://user:pass@localhost:5432/bluecollar` |
-| `TEST_DATABASE_URL` | Yes (for tests) | `postgresql://user:pass@localhost:5432/bluecollar_test` |
-| `JWT_SECRET` | Yes | `openssl rand -hex 32` output |
-| `PORT` | No | `3000` |
-| `NODE_ENV` | No | `development` |
-| `APP_URL` | No | `http://localhost:3001` |
-| `ALLOWED_ORIGINS` | No | `http://localhost:3001` |
-| `GOOGLE_CLIENT_ID` | No | From Google Cloud Console |
-| `GOOGLE_CLIENT_SECRET` | No | From Google Cloud Console |
-| `MAIL_HOST` | No | `smtp.example.com` |
-| `MAIL_PORT` | No | `587` |
-| `MAIL_USER` | No | `no-reply@example.com` |
-| `MAIL_PASS` | No | Your SMTP password |
-| `VAPID_PUBLIC_KEY` | No | Generate with `npx web-push generate-vapid-keys` |
-| `VAPID_PRIVATE_KEY` | No | Generate with `npx web-push generate-vapid-keys` |
+| Variable               | Required        | Example                                                 |
+| ---------------------- | --------------- | ------------------------------------------------------- |
+| `DATABASE_URL`         | Yes             | `postgresql://user:pass@localhost:5432/bluecollar`      |
+| `TEST_DATABASE_URL`    | Yes (for tests) | `postgresql://user:pass@localhost:5432/bluecollar_test` |
+| `JWT_SECRET`           | Yes             | `openssl rand -hex 32` output                           |
+| `PORT`                 | No              | `3000`                                                  |
+| `NODE_ENV`             | No              | `development`                                           |
+| `APP_URL`              | No              | `http://localhost:3001`                                 |
+| `ALLOWED_ORIGINS`      | No              | `http://localhost:3001`                                 |
+| `GOOGLE_CLIENT_ID`     | No              | From Google Cloud Console                               |
+| `GOOGLE_CLIENT_SECRET` | No              | From Google Cloud Console                               |
+| `MAIL_HOST`            | No              | `smtp.example.com`                                      |
+| `MAIL_PORT`            | No              | `587`                                                   |
+| `MAIL_USER`            | No              | `no-reply@example.com`                                  |
+| `MAIL_PASS`            | No              | Your SMTP password                                      |
+| `VAPID_PUBLIC_KEY`     | No              | Generate with `npx web-push generate-vapid-keys`        |
+| `VAPID_PRIVATE_KEY`    | No              | Generate with `npx web-push generate-vapid-keys`        |
 
 For local development, only `DATABASE_URL`, `JWT_SECRET`, and `PORT` are strictly required. Google OAuth and email features will be unavailable without their respective variables.
 
@@ -156,19 +156,19 @@ pnpm admin:create --email admin@example.com --password secret123 --firstName Jan
 
 #### Useful API scripts
 
-| Script | Description |
-|---|---|
-| `pnpm dev` | Start dev server with hot reload |
-| `pnpm build` | Compile TypeScript to `dist/` |
-| `pnpm test` | Run tests with Vitest (watch mode) |
-| `pnpm test -- --run` | Run tests once (no watch) |
-| `pnpm test:coverage` | Run tests with coverage report |
-| `pnpm migrate` | Run Prisma migrations |
-| `pnpm seed` | Seed default categories |
-| `pnpm admin:create` | Create an admin user via CLI |
-| `pnpm db:reset` | Reset the database (dev only) |
-| `pnpm lint` | Run ESLint |
-| `pnpm format` | Format with Prettier |
+| Script               | Description                        |
+| -------------------- | ---------------------------------- |
+| `pnpm dev`           | Start dev server with hot reload   |
+| `pnpm build`         | Compile TypeScript to `dist/`      |
+| `pnpm test`          | Run tests with Vitest (watch mode) |
+| `pnpm test -- --run` | Run tests once (no watch)          |
+| `pnpm test:coverage` | Run tests with coverage report     |
+| `pnpm migrate`       | Run Prisma migrations              |
+| `pnpm seed`          | Seed default categories            |
+| `pnpm admin:create`  | Create an admin user via CLI       |
+| `pnpm db:reset`      | Reset the database (dev only)      |
+| `pnpm lint`          | Run ESLint                         |
+| `pnpm format`        | Format with Prettier               |
 
 ---
 
@@ -184,13 +184,13 @@ cp packages/app/.env.example packages/app/.env
 
 Open `packages/app/.env` and fill in:
 
-| Variable | Required | Example |
-|---|---|---|
-| `NEXT_PUBLIC_API_URL` | Yes | `http://localhost:3000/api` |
-| `NEXT_PUBLIC_STELLAR_NETWORK` | No | `TESTNET` |
-| `NEXT_PUBLIC_MARKET_CONTRACT_ID` | No | Deployed contract ID |
-| `NEXT_PUBLIC_REGISTRY_CONTRACT_ID` | No | Deployed contract ID |
-| `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | No | Must match API's `VAPID_PUBLIC_KEY` |
+| Variable                           | Required | Example                             |
+| ---------------------------------- | -------- | ----------------------------------- |
+| `NEXT_PUBLIC_API_URL`              | Yes      | `http://localhost:3000/api`         |
+| `NEXT_PUBLIC_STELLAR_NETWORK`      | No       | `TESTNET`                           |
+| `NEXT_PUBLIC_MARKET_CONTRACT_ID`   | No       | Deployed contract ID                |
+| `NEXT_PUBLIC_REGISTRY_CONTRACT_ID` | No       | Deployed contract ID                |
+| `NEXT_PUBLIC_VAPID_PUBLIC_KEY`     | No       | Must match API's `VAPID_PUBLIC_KEY` |
 
 For local development, only `NEXT_PUBLIC_API_URL` is required.
 
@@ -205,12 +205,12 @@ The app is available at `http://localhost:3001`.
 
 #### Useful App scripts
 
-| Script | Description |
-|---|---|
-| `pnpm dev` | Start Next.js dev server |
-| `pnpm build` | Production build |
-| `pnpm test` | Run component tests with Vitest |
-| `pnpm lint` | Run ESLint |
+| Script            | Description                     |
+| ----------------- | ------------------------------- |
+| `pnpm dev`        | Start Next.js dev server        |
+| `pnpm build`      | Production build                |
+| `pnpm test`       | Run component tests with Vitest |
+| `pnpm lint`       | Run ESLint                      |
 | `pnpm type-check` | TypeScript type check (no emit) |
 
 ---
@@ -242,6 +242,7 @@ make build
 ```
 
 Output WASMs:
+
 - `target/wasm32v1-none/release/bluecollar_registry.wasm`
 - `target/wasm32v1-none/release/bluecollar_market.wasm`
 
@@ -261,12 +262,12 @@ cargo test -p bluecollar-market
 
 #### Useful contract scripts
 
-| Command | Description |
-|---|---|
-| `make build` | Build all contracts to WASM |
-| `make test` | Run all contract tests |
+| Command       | Description                      |
+| ------------- | -------------------------------- |
+| `make build`  | Build all contracts to WASM      |
+| `make test`   | Run all contract tests           |
 | `make clippy` | Lint with Clippy (zero warnings) |
-| `make fmt` | Format with `cargo fmt` |
+| `make fmt`    | Format with `cargo fmt`          |
 
 ---
 
@@ -339,11 +340,11 @@ git push origin fix/worker-toggle-auth
 
 Then open a pull request on GitHub against the `main` branch. A PR template will pre-fill — it includes a checklist covering the type of change you made. Use the appropriate issue template when opening issues:
 
-| Issue Type | Template |
-|---|---|
-| Bug Report | `.github/ISSUE_TEMPLATE/bug_report.yml` |
+| Issue Type      | Template                                     |
+| --------------- | -------------------------------------------- |
+| Bug Report      | `.github/ISSUE_TEMPLATE/bug_report.yml`      |
 | Feature Request | `.github/ISSUE_TEMPLATE/feature_request.yml` |
-| Documentation | `.github/ISSUE_TEMPLATE/documentation.yml` |
+| Documentation   | `.github/ISSUE_TEMPLATE/documentation.yml`   |
 
 PR template (`.github/pull_request_template.md`):
 

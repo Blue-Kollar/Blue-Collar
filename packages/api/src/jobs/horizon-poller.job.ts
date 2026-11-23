@@ -12,24 +12,24 @@
  * scheduling concerns (start, stop, logging, concurrency guard).
  */
 
-import { JobRunner } from './job-runner.js'
-import { logger } from '@/config/logger.js'
+import { JobRunner } from './job-runner.js';
+import { logger } from '@/config/logger.js';
 
-const POLL_INTERVAL_MS = 30_000
+const POLL_INTERVAL_MS = 30_000;
 
-const REGISTRY_CONTRACT_ID = process.env.REGISTRY_CONTRACT_ID ?? ''
-const MARKET_CONTRACT_ID = process.env.MARKET_CONTRACT_ID ?? ''
+const REGISTRY_CONTRACT_ID = process.env.REGISTRY_CONTRACT_ID ?? '';
+const MARKET_CONTRACT_ID = process.env.MARKET_CONTRACT_ID ?? '';
 
 /**
  * The poll function is imported lazily so the module compiles even when
  * the Horizon service is not yet configured (e.g. in tests that mock env vars).
  */
 async function pollCycle(): Promise<void> {
-  const { fetchContractEvents } = await import('../services/horizon-poller.service.js')
+  const { fetchContractEvents } = await import('../services/horizon-poller.service.js');
   await Promise.all([
     fetchContractEvents(REGISTRY_CONTRACT_ID),
     fetchContractEvents(MARKET_CONTRACT_ID),
-  ])
+  ]);
 }
 
 /**
@@ -40,11 +40,10 @@ async function pollCycle(): Promise<void> {
  * effectively immediate but non-blocking — here we let the caller control
  * timing via `startHorizonPollerJob`.
  */
-export const horizonPollerJobRunner = new JobRunner(
-  'horizon-poller',
-  pollCycle,
-  { intervalMs: POLL_INTERVAL_MS, runOnStart: true },
-)
+export const horizonPollerJobRunner = new JobRunner('horizon-poller', pollCycle, {
+  intervalMs: POLL_INTERVAL_MS,
+  runOnStart: true,
+});
 
 /**
  * Start the Horizon polling job.
@@ -54,11 +53,11 @@ export function startHorizonPollerJob(): void {
   if (!REGISTRY_CONTRACT_ID && !MARKET_CONTRACT_ID) {
     logger.info(
       'Horizon poller job skipped — no contract IDs configured (REGISTRY_CONTRACT_ID / MARKET_CONTRACT_ID)',
-    )
-    return
+    );
+    return;
   }
-  logger.info({ REGISTRY_CONTRACT_ID, MARKET_CONTRACT_ID }, 'Starting Horizon poller job')
-  horizonPollerJobRunner.start()
+  logger.info({ REGISTRY_CONTRACT_ID, MARKET_CONTRACT_ID }, 'Starting Horizon poller job');
+  horizonPollerJobRunner.start();
 }
 
 /**
@@ -66,5 +65,5 @@ export function startHorizonPollerJob(): void {
  * Called during graceful shutdown or in test teardown.
  */
 export function stopHorizonPollerJob(): void {
-  horizonPollerJobRunner.stop()
+  horizonPollerJobRunner.stop();
 }

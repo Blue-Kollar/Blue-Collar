@@ -25,15 +25,15 @@ gap is visible instead of assumed away.
 
 ### Package boundaries
 
-| Package | Language | Role |
-|---|---|---|
-| `types` | TypeScript | Shared DTOs and API response types. No behavior, no I/O. The one package everything else may depend on freely. |
-| `sdk` | TypeScript | Single source of truth for talking to Stellar — Horizon REST calls and Soroban contract invocations. Exists so contract-calling logic (URLs, request shapes, error handling) isn't reimplemented per consumer. |
-| `contracts` | Rust (Soroban/WASM) | The on-chain protocol itself: `registry`, `market`, `dispute`, `fee_distribution`, `insurance_pool`. Not part of the TypeScript dependency graph — see [Contracts is a boundary, not a dependency](#contracts-is-a-boundary-not-a-dependency) below. |
-| `api` | TypeScript (Express) | The backend of record: auth, business logic, PostgreSQL persistence via Prisma. The only package with direct database access. |
-| `app` | TypeScript (Next.js) | Web frontend. Talks to `api` over HTTP and to the user's wallet (Freighter) directly for signing. |
-| `mobile` | TypeScript (Expo/React Native) | Mobile frontend. Same relationship to `api` as `app` — a second, independent HTTP client, not a dependent of `app`. |
-| `monitoring` | TypeScript (Node) | Standalone observer: watches contract events, tracks balances, fires alerts. Reads from Stellar; writes to nothing else in this repo. |
+| Package      | Language                       | Role                                                                                                                                                                                                                                                 |
+| ------------ | ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `types`      | TypeScript                     | Shared DTOs and API response types. No behavior, no I/O. The one package everything else may depend on freely.                                                                                                                                       |
+| `sdk`        | TypeScript                     | Single source of truth for talking to Stellar — Horizon REST calls and Soroban contract invocations. Exists so contract-calling logic (URLs, request shapes, error handling) isn't reimplemented per consumer.                                       |
+| `contracts`  | Rust (Soroban/WASM)            | The on-chain protocol itself: `registry`, `market`, `dispute`, `fee_distribution`, `insurance_pool`. Not part of the TypeScript dependency graph — see [Contracts is a boundary, not a dependency](#contracts-is-a-boundary-not-a-dependency) below. |
+| `api`        | TypeScript (Express)           | The backend of record: auth, business logic, PostgreSQL persistence via Prisma. The only package with direct database access.                                                                                                                        |
+| `app`        | TypeScript (Next.js)           | Web frontend. Talks to `api` over HTTP and to the user's wallet (Freighter) directly for signing.                                                                                                                                                    |
+| `mobile`     | TypeScript (Expo/React Native) | Mobile frontend. Same relationship to `api` as `app` — a second, independent HTTP client, not a dependent of `app`.                                                                                                                                  |
+| `monitoring` | TypeScript (Node)              | Standalone observer: watches contract events, tracks balances, fires alerts. Reads from Stellar; writes to nothing else in this repo.                                                                                                                |
 
 The split follows **runtime boundaries, not code-reuse convenience**: `api`/`app`/
 `mobile`/`monitoring` are four independently deployed processes, so none of them may
@@ -146,12 +146,13 @@ someone reads the source:
 
 None of these are blocking — they're pre-existing state, not something this ADR
 introduces or requires fixing immediately. They're recorded here so a future PR that
-wires `api`/`app`/`mobile` up to `sdk` is understood as *closing a known gap*, not as a
+wires `api`/`app`/`mobile` up to `sdk` is understood as _closing a known gap_, not as a
 new architectural direction.
 
 ## Consequences
 
 **Positive:**
+
 - A new contributor can answer "where does this code belong?" by checking this table
   instead of asking in chat or guessing from precedent.
 - `api`, `app`, and `mobile` staying import-independent of each other means any one of
@@ -164,6 +165,7 @@ new architectural direction.
   retry/error handling is a one-package change, not three.
 
 **Trade-offs:**
+
 - `sdk` being `types`-only forces any Stellar-interaction helper that needs
   request-specific business logic to either live in the calling package or accept a
   more generic shape in `sdk` — occasional friction, but it's what keeps the graph

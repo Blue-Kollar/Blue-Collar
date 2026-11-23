@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useTransactionFilters } from "./useTransactionFilters";
-import { useTransactionPolling } from "./useTransactionPolling";
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useTransactionFilters } from './useTransactionFilters';
+import { useTransactionPolling } from './useTransactionPolling';
 
-import { HORIZON_URL } from "@/config/stellar";
+import { HORIZON_URL } from '@/config/stellar';
 
 const HORIZON = HORIZON_URL;
 const DEFAULT_PAGE_SIZE = 10;
@@ -97,11 +97,11 @@ export function useTransactionList({
     setError(null);
     try {
       const url = new URL(`${HORIZON}/accounts/${walletAddress}/payments`);
-      url.searchParams.set("limit", String(FETCH_LIMIT));
-      url.searchParams.set("order", "desc");
+      url.searchParams.set('limit', String(FETCH_LIMIT));
+      url.searchParams.set('order', 'desc');
 
       const res = await fetch(url.toString());
-      if (!res.ok) throw new Error("Failed to fetch transactions");
+      if (!res.ok) throw new Error('Failed to fetch transactions');
 
       const json = await res.json();
       const records: HorizonPayment[] = json._embedded?.records ?? [];
@@ -109,14 +109,14 @@ export function useTransactionList({
       // Keep only incoming payments; marketContractId is the legacy filter.
       const incoming = records.filter(
         (r) =>
-          r.type === "payment" &&
+          r.type === 'payment' &&
           r.from !== walletAddress &&
           (marketContractId ? r.from === marketContractId : true),
       );
 
       setRawTransactions(incoming.map(toTransaction));
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Unknown error");
+      setError(e instanceof Error ? e.message : 'Unknown error');
       setRawTransactions([]);
     } finally {
       setLoading(false);

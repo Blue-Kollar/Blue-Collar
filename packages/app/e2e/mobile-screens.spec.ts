@@ -22,18 +22,18 @@
  *    - Focus order is logical
  *    - Interactive elements meet minimum touch-target sizes (44×44 px)
  */
-import { test, expect } from '@playwright/test'
-import type { Page, BrowserContext } from '@playwright/test'
-import { injectFreighterMock } from './freighter-mock'
+import { test, expect } from '@playwright/test';
+import type { Page, BrowserContext } from '@playwright/test';
+import { injectFreighterMock } from './freighter-mock';
 
-const BASE = process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3001'
+const BASE = process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3001';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Shared setup helper
 // ─────────────────────────────────────────────────────────────────────────────
 async function setupMobilePage(page: Page) {
-  await page.setViewportSize({ width: 390, height: 844 })
-  await injectFreighterMock(page)
+  await page.setViewportSize({ width: 390, height: 844 });
+  await injectFreighterMock(page);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -41,192 +41,204 @@ async function setupMobilePage(page: Page) {
 // ─────────────────────────────────────────────────────────────────────────────
 test.describe('Mobile Screen Navigation (#1037)', () => {
   test.beforeEach(async ({ page }) => {
-    await setupMobilePage(page)
-  })
+    await setupMobilePage(page);
+  });
 
   test('home page loads at mobile viewport without errors', async ({ page }) => {
-    await page.goto(`${BASE}/en`)
-    await expect(page.locator('body')).not.toContainText('Internal Server Error')
-    await expect(page.locator('body')).not.toContainText('Application error')
-  })
+    await page.goto(`${BASE}/en`);
+    await expect(page.locator('body')).not.toContainText('Internal Server Error');
+    await expect(page.locator('body')).not.toContainText('Application error');
+  });
 
   test('workers discovery page loads at mobile viewport', async ({ page }) => {
-    await page.goto(`${BASE}/en/workers`)
-    await expect(page.locator('body')).not.toContainText('Internal Server Error')
-    await expect(page).toHaveURL(/workers/)
-  })
+    await page.goto(`${BASE}/en/workers`);
+    await expect(page.locator('body')).not.toContainText('Internal Server Error');
+    await expect(page).toHaveURL(/workers/);
+  });
 
   test('mobile hamburger / nav menu is accessible', async ({ page }) => {
-    await page.goto(`${BASE}/en`)
+    await page.goto(`${BASE}/en`);
     const hamburger = page.locator(
       '[aria-label="open menu"], [aria-label*="menu" i], ' +
-      'button[aria-label*="nav" i], .hamburger, [data-testid*="menu" i]'
-    )
+        'button[aria-label*="nav" i], .hamburger, [data-testid*="menu" i]',
+    );
 
-    if (await hamburger.count() > 0) {
-      await expect(hamburger.first()).toBeVisible({ timeout: 5_000 })
-      await hamburger.first().click()
+    if ((await hamburger.count()) > 0) {
+      await expect(hamburger.first()).toBeVisible({ timeout: 5_000 });
+      await hamburger.first().click();
       // After clicking, some navigation items should appear — verify no crash
-      await expect(page.locator('body')).not.toContainText('Internal Server Error', { timeout: 3000 })
+      await expect(page.locator('body')).not.toContainText('Internal Server Error', {
+        timeout: 3000,
+      });
     } else {
       // Desktop nav may be visible; just ensure page renders
-      await expect(page.locator('body')).toBeVisible()
+      await expect(page.locator('body')).toBeVisible();
     }
-  })
+  });
 
   test('clicking a worker profile link navigates to the detail page', async ({ page }) => {
-    await page.goto(`${BASE}/en/workers`)
-    const workerLink = page.locator('a[href*="/workers/"]').first()
+    await page.goto(`${BASE}/en/workers`);
+    const workerLink = page.locator('a[href*="/workers/"]').first();
 
-    if (await workerLink.count() > 0) {
-      const href = await workerLink.getAttribute('href')
-      await workerLink.click()
-      await expect(page).toHaveURL(/workers\//)
-      await expect(page.locator('body')).not.toContainText('Internal Server Error')
+    if ((await workerLink.count()) > 0) {
+      const href = await workerLink.getAttribute('href');
+      await workerLink.click();
+      await expect(page).toHaveURL(/workers\//);
+      await expect(page.locator('body')).not.toContainText('Internal Server Error');
     } else {
       // No workers seeded — verify page renders without crashing
-      await expect(page.locator('body')).toBeVisible()
+      await expect(page.locator('body')).toBeVisible();
     }
-  })
+  });
 
-  test('browser back-button restores workers listing after navigating to profile', async ({ page }) => {
-    await page.goto(`${BASE}/en/workers`)
-    const workerLink = page.locator('a[href*="/workers/"]').first()
+  test('browser back-button restores workers listing after navigating to profile', async ({
+    page,
+  }) => {
+    await page.goto(`${BASE}/en/workers`);
+    const workerLink = page.locator('a[href*="/workers/"]').first();
 
-    if (await workerLink.count() > 0) {
-      await workerLink.click()
-      await expect(page).toHaveURL(/workers\//)
-      await page.goBack()
-      await expect(page).toHaveURL(/\/workers/)
-      await expect(page.locator('body')).not.toContainText('Internal Server Error')
+    if ((await workerLink.count()) > 0) {
+      await workerLink.click();
+      await expect(page).toHaveURL(/workers\//);
+      await page.goBack();
+      await expect(page).toHaveURL(/\/workers/);
+      await expect(page.locator('body')).not.toContainText('Internal Server Error');
     }
-  })
+  });
 
   test('auth login page renders at mobile viewport', async ({ page }) => {
-    await page.goto(`${BASE}/en/auth/login`)
-    await expect(page.locator('input[type="email"], input[name="email"]').first()).toBeVisible()
-  })
+    await page.goto(`${BASE}/en/auth/login`);
+    await expect(page.locator('input[type="email"], input[name="email"]').first()).toBeVisible();
+  });
 
   test('navigating between auth and workers does not crash', async ({ page }) => {
-    await page.goto(`${BASE}/en/auth/login`)
-    await page.goto(`${BASE}/en/workers`)
-    await expect(page.locator('body')).not.toContainText('Internal Server Error')
-  })
-})
+    await page.goto(`${BASE}/en/auth/login`);
+    await page.goto(`${BASE}/en/workers`);
+    await expect(page.locator('body')).not.toContainText('Internal Server Error');
+  });
+});
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Suite: Search & Tab switching
 // ─────────────────────────────────────────────────────────────────────────────
 test.describe('Mobile Screen Search & Tabs (#1037)', () => {
   test.beforeEach(async ({ page }) => {
-    await setupMobilePage(page)
-  })
+    await setupMobilePage(page);
+  });
 
   test('search input is visible and accepts text on workers page', async ({ page }) => {
-    await page.goto(`${BASE}/en/workers`)
-    const searchInput = page.locator(
-      'input[type="search"], input[placeholder*="search" i], input[name*="search" i], ' +
-      'input[placeholder*="find" i]'
-    ).first()
+    await page.goto(`${BASE}/en/workers`);
+    const searchInput = page
+      .locator(
+        'input[type="search"], input[placeholder*="search" i], input[name*="search" i], ' +
+          'input[placeholder*="find" i]',
+      )
+      .first();
 
-    if (await searchInput.count() > 0) {
-      await expect(searchInput).toBeVisible({ timeout: 10_000 })
-      await searchInput.fill('plumber')
-      await expect(searchInput).toHaveValue('plumber')
+    if ((await searchInput.count()) > 0) {
+      await expect(searchInput).toBeVisible({ timeout: 10_000 });
+      await searchInput.fill('plumber');
+      await expect(searchInput).toHaveValue('plumber');
     }
-  })
+  });
 
   test('category filter / select renders on workers page', async ({ page }) => {
-    await page.goto(`${BASE}/en/workers`)
-    const filter = page.locator(
-      'select, [role="combobox"], [data-testid*="category" i], [aria-label*="category" i]'
-    ).first()
+    await page.goto(`${BASE}/en/workers`);
+    const filter = page
+      .locator('select, [role="combobox"], [data-testid*="category" i], [aria-label*="category" i]')
+      .first();
 
-    if (await filter.count() > 0) {
-      await expect(filter).toBeVisible({ timeout: 5_000 })
+    if ((await filter.count()) > 0) {
+      await expect(filter).toBeVisible({ timeout: 5_000 });
     } else {
       // Filter may be hidden behind a button; verify page renders
-      await expect(page.locator('body')).not.toContainText('Internal Server Error')
+      await expect(page.locator('body')).not.toContainText('Internal Server Error');
     }
-  })
+  });
 
   test('bottom tab navigation items are visible on mobile', async ({ page }) => {
-    await page.goto(`${BASE}/en`)
+    await page.goto(`${BASE}/en`);
     const tabs = page.locator(
-      '[role="tablist"], nav[aria-label*="main" i], ' +
-      '[data-testid*="bottom-nav" i], .tab-bar'
-    )
+      '[role="tablist"], nav[aria-label*="main" i], ' + '[data-testid*="bottom-nav" i], .tab-bar',
+    );
 
-    if (await tabs.count() > 0) {
-      await expect(tabs.first()).toBeVisible()
+    if ((await tabs.count()) > 0) {
+      await expect(tabs.first()).toBeVisible();
     }
     // Not all implementations have a bottom tab bar — just verify no crash
-    await expect(page.locator('body')).not.toContainText('Internal Server Error')
-  })
+    await expect(page.locator('body')).not.toContainText('Internal Server Error');
+  });
 
   test('search with empty query does not crash the page', async ({ page }) => {
-    await page.goto(`${BASE}/en/workers`)
-    const searchInput = page.locator(
-      'input[type="search"], input[placeholder*="search" i]'
-    ).first()
+    await page.goto(`${BASE}/en/workers`);
+    const searchInput = page
+      .locator('input[type="search"], input[placeholder*="search" i]')
+      .first();
 
-    if (await searchInput.count() > 0) {
-      await searchInput.fill('')
-      await searchInput.press('Enter')
-      await expect(page.locator('body')).not.toContainText('Internal Server Error')
+    if ((await searchInput.count()) > 0) {
+      await searchInput.fill('');
+      await searchInput.press('Enter');
+      await expect(page.locator('body')).not.toContainText('Internal Server Error');
     }
-  })
+  });
 
   test('entering a search term and clearing it restores the full list', async ({ page }) => {
-    await page.goto(`${BASE}/en/workers`)
-    const searchInput = page.locator(
-      'input[type="search"], input[placeholder*="search" i]'
-    ).first()
+    await page.goto(`${BASE}/en/workers`);
+    const searchInput = page
+      .locator('input[type="search"], input[placeholder*="search" i]')
+      .first();
 
-    if (await searchInput.count() > 0) {
-      await searchInput.fill('electrician')
+    if ((await searchInput.count()) > 0) {
+      await searchInput.fill('electrician');
       // Wait for debounce to settle after typing
-      await expect(page.locator('body')).not.toContainText('Internal Server Error', { timeout: 3000 })
-      await searchInput.fill('')
+      await expect(page.locator('body')).not.toContainText('Internal Server Error', {
+        timeout: 3000,
+      });
+      await searchInput.fill('');
       // Wait for debounce to settle after clearing
-      await expect(page.locator('body')).not.toContainText('Internal Server Error', { timeout: 3000 })
+      await expect(page.locator('body')).not.toContainText('Internal Server Error', {
+        timeout: 3000,
+      });
     }
-  })
-})
+  });
+});
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Suite: Offline & empty state
 // ─────────────────────────────────────────────────────────────────────────────
 test.describe('Mobile Screen Edge States — Offline & Empty (#1037)', () => {
   test.beforeEach(async ({ page }) => {
-    await setupMobilePage(page)
-  })
+    await setupMobilePage(page);
+  });
 
   test('workers page renders an empty state when no workers exist', async ({ page }) => {
-    await page.goto(`${BASE}/en/workers`)
+    await page.goto(`${BASE}/en/workers`);
     // Either workers are shown or an empty state is presented — no crash
-    await expect(page.locator('body')).not.toContainText('Internal Server Error')
-    await expect(page.locator('body')).not.toContainText('Application error')
-  })
+    await expect(page.locator('body')).not.toContainText('Internal Server Error');
+    await expect(page.locator('body')).not.toContainText('Application error');
+  });
 
-  test('going offline and refreshing shows an offline / cached indicator', async ({ page, context }) => {
+  test('going offline and refreshing shows an offline / cached indicator', async ({
+    page,
+    context,
+  }) => {
     // Navigate first to prime any cache
-    await page.goto(`${BASE}/en/workers`)
-    await expect(page.locator('body')).not.toContainText('Internal Server Error')
+    await page.goto(`${BASE}/en/workers`);
+    await expect(page.locator('body')).not.toContainText('Internal Server Error');
 
     // Simulate offline by aborting all network requests
-    await context.route('**/*', (route) => route.abort())
+    await context.route('**/*', (route) => route.abort());
 
     // Reload or navigate — page should handle gracefully
     try {
-      await page.reload({ timeout: 5_000 })
+      await page.reload({ timeout: 5_000 });
     } catch {
       // Expected: page may fail to load when fully offline
     }
 
     // Restore network
-    await context.unroute('**/*')
-  })
+    await context.unroute('**/*');
+  });
 
   test('page does not crash when API returns empty array', async ({ page, context }) => {
     // Intercept workers API and return empty array
@@ -235,13 +247,13 @@ test.describe('Mobile Screen Edge States — Offline & Empty (#1037)', () => {
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify({ data: [], status: 'success', message: 'No workers' }),
-      })
-    })
+      });
+    });
 
-    await page.goto(`${BASE}/en/workers`)
-    await expect(page.locator('body')).not.toContainText('Internal Server Error')
-    await expect(page.locator('body')).not.toContainText('Application error')
-  })
+    await page.goto(`${BASE}/en/workers`);
+    await expect(page.locator('body')).not.toContainText('Internal Server Error');
+    await expect(page.locator('body')).not.toContainText('Application error');
+  });
 
   test('worker listing loads optimized avatar images', async ({ page, context }) => {
     await context.route('**/api/workers*', (route) => {
@@ -249,29 +261,33 @@ test.describe('Mobile Screen Edge States — Offline & Empty (#1037)', () => {
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify({
-          data: [{
-            id: 'worker-image-load',
-            name: 'Photo Test Worker',
-            avatar: '/logo.png',
-            isVerified: false,
-            category: { id: 'category-test', name: 'Test Category' },
-          }],
+          data: [
+            {
+              id: 'worker-image-load',
+              name: 'Photo Test Worker',
+              avatar: '/logo.png',
+              isVerified: false,
+              category: { id: 'category-test', name: 'Test Category' },
+            },
+          ],
           meta: { total: 1, page: 1, pages: 1, limit: 20 },
           status: 'success',
         }),
-      })
-    })
+      });
+    });
 
-    await page.goto(`${BASE}/en/workers`)
+    await page.goto(`${BASE}/en/workers`);
 
-    const avatar = page.getByRole('img', { name: 'Photo Test Worker' })
-    await expect(avatar).toBeVisible()
-    await expect(avatar).toHaveAttribute('sizes', '56px')
-    await expect(avatar).toHaveAttribute('src', /\/_next\/image\?url=/)
-    await expect.poll(() => avatar.evaluate((image: HTMLImageElement) => (
-      image.complete && image.naturalWidth > 0
-    ))).toBe(true)
-  })
+    const avatar = page.getByRole('img', { name: 'Photo Test Worker' });
+    await expect(avatar).toBeVisible();
+    await expect(avatar).toHaveAttribute('sizes', '56px');
+    await expect(avatar).toHaveAttribute('src', /\/_next\/image\?url=/);
+    await expect
+      .poll(() =>
+        avatar.evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0),
+      )
+      .toBe(true);
+  });
 
   test('page handles API 500 error gracefully', async ({ page, context }) => {
     // Intercept workers API and return 500
@@ -280,108 +296,108 @@ test.describe('Mobile Screen Edge States — Offline & Empty (#1037)', () => {
         status: 500,
         contentType: 'application/json',
         body: JSON.stringify({ error: 'Internal server error' }),
-      })
-    })
+      });
+    });
 
-    await page.goto(`${BASE}/en/workers`)
+    await page.goto(`${BASE}/en/workers`);
     // The UI should show an error state, not a blank page or JS crash
-    await expect(page.locator('body')).toBeVisible()
+    await expect(page.locator('body')).toBeVisible();
     // No raw stack traces
-    await expect(page.locator('body')).not.toContainText('at Object.<anonymous>')
-  })
+    await expect(page.locator('body')).not.toContainText('at Object.<anonymous>');
+  });
 
   test('page handles API timeout gracefully', async ({ page, context }) => {
     // Simulate slow / never-responding API
     await context.route('**/api/workers*', async (route) => {
       // Delay 10 seconds — effectively a timeout
-      await new Promise((resolve) => setTimeout(resolve, 10_000))
-      route.fulfill({ status: 200, body: '{}' })
-    })
+      await new Promise((resolve) => setTimeout(resolve, 10_000));
+      route.fulfill({ status: 200, body: '{}' });
+    });
 
-    await page.goto(`${BASE}/en/workers`, { timeout: 15_000 })
+    await page.goto(`${BASE}/en/workers`, { timeout: 15_000 });
     // Page should render an initial UI, not a blank screen
-    await expect(page.locator('body')).toBeVisible()
-    await expect(page.locator('body')).not.toContainText('Internal Server Error')
-  })
-})
+    await expect(page.locator('body')).toBeVisible();
+    await expect(page.locator('body')).not.toContainText('Internal Server Error');
+  });
+});
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Suite: Accessibility at mobile viewport
 // ─────────────────────────────────────────────────────────────────────────────
 test.describe('Mobile Screen Accessibility (#1037)', () => {
   test.beforeEach(async ({ page }) => {
-    await setupMobilePage(page)
-  })
+    await setupMobilePage(page);
+  });
 
   test('all interactive buttons have accessible names', async ({ page }) => {
-    await page.goto(`${BASE}/en/workers`)
-    const buttons = await page.locator('button').all()
+    await page.goto(`${BASE}/en/workers`);
+    const buttons = await page.locator('button').all();
 
     for (const btn of buttons.slice(0, 10)) {
-      const isVisible = await btn.isVisible()
-      if (!isVisible) continue
+      const isVisible = await btn.isVisible();
+      if (!isVisible) continue;
 
-      const ariaLabel = await btn.getAttribute('aria-label')
-      const text = await btn.textContent()
-      const title = await btn.getAttribute('title')
-      const hasAccessibleName = !!(ariaLabel?.trim() || text?.trim() || title?.trim())
-      expect(hasAccessibleName).toBe(true)
+      const ariaLabel = await btn.getAttribute('aria-label');
+      const text = await btn.textContent();
+      const title = await btn.getAttribute('title');
+      const hasAccessibleName = !!(ariaLabel?.trim() || text?.trim() || title?.trim());
+      expect(hasAccessibleName).toBe(true);
     }
-  })
+  });
 
   test('all images have alt text', async ({ page }) => {
-    await page.goto(`${BASE}/en/workers`)
-    const images = await page.locator('img').all()
+    await page.goto(`${BASE}/en/workers`);
+    const images = await page.locator('img').all();
 
     for (const img of images.slice(0, 10)) {
-      const alt = await img.getAttribute('alt')
-      const role = await img.getAttribute('role')
+      const alt = await img.getAttribute('alt');
+      const role = await img.getAttribute('role');
       // Either alt text is present or the image is decorative (role="presentation")
-      const isAccessible = alt !== null || role === 'presentation'
-      expect(isAccessible).toBe(true)
+      const isAccessible = alt !== null || role === 'presentation';
+      expect(isAccessible).toBe(true);
     }
-  })
+  });
 
   test('page title is set on the workers page', async ({ page }) => {
-    await page.goto(`${BASE}/en/workers`)
-    const title = await page.title()
-    expect(title).toBeTruthy()
-    expect(title.length).toBeGreaterThan(0)
-  })
+    await page.goto(`${BASE}/en/workers`);
+    const title = await page.title();
+    expect(title).toBeTruthy();
+    expect(title.length).toBeGreaterThan(0);
+  });
 
   test('language attribute is set on the html element', async ({ page }) => {
-    await page.goto(`${BASE}/en`)
-    const lang = await page.locator('html').getAttribute('lang')
-    expect(lang).toBeTruthy()
-  })
+    await page.goto(`${BASE}/en`);
+    const lang = await page.locator('html').getAttribute('lang');
+    expect(lang).toBeTruthy();
+  });
 
   test('interactive elements meet minimum 44px touch target on mobile', async ({ page }) => {
-    await page.goto(`${BASE}/en/workers`)
-    const buttons = await page.locator('button, a, [role="button"]').all()
+    await page.goto(`${BASE}/en/workers`);
+    const buttons = await page.locator('button, a, [role="button"]').all();
 
-    const tooSmall: string[] = []
+    const tooSmall: string[] = [];
     for (const el of buttons.slice(0, 8)) {
-      const isVisible = await el.isVisible()
-      if (!isVisible) continue
-      const box = await el.boundingBox()
+      const isVisible = await el.isVisible();
+      if (!isVisible) continue;
+      const box = await el.boundingBox();
       if (box && (box.width < 32 || box.height < 32)) {
-        const text = await el.textContent()
-        tooSmall.push(`"${text?.trim()}" — ${box.width.toFixed(0)}×${box.height.toFixed(0)}px`)
+        const text = await el.textContent();
+        tooSmall.push(`"${text?.trim()}" — ${box.width.toFixed(0)}×${box.height.toFixed(0)}px`);
       }
     }
     // Log but don't fail CI — this is a soft audit
     if (tooSmall.length > 0) {
-      console.warn('[mobile-a11y] Elements below 32px touch target:', tooSmall)
+      console.warn('[mobile-a11y] Elements below 32px touch target:', tooSmall);
     }
-  })
+  });
 
   test('mobile viewport has no horizontal overflow', async ({ page }) => {
-    await page.goto(`${BASE}/en/workers`)
+    await page.goto(`${BASE}/en/workers`);
     const hasOverflow = await page.evaluate(() => {
-      return document.documentElement.scrollWidth > window.innerWidth
-    })
+      return document.documentElement.scrollWidth > window.innerWidth;
+    });
     if (hasOverflow) {
-      console.warn('[mobile] Horizontal overflow detected on workers page at 390px viewport')
+      console.warn('[mobile] Horizontal overflow detected on workers page at 390px viewport');
     }
-  })
-})
+  });
+});

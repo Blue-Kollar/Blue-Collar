@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useLocale } from "next-intl";
-import { Loader2 } from "lucide-react";
-import { useAuth } from "@/context/AuthContext";
-import type { AuthUser } from "@/context/AuthContext";
-import { useOAuthCallback } from "@/hooks/queries";
+import { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useLocale } from 'next-intl';
+import { Loader2 } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import type { AuthUser } from '@/context/AuthContext';
+import { useOAuthCallback } from '@/hooks/queries';
 
-const TOKEN_KEY = "bc_token";
+const TOKEN_KEY = 'bc_token';
 
 export default function AuthCallbackPage() {
   const router = useRouter();
@@ -19,15 +19,15 @@ export default function AuthCallbackPage() {
   const oauthCallback = useOAuthCallback();
 
   useEffect(() => {
-    const oauthError = searchParams.get("error");
+    const oauthError = searchParams.get('error');
     if (oauthError) {
-      setError("Google sign-in failed. Please try again.");
+      setError('Google sign-in failed. Please try again.');
       return;
     }
 
-    const token = searchParams.get("token");
+    const token = searchParams.get('token');
     if (!token) {
-      setError("No authentication token received.");
+      setError('No authentication token received.');
       return;
     }
 
@@ -36,12 +36,12 @@ export default function AuthCallbackPage() {
         const user = json.data as AuthUser;
         login(user, token);
         // Redirect to intended page or default
-        const redirect = sessionStorage.getItem("oauth_redirect") ?? `/${locale}/workers`;
-        sessionStorage.removeItem("oauth_redirect");
+        const redirect = sessionStorage.getItem('oauth_redirect') ?? `/${locale}/workers`;
+        sessionStorage.removeItem('oauth_redirect');
         router.replace(redirect);
       },
       onError: () => {
-        setError("Sign-in failed. Please try again.");
+        setError('Sign-in failed. Please try again.');
         localStorage.removeItem(TOKEN_KEY);
       },
     });

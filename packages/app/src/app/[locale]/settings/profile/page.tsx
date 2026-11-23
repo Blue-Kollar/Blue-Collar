@@ -1,17 +1,20 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
-import { useAuth } from "@/context/AuthContext";
-import { useWallet } from "@/hooks/useWallet";
-import { validateUserProfile, validatePassword, validateRequired } from "@/utils/validation";
-import { useUpdateAccount, useChangePassword, useDeleteAccount } from "@/hooks/queries";
-import { PersonalInfoSection, type UserProfile } from "@/components/settings/profile/PersonalInfoSection";
-import { ChangePasswordSection } from "@/components/settings/profile/ChangePasswordSection";
-import { DangerZoneSection } from "@/components/settings/profile/DangerZoneSection";
-import { DeleteAccountModal } from "@/components/settings/profile/DeleteAccountModal";
-import { Toast } from "@/components/settings/profile/Toast";
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Loader2 } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import { useWallet } from '@/hooks/useWallet';
+import { validateUserProfile, validatePassword, validateRequired } from '@/utils/validation';
+import { useUpdateAccount, useChangePassword, useDeleteAccount } from '@/hooks/queries';
+import {
+  PersonalInfoSection,
+  type UserProfile,
+} from '@/components/settings/profile/PersonalInfoSection';
+import { ChangePasswordSection } from '@/components/settings/profile/ChangePasswordSection';
+import { DangerZoneSection } from '@/components/settings/profile/DangerZoneSection';
+import { DeleteAccountModal } from '@/components/settings/profile/DeleteAccountModal';
+import { Toast } from '@/components/settings/profile/Toast';
 
 export default function ProfileSettingsPage() {
   const router = useRouter();
@@ -19,19 +22,19 @@ export default function ProfileSettingsPage() {
   const { address: walletAddress } = useWallet();
 
   const [profile, setProfile] = useState<UserProfile>({
-    firstName: "",
-    lastName: "",
-    email: "",
+    firstName: '',
+    lastName: '',
+    email: '',
   });
   const [profileErrors, setProfileErrors] = useState<Partial<UserProfile>>({});
-  const [toastMessage, setToastMessage] = useState("");
+  const [toastMessage, setToastMessage] = useState('');
 
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [passwordError, setPasswordError] = useState("");
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deleteConfirm, setDeleteConfirm] = useState("");
+  const [deleteConfirm, setDeleteConfirm] = useState('');
 
   const updateAccount = useUpdateAccount();
   const changePassword = useChangePassword();
@@ -43,19 +46,19 @@ export default function ProfileSettingsPage() {
 
   const showToast = (message: string) => {
     setToastMessage(message);
-    setTimeout(() => setToastMessage(""), 3500);
+    setTimeout(() => setToastMessage(''), 3500);
   };
 
   useEffect(() => {
-    if (!isLoading && !user) router.replace("/auth/login");
+    if (!isLoading && !user) router.replace('/auth/login');
   }, [isLoading, router, user]);
 
   useEffect(() => {
     if (!user) return;
     setProfile({
-      firstName: user.firstName ?? "",
-      lastName: user.lastName ?? "",
-      email: user.email ?? "",
+      firstName: user.firstName ?? '',
+      lastName: user.lastName ?? '',
+      email: user.email ?? '',
     });
   }, [user]);
 
@@ -71,14 +74,14 @@ export default function ProfileSettingsPage() {
     updateAccount.mutate(profile, {
       onSuccess: () => {
         if (user && token) login({ ...user, ...profile }, token);
-        showToast("Profile saved!");
+        showToast('Profile saved!');
       },
-      onError: (err) => showToast(err instanceof Error ? err.message : "Failed to save profile."),
+      onError: (err) => showToast(err instanceof Error ? err.message : 'Failed to save profile.'),
     });
   };
 
   const handlePasswordChange = async () => {
-    const currErr = validateRequired(currentPassword, "Current password");
+    const currErr = validateRequired(currentPassword, 'Current password');
     if (currErr) {
       setPasswordError(currErr);
       return;
@@ -89,39 +92,39 @@ export default function ProfileSettingsPage() {
       return;
     }
 
-    setPasswordError("");
+    setPasswordError('');
     changePassword.mutate(
       { currentPassword, newPassword },
       {
         onSuccess: () => {
-          setCurrentPassword("");
-          setNewPassword("");
-          showToast("Password updated!");
+          setCurrentPassword('');
+          setNewPassword('');
+          showToast('Password updated!');
         },
         onError: (err) => {
-          const message = err instanceof Error ? err.message : "Failed to update password.";
-          if (message === "Current password is incorrect") {
+          const message = err instanceof Error ? err.message : 'Failed to update password.';
+          if (message === 'Current password is incorrect') {
             setPasswordError(message);
           } else {
             showToast(message);
           }
         },
-      }
+      },
     );
   };
 
   const handleDeleteAccount = () => {
-    if (deleteConfirm !== "DELETE") return;
+    if (deleteConfirm !== 'DELETE') return;
 
     deleteAccount.mutate(undefined, {
       onSuccess: () => {
         logout();
-        router.replace("/");
+        router.replace('/');
       },
-      onError: (err) => showToast(err instanceof Error ? err.message : "Failed to delete account."),
+      onError: (err) => showToast(err instanceof Error ? err.message : 'Failed to delete account.'),
       onSettled: () => {
         setShowDeleteModal(false);
-        setDeleteConfirm("");
+        setDeleteConfirm('');
       },
     });
   };
@@ -148,9 +151,7 @@ export default function ProfileSettingsPage() {
         profile={profile}
         errors={profileErrors}
         saving={profileSaving}
-        onChange={(field, value) =>
-          setProfile((current) => ({ ...current, [field]: value }))
-        }
+        onChange={(field, value) => setProfile((current) => ({ ...current, [field]: value }))}
         onSave={handleProfileSave}
       />
 
@@ -174,7 +175,7 @@ export default function ProfileSettingsPage() {
         onConfirm={handleDeleteAccount}
         onCancel={() => {
           setShowDeleteModal(false);
-          setDeleteConfirm("");
+          setDeleteConfirm('');
         }}
       />
 

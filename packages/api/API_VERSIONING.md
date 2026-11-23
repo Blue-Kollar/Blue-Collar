@@ -6,10 +6,10 @@ BlueCollar uses **URL-based versioning** (`/api/v1/*`) to maintain backward comp
 
 ## Current Versions
 
-| Version | Base Path   | Status     | Sunset Date |
-|---------|-------------|------------|-------------|
-| v1      | `/api/v1/*` | ✅ Current  | —           |
-| —       | `/api/*`    | ⚠️ Deprecated | 2027-01-01 |
+| Version | Base Path   | Status        | Sunset Date |
+| ------- | ----------- | ------------- | ----------- |
+| v1      | `/api/v1/*` | ✅ Current    | —           |
+| —       | `/api/*`    | ⚠️ Deprecated | 2027-01-01  |
 
 ## Using the API
 
@@ -44,7 +44,7 @@ Returns the current version, supported versions, and deprecation info.
 1. Create new route files in `src/routes/v2/` (or modify existing routes with version-specific logic).
 2. Mount them in `app.ts`:
    ```ts
-   app.use('/api/v2/workers', v2WorkerRoutes)
+   app.use('/api/v2/workers', v2WorkerRoutes);
    ```
 3. Update `/api/versions` to include `v2` in `supported` and move `v1` to `deprecated`.
 4. Set a `Sunset` date for v1 and add `deprecationWarning` middleware to v1 routes.

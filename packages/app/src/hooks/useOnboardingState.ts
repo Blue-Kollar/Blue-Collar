@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from 'react';
 
 /** The one persisted flag that records a finished onboarding tour. */
-export const ONBOARDING_DONE_KEY = "bc_tour_done";
+export const ONBOARDING_DONE_KEY = 'bc_tour_done';
 
 /**
  * Whether the user still needs onboarding, backed by one localStorage flag. Reads and writes are
@@ -22,7 +22,7 @@ export function useOnboardingState() {
 
   const markDone = useCallback(() => {
     try {
-      localStorage.setItem(ONBOARDING_DONE_KEY, "1");
+      localStorage.setItem(ONBOARDING_DONE_KEY, '1');
     } catch {
       // Storage unavailable; the tour will show again next visit.
     }

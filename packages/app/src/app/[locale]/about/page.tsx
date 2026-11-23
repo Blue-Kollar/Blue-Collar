@@ -1,49 +1,50 @@
-import type { Metadata } from "next";
-import Link from "next/link";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import type { Metadata } from 'next';
+import Link from 'next/link';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 
 export const metadata: Metadata = {
-  title: "About",
-  description: "Learn how BlueCollar connects skilled workers with communities using the Stellar blockchain.",
+  title: 'About',
+  description:
+    'Learn how BlueCollar connects skilled workers with communities using the Stellar blockchain.',
 };
 
 const HOW_IT_WORKS = [
   {
-    step: "01",
-    title: "Browse & Discover",
+    step: '01',
+    title: 'Browse & Discover',
     description:
-      "Search by skill or category to find verified tradespeople in your area. Every listing is community-curated.",
+      'Search by skill or category to find verified tradespeople in your area. Every listing is community-curated.',
   },
   {
-    step: "02",
-    title: "Connect On-Chain",
+    step: '02',
+    title: 'Connect On-Chain',
     description:
-      "Worker profiles are anchored on the Stellar blockchain via Soroban smart contracts — transparent and tamper-proof.",
+      'Worker profiles are anchored on the Stellar blockchain via Soroban smart contracts — transparent and tamper-proof.',
   },
   {
-    step: "03",
-    title: "Pay Securely",
+    step: '03',
+    title: 'Pay Securely',
     description:
-      "Send tips and payments directly to workers using Stellar tokens. No middlemen, no hidden fees.",
+      'Send tips and payments directly to workers using Stellar tokens. No middlemen, no hidden fees.',
   },
 ];
 
 const TECH = [
   {
-    name: "Stellar",
+    name: 'Stellar',
     description:
-      "A fast, low-cost blockchain network designed for real-world financial applications. BlueCollar uses Stellar for on-chain payments and worker registration.",
+      'A fast, low-cost blockchain network designed for real-world financial applications. BlueCollar uses Stellar for on-chain payments and worker registration.',
   },
   {
-    name: "Soroban",
+    name: 'Soroban',
     description:
       "Stellar's smart contract platform. Our Registry contract stores worker listings immutably on-chain; the Market contract handles trustless token transfers.",
   },
   {
-    name: "Freighter Wallet",
+    name: 'Freighter Wallet',
     description:
-      "A browser extension wallet for the Stellar network. Connect your Freighter wallet to tip workers and interact with BlueCollar contracts.",
+      'A browser extension wallet for the Stellar network. Connect your Freighter wallet to tip workers and interact with BlueCollar contracts.',
   },
 ];
 
@@ -56,19 +57,22 @@ export default function AboutPage() {
         <section className="bg-blue-600 px-4 py-20 text-center text-white">
           <h1 className="text-4xl font-bold sm:text-5xl">About BlueCollar</h1>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-blue-100">
-            A decentralised protocol connecting skilled workers with the communities that need them —
-            powered by the Stellar blockchain.
+            A decentralised protocol connecting skilled workers with the communities that need them
+            — powered by the Stellar blockchain.
           </p>
         </section>
 
         {/* Mission */}
         <section className="mx-auto max-w-3xl px-4 py-16 text-center">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white sm:text-3xl">Our Mission</h2>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white sm:text-3xl">
+            Our Mission
+          </h2>
           <p className="mt-4 text-gray-600 dark:text-gray-400 leading-relaxed">
             Millions of skilled tradespeople — plumbers, electricians, carpenters, welders — lack a
-            platform to get noticed. Meanwhile, people struggle to find reliable, vetted workers they
-            can trust. BlueCollar bridges that gap with a trustless, community-driven directory where
-            listings are verifiable on-chain and payments flow directly between users and workers.
+            platform to get noticed. Meanwhile, people struggle to find reliable, vetted workers
+            they can trust. BlueCollar bridges that gap with a trustless, community-driven directory
+            where listings are verifiable on-chain and payments flow directly between users and
+            workers.
           </p>
         </section>
 
@@ -80,10 +84,19 @@ export default function AboutPage() {
             </h2>
             <div className="mt-12 grid gap-8 sm:grid-cols-3">
               {HOW_IT_WORKS.map(({ step, title, description }) => (
-                <div key={step} className="rounded-2xl border bg-white p-6 shadow-sm dark:bg-gray-800 dark:border-gray-700">
-                  <span className="text-4xl font-black text-blue-100 dark:text-blue-900">{step}</span>
-                  <h3 className="mt-3 text-lg font-semibold text-gray-900 dark:text-white">{title}</h3>
-                  <p className="mt-2 text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{description}</p>
+                <div
+                  key={step}
+                  className="rounded-2xl border bg-white p-6 shadow-sm dark:bg-gray-800 dark:border-gray-700"
+                >
+                  <span className="text-4xl font-black text-blue-100 dark:text-blue-900">
+                    {step}
+                  </span>
+                  <h3 className="mt-3 text-lg font-semibold text-gray-900 dark:text-white">
+                    {title}
+                  </h3>
+                  <p className="mt-2 text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
+                    {description}
+                  </p>
                 </div>
               ))}
             </div>
@@ -103,7 +116,9 @@ export default function AboutPage() {
             {TECH.map(({ name, description }) => (
               <div key={name} className="rounded-2xl border p-6 dark:border-gray-700">
                 <h3 className="font-semibold text-blue-600">{name}</h3>
-                <p className="mt-2 text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{description}</p>
+                <p className="mt-2 text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
+                  {description}
+                </p>
               </div>
             ))}
           </div>
@@ -117,8 +132,8 @@ export default function AboutPage() {
             </h2>
             <p className="mt-4 text-gray-600 dark:text-gray-400 leading-relaxed">
               BlueCollar is governed by its community. Curators — trusted members who create and
-              manage worker listings — are the backbone of the platform. Anyone can apply to become a
-              curator and help grow the network of verified tradespeople in their area.
+              manage worker listings — are the backbone of the platform. Anyone can apply to become
+              a curator and help grow the network of verified tradespeople in their area.
             </p>
           </div>
         </section>

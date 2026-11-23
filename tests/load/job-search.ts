@@ -15,9 +15,9 @@ const CONNECTIONS = parseInt(process.env.CONNECTIONS ?? '50', 10);
 const DURATION = parseInt(process.env.DURATION ?? '30', 10);
 
 const SLA = {
-  p50: 50,   // ms
-  p95: 200,  // ms
-  p99: 500,  // ms
+  p50: 50, // ms
+  p95: 200, // ms
+  p99: 500, // ms
 };
 
 async function main() {
@@ -32,7 +32,7 @@ async function main() {
     url,
     connections: CONNECTIONS,
     duration: DURATION,
-    headers: { 'Accept': 'application/json' },
+    headers: { Accept: 'application/json' },
   });
 
   const summary = {
@@ -47,9 +47,15 @@ async function main() {
 
   console.log('=== RESULTS ===');
   console.log(`Requests/sec:  ${summary.rps}`);
-  console.log(`Latency p50:   ${summary.p50} ms   (SLA ${SLA.p50} ms)   ${summary.p50 <= SLA.p50 ? 'PASS' : 'FAIL'}`);
-  console.log(`Latency p95:   ${summary.p95} ms   (SLA ${SLA.p95} ms)   ${summary.p95 <= SLA.p95 ? 'PASS' : 'FAIL'}`);
-  console.log(`Latency p99:   ${summary.p99} ms   (SLA ${SLA.p99} ms)   ${summary.p99 <= SLA.p99 ? 'PASS' : 'FAIL'}`);
+  console.log(
+    `Latency p50:   ${summary.p50} ms   (SLA ${SLA.p50} ms)   ${summary.p50 <= SLA.p50 ? 'PASS' : 'FAIL'}`,
+  );
+  console.log(
+    `Latency p95:   ${summary.p95} ms   (SLA ${SLA.p95} ms)   ${summary.p95 <= SLA.p95 ? 'PASS' : 'FAIL'}`,
+  );
+  console.log(
+    `Latency p99:   ${summary.p99} ms   (SLA ${SLA.p99} ms)   ${summary.p99 <= SLA.p99 ? 'PASS' : 'FAIL'}`,
+  );
   console.log(`Errors:        ${summary.errors}`);
   console.log(`Timeouts:      ${summary.timeouts}`);
   console.log(`Non-2xx:       ${summary.non2xx}`);

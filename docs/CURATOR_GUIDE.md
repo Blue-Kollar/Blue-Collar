@@ -147,9 +147,9 @@ curl -X POST https://api.bluecollar.app/api/v1/workers/wkr_abc123 \
 **JavaScript (Fetch API):**
 
 ```javascript
-const formData = new FormData()
-formData.append('bio', 'Updated bio.')
-formData.append('avatar', fileInput.files[0])
+const formData = new FormData();
+formData.append('bio', 'Updated bio.');
+formData.append('avatar', fileInput.files[0]);
 
 await fetch('/api/v1/workers/wkr_abc123', {
   method: 'POST',
@@ -158,7 +158,7 @@ await fetch('/api/v1/workers/wkr_abc123', {
     Authorization: `Bearer ${token}`,
   },
   body: formData,
-})
+});
 ```
 
 Supported formats: JPEG, PNG, WebP. Max size: 5 MB. Images are resized and optimised automatically by Sharp.
@@ -216,6 +216,7 @@ curl -X DELETE https://api.bluecollar.app/api/v1/workers/wkr_abc123/availability
 Anchoring a worker to the Stellar Registry contract creates an immutable, publicly verifiable record.
 
 **Prerequisites:**
+
 - Worker must have a `walletAddress` set
 - Your Freighter wallet must be connected
 

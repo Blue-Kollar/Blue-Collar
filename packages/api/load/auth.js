@@ -16,8 +16,8 @@ import http from 'k6/http';
 import { check, group, sleep } from 'k6';
 import { Rate, Trend } from 'k6/metrics';
 
-const errorRate   = new Rate('error_rate');
-const loginP95    = new Trend('login_duration', true);
+const errorRate = new Rate('error_rate');
+const loginP95 = new Trend('login_duration', true);
 
 export const options = {
   scenarios: {
@@ -33,9 +33,9 @@ export const options = {
   },
   thresholds: {
     http_req_duration: ['p(95)<800'],
-    http_req_failed:   ['rate<0.05'],
-    error_rate:        ['rate<0.05'],
-    login_duration:    ['p(95)<800'],
+    http_req_failed: ['rate<0.05'],
+    error_rate: ['rate<0.05'],
+    login_duration: ['p(95)<800'],
   },
 };
 
@@ -55,7 +55,7 @@ export default function () {
 
     const ok = check(res, {
       'POST /auth/login → 400 or 401': (r) => [400, 401, 422].includes(r.status),
-      'POST /auth/login → <800ms':     (r) => r.timings.duration < 800,
+      'POST /auth/login → <800ms': (r) => r.timings.duration < 800,
     });
     errorRate.add(!ok);
   });

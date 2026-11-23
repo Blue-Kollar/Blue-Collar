@@ -13,11 +13,11 @@ All payment operations (`tip`, `create_escrow`, `release_escrow`,
 Any token contract that implements `transfer(from, to, amount)` will work,
 including:
 
-| Asset | Notes |
-|-------|-------|
-| **XLM (native)** | Wrapped via the Stellar Asset Contract. Most liquid, no trustline required for XLM itself. |
-| **USDC** | Standard SEP-41 Stellar USDC (Circle). Payer and worker must have an established trustline. |
-| **Custom tokens** | Any Soroban-native or Stellar classic asset wrapped via `StellarAssetContract`. |
+| Asset             | Notes                                                                                       |
+| ----------------- | ------------------------------------------------------------------------------------------- |
+| **XLM (native)**  | Wrapped via the Stellar Asset Contract. Most liquid, no trustline required for XLM itself.  |
+| **USDC**          | Standard SEP-41 Stellar USDC (Circle). Payer and worker must have an established trustline. |
+| **Custom tokens** | Any Soroban-native or Stellar classic asset wrapped via `StellarAssetContract`.             |
 
 ---
 
@@ -80,29 +80,29 @@ Multi-asset behavior is tested in two layers:
 
 ### Unit tests (`contracts/market/src/test.rs` — `multi_asset_tests` module)
 
-| Test | What it verifies |
-|------|-----------------|
-| `tip_with_xlm_succeeds` | XLM tips transfer correctly |
-| `tip_with_usdc_succeeds` | USDC tips transfer correctly |
-| `tip_with_custom_token_succeeds` | Arbitrary third token works |
-| `tip_tokens_are_isolated` | Tipping in one token does not affect another |
-| `escrow_create_and_release_with_usdc` | Full escrow lifecycle in USDC |
-| `escrow_create_and_cancel_with_custom_token` | Expiry cancellation in custom token |
-| `concurrent_escrows_in_different_tokens` | Two open escrows in different assets; releasing one does not affect the other |
-| `tip_with_zero_balance_token_panics_gracefully` | Missing-balance failure reverts at token level |
-| `create_escrow_insufficient_balance_panics_gracefully` | Failed create leaves no escrow record |
-| `escrow_not_created_on_transfer_failure` | Atomic rollback on transfer failure confirmed |
-| `tip_fee_deducted_correctly_for_usdc` | Fee arithmetic correct for USDC |
-| `escrow_release_fee_deducted_for_custom_token` | Fee arithmetic correct for custom token |
+| Test                                                   | What it verifies                                                              |
+| ------------------------------------------------------ | ----------------------------------------------------------------------------- |
+| `tip_with_xlm_succeeds`                                | XLM tips transfer correctly                                                   |
+| `tip_with_usdc_succeeds`                               | USDC tips transfer correctly                                                  |
+| `tip_with_custom_token_succeeds`                       | Arbitrary third token works                                                   |
+| `tip_tokens_are_isolated`                              | Tipping in one token does not affect another                                  |
+| `escrow_create_and_release_with_usdc`                  | Full escrow lifecycle in USDC                                                 |
+| `escrow_create_and_cancel_with_custom_token`           | Expiry cancellation in custom token                                           |
+| `concurrent_escrows_in_different_tokens`               | Two open escrows in different assets; releasing one does not affect the other |
+| `tip_with_zero_balance_token_panics_gracefully`        | Missing-balance failure reverts at token level                                |
+| `create_escrow_insufficient_balance_panics_gracefully` | Failed create leaves no escrow record                                         |
+| `escrow_not_created_on_transfer_failure`               | Atomic rollback on transfer failure confirmed                                 |
+| `tip_fee_deducted_correctly_for_usdc`                  | Fee arithmetic correct for USDC                                               |
+| `escrow_release_fee_deducted_for_custom_token`         | Fee arithmetic correct for custom token                                       |
 
 ### Property/fuzz tests (`contracts/fuzz/tests/market_fuzz.rs`)
 
-| Property | What it verifies |
-|----------|-----------------|
-| `fuzz_tip_multi_asset_fee_invariant` | Fee math holds for any (amount, fee_bps) over any token |
-| `fuzz_multi_asset_escrow_release_exact` | Worker always receives exactly the locked amount |
-| `fuzz_fee_no_overflow` | Fee arithmetic never overflows for valid inputs |
-| `fuzz_escrow_amount_exact_storage` | Stored amount equals the passed-in amount exactly |
+| Property                                | What it verifies                                        |
+| --------------------------------------- | ------------------------------------------------------- |
+| `fuzz_tip_multi_asset_fee_invariant`    | Fee math holds for any (amount, fee_bps) over any token |
+| `fuzz_multi_asset_escrow_release_exact` | Worker always receives exactly the locked amount        |
+| `fuzz_fee_no_overflow`                  | Fee arithmetic never overflows for valid inputs         |
+| `fuzz_escrow_amount_exact_storage`      | Stored amount equals the passed-in amount exactly       |
 
 ---
 

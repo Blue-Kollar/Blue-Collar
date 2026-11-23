@@ -94,7 +94,12 @@ describe('Search E2E', () => {
     noMatchWorkerId = none.id;
 
     await db.review.create({
-      data: { workerId: heavyMatchWorkerId, authorId: curatorId, rating: 5, body: 'Fantastic work.' },
+      data: {
+        workerId: heavyMatchWorkerId,
+        authorId: curatorId,
+        rating: 5,
+        body: 'Fantastic work.',
+      },
     });
     await db.review.create({
       data: { workerId: lightMatchWorkerId, authorId: curatorId, rating: 2, body: 'Not great.' },

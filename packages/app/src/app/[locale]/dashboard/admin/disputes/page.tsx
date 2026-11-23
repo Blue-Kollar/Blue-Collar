@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { ArrowLeft, Scale } from "lucide-react";
-import Link from "next/link";
-import { useAuth } from "@/hooks/useAuth";
-import { useToast } from "@/hooks/useToast";
-import { useDisputes, useResolveDispute } from "@/hooks/queries";
-import LoadingState from "@/components/LoadingState";
-import DisputeCard from "@/components/dashboard/admin/disputes/DisputeCard";
-import DisputesPagination from "@/components/dashboard/admin/disputes/DisputesPagination";
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { ArrowLeft, Scale } from 'lucide-react';
+import Link from 'next/link';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/useToast';
+import { useDisputes, useResolveDispute } from '@/hooks/queries';
+import LoadingState from '@/components/LoadingState';
+import DisputeCard from '@/components/dashboard/admin/disputes/DisputeCard';
+import DisputesPagination from '@/components/dashboard/admin/disputes/DisputesPagination';
 
 export default function AdminDisputesPage() {
   const { user } = useAuth();
@@ -17,22 +17,22 @@ export default function AdminDisputesPage() {
   const { toast } = useToast();
   const [page, setPage] = useState(1);
 
-  const disputesQuery = useDisputes({ page: String(page), limit: "20" });
+  const disputesQuery = useDisputes({ page: String(page), limit: '20' });
   const disputes = disputesQuery.data?.data ?? [];
   const loading = disputesQuery.isLoading;
   const meta = disputesQuery.data?.meta ?? null;
 
   const resolveDispute = useResolveDispute();
-  const actionLoading = resolveDispute.isPending ? resolveDispute.variables?.id ?? null : null;
+  const actionLoading = resolveDispute.isPending ? (resolveDispute.variables?.id ?? null) : null;
 
   useEffect(() => {
-    if (user && user.role !== "admin") {
-      router.push("/");
+    if (user && user.role !== 'admin') {
+      router.push('/');
     }
   }, [user, router]);
 
   useEffect(() => {
-    if (disputesQuery.isError) toast("Failed to load disputes", "error");
+    if (disputesQuery.isError) toast('Failed to load disputes', 'error');
   }, [disputesQuery.isError, toast]);
 
   const handleResolve = (id: string, status: string) => {
@@ -41,15 +41,15 @@ export default function AdminDisputesPage() {
       {
         onSuccess: () =>
           toast(
-            `Dispute ${status === "resolved" ? "resolved" : status === "dismissed" ? "dismissed" : "moved to review"}`,
-            "success"
+            `Dispute ${status === 'resolved' ? 'resolved' : status === 'dismissed' ? 'dismissed' : 'moved to review'}`,
+            'success',
           ),
-        onError: () => toast("Failed to update dispute", "error"),
-      }
+        onError: () => toast('Failed to update dispute', 'error'),
+      },
     );
   };
 
-  if (!user || user.role !== "admin") return null;
+  if (!user || user.role !== 'admin') return null;
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">

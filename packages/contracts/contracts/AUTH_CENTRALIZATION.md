@@ -5,13 +5,13 @@
 Authorization patterns found duplicated across contracts under
 `packages/contracts/contracts`:
 
-| Pattern | Previous locations |
-|---|---|
-| "caller holds role X" | `escrow/src/logic.rs` (`require_role`), `job_registry`, `access_control`, `dispute`, `market` — each re-implemented an `members.iter().any(|m| m == caller)` loop after `caller.require_auth()` |
-| "caller is admin" | `registry`, `payment`, `insurance_pool` — ad-hoc `caller == admin` checks |
-| "caller is one of two parties" (depositor/beneficiary, buyer/seller) | `escrow::do_dispute`, `job_registry` job-completion checks, `dispute` evidence submission |
-| "caller is the resource owner OR an admin" | `escrow::do_release`, `escrow::do_cancel`, `job_registry` job cancellation |
-| "contract is not paused" | every contract with a `pause`/`unpause` entrypoint |
+| Pattern                                                              | Previous locations                                                                                                                          |
+| -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| "caller holds role X"                                                | `escrow/src/logic.rs` (`require_role`), `job_registry`, `access_control`, `dispute`, `market` — each re-implemented an `members.iter().any( | m   | m == caller)`loop after`caller.require_auth()` |
+| "caller is admin"                                                    | `registry`, `payment`, `insurance_pool` — ad-hoc `caller == admin` checks                                                                   |
+| "caller is one of two parties" (depositor/beneficiary, buyer/seller) | `escrow::do_dispute`, `job_registry` job-completion checks, `dispute` evidence submission                                                   |
+| "caller is the resource owner OR an admin"                           | `escrow::do_release`, `escrow::do_cancel`, `job_registry` job cancellation                                                                  |
+| "contract is not paused"                                             | every contract with a `pause`/`unpause` entrypoint                                                                                          |
 
 ## What changed
 

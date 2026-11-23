@@ -1,9 +1,9 @@
-import type { Request, Response } from 'express'
-import * as auditService from '@/services/audit.service.js'
-import { catchAsync } from '@/utils/catchAsync.js'
+import type { Request, Response } from 'express';
+import * as auditService from '@/services/audit.service.js';
+import { catchAsync } from '@/utils/catchAsync.js';
 
 export const queryLogs = catchAsync(async (req: Request, res: Response) => {
-  const { userId, action, resource, from, to, page = '1', limit = '50' } = req.query
+  const { userId, action, resource, from, to, page = '1', limit = '50' } = req.query;
   const result = await auditService.queryLogs({
     userId: userId as string | undefined,
     action: action as string | undefined,
@@ -12,6 +12,6 @@ export const queryLogs = catchAsync(async (req: Request, res: Response) => {
     to: to ? new Date(to as string) : undefined,
     page: Number(page),
     limit: Math.min(Number(limit), 200),
-  })
-  return res.json({ ...result, status: 'success', code: 200 })
-})
+  });
+  return res.json({ ...result, status: 'success', code: 200 });
+});

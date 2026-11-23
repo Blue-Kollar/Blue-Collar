@@ -32,6 +32,7 @@ make build-market
 ```
 
 Output files:
+
 - `target/wasm32v1-none/release/bluecollar_registry.wasm`
 - `target/wasm32v1-none/release/bluecollar_market.wasm`
 
@@ -175,15 +176,15 @@ Returns the pending `wasm_hash` and `execute_after_ledger`, or `None` if no upgr
 
 ## Troubleshooting
 
-| Error | Cause | Fix |
-|---|---|---|
-| `Missing role` | Signing key does not hold `ROLE_UPGRADER` | Grant the role via `grant_role` from an admin account |
-| `Upgrade already pending` | `propose_upgrade` called twice | Cancel the existing proposal first with `cancel_upgrade`, or wait and execute it |
-| `Timelock not expired` | `execute_upgrade` called before 48 hours have elapsed | Check `get_pending_upgrade` for `execute_after_ledger` and wait |
-| `No pending upgrade` | `execute_upgrade` or `cancel_upgrade` called with nothing pending | Propose an upgrade first |
-| `Not initialized` | Contract has not been initialised | Call `initialize` before any admin operation |
-| `Wrong schema version` | `migrate` called with incorrect `expected_version` | Query `get_schema_version` and pass the current version |
-| `Contract is paused` | Contract is paused | Unpause via `unpause` (requires `ROLE_PAUSER`) before upgrading |
+| Error                     | Cause                                                             | Fix                                                                              |
+| ------------------------- | ----------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| `Missing role`            | Signing key does not hold `ROLE_UPGRADER`                         | Grant the role via `grant_role` from an admin account                            |
+| `Upgrade already pending` | `propose_upgrade` called twice                                    | Cancel the existing proposal first with `cancel_upgrade`, or wait and execute it |
+| `Timelock not expired`    | `execute_upgrade` called before 48 hours have elapsed             | Check `get_pending_upgrade` for `execute_after_ledger` and wait                  |
+| `No pending upgrade`      | `execute_upgrade` or `cancel_upgrade` called with nothing pending | Propose an upgrade first                                                         |
+| `Not initialized`         | Contract has not been initialised                                 | Call `initialize` before any admin operation                                     |
+| `Wrong schema version`    | `migrate` called with incorrect `expected_version`                | Query `get_schema_version` and pass the current version                          |
+| `Contract is paused`      | Contract is paused                                                | Unpause via `unpause` (requires `ROLE_PAUSER`) before upgrading                  |
 
 ### Verifying the upgrade succeeded
 

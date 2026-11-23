@@ -56,8 +56,8 @@ passport.use(
       } catch (error) {
         return done(error as Error);
       }
-    }
-  )
+    },
+  ),
 );
 
 // Passport session setup (if using sessions, but we'll use JWT)

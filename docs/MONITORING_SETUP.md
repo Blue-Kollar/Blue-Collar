@@ -49,6 +49,7 @@ This guide covers the production-ready monitoring setup for BlueCollar using Pro
 ### Configuration
 
 Update `deploy/prometheus/prometheus.yml`:
+
 - **Scrape Targets**: API, PostgreSQL, Redis, Node Exporter
 - **Scrape Intervals**: 10s for API (fast feedback), 15s for others
 - **Alert Rules**: Loaded from `alerts.yml` and `business-metrics.yml`
@@ -63,6 +64,7 @@ Update `deploy/prometheus/prometheus.yml`:
 ### Recording Rules
 
 Pre-computed metrics for efficient querying:
+
 - `api:uptime:month` - Monthly uptime percentage
 - `api:response_time:p99` - 99th percentile response time
 - `bluecollar:worker:registrations:rate` - Registrations per hour
@@ -73,6 +75,7 @@ Pre-computed metrics for efficient querying:
 ### Configuration
 
 Update `deploy/alertmanager/alertmanager.yml`:
+
 - **Routing**: Critical alerts → PagerDuty + email + Slack; warnings → Slack
 - **Grouping**: Group by alertname, cluster, service
 - **Deduplication**: Repeat intervals vary by severity (1h critical, 12h warning)
@@ -95,6 +98,7 @@ Update `deploy/alertmanager/alertmanager.yml`:
 ### Pre-built Dashboards
 
 #### System Overview
+
 - API uptime
 - Database health
 - Redis cache status
@@ -102,6 +106,7 @@ Update `deploy/alertmanager/alertmanager.yml`:
 - Network and disk I/O
 
 #### API Performance
+
 - Request rate and error rate
 - Response time percentiles (P50, P95, P99)
 - Response sizes distribution
@@ -109,6 +114,7 @@ Update `deploy/alertmanager/alertmanager.yml`:
 - Cache hit rate
 
 #### Business Metrics
+
 - Worker registrations (daily, weekly, monthly)
 - Worker distribution by category
 - Tips/payments (count and value in USD)
@@ -125,6 +131,7 @@ Dashboards are JSON-based and stored in `deploy/grafana/dashboards/`. Edit direc
 ### Configuration
 
 `deploy/otel/otel-collector-config.yml`:
+
 - **Receivers**: OTLP over gRPC (4317) and HTTP (4318)
 - **Processors**: Memory limiter, batch exporter
 - **Exporters**: Jaeger (primary), debug (console for testing)
@@ -132,6 +139,7 @@ Dashboards are JSON-based and stored in `deploy/grafana/dashboards/`. Edit direc
 ### Instrumentation
 
 Auto-instrumentation via `@opentelemetry/auto-instrumentations-node`:
+
 - Express HTTP requests
 - Database queries (Prisma)
 - Outbound HTTP calls
@@ -140,6 +148,7 @@ Auto-instrumentation via `@opentelemetry/auto-instrumentations-node`:
 ### Trace Sampling
 
 By default, 100% of traces are exported. For production, reduce via environment:
+
 ```bash
 OTEL_TRACES_SAMPLER=parentbased_traceidratio
 OTEL_TRACES_SAMPLER_ARG=0.1  # Sample 10%
@@ -150,6 +159,7 @@ OTEL_TRACES_SAMPLER_ARG=0.1  # Sample 10%
 Access at `http://localhost:16686` (development) or `https://jaeger.your-domain.com` (production).
 
 Features:
+
 - Search traces by service, operation, tag
 - View distributed tracing across services
 - Analyze trace timing and dependencies
@@ -160,6 +170,7 @@ Features:
 ### Configuration
 
 `deploy/logstash/logstash.conf`:
+
 - **Input**: TCP (5000) and HTTP (8080) for log shipping
 - **Filter**: JSON parsing, error tagging, request extraction
 - **Output**: Elasticsearch index per day (`bluecollar-logs-YYYY.MM.dd`)
@@ -167,15 +178,16 @@ Features:
 ### Shipping Logs
 
 Configure Node.js to send logs to Logstash:
+
 ```javascript
 // Option 1: Direct TCP
-const logstash = require('pino-logstash-http')
+const logstash = require('pino-logstash-http');
 logger.transport(
   logstash.httpTransport({
     host: 'logstash-host',
     port: 8080,
-  })
-)
+  }),
+);
 
 // Option 2: Filebeat (recommended)
 // Ship logs from `/var/log/bluecollar-api.log` to Logstash via Filebeat
@@ -184,6 +196,7 @@ logger.transport(
 ### Searching Logs
 
 Use Kibana (Elasticsearch UI) or Grafana's Elasticsearch data source:
+
 - Filter by timestamp, service, log level
 - Search for error traces, stack traces
 - Correlate logs with metrics and traces
@@ -195,23 +208,24 @@ Use Kibana (Elasticsearch UI) or Grafana's Elasticsearch data source:
 Use `metricsRecorder` to emit business events:
 
 ```typescript
-import { metricsRecorder } from './monitoring/business-metrics.js'
+import { metricsRecorder } from './monitoring/business-metrics.js';
 
 // When a worker is created
-metricsRecorder.recordWorkerCreated('plumber')
+metricsRecorder.recordWorkerCreated('plumber');
 
 // When a payment is made
-metricsRecorder.recordPayment(50, 'XLM', 10.50)
+metricsRecorder.recordPayment(50, 'XLM', 10.5);
 
 // When a review is created
-metricsRecorder.recordReviewCreated(5, 'plumber')
+metricsRecorder.recordReviewCreated(5, 'plumber');
 ```
 
 ### Automatic Syncs
 
 Gauge metrics (e.g., active workers, total users) are synced every 5 minutes:
+
 ```typescript
-metricsRecorder.startPeriodicSync()
+metricsRecorder.startPeriodicSync();
 ```
 
 Start in `index.ts` during app initialization.
@@ -246,6 +260,7 @@ docker-compose -f deploy/docker-compose.yml \
 ### Kubernetes (Production)
 
 Use Helm charts or raw manifests:
+
 ```bash
 # Prometheus Operator
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts

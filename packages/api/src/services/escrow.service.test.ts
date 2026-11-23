@@ -8,11 +8,11 @@
  *  - releaseEscrow: (depends on activateEscrow shape — covered via mocked repo)
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { createEscrowService } from './escrow.service.js'
-import { AppError } from '../utils/app-error.js'
-import { db } from '../db.js'
-import { dispatchNotification } from './notification.service.js'
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { createEscrowService } from './escrow.service.js';
+import { AppError } from '../utils/app-error.js';
+import { db } from '../db.js';
+import { dispatchNotification } from './notification.service.js';
 
 // ── DB mock (for requireNotPaused) ────────────────────────────────────────────
 
@@ -22,18 +22,18 @@ vi.mock('../db.js', () => ({
       findUnique: vi.fn().mockResolvedValue(null), // not paused by default
     },
   },
-}))
+}));
 
 // ── Notification dispatch mock ────────────────────────────────────────────────
 
 vi.mock('./notification.service.js', () => ({
   dispatchNotification: vi.fn().mockResolvedValue(undefined),
-}))
+}));
 
 // ── Repo factory ──────────────────────────────────────────────────────────────
 
 function makeRepo(overrides: Record<string, unknown> = {}) {
-  const now = new Date()
+  const now = new Date();
   const base = {
     id: 'escrow-1',
     payerId: 'user-payer',
@@ -41,7 +41,7 @@ function makeRepo(overrides: Record<string, unknown> = {}) {
     amountXlm: 50,
     status: 'pending',
     createdAt: now,
-  }
+  };
 
   return {
     createEscrow: vi.fn().mockResolvedValue(base),
@@ -49,14 +49,14 @@ function makeRepo(overrides: Record<string, unknown> = {}) {
     updateEscrow: vi.fn().mockResolvedValue({ ...base, status: 'active' }),
     findManyEscrows: vi.fn().mockResolvedValue([]),
     ...overrides,
-  }
+  };
 }
 
-const PAYER_ID = 'user-payer'
-const PAYEE_ID = 'user-payee'
-const ADMIN_ID = 'admin-001'
-const ESCROW_ID = 'escrow-1'
-const FUTURE_DATE = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7) // 7 days from now
+const PAYER_ID = 'user-payer';
+const PAYEE_ID = 'user-payee';
+const ADMIN_ID = 'admin-001';
+const ESCROW_ID = 'escrow-1';
+const FUTURE_DATE = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7); // 7 days from now
 
 // ─────────────────────────────────────────────────────────────────────────────
 // createEscrow
@@ -65,68 +65,88 @@ const FUTURE_DATE = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7) // 7 days fro
 // The global setup resets mocks after each test; restore the defaults the
 // service relies on (notifications are fire-and-forget, so they must resolve).
 beforeEach(() => {
-  vi.mocked(db.systemConfig.findUnique).mockResolvedValue(null)
-  vi.mocked(dispatchNotification).mockResolvedValue(undefined)
-})
+  vi.mocked(db.systemConfig.findUnique).mockResolvedValue(null);
+  vi.mocked(dispatchNotification).mockResolvedValue(undefined);
+});
 
 describe('EscrowService.createEscrow', () => {
   it('throws when amountXlm is zero', async () => {
-    const repo = makeRepo()
-    const svc = createEscrowService({ escrowRepository: repo as any })
+    const repo = makeRepo();
+    const svc = createEscrowService({ escrowRepository: repo as any });
 
     await expect(
-      svc.createEscrow({ payerId: PAYER_ID, payeeId: PAYEE_ID, amountXlm: 0, expiresAt: FUTURE_DATE }),
-    ).rejects.toMatchObject({ statusCode: 400 })
-  })
+      svc.createEscrow({
+        payerId: PAYER_ID,
+        payeeId: PAYEE_ID,
+        amountXlm: 0,
+        expiresAt: FUTURE_DATE,
+      }),
+    ).rejects.toMatchObject({ statusCode: 400 });
+  });
 
   it('throws when amountXlm is negative', async () => {
-    const repo = makeRepo()
-    const svc = createEscrowService({ escrowRepository: repo as any })
+    const repo = makeRepo();
+    const svc = createEscrowService({ escrowRepository: repo as any });
 
     await expect(
-      svc.createEscrow({ payerId: PAYER_ID, payeeId: PAYEE_ID, amountXlm: -5, expiresAt: FUTURE_DATE }),
-    ).rejects.toThrow(AppError)
-  })
+      svc.createEscrow({
+        payerId: PAYER_ID,
+        payeeId: PAYEE_ID,
+        amountXlm: -5,
+        expiresAt: FUTURE_DATE,
+      }),
+    ).rejects.toThrow(AppError);
+  });
 
   it('throws when expiresAt is in the past', async () => {
-    const repo = makeRepo()
-    const svc = createEscrowService({ escrowRepository: repo as any })
-    const pastDate = new Date(Date.now() - 1000)
+    const repo = makeRepo();
+    const svc = createEscrowService({ escrowRepository: repo as any });
+    const pastDate = new Date(Date.now() - 1000);
 
     await expect(
-      svc.createEscrow({ payerId: PAYER_ID, payeeId: PAYEE_ID, amountXlm: 10, expiresAt: pastDate }),
-    ).rejects.toMatchObject({ statusCode: 400 })
-  })
+      svc.createEscrow({
+        payerId: PAYER_ID,
+        payeeId: PAYEE_ID,
+        amountXlm: 10,
+        expiresAt: pastDate,
+      }),
+    ).rejects.toMatchObject({ statusCode: 400 });
+  });
 
   it('throws when payer and payee are the same user', async () => {
-    const repo = makeRepo()
-    const svc = createEscrowService({ escrowRepository: repo as any })
+    const repo = makeRepo();
+    const svc = createEscrowService({ escrowRepository: repo as any });
 
     await expect(
-      svc.createEscrow({ payerId: PAYER_ID, payeeId: PAYER_ID, amountXlm: 10, expiresAt: FUTURE_DATE }),
-    ).rejects.toMatchObject({ statusCode: 400 })
-  })
+      svc.createEscrow({
+        payerId: PAYER_ID,
+        payeeId: PAYER_ID,
+        amountXlm: 10,
+        expiresAt: FUTURE_DATE,
+      }),
+    ).rejects.toMatchObject({ statusCode: 400 });
+  });
 
   it('creates escrow with status pending on happy path', async () => {
-    const repo = makeRepo()
-    const svc = createEscrowService({ escrowRepository: repo as any })
+    const repo = makeRepo();
+    const svc = createEscrowService({ escrowRepository: repo as any });
 
     const result = await svc.createEscrow({
       payerId: PAYER_ID,
       payeeId: PAYEE_ID,
       amountXlm: 50,
       expiresAt: FUTURE_DATE,
-    })
+    });
 
     expect(repo.createEscrow).toHaveBeenCalledWith(
       expect.objectContaining({ status: 'pending', payerId: PAYER_ID, payeeId: PAYEE_ID }),
-    )
-    expect(result.id).toBe(ESCROW_ID)
-  })
+    );
+    expect(result.id).toBe(ESCROW_ID);
+  });
 
   it('includes optional jobId and txId when provided', async () => {
-    const repo = makeRepo()
-    const svc = createEscrowService({ escrowRepository: repo as any })
+    const repo = makeRepo();
+    const svc = createEscrowService({ escrowRepository: repo as any });
 
     await svc.createEscrow({
       jobId: 'job-123',
@@ -135,25 +155,33 @@ describe('EscrowService.createEscrow', () => {
       amountXlm: 100,
       expiresAt: FUTURE_DATE,
       txId: 'tx-abc',
-    })
+    });
 
     expect(repo.createEscrow).toHaveBeenCalledWith(
       expect.objectContaining({ jobId: 'job-123', txId: 'tx-abc' }),
-    )
-  })
+    );
+  });
 
   it('throws 409 when system is paused', async () => {
-    const { db } = await import('../db.js')
-    ;(db.systemConfig.findUnique as ReturnType<typeof vi.fn>).mockResolvedValueOnce({ key: 'isPaused', value: 'true' })
+    const { db } = await import('../db.js');
+    (db.systemConfig.findUnique as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      key: 'isPaused',
+      value: 'true',
+    });
 
-    const repo = makeRepo()
-    const svc = createEscrowService({ escrowRepository: repo as any })
+    const repo = makeRepo();
+    const svc = createEscrowService({ escrowRepository: repo as any });
 
     await expect(
-      svc.createEscrow({ payerId: PAYER_ID, payeeId: PAYEE_ID, amountXlm: 10, expiresAt: FUTURE_DATE }),
-    ).rejects.toMatchObject({ statusCode: 409 })
-  })
-})
+      svc.createEscrow({
+        payerId: PAYER_ID,
+        payeeId: PAYEE_ID,
+        amountXlm: 10,
+        expiresAt: FUTURE_DATE,
+      }),
+    ).rejects.toMatchObject({ statusCode: 409 });
+  });
+});
 
 // ─────────────────────────────────────────────────────────────────────────────
 // activateEscrow
@@ -161,46 +189,59 @@ describe('EscrowService.createEscrow', () => {
 
 describe('EscrowService.activateEscrow', () => {
   it('throws 404 when escrow does not exist', async () => {
-    const repo = makeRepo({ findEscrow: vi.fn().mockResolvedValue(null) })
-    const svc = createEscrowService({ escrowRepository: repo as any })
+    const repo = makeRepo({ findEscrow: vi.fn().mockResolvedValue(null) });
+    const svc = createEscrowService({ escrowRepository: repo as any });
 
-    await expect(svc.activateEscrow('no-exist', 'tx-1', PAYER_ID, 'user')).rejects.toMatchObject({ statusCode: 404 })
-  })
+    await expect(svc.activateEscrow('no-exist', 'tx-1', PAYER_ID, 'user')).rejects.toMatchObject({
+      statusCode: 404,
+    });
+  });
 
   it('throws 400 when escrow is not in pending status', async () => {
     const repo = makeRepo({
-      findEscrow: vi.fn().mockResolvedValue({ id: ESCROW_ID, status: 'active', payerId: PAYER_ID, payeeId: PAYEE_ID }),
-    })
-    const svc = createEscrowService({ escrowRepository: repo as any })
+      findEscrow: vi.fn().mockResolvedValue({
+        id: ESCROW_ID,
+        status: 'active',
+        payerId: PAYER_ID,
+        payeeId: PAYEE_ID,
+      }),
+    });
+    const svc = createEscrowService({ escrowRepository: repo as any });
 
-    await expect(svc.activateEscrow(ESCROW_ID, 'tx-1', PAYER_ID, 'user')).rejects.toMatchObject({ statusCode: 400 })
-  })
+    await expect(svc.activateEscrow(ESCROW_ID, 'tx-1', PAYER_ID, 'user')).rejects.toMatchObject({
+      statusCode: 400,
+    });
+  });
 
   it('throws 403 when non-admin and non-payer tries to activate', async () => {
-    const repo = makeRepo()
-    const svc = createEscrowService({ escrowRepository: repo as any })
+    const repo = makeRepo();
+    const svc = createEscrowService({ escrowRepository: repo as any });
 
-    await expect(svc.activateEscrow(ESCROW_ID, 'tx-1', 'stranger', 'user')).rejects.toMatchObject({ statusCode: 403 })
-  })
+    await expect(svc.activateEscrow(ESCROW_ID, 'tx-1', 'stranger', 'user')).rejects.toMatchObject({
+      statusCode: 403,
+    });
+  });
 
   it('activates escrow as payer', async () => {
-    const repo = makeRepo()
-    const svc = createEscrowService({ escrowRepository: repo as any })
+    const repo = makeRepo();
+    const svc = createEscrowService({ escrowRepository: repo as any });
 
-    const result = await svc.activateEscrow(ESCROW_ID, 'tx-abc', PAYER_ID, 'user')
+    const result = await svc.activateEscrow(ESCROW_ID, 'tx-abc', PAYER_ID, 'user');
 
     expect(repo.updateEscrow).toHaveBeenCalledWith(
       ESCROW_ID,
       expect.objectContaining({ status: 'active', txId: 'tx-abc' }),
-    )
-    expect(result.status).toBe('active')
-  })
+    );
+    expect(result.status).toBe('active');
+  });
 
   it('activates escrow as admin (bypass payer check)', async () => {
-    const repo = makeRepo()
-    const svc = createEscrowService({ escrowRepository: repo as any })
+    const repo = makeRepo();
+    const svc = createEscrowService({ escrowRepository: repo as any });
 
-    await expect(svc.activateEscrow(ESCROW_ID, 'tx-admin', ADMIN_ID, 'admin')).resolves.toBeDefined()
-    expect(repo.updateEscrow).toHaveBeenCalled()
-  })
-})
+    await expect(
+      svc.activateEscrow(ESCROW_ID, 'tx-admin', ADMIN_ID, 'admin'),
+    ).resolves.toBeDefined();
+    expect(repo.updateEscrow).toHaveBeenCalled();
+  });
+});

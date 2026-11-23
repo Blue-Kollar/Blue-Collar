@@ -12,31 +12,31 @@ spec:
   minReplicas: 2
   maxReplicas: 10
   metrics:
-  - type: Resource
-    resource:
-      name: cpu
-      target:
-        type: Utilization
-        averageUtilization: 70
-  - type: Resource
-    resource:
-      name: memory
-      target:
-        type: Utilization
-        averageUtilization: 80
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
   behavior:
     scaleDown:
       stabilizationWindowSeconds: 300
       policies:
-      - type: Percent
-        value: 50
-        periodSeconds: 60
+        - type: Percent
+          value: 50
+          periodSeconds: 60
     scaleUp:
       stabilizationWindowSeconds: 60
       policies:
-      - type: Percent
-        value: 100
-        periodSeconds: 30
+        - type: Percent
+          value: 100
+          periodSeconds: 30
 
 ---
 # Vertical Pod Autoscaler for API
@@ -51,19 +51,19 @@ spec:
     kind: Deployment
     name: bluecollar-api
   updatePolicy:
-    updateMode: "Auto"
+    updateMode: 'Auto'
   resourcePolicy:
     containerPolicies:
-    - containerName: api
-      minAllowed:
-        cpu: 100m
-        memory: 256Mi
-      maxAllowed:
-        cpu: 2000m
-        memory: 2Gi
-      controlledResources:
-      - cpu
-      - memory
+      - containerName: api
+        minAllowed:
+          cpu: 100m
+          memory: 256Mi
+        maxAllowed:
+          cpu: 2000m
+          memory: 2Gi
+        controlledResources:
+          - cpu
+          - memory
 
 ---
 # PodDisruptionBudget to ensure availability during scaling
@@ -87,11 +87,11 @@ metadata:
   namespace: bluecollar
 spec:
   hard:
-    requests.cpu: "10"
+    requests.cpu: '10'
     requests.memory: 20Gi
-    limits.cpu: "20"
+    limits.cpu: '20'
     limits.memory: 40Gi
-    persistentvolumeclaims: "10"
+    persistentvolumeclaims: '10'
 
 ---
 # LimitRange for default resource limits
@@ -102,16 +102,16 @@ metadata:
   namespace: bluecollar
 spec:
   limits:
-  - max:
-      cpu: "2"
-      memory: 2Gi
-    min:
-      cpu: 100m
-      memory: 128Mi
-    default:
-      cpu: 500m
-      memory: 512Mi
-    defaultRequest:
-      cpu: 200m
-      memory: 256Mi
-    type: Container
+    - max:
+        cpu: '2'
+        memory: 2Gi
+      min:
+        cpu: 100m
+        memory: 128Mi
+      default:
+        cpu: 500m
+        memory: 512Mi
+      defaultRequest:
+        cpu: 200m
+        memory: 256Mi
+      type: Container

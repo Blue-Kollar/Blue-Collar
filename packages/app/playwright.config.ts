@@ -1,4 +1,4 @@
-import { defineConfig, devices } from '@playwright/test'
+import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: './e2e',
@@ -39,8 +39,16 @@ export default defineConfig({
     { name: 'firefox', use: { ...devices['Desktop Firefox'] }, testIgnore: /visual\.spec\.ts/ },
     { name: 'webkit', use: { ...devices['Desktop Safari'] }, testIgnore: /visual\.spec\.ts/ },
     // Mobile viewports
-    { name: 'Mobile Chrome (Pixel 5)', use: { ...devices['Pixel 5'] }, testIgnore: /visual\.spec\.ts/ },
-    { name: 'Mobile Safari (iPhone 12)', use: { ...devices['iPhone 12'] }, testIgnore: /visual\.spec\.ts/ },
+    {
+      name: 'Mobile Chrome (Pixel 5)',
+      use: { ...devices['Pixel 5'] },
+      testIgnore: /visual\.spec\.ts/,
+    },
+    {
+      name: 'Mobile Safari (iPhone 12)',
+      use: { ...devices['iPhone 12'] },
+      testIgnore: /visual\.spec\.ts/,
+    },
     // Visual snapshots run once on a pinned Chromium configuration instead of
     // once per browser/device, which caused cross-project snapshot drift.
     { name: 'visual', testMatch: /visual\.spec\.ts/, use: { ...devices['Desktop Chrome'] } },
@@ -54,4 +62,4 @@ export default defineConfig({
         reuseExistingServer: true,
         timeout: 120_000,
       },
-})
+});

@@ -1,5 +1,5 @@
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useLocale, useTranslations } from "next-intl";
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useLocale, useTranslations } from 'next-intl';
 
 interface CalendarHeaderProps {
   year: number;
@@ -17,20 +17,20 @@ export default function CalendarHeader({
   onNextMonth,
 }: CalendarHeaderProps) {
   const locale = useLocale();
-  const t = useTranslations("componentText");
-  const monthLabel = new Intl.DateTimeFormat(locale, { month: "long", timeZone: "UTC" }).format(
-    new Date(Date.UTC(year, month, 1))
+  const t = useTranslations('componentText');
+  const monthLabel = new Intl.DateTimeFormat(locale, { month: 'long', timeZone: 'UTC' }).format(
+    new Date(Date.UTC(year, month, 1)),
   );
   const dayLabels = Array.from({ length: 7 }, (_, day) =>
-    new Intl.DateTimeFormat(locale, { weekday: "short", timeZone: "UTC" }).format(
-      new Date(Date.UTC(2023, 0, 1 + day))
-    )
+    new Intl.DateTimeFormat(locale, { weekday: 'short', timeZone: 'UTC' }).format(
+      new Date(Date.UTC(2023, 0, 1 + day)),
+    ),
   );
   return (
     <>
       {/* Header */}
       <div className="mb-4 flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-gray-800">{t("availability")}</h3>
+        <h3 className="text-sm font-semibold text-gray-800">{t('availability')}</h3>
         <span className="text-xs text-gray-400">{timezone}</span>
       </div>
 
@@ -39,7 +39,7 @@ export default function CalendarHeader({
         <button
           onClick={onPrevMonth}
           className="rounded p-1 hover:bg-gray-100 transition-colors"
-          aria-label={t("previousMonth")}
+          aria-label={t('previousMonth')}
         >
           <ChevronLeft size={16} />
         </button>
@@ -49,7 +49,7 @@ export default function CalendarHeader({
         <button
           onClick={onNextMonth}
           className="rounded p-1 hover:bg-gray-100 transition-colors"
-          aria-label={t("nextMonth")}
+          aria-label={t('nextMonth')}
         >
           <ChevronRight size={16} />
         </button>
@@ -58,7 +58,9 @@ export default function CalendarHeader({
       {/* Day labels */}
       <div className="mb-1 grid grid-cols-7 text-center">
         {dayLabels.map((d, index) => (
-          <span key={index} className="text-xs font-medium text-gray-400">{d}</span>
+          <span key={index} className="text-xs font-medium text-gray-400">
+            {d}
+          </span>
         ))}
       </div>
     </>

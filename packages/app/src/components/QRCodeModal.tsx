@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { useState, useRef } from "react";
-import { Download, X } from "lucide-react";
-import { QRCodeSVG as QRCode } from "qrcode.react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import { useState, useRef } from 'react';
+import { Download, X } from 'lucide-react';
+import { QRCodeSVG as QRCode } from 'qrcode.react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 
 interface QRCodeModalProps {
   isOpen: boolean;
@@ -13,20 +13,15 @@ interface QRCodeModalProps {
   profileUrl: string;
 }
 
-export default function QRCodeModal({
-  isOpen,
-  onClose,
-  workerName,
-  profileUrl,
-}: QRCodeModalProps) {
+export default function QRCodeModal({ isOpen, onClose, workerName, profileUrl }: QRCodeModalProps) {
   const qrRef = useRef<HTMLDivElement>(null);
 
   const downloadQRCode = () => {
-    const canvas = qrRef.current?.querySelector("canvas");
+    const canvas = qrRef.current?.querySelector('canvas');
     if (!canvas) return;
 
-    const link = document.createElement("a");
-    link.href = canvas.toDataURL("image/png");
+    const link = document.createElement('a');
+    link.href = canvas.toDataURL('image/png');
     link.download = `${workerName}-profile-qr.png`;
     link.click();
   };
@@ -47,11 +42,7 @@ export default function QRCodeModal({
             Scan this QR code to view {workerName}'s profile
           </p>
 
-          <Button
-            onClick={downloadQRCode}
-            className="w-full gap-2"
-            variant="default"
-          >
+          <Button onClick={downloadQRCode} className="w-full gap-2" variant="default">
             <Download size={16} />
             Download QR Code
           </Button>

@@ -1,11 +1,11 @@
 /**
  * Typed React Query hooks for Categories and Auth resources.
  */
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import * as api from "@/lib/api";
-import { getMe, getMeWithToken } from "@/lib/api/auth";
-import { queryKeys } from "@/lib/queryClient";
-import type { ApiResponse, Meta, Worker } from "@/types";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import * as api from '@/lib/api';
+import { getMe, getMeWithToken } from '@/lib/api/auth';
+import { queryKeys } from '@/lib/queryClient';
+import type { ApiResponse, Meta, Worker } from '@/types';
 
 // ── Categories ────────────────────────────────────────────────────────────────
 
@@ -37,8 +37,13 @@ export function useUpdateProfile() {
 
 export function useChangePassword() {
   return useMutation({
-    mutationFn: ({ currentPassword, newPassword }: { currentPassword: string; newPassword: string }) =>
-      api.changePassword(currentPassword, newPassword),
+    mutationFn: ({
+      currentPassword,
+      newPassword,
+    }: {
+      currentPassword: string;
+      newPassword: string;
+    }) => api.changePassword(currentPassword, newPassword),
   });
 }
 
@@ -81,9 +86,9 @@ export interface ProtocolMetrics {
 
 export function useProtocolMetrics() {
   return useQuery({
-    queryKey: ["protocol-metrics"] as const,
+    queryKey: ['protocol-metrics'] as const,
     queryFn: async () => {
-      const res = await fetch("/api/analytics/metrics");
+      const res = await fetch('/api/analytics/metrics');
       const json = await res.json();
       return json.data as ProtocolMetrics;
     },
@@ -110,9 +115,9 @@ export function useSendContactRequest(workerId: string) {
 
 export function useInvoice(invoiceId: string) {
   return useQuery({
-    queryKey: ["invoices", "detail", invoiceId] as const,
+    queryKey: ['invoices', 'detail', invoiceId] as const,
     queryFn: async () => {
-      const { getInvoice } = await import("@/lib/api/payments");
+      const { getInvoice } = await import('@/lib/api/payments');
       return getInvoice(invoiceId);
     },
     enabled: !!invoiceId,
@@ -132,7 +137,8 @@ export function useUpdateEmailNotificationPrefs() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (prefs: api.EmailNotificationPrefs) => api.updateEmailNotificationPrefs(prefs),
-    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.settings.emailNotificationPrefs() }),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: queryKeys.settings.emailNotificationPrefs() }),
   });
 }
 
@@ -146,7 +152,7 @@ export function useBookmarks(params?: Record<string, string>) {
 }
 
 type BookmarksPage = ApiResponse<Worker[]> & { meta: Meta };
-const BOOKMARKS_KEY = ["bookmarks"] as const;
+const BOOKMARKS_KEY = ['bookmarks'] as const;
 
 /** Toggles a worker's bookmark, optimistically removing it from cached bookmark lists with rollback on failure. */
 export function useToggleBookmark() {
@@ -157,7 +163,7 @@ export function useToggleBookmark() {
       await qc.cancelQueries({ queryKey: BOOKMARKS_KEY });
       const previous = qc.getQueriesData<BookmarksPage>({ queryKey: BOOKMARKS_KEY });
       qc.setQueriesData<BookmarksPage>({ queryKey: BOOKMARKS_KEY }, (old) =>
-        old?.data ? { ...old, data: old.data.filter((w) => w.id !== workerId) } : old
+        old?.data ? { ...old, data: old.data.filter((w) => w.id !== workerId) } : old,
       );
       return { previous };
     },

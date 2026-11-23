@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import {
   BarChart,
@@ -10,7 +10,7 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-} from "recharts";
+} from 'recharts';
 
 interface TrendPoint {
   month: string;

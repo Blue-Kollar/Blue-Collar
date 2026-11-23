@@ -18,8 +18,8 @@
  * in a transactional context or with a test database configured.
  */
 
-import { faker } from '@faker-js/faker'
-import type { PrismaClient } from '@prisma/client'
+import { faker } from '@faker-js/faker';
+import type { PrismaClient } from '@prisma/client';
 
 /**
  * Create a StellarAccount fixture with optional overrides.
@@ -37,16 +37,16 @@ import type { PrismaClient } from '@prisma/client'
 export async function createStellarAccount(
   db: PrismaClient,
   overrides: Partial<{
-    userId: string
-    publicKey: string
-    balance: number
-    sequences: bigint | number
+    userId: string;
+    publicKey: string;
+    balance: number;
+    sequences: bigint | number;
   }> = {},
 ) {
-  const { userId: defaultUserId, ...rest } = overrides
+  const { userId: defaultUserId, ...rest } = overrides;
 
   // Create user if userId not provided
-  let userId = overrides.userId
+  let userId = overrides.userId;
   if (!userId) {
     const user = await db.user.create({
       data: {
@@ -55,8 +55,8 @@ export async function createStellarAccount(
         lastName: faker.person.lastName(),
         password: 'hashed_password_placeholder',
       },
-    })
-    userId = user.id
+    });
+    userId = user.id;
   }
 
   return db.stellarAccount.create({
@@ -67,7 +67,7 @@ export async function createStellarAccount(
       sequences: BigInt(0),
       ...rest,
     },
-  })
+  });
 }
 
 /**
@@ -86,15 +86,15 @@ export async function createStellarAccount(
 export async function createWebhookSubscription(
   db: PrismaClient,
   overrides: Partial<{
-    userId: string
-    url: string
-    secret: string
-    events: string[]
-    isActive: boolean
+    userId: string;
+    url: string;
+    secret: string;
+    events: string[];
+    isActive: boolean;
   }> = {},
 ) {
   // Create user if userId not provided
-  let userId = overrides.userId
+  let userId = overrides.userId;
   if (!userId) {
     const user = await db.user.create({
       data: {
@@ -103,13 +103,12 @@ export async function createWebhookSubscription(
         lastName: faker.person.lastName(),
         password: 'hashed_password_placeholder',
       },
-    })
-    userId = user.id
+    });
+    userId = user.id;
   }
 
   return db.webhookSubscription.create({
     data: {
-      userId,
       url: faker.internet.url(),
       secret: faker.string.hexadecimal({ length: 64 }), // 32 bytes in hex = 64 chars
       events: ['payment.created', 'payment.completed'],
@@ -117,7 +116,7 @@ export async function createWebhookSubscription(
       ...overrides,
       userId, // Ensure userId is set from the variable
     },
-  })
+  });
 }
 
 /**
@@ -139,12 +138,12 @@ export async function createWebhookLog(
   db: PrismaClient,
   subscriptionId: string,
   overrides: Partial<{
-    event: string
-    payload: Record<string, unknown>
-    statusCode: number | null
-    attempts: number
-    success: boolean
-    error: string | null
+    event: string;
+    payload: Record<string, unknown>;
+    statusCode: number | null;
+    attempts: number;
+    success: boolean;
+    error: string | null;
   }> = {},
 ) {
   return db.webhookLog.create({
@@ -162,7 +161,7 @@ export async function createWebhookLog(
       error: null,
       ...overrides,
     },
-  })
+  });
 }
 
 /**
@@ -184,17 +183,17 @@ export async function createWebhookLog(
 export async function createBooking(
   db: PrismaClient,
   overrides: Partial<{
-    workerId: string
-    requesterId: string
-    startTime: Date
-    endTime: Date
-    timezone: string
-    serviceDescription: string
-    note: string
+    workerId: string;
+    requesterId: string;
+    startTime: Date;
+    endTime: Date;
+    timezone: string;
+    serviceDescription: string;
+    note: string;
   }> = {},
 ) {
   // Create worker and requester if not provided
-  let workerId = overrides.workerId
+  let workerId = overrides.workerId;
   if (!workerId) {
     const worker = await db.worker.create({
       data: {
@@ -202,11 +201,11 @@ export async function createBooking(
         categoryId: await getOrCreateCategoryId(db),
         curatorId: await getOrCreateUserId(db),
       },
-    })
-    workerId = worker.id
+    });
+    workerId = worker.id;
   }
 
-  let requesterId = overrides.requesterId
+  let requesterId = overrides.requesterId;
   if (!requesterId) {
     const requester = await db.user.create({
       data: {
@@ -215,14 +214,13 @@ export async function createBooking(
         lastName: faker.person.lastName(),
         password: 'hashed_password_placeholder',
       },
-    })
-    requesterId = requester.id
+    });
+    requesterId = requester.id;
   }
 
-  const now = new Date()
-  const startTime = overrides.startTime ?? new Date(now.getTime() + 24 * 60 * 60 * 1000) // Tomorrow
-  const endTime =
-    overrides.endTime ?? new Date(startTime.getTime() + 2 * 60 * 60 * 1000) // 2 hours later
+  const now = new Date();
+  const startTime = overrides.startTime ?? new Date(now.getTime() + 24 * 60 * 60 * 1000); // Tomorrow
+  const endTime = overrides.endTime ?? new Date(startTime.getTime() + 2 * 60 * 60 * 1000); // 2 hours later
 
   return db.booking.create({
     data: {
@@ -237,7 +235,7 @@ export async function createBooking(
       workerId, // Ensure workerId is set from the variable
       requesterId, // Ensure requesterId is set from the variable
     },
-  })
+  });
 }
 
 /**
@@ -258,19 +256,19 @@ export async function createBooking(
 export async function createEscrowRecord(
   db: PrismaClient,
   overrides: Partial<{
-    jobId: string | null
-    payerId: string
-    payeeId: string
-    amountXlm: number
-    status: 'pending' | 'released' | 'cancelled'
-    txId: string | null
-    expiresAt: Date
-    releasedAt: Date | null
-    cancelledAt: Date | null
+    jobId: string | null;
+    payerId: string;
+    payeeId: string;
+    amountXlm: number;
+    status: 'pending' | 'released' | 'cancelled';
+    txId: string | null;
+    expiresAt: Date;
+    releasedAt: Date | null;
+    cancelledAt: Date | null;
   }> = {},
 ) {
   // Create payer and payee if not provided
-  let payerId = overrides.payerId
+  let payerId = overrides.payerId;
   if (!payerId) {
     const payer = await db.user.create({
       data: {
@@ -279,11 +277,11 @@ export async function createEscrowRecord(
         lastName: faker.person.lastName(),
         password: 'hashed_password_placeholder',
       },
-    })
-    payerId = payer.id
+    });
+    payerId = payer.id;
   }
 
-  let payeeId = overrides.payeeId
+  let payeeId = overrides.payeeId;
   if (!payeeId) {
     const payee = await db.user.create({
       data: {
@@ -292,12 +290,12 @@ export async function createEscrowRecord(
         lastName: faker.person.lastName(),
         password: 'hashed_password_placeholder',
       },
-    })
-    payeeId = payee.id
+    });
+    payeeId = payee.id;
   }
 
-  const now = new Date()
-  const expiresAt = overrides.expiresAt ?? new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000) // 7 days
+  const now = new Date();
+  const expiresAt = overrides.expiresAt ?? new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 days
 
   return db.escrowRecord.create({
     data: {
@@ -313,7 +311,7 @@ export async function createEscrowRecord(
       payerId, // Ensure payerId is set from the variable
       payeeId, // Ensure payeeId is set from the variable
     },
-  })
+  });
 }
 
 /**
@@ -331,18 +329,18 @@ export async function createStellarAccounts(
   db: PrismaClient,
   count: number,
   baseOverrides: Partial<{
-    userId: string
-    publicKey: string
-    balance: number
-    sequences: bigint | number
+    userId: string;
+    publicKey: string;
+    balance: number;
+    sequences: bigint | number;
   }> = {},
 ) {
-  const accounts = []
+  const accounts = [];
   for (let i = 0; i < count; i++) {
-    const account = await createStellarAccount(db, baseOverrides)
-    accounts.push(account)
+    const account = await createStellarAccount(db, baseOverrides);
+    accounts.push(account);
   }
-  return accounts
+  return accounts;
 }
 
 /**
@@ -362,21 +360,21 @@ export async function createWebhookSubscriptions(
   userId: string,
   count: number,
   baseOverrides: Partial<{
-    url: string
-    secret: string
-    events: string[]
-    isActive: boolean
+    url: string;
+    secret: string;
+    events: string[];
+    isActive: boolean;
   }> = {},
 ) {
-  const subscriptions = []
+  const subscriptions = [];
   for (let i = 0; i < count; i++) {
     const subscription = await createWebhookSubscription(db, {
       userId,
       ...baseOverrides,
-    })
-    subscriptions.push(subscription)
+    });
+    subscriptions.push(subscription);
   }
-  return subscriptions
+  return subscriptions;
 }
 
 /**
@@ -394,21 +392,21 @@ export async function createBookings(
   db: PrismaClient,
   count: number,
   baseOverrides: Partial<{
-    workerId: string
-    requesterId: string
-    startTime: Date
-    endTime: Date
-    timezone: string
-    serviceDescription: string
-    note: string
+    workerId: string;
+    requesterId: string;
+    startTime: Date;
+    endTime: Date;
+    timezone: string;
+    serviceDescription: string;
+    note: string;
   }> = {},
 ) {
-  const bookings = []
+  const bookings = [];
   for (let i = 0; i < count; i++) {
-    const booking = await createBooking(db, baseOverrides)
-    bookings.push(booking)
+    const booking = await createBooking(db, baseOverrides);
+    bookings.push(booking);
   }
-  return bookings
+  return bookings;
 }
 
 /**
@@ -426,23 +424,23 @@ export async function createEscrowRecords(
   db: PrismaClient,
   count: number,
   baseOverrides: Partial<{
-    jobId: string | null
-    payerId: string
-    payeeId: string
-    amountXlm: number
-    status: 'pending' | 'released' | 'cancelled'
-    txId: string | null
-    expiresAt: Date
-    releasedAt: Date | null
-    cancelledAt: Date | null
+    jobId: string | null;
+    payerId: string;
+    payeeId: string;
+    amountXlm: number;
+    status: 'pending' | 'released' | 'cancelled';
+    txId: string | null;
+    expiresAt: Date;
+    releasedAt: Date | null;
+    cancelledAt: Date | null;
   }> = {},
 ) {
-  const escrows = []
+  const escrows = [];
   for (let i = 0; i < count; i++) {
-    const escrow = await createEscrowRecord(db, baseOverrides)
-    escrows.push(escrow)
+    const escrow = await createEscrowRecord(db, baseOverrides);
+    escrows.push(escrow);
   }
-  return escrows
+  return escrows;
 }
 
 /**
@@ -460,8 +458,8 @@ async function getOrCreateUserId(db: PrismaClient): Promise<string> {
       lastName: faker.person.lastName(),
       password: 'hashed_password_placeholder',
     },
-  })
-  return user.id
+  });
+  return user.id;
 }
 
 /**
@@ -472,14 +470,14 @@ async function getOrCreateUserId(db: PrismaClient): Promise<string> {
  * @returns Category ID
  */
 async function getOrCreateCategoryId(db: PrismaClient): Promise<string> {
-  const existing = await db.category.findFirst()
-  if (existing) return existing.id
+  const existing = await db.category.findFirst();
+  if (existing) return existing.id;
 
   const category = await db.category.create({
     data: {
       name: faker.commerce.department(),
       description: faker.lorem.sentence(),
     },
-  })
-  return category.id
+  });
+  return category.id;
 }

@@ -7,21 +7,21 @@ on:
   push:
     branches: [main]
     paths:
-      - "packages/app/**"
-      - ".github/workflows/visual.yml"
+      - 'packages/app/**'
+      - '.github/workflows/visual.yml'
   pull_request:
     paths:
-      - "packages/app/**"
-      - ".github/workflows/visual.yml"
+      - 'packages/app/**'
+      - '.github/workflows/visual.yml'
   workflow_dispatch:
     inputs:
       update_snapshots:
-        description: "Regenerate baseline snapshots"
+        description: 'Regenerate baseline snapshots'
         type: boolean
         default: false
 
 env:
-  CI: "true"
+  CI: 'true'
 
 jobs:
   visual:

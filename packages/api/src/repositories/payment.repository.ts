@@ -52,30 +52,18 @@ export interface FindPaymentsFilter {
 }
 
 export interface IPaymentRepository {
-  create(
-    input: CreatePaymentInput,
-    tx?: PaymentTransactionClient,
-  ): Promise<PaymentRecord>;
+  create(input: CreatePaymentInput, tx?: PaymentTransactionClient): Promise<PaymentRecord>;
 
-  findById(
-    id: string,
-    tx?: PaymentTransactionClient,
-  ): Promise<PaymentRecord | null>;
+  findById(id: string, tx?: PaymentTransactionClient): Promise<PaymentRecord | null>;
 
-  findByJobId(
-    jobId: string,
-    tx?: PaymentTransactionClient,
-  ): Promise<PaymentRecord[]>;
+  findByJobId(jobId: string, tx?: PaymentTransactionClient): Promise<PaymentRecord[]>;
 
   findByProviderRef(
     providerRef: string,
     tx?: PaymentTransactionClient,
   ): Promise<PaymentRecord | null>;
 
-  findMany(
-    filter: FindPaymentsFilter,
-    tx?: PaymentTransactionClient,
-  ): Promise<PaymentRecord[]>;
+  findMany(filter: FindPaymentsFilter, tx?: PaymentTransactionClient): Promise<PaymentRecord[]>;
 
   update(
     id: string,
@@ -83,11 +71,7 @@ export interface IPaymentRepository {
     tx?: PaymentTransactionClient,
   ): Promise<PaymentRecord>;
 
-  updateStatus(
-    id: string,
-    status: string,
-    tx?: PaymentTransactionClient,
-  ): Promise<PaymentRecord>;
+  updateStatus(id: string, status: string, tx?: PaymentTransactionClient): Promise<PaymentRecord>;
 
   updateEscrowStatus(
     id: string,
@@ -97,16 +81,12 @@ export interface IPaymentRepository {
 
   delete(id: string, tx?: PaymentTransactionClient): Promise<PaymentRecord>;
 
-  withTransaction<T>(
-    fn: (tx: PaymentTransactionClient) => Promise<T>,
-  ): Promise<T>;
+  withTransaction<T>(fn: (tx: PaymentTransactionClient) => Promise<T>): Promise<T>;
 }
 
 type PaymentDelegate = {
   create(args: { data: Prisma.PaymentUncheckedCreateInput }): Promise<PaymentRecord>;
-  findUnique(args: {
-    where: Prisma.PaymentWhereUniqueInput;
-  }): Promise<PaymentRecord | null>;
+  findUnique(args: { where: Prisma.PaymentWhereUniqueInput }): Promise<PaymentRecord | null>;
   findFirst(args: {
     where?: Prisma.PaymentWhereInput;
     orderBy?: Prisma.PaymentOrderByWithRelationInput;
@@ -119,21 +99,15 @@ type PaymentDelegate = {
     where: Prisma.PaymentWhereUniqueInput;
     data: Prisma.PaymentUncheckedUpdateInput;
   }): Promise<PaymentRecord>;
-  delete(args: {
-    where: Prisma.PaymentWhereUniqueInput;
-  }): Promise<PaymentRecord>;
+  delete(args: { where: Prisma.PaymentWhereUniqueInput }): Promise<PaymentRecord>;
 };
 
 type PrismaLikeClient = {
   payment: PaymentDelegate;
-  $transaction<T>(
-    fn: (tx: Prisma.TransactionClient) => Promise<T>,
-  ): Promise<T>;
+  $transaction<T>(fn: (tx: Prisma.TransactionClient) => Promise<T>): Promise<T>;
 };
 
-function toDecimal(
-  value: Prisma.Decimal | number | string,
-): Prisma.Decimal {
+function toDecimal(value: Prisma.Decimal | number | string): Prisma.Decimal {
   return value instanceof Prisma.Decimal ? value : new Prisma.Decimal(value);
 }
 
@@ -144,10 +118,7 @@ export class PaymentRepository implements IPaymentRepository {
     return (tx ?? this.prisma).payment as unknown as PaymentDelegate;
   }
 
-  async create(
-    input: CreatePaymentInput,
-    tx?: PaymentTransactionClient,
-  ): Promise<PaymentRecord> {
+  async create(input: CreatePaymentInput, tx?: PaymentTransactionClient): Promise<PaymentRecord> {
     const data: Prisma.PaymentUncheckedCreateInput = {
       jobId: input.jobId,
       payerId: input.payerId,
@@ -164,17 +135,11 @@ export class PaymentRepository implements IPaymentRepository {
     return this.getClient(tx).create({ data });
   }
 
-  async findById(
-    id: string,
-    tx?: PaymentTransactionClient,
-  ): Promise<PaymentRecord | null> {
+  async findById(id: string, tx?: PaymentTransactionClient): Promise<PaymentRecord | null> {
     return this.getClient(tx).findUnique({ where: { id } });
   }
 
-  async findByJobId(
-    jobId: string,
-    tx?: PaymentTransactionClient,
-  ): Promise<PaymentRecord[]> {
+  async findByJobId(jobId: string, tx?: PaymentTransactionClient): Promise<PaymentRecord[]> {
     return this.getClient(tx).findMany({
       where: { jobId },
       orderBy: { createdAt: 'asc' },
@@ -258,16 +223,11 @@ export class PaymentRepository implements IPaymentRepository {
     });
   }
 
-  async delete(
-    id: string,
-    tx?: PaymentTransactionClient,
-  ): Promise<PaymentRecord> {
+  async delete(id: string, tx?: PaymentTransactionClient): Promise<PaymentRecord> {
     return this.getClient(tx).delete({ where: { id } });
   }
 
-  async withTransaction<T>(
-    fn: (tx: PaymentTransactionClient) => Promise<T>,
-  ): Promise<T> {
+  async withTransaction<T>(fn: (tx: PaymentTransactionClient) => Promise<T>): Promise<T> {
     return this.prisma.$transaction(fn);
   }
 }

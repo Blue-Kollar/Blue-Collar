@@ -24,7 +24,7 @@ exists in this codebase as `packages/contracts/contracts/types/src/errors.rs`
 
 Since the consolidation itself was already complete, this change focuses on
 the remaining risk called out in the issue — "overlapping variants... risking
-drift" — which still exists *inside* the shared enum itself:
+drift" — which still exists _inside_ the shared enum itself:
 
 - `NotAuthorized` / `Unauthorized` / `UnauthorizedCaller` all mean "caller not
   permitted."

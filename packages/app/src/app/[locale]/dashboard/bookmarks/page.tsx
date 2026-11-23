@@ -1,15 +1,12 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/context/AuthContext";
-import { apiClient } from "@/lib/apiClient";
-import { BookmarksSkeleton } from "@/components/Skeleton";
-import {
-  BookmarksHeader,
-  BookmarksList,
-} from "@/components/dashboard/bookmarks";
-import type { Worker } from "@/types";
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
+import { apiClient } from '@/lib/apiClient';
+import { BookmarksSkeleton } from '@/components/Skeleton';
+import { BookmarksHeader, BookmarksList } from '@/components/dashboard/bookmarks';
+import type { Worker } from '@/types';
 
 export default function SavedWorkersPage() {
   const { user, isLoading: authLoading } = useAuth();
@@ -19,7 +16,7 @@ export default function SavedWorkersPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!authLoading && !user) router.replace("/auth/login");
+    if (!authLoading && !user) router.replace('/auth/login');
   }, [user, authLoading, router]);
 
   useEffect(() => {
@@ -28,7 +25,7 @@ export default function SavedWorkersPage() {
       .getMyBookmarks()
       .then((res) => setWorkers(res.data ?? []))
       .catch((err: unknown) =>
-        setError(err instanceof Error ? err.message : "Failed to load bookmarks")
+        setError(err instanceof Error ? err.message : 'Failed to load bookmarks'),
       )
       .finally(() => setLoading(false));
   }, [authLoading, user]);

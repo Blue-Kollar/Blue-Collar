@@ -4,7 +4,7 @@
  * Users fill in a target worker ID, a message describing the job,
  * an optional preferred date, and submit via the contactRequestsApi.
  */
-import React, { useState } from 'react'
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -14,20 +14,20 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
-} from 'react-native'
-import { contactRequestsApi } from '@/lib/api'
+} from 'react-native';
+import { contactRequestsApi } from '@/lib/api';
 
 export interface JobPostingFormValues {
-  workerId: string
-  message: string
-  preferredDate: string
+  workerId: string;
+  message: string;
+  preferredDate: string;
 }
 
 export interface JobPostingScreenProps {
   /** Pre-selected worker ID (e.g. navigated from a worker profile) */
-  initialWorkerId?: string
-  onSuccess?: (requestId: string) => void
-  onCancel?: () => void
+  initialWorkerId?: string;
+  onSuccess?: (requestId: string) => void;
+  onCancel?: () => void;
 }
 
 export default function JobPostingScreen({
@@ -35,59 +35,59 @@ export default function JobPostingScreen({
   onSuccess,
   onCancel,
 }: JobPostingScreenProps) {
-  const [workerId, setWorkerId] = useState(initialWorkerId)
-  const [message, setMessage] = useState('')
-  const [preferredDate, setPreferredDate] = useState('')
-  const [submitting, setSubmitting] = useState(false)
-  const [submitted, setSubmitted] = useState(false)
-  const [errors, setErrors] = useState<Partial<Record<keyof JobPostingFormValues, string>>>({})
-  const [networkError, setNetworkError] = useState('')
+  const [workerId, setWorkerId] = useState(initialWorkerId);
+  const [message, setMessage] = useState('');
+  const [preferredDate, setPreferredDate] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [errors, setErrors] = useState<Partial<Record<keyof JobPostingFormValues, string>>>({});
+  const [networkError, setNetworkError] = useState('');
 
   function validate(): boolean {
-    const newErrors: typeof errors = {}
-    if (!workerId.trim()) newErrors.workerId = 'Worker ID is required'
-    if (!message.trim()) newErrors.message = 'Message is required'
-    if (message.trim().length < 10) newErrors.message = 'Message must be at least 10 characters'
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
+    const newErrors: typeof errors = {};
+    if (!workerId.trim()) newErrors.workerId = 'Worker ID is required';
+    if (!message.trim()) newErrors.message = 'Message is required';
+    if (message.trim().length < 10) newErrors.message = 'Message must be at least 10 characters';
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   }
 
   async function handleSubmit() {
-    setNetworkError('')
-    if (!validate()) return
+    setNetworkError('');
+    if (!validate()) return;
 
-    setSubmitting(true)
+    setSubmitting(true);
     try {
       const payload: { workerId: string; message: string; preferredDate?: string } = {
         workerId: workerId.trim(),
         message: message.trim(),
-      }
-      if (preferredDate.trim()) payload.preferredDate = preferredDate.trim()
+      };
+      if (preferredDate.trim()) payload.preferredDate = preferredDate.trim();
 
-      const res = await contactRequestsApi.create(payload)
+      const res = await contactRequestsApi.create(payload);
       if (!res.ok) {
-        setNetworkError(res.error || 'Failed to submit job request')
-        return
+        setNetworkError(res.error || 'Failed to submit job request');
+        return;
       }
 
-      setSubmitted(true)
-      const responseData = res.data as any
-      Alert.alert('Request Sent', 'Your job request has been sent successfully!')
-      onSuccess?.(responseData?.id ?? 'submitted')
+      setSubmitted(true);
+      const responseData = res.data as any;
+      Alert.alert('Request Sent', 'Your job request has been sent successfully!');
+      onSuccess?.(responseData?.id ?? 'submitted');
     } catch (err) {
-      setNetworkError('Network error. Please check your connection and try again.')
+      setNetworkError('Network error. Please check your connection and try again.');
     } finally {
-      setSubmitting(false)
+      setSubmitting(false);
     }
   }
 
   function handleReset() {
-    setWorkerId(initialWorkerId)
-    setMessage('')
-    setPreferredDate('')
-    setErrors({})
-    setNetworkError('')
-    setSubmitted(false)
+    setWorkerId(initialWorkerId);
+    setMessage('');
+    setPreferredDate('');
+    setErrors({});
+    setNetworkError('');
+    setSubmitted(false);
   }
 
   if (submitted) {
@@ -107,7 +107,7 @@ export default function JobPostingScreen({
           <Text style={styles.submitButtonText}>Post Another</Text>
         </TouchableOpacity>
       </View>
-    )
+    );
   }
 
   return (
@@ -126,8 +126,8 @@ export default function JobPostingScreen({
         style={[styles.input, errors.workerId && styles.inputError]}
         value={workerId}
         onChangeText={(v) => {
-          setWorkerId(v)
-          if (errors.workerId) setErrors((e) => ({ ...e, workerId: undefined }))
+          setWorkerId(v);
+          if (errors.workerId) setErrors((e) => ({ ...e, workerId: undefined }));
         }}
         placeholder="Paste or enter worker ID"
         autoCapitalize="none"
@@ -135,7 +135,9 @@ export default function JobPostingScreen({
         accessibilityLabel="Worker ID"
       />
       {errors.workerId ? (
-        <Text style={styles.errorText} testID="worker-id-error">{errors.workerId}</Text>
+        <Text style={styles.errorText} testID="worker-id-error">
+          {errors.workerId}
+        </Text>
       ) : null}
 
       {/* Message */}
@@ -144,8 +146,8 @@ export default function JobPostingScreen({
         style={[styles.textArea, errors.message && styles.inputError]}
         value={message}
         onChangeText={(v) => {
-          setMessage(v)
-          if (errors.message) setErrors((e) => ({ ...e, message: undefined }))
+          setMessage(v);
+          if (errors.message) setErrors((e) => ({ ...e, message: undefined }));
         }}
         placeholder="Describe the job: what needs to be done, tools required, expected duration…"
         multiline
@@ -154,7 +156,9 @@ export default function JobPostingScreen({
         accessibilityLabel="Job description"
       />
       {errors.message ? (
-        <Text style={styles.errorText} testID="message-error">{errors.message}</Text>
+        <Text style={styles.errorText} testID="message-error">
+          {errors.message}
+        </Text>
       ) : null}
 
       {/* Preferred date (optional) */}
@@ -203,7 +207,7 @@ export default function JobPostingScreen({
         )}
       </View>
     </ScrollView>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -270,5 +274,11 @@ const styles = StyleSheet.create({
   },
   successIcon: { fontSize: 56, marginBottom: 16 },
   successTitle: { fontSize: 24, fontWeight: 'bold', color: '#1A1A1A', marginBottom: 8 },
-  successMessage: { fontSize: 15, color: '#555', textAlign: 'center', lineHeight: 22, marginBottom: 24 },
-})
+  successMessage: {
+    fontSize: 15,
+    color: '#555',
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 24,
+  },
+});

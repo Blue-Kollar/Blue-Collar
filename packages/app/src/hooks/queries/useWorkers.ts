@@ -6,15 +6,10 @@
  *   const { data: worker } = useWorker(id)
  *   const create = useCreateWorker()
  */
-import {
-  useQuery,
-  useMutation,
-  useInfiniteQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
-import * as api from "@/lib/api";
-import { queryKeys } from "@/lib/queryClient";
-import type { Worker, ApiResponse, Meta } from "@/types";
+import { useQuery, useMutation, useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
+import * as api from '@/lib/api';
+import { queryKeys } from '@/lib/queryClient';
+import type { Worker, ApiResponse, Meta } from '@/types';
 
 // ─── Queries ──────────────────────────────────────────────────────────────────
 
@@ -59,7 +54,7 @@ export function useWorkerPersonalDashboard(
   });
 }
 
-export function useWorkersInfinite(params?: Omit<Record<string, string>, "cursor">) {
+export function useWorkersInfinite(params?: Omit<Record<string, string>, 'cursor'>) {
   return useInfiniteQuery({
     queryKey: queryKeys.workers.list({ ...params, infinite: true }),
     queryFn: ({ pageParam }) =>
@@ -117,7 +112,7 @@ export function useUpdateWorker(id: string) {
 }
 
 type MyWorkersPage = ApiResponse<Worker[]> & { meta: Meta };
-const MINE_KEY = ["workers", "mine"] as const;
+const MINE_KEY = ['workers', 'mine'] as const;
 
 /** Deletes a worker, optimistically removing it from the "my workers" list with rollback on failure. */
 export function useDeleteWorker() {
@@ -128,7 +123,7 @@ export function useDeleteWorker() {
       await qc.cancelQueries({ queryKey: MINE_KEY });
       const previous = qc.getQueriesData<MyWorkersPage>({ queryKey: MINE_KEY });
       qc.setQueriesData<MyWorkersPage>({ queryKey: MINE_KEY }, (old) =>
-        old?.data ? { ...old, data: old.data.filter((w) => w.id !== id) } : old
+        old?.data ? { ...old, data: old.data.filter((w) => w.id !== id) } : old,
       );
       return { previous };
     },
@@ -152,8 +147,11 @@ export function useToggleWorker() {
       const previous = qc.getQueriesData<MyWorkersPage>({ queryKey: MINE_KEY });
       qc.setQueriesData<MyWorkersPage>({ queryKey: MINE_KEY }, (old) =>
         old?.data
-          ? { ...old, data: old.data.map((w) => (w.id === id ? { ...w, isActive: !w.isActive } : w)) }
-          : old
+          ? {
+              ...old,
+              data: old.data.map((w) => (w.id === id ? { ...w, isActive: !w.isActive } : w)),
+            }
+          : old,
       );
       return { previous };
     },
@@ -171,8 +169,7 @@ export function useToggleWorker() {
 export function useCreateReview(workerId: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (data: { rating: number; comment?: string }) =>
-      api.createReview(workerId, data),
+    mutationFn: (data: { rating: number; comment?: string }) => api.createReview(workerId, data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.workers.reviews(workerId) });
     },

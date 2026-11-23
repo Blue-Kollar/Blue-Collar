@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
-import { useAuth } from "@/context/AuthContext";
-import { ListingsTable } from "@/components/Curator/ListingsTable";
-import type { CuratorWorker } from "@/components/Curator/ListingsTable";
-import ErrorState from "@/components/ErrorState";
-import { useMyWorkers, useToggleWorker, useDeleteWorker } from "@/hooks/queries";
-import { CuratorConsoleHeader } from "@/components/curator/CuratorConsoleHeader";
-import { DeleteListingDialog } from "@/components/curator/DeleteListingDialog";
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Loader2 } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import { ListingsTable } from '@/components/Curator/ListingsTable';
+import type { CuratorWorker } from '@/components/Curator/ListingsTable';
+import ErrorState from '@/components/ErrorState';
+import { useMyWorkers, useToggleWorker, useDeleteWorker } from '@/hooks/queries';
+import { CuratorConsoleHeader } from '@/components/curator/CuratorConsoleHeader';
+import { DeleteListingDialog } from '@/components/curator/DeleteListingDialog';
 
 export default function CuratorConsolePage() {
   const { user, isLoading: authLoading } = useAuth();
@@ -18,18 +18,20 @@ export default function CuratorConsolePage() {
   const [deleteTarget, setDeleteTarget] = useState<CuratorWorker | null>(null);
 
   useEffect(() => {
-    if (!authLoading && (!user || (user.role !== "curator" && user.role !== "admin"))) {
-      router.replace("/auth/login");
+    if (!authLoading && (!user || (user.role !== 'curator' && user.role !== 'admin'))) {
+      router.replace('/auth/login');
     }
   }, [user, authLoading, router]);
 
   const workersQuery = useMyWorkers();
   const workers = (workersQuery.data?.data ?? []) as unknown as CuratorWorker[];
   const loading = workersQuery.isLoading;
-  const error = workersQuery.isError ? "Something went wrong" : null;
+  const error = workersQuery.isError ? 'Something went wrong' : null;
 
   const toggleWorker = useToggleWorker();
-  const toggling = toggleWorker.isPending ? new Set([toggleWorker.variables as string]) : new Set<string>();
+  const toggling = toggleWorker.isPending
+    ? new Set([toggleWorker.variables as string])
+    : new Set<string>();
 
   const deleteWorker = useDeleteWorker();
 
@@ -70,7 +72,9 @@ export default function CuratorConsolePage() {
 
       <DeleteListingDialog
         target={deleteTarget}
-        onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}
+        onOpenChange={(open) => {
+          if (!open) setDeleteTarget(null);
+        }}
         onConfirm={handleDelete}
         isPending={deleteWorker.isPending}
       />

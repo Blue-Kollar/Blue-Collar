@@ -52,7 +52,7 @@ export function ContactForm({ workerId }) {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    
+
     if (navigator.onLine) {
       // Send immediately
       await fetch(`/api/workers/${workerId}/contact`, {
@@ -63,7 +63,7 @@ export function ContactForm({ workerId }) {
       // Queue for offline
       await queueContactRequest(workerId, message);
     }
-    
+
     setMessage("");
   }
 
@@ -174,9 +174,11 @@ await webpush.sendNotification(subscription, {
 After deploying:
 
 ### Desktop (Chrome/Edge)
+
 - Click address bar → "Install app"
 
 ### Mobile (Android)
+
 - Menu → "Install app" or "Add to Home Screen"
 
 ## 7. Verify PWA Score
@@ -189,15 +191,15 @@ Expected: **90+ score**
 
 ## Files Changed
 
-| File | Purpose |
-|---|---|
-| `public/sw.js` | Service worker with advanced caching |
-| `public/manifest.json` | PWA manifest with app shortcuts |
-| `src/lib/offlineQueue.ts` | IndexedDB queue manager |
-| `src/hooks/useOfflineActions.ts` | Hook to queue offline actions |
-| `src/hooks/usePushNotifications.ts` | Enhanced push notification hook |
-| `src/components/OfflineBanner.tsx` | Shows offline/sync status |
-| `next.config.mjs` | PWA headers for service worker |
+| File                                | Purpose                              |
+| ----------------------------------- | ------------------------------------ |
+| `public/sw.js`                      | Service worker with advanced caching |
+| `public/manifest.json`              | PWA manifest with app shortcuts      |
+| `src/lib/offlineQueue.ts`           | IndexedDB queue manager              |
+| `src/hooks/useOfflineActions.ts`    | Hook to queue offline actions        |
+| `src/hooks/usePushNotifications.ts` | Enhanced push notification hook      |
+| `src/components/OfflineBanner.tsx`  | Shows offline/sync status            |
+| `next.config.mjs`                   | PWA headers for service worker       |
 
 ## Monitoring Offline Queue
 
@@ -220,19 +222,21 @@ If you need to disable PWA features temporarily:
 ## Troubleshooting
 
 **Service Worker not updating?**
+
 ```javascript
 // In DevTools console
-navigator.serviceWorker.getRegistrations().then(registrations => {
-  registrations.forEach(r => r.unregister());
+navigator.serviceWorker.getRegistrations().then((registrations) => {
+  registrations.forEach((r) => r.unregister());
 });
 // Then hard refresh: Ctrl+Shift+R
 ```
 
 **Cache too large?**
 Edit `public/sw.js`:
+
 ```javascript
 const MAX_DATA_CACHE_SIZE = 30; // Reduce from 50
-const MAX_IMG_CACHE_SIZE = 50;  // Reduce from 100
+const MAX_IMG_CACHE_SIZE = 50; // Reduce from 100
 ```
 
 **Offline actions not syncing?**

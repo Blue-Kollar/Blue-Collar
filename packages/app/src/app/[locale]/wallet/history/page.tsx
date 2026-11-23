@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import TransactionHistory from "@/components/wallet/TransactionHistory";
-import { Button } from "@/components/ui/button";
-import { useWallet } from "@/hooks/useWallet";
+import TransactionHistory from '@/components/wallet/TransactionHistory';
+import { Button } from '@/components/ui/button';
+import { useWallet } from '@/hooks/useWallet';
 
 export default function WalletHistoryPage() {
   const { publicKey, isConnecting, connect } = useWallet();
@@ -23,7 +23,7 @@ export default function WalletHistoryPage() {
             Connect Freighter to view your on-chain tip and payment history.
           </p>
           <Button className="mt-5" onClick={connect} disabled={isConnecting}>
-            {isConnecting ? "Connecting..." : "Connect Wallet"}
+            {isConnecting ? 'Connecting...' : 'Connect Wallet'}
           </Button>
         </div>
       ) : (

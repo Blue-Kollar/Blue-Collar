@@ -8,14 +8,14 @@ on:
   push:
     branches: [main]
     paths:
-      - "packages/api/load/**"
-      - "packages/api/src/**"
-      - ".github/workflows/performance.yml"
+      - 'packages/api/load/**'
+      - 'packages/api/src/**'
+      - '.github/workflows/performance.yml'
   pull_request:
     paths:
-      - "packages/api/load/**"
-      - "packages/api/src/**"
-      - ".github/workflows/performance.yml"
+      - 'packages/api/load/**'
+      - 'packages/api/src/**'
+      - '.github/workflows/performance.yml'
   workflow_dispatch:
 
 jobs:

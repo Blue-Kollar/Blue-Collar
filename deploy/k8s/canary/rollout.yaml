@@ -14,48 +14,48 @@ spec:
         app: bluecollar-api
     spec:
       containers:
-      - name: api
-        image: bluecollar/api:latest
-        imagePullPolicy: Always
-        ports:
-        - containerPort: 3000
-          name: http
-        env:
-        - name: DATABASE_URL
-          valueFrom:
-            secretKeyRef:
-              name: bluecollar-secrets
-              key: database-url
-        - name: JWT_SECRET
-          valueFrom:
-            secretKeyRef:
-              name: bluecollar-secrets
-              key: jwt-secret
-        - name: PORT
-          value: "3000"
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: 3000
-          initialDelaySeconds: 30
-          periodSeconds: 10
-          timeoutSeconds: 5
-          failureThreshold: 3
-        readinessProbe:
-          httpGet:
-            path: /ready
-            port: 3000
-          initialDelaySeconds: 10
-          periodSeconds: 5
-          timeoutSeconds: 3
-          failureThreshold: 2
-        resources:
-          requests:
-            memory: "256Mi"
-            cpu: "250m"
-          limits:
-            memory: "512Mi"
-            cpu: "500m"
+        - name: api
+          image: bluecollar/api:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+              name: http
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: bluecollar-secrets
+                  key: database-url
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: bluecollar-secrets
+                  key: jwt-secret
+            - name: PORT
+              value: '3000'
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 2
+          resources:
+            requests:
+              memory: '256Mi'
+              cpu: '250m'
+            limits:
+              memory: '512Mi'
+              cpu: '500m'
   strategy:
     canary:
       # Stable and canary traffic are split via separate Services referenced by the Ingress.
@@ -67,25 +67,25 @@ spec:
           stableIngress: bluecollar-ingress
       # Analysis runs continuously during each step; rollback fires automatically on failure.
       analysis:
-        startingStep: 1          # begin analysis at step index 1 (after first weight set)
+        startingStep: 1 # begin analysis at step index 1 (after first weight set)
         templates:
-        - templateName: api-error-rate
+          - templateName: api-error-rate
         args:
-        - name: service-name
-          value: bluecollar-api-canary
+          - name: service-name
+            value: bluecollar-api-canary
       steps:
-      # Step 0: route 5% of traffic to canary
-      - setWeight: 5
-      # Step 1: hold for 5 minutes while analysis runs
-      - pause:
-          duration: 5m
-      # Step 2: promote to 20% if analysis still passing
-      - setWeight: 20
-      - pause:
-          duration: 5m
-      # Step 3: promote to 50%
-      - setWeight: 50
-      - pause:
-          duration: 5m
-      # Step 4: promote to 100% (full rollout)
-      - setWeight: 100
+        # Step 0: route 5% of traffic to canary
+        - setWeight: 5
+        # Step 1: hold for 5 minutes while analysis runs
+        - pause:
+            duration: 5m
+        # Step 2: promote to 20% if analysis still passing
+        - setWeight: 20
+        - pause:
+            duration: 5m
+        # Step 3: promote to 50%
+        - setWeight: 50
+        - pause:
+            duration: 5m
+        # Step 4: promote to 100% (full rollout)
+        - setWeight: 100

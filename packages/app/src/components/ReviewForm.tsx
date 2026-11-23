@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { useId, useRef, useState } from "react";
-import { Star, Loader2 } from "lucide-react";
-import { useCreateReview } from "@/hooks/queries";
-import type { Review } from "@/types";
-import FormError from "@/components/Form/FormError";
-import { useTranslations } from "next-intl";
+import { useId, useRef, useState } from 'react';
+import { Star, Loader2 } from 'lucide-react';
+import { useCreateReview } from '@/hooks/queries';
+import type { Review } from '@/types';
+import FormError from '@/components/Form/FormError';
+import { useTranslations } from 'next-intl';
 
 interface ReviewFormProps {
   workerId: string;
@@ -24,10 +24,10 @@ const STARS = [1, 2, 3, 4, 5];
  * the comment field.
  */
 export default function ReviewForm({ workerId, onReviewCreated }: ReviewFormProps) {
-  const t = useTranslations("componentText");
+  const t = useTranslations('componentText');
   const [rating, setRating] = useState(0);
   const [hovered, setHovered] = useState(0);
-  const [comment, setComment] = useState("");
+  const [comment, setComment] = useState('');
   const [error, setError] = useState<string | null>(null);
 
   const groupId = useId();
@@ -65,7 +65,7 @@ export default function ReviewForm({ workerId, onReviewCreated }: ReviewFormProp
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (rating === 0) {
-      setError(t("selectRating"));
+      setError(t('selectRating'));
       starRefs.current[0]?.focus();
       return;
     }
@@ -74,17 +74,21 @@ export default function ReviewForm({ workerId, onReviewCreated }: ReviewFormProp
       const res = await createReview.mutateAsync({ rating, comment: comment.trim() || undefined });
       if (res.data) onReviewCreated(res.data);
       setRating(0);
-      setComment("");
+      setComment('');
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : t("reviewSubmitFailed"));
+      setError(err instanceof Error ? err.message : t('reviewSubmitFailed'));
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-3" aria-busy={createReview.isPending}>
+    <form
+      onSubmit={handleSubmit}
+      className="flex flex-col gap-3"
+      aria-busy={createReview.isPending}
+    >
       {/* Star picker */}
       <span id={groupId} className="sr-only">
-        {t("rating")}
+        {t('rating')}
       </span>
       <div
         role="radiogroup"
@@ -110,13 +114,13 @@ export default function ReviewForm({ workerId, onReviewCreated }: ReviewFormProp
               onMouseEnter={() => setHovered(star)}
               onMouseLeave={() => setHovered(0)}
               className="rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-              aria-label={t(star === 1 ? "rateOneStar" : "rateStars", { count: star })}
+              aria-label={t(star === 1 ? 'rateOneStar' : 'rateStars', { count: star })}
             >
               <Star
                 size={22}
                 aria-hidden="true"
-                className={filled ? "text-yellow-400" : "text-gray-200"}
-                fill={filled ? "currentColor" : "none"}
+                className={filled ? 'text-yellow-400' : 'text-gray-200'}
+                fill={filled ? 'currentColor' : 'none'}
               />
             </button>
           );
@@ -124,28 +128,28 @@ export default function ReviewForm({ workerId, onReviewCreated }: ReviewFormProp
       </div>
 
       <label htmlFor={commentId} className="sr-only">
-        {t("yourReviewOptional")}
+        {t('yourReviewOptional')}
       </label>
       <textarea
         id={commentId}
         value={comment}
         onChange={(e) => setComment(e.target.value)}
-        placeholder={t("reviewPlaceholder")}
+        placeholder={t('reviewPlaceholder')}
         rows={3}
         className="w-full rounded-lg border px-3 py-2 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
       />
 
-      {error && (
-        <FormError id={errorId} message={error} />
-      )}
+      {error && <FormError id={errorId} message={error} />}
 
       <button
         type="submit"
         disabled={createReview.isPending}
         className="flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60 transition-colors"
       >
-        {createReview.isPending && <Loader2 size={14} className="animate-spin" aria-hidden="true" />}
-        {createReview.isPending ? t("submittingReview") : t("submitReview")}
+        {createReview.isPending && (
+          <Loader2 size={14} className="animate-spin" aria-hidden="true" />
+        )}
+        {createReview.isPending ? t('submittingReview') : t('submitReview')}
       </button>
     </form>
   );

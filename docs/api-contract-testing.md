@@ -20,14 +20,14 @@ The serializers are exactly what the route controllers return, so validating
 them validates the real endpoint responses. The following high-value entities
 are covered:
 
-| Entity | Serializer | Contract schema |
-|---|---|---|
-| `Category` | `serializers/category.serializer.ts` | `CategorySchema` |
-| `User` (sanitised) | `serializers/user.serializer.ts` | `SerializedUserSchema` |
-| `Review` (with author) | `serializers/review.serializer.ts` | `SerializedReviewSchema` |
-| `Worker` | `serializers/worker.serializer.ts` | `SerializedWorkerSchema` |
-| `AccountInfo` (Stellar wallet) | controller output | `AccountInfoSchema` |
-| List responses | — | `PaginatedSchema(...)` + `ApiEnvelopeSchema` |
+| Entity                         | Serializer                           | Contract schema                              |
+| ------------------------------ | ------------------------------------ | -------------------------------------------- |
+| `Category`                     | `serializers/category.serializer.ts` | `CategorySchema`                             |
+| `User` (sanitised)             | `serializers/user.serializer.ts`     | `SerializedUserSchema`                       |
+| `Review` (with author)         | `serializers/review.serializer.ts`   | `SerializedReviewSchema`                     |
+| `Worker`                       | `serializers/worker.serializer.ts`   | `SerializedWorkerSchema`                     |
+| `AccountInfo` (Stellar wallet) | controller output                    | `AccountInfoSchema`                          |
+| List responses                 | —                                    | `PaginatedSchema(...)` + `ApiEnvelopeSchema` |
 
 Endpoints consumed by these entities include `GET /api/categories`,
 `GET /api/workers`, `GET /api/workers/:id`, `GET /api/workers/:id/reviews`,
@@ -56,11 +56,13 @@ output with `schema.safeParse(...)`.
 
 ```ts
 // Missing required field → contract violated
-expect(SerializedWorkerSchema.safeParse({ name: 'No id', isVerified: true, isActive: true }).success).toBe(false)
+expect(
+  SerializedWorkerSchema.safeParse({ name: 'No id', isVerified: true, isActive: true }).success,
+).toBe(false);
 // Wrong type → contract violated
-expect(SerializedWorkerSchema.safeParse({ ...worker, isVerified: 'yes' }).success).toBe(false)
+expect(SerializedWorkerSchema.safeParse({ ...worker, isVerified: 'yes' }).success).toBe(false);
 // Missing envelope status code → contract violated
-expect(ApiEnvelopeSchema.safeParse({ status: 'success', data: {} }).success).toBe(false)
+expect(ApiEnvelopeSchema.safeParse({ status: 'success', data: {} }).success).toBe(false);
 ```
 
 If a serializer changes a field's type or removes a required field, the

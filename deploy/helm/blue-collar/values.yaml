@@ -3,9 +3,9 @@
 # Global settings
 global:
   environment: production
-  imageRegistry: ""
+  imageRegistry: ''
   imagePullSecrets: []
-  storageClass: "standard"
+  storageClass: 'standard'
 
 # API Service
 api:
@@ -18,11 +18,11 @@ api:
   containerPort: 3000
   resources:
     requests:
-      memory: "256Mi"
-      cpu: "250m"
+      memory: '256Mi'
+      cpu: '250m'
     limits:
-      memory: "512Mi"
-      cpu: "500m"
+      memory: '512Mi'
+      cpu: '500m'
   hpa:
     enabled: true
     minReplicas: 2
@@ -40,9 +40,9 @@ api:
       periodSeconds: 5
   env:
     - name: NODE_ENV
-      value: "production"
+      value: 'production'
     - name: PORT
-      value: "3000"
+      value: '3000'
 
 # App Service (Frontend)
 app:
@@ -55,11 +55,11 @@ app:
   containerPort: 80
   resources:
     requests:
-      memory: "128Mi"
-      cpu: "100m"
+      memory: '128Mi'
+      cpu: '100m'
     limits:
-      memory: "256Mi"
-      cpu: "200m"
+      memory: '256Mi'
+      cpu: '200m'
   hpa:
     enabled: true
     minReplicas: 2
@@ -76,7 +76,7 @@ app:
       periodSeconds: 5
   env:
     - name: NEXT_PUBLIC_API_URL
-      value: "http://api:3000"
+      value: 'http://api:3000'
 
 # Indexer Service
 indexer:
@@ -89,11 +89,11 @@ indexer:
   containerPort: 8080
   resources:
     requests:
-      memory: "256Mi"
-      cpu: "100m"
+      memory: '256Mi'
+      cpu: '100m'
     limits:
-      memory: "512Mi"
-      cpu: "200m"
+      memory: '512Mi'
+      cpu: '200m'
   hpa:
     enabled: false
   probes:
@@ -107,52 +107,52 @@ indexer:
       periodSeconds: 5
   env:
     - name: NODE_ENV
-      value: "production"
+      value: 'production'
 
 # Database
 postgresql:
   enabled: true
   auth:
-    username: "blue_collar"
-    password: "changeme"
-    database: "blue_collar"
+    username: 'blue_collar'
+    password: 'changeme'
+    database: 'blue_collar'
   primary:
     resources:
       requests:
-        memory: "512Mi"
-        cpu: "500m"
+        memory: '512Mi'
+        cpu: '500m'
       limits:
-        memory: "1Gi"
-        cpu: "1"
+        memory: '1Gi'
+        cpu: '1'
     persistence:
       enabled: true
-      size: "10Gi"
+      size: '10Gi'
 
 # Redis
 redis:
   enabled: true
   auth:
     enabled: true
-    password: "changeme"
+    password: 'changeme'
   master:
     resources:
       requests:
-        memory: "128Mi"
-        cpu: "100m"
+        memory: '128Mi'
+        cpu: '100m'
       limits:
-        memory: "256Mi"
-        cpu: "200m"
+        memory: '256Mi'
+        cpu: '200m'
     persistence:
       enabled: true
-      size: "5Gi"
+      size: '5Gi'
 
 # Ingress
 ingress:
   enabled: true
-  className: "nginx"
+  className: 'nginx'
   annotations:
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: 'letsencrypt-prod'
+    nginx.ingress.kubernetes.io/ssl-redirect: 'true'
   hosts:
     - host: blue-collar.example.com
       paths:
@@ -172,7 +172,7 @@ ingress:
 # Service Account
 serviceAccount:
   create: true
-  name: "blue-collar"
+  name: 'blue-collar'
   annotations: {}
 
 # Monitoring

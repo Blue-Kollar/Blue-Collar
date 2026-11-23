@@ -1,35 +1,34 @@
-import createMiddleware from 'next-intl/middleware'
-import { NextRequest, NextResponse } from "next/server";
-import { ROUTES, isProtectedPath, getLoginPath } from "./routes";
+import createMiddleware from 'next-intl/middleware';
+import { NextRequest, NextResponse } from 'next/server';
+import { ROUTES, isProtectedPath, getLoginPath } from './routes';
 
-const locales = ['en', 'fr', 'es', 'pt']
-const defaultLocale = 'en'
+const locales = ['en', 'fr', 'es', 'pt'];
+const defaultLocale = 'en';
 
 const intlMiddleware = createMiddleware({
   locales,
   defaultLocale,
-  localePrefix: 'always'
-})
+  localePrefix: 'always',
+});
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // Apply i18n middleware
-  const intlResponse = intlMiddleware(req)
+  const intlResponse = intlMiddleware(req);
 
   // Check protected routes
   const isProtected = isProtectedPath(pathname);
   if (!isProtected) return intlResponse;
 
   const token =
-    req.cookies.get("bc_token")?.value ??
-    req.headers.get("authorization")?.replace("Bearer ", "");
+    req.cookies.get('bc_token')?.value ?? req.headers.get('authorization')?.replace('Bearer ', '');
 
   if (!token) {
     const loginUrl = req.nextUrl.clone();
-    const locale = pathname.split('/')[1] || defaultLocale
+    const locale = pathname.split('/')[1] || defaultLocale;
     loginUrl.pathname = getLoginPath(locale);
-    loginUrl.searchParams.set("redirect", pathname);
+    loginUrl.searchParams.set('redirect', pathname);
     return NextResponse.redirect(loginUrl);
   }
 
@@ -37,5 +36,5 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!api|_next|_vercel|.*\\..*).*)']
+  matcher: ['/((?!api|_next|_vercel|.*\\..*).*)'],
 };

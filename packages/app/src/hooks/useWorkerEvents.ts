@@ -1,12 +1,10 @@
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback } from 'react';
 
-const SSE_URL = "/api/workers/events";
+const SSE_URL = '/api/workers/events';
 const POLL_INTERVAL_MS = 30_000;
 const MAX_BACKOFF_MS = 30_000;
 
-export function useWorkerEvents(
-  onStatusChange: (workerId: string, isActive: boolean) => void
-) {
+export function useWorkerEvents(onStatusChange: (workerId: string, isActive: boolean) => void) {
   const esRef = useRef<EventSource | null>(null);
   const backoffRef = useRef(1_000);
   const pollTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -16,10 +14,9 @@ export function useWorkerEvents(
     if (pollTimerRef.current) return;
     pollTimerRef.current = setInterval(async () => {
       try {
-        const res = await fetch("/api/workers?activeOnly=true");
+        const res = await fetch('/api/workers?activeOnly=true');
         if (!res.ok) return;
-        const workers: Array<{ id: string; isActive: boolean }> =
-          await res.json();
+        const workers: Array<{ id: string; isActive: boolean }> = await res.json();
         workers.forEach((w) => onStatusChange(w.id, w.isActive));
       } catch {}
     }, POLL_INTERVAL_MS);
@@ -28,7 +25,7 @@ export function useWorkerEvents(
   const connect = useCallback(() => {
     if (!mountedRef.current) return;
 
-    if (typeof EventSource === "undefined") {
+    if (typeof EventSource === 'undefined') {
       startPolling();
       return;
     }
@@ -36,7 +33,7 @@ export function useWorkerEvents(
     const es = new EventSource(SSE_URL);
     esRef.current = es;
 
-    es.addEventListener("workerStatus", (e: MessageEvent) => {
+    es.addEventListener('workerStatus', (e: MessageEvent) => {
       try {
         const { workerId, isActive } = JSON.parse(e.data);
         onStatusChange(workerId, isActive);
@@ -44,7 +41,7 @@ export function useWorkerEvents(
       } catch {}
     });
 
-    es.addEventListener("error", () => {
+    es.addEventListener('error', () => {
       es.close();
       esRef.current = null;
       if (!mountedRef.current) return;

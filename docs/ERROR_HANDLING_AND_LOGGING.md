@@ -64,15 +64,15 @@ and reviewers had nothing written down to point at.
 prefer `../utils/AppError.js`.
 
 ```ts
-import { AppError, ErrorCode } from '../utils/AppError.js'
+import { AppError, ErrorCode } from '../utils/AppError.js';
 
-throw new AppError('Worker not found', 404, true, ErrorCode.NOT_FOUND)
+throw new AppError('Worker not found', 404, true, ErrorCode.NOT_FOUND);
 ```
 
-| Argument        | Meaning                                                                                       |
-| --------------- | --------------------------------------------------------------------------------------------- |
+| Argument        | Meaning                                                                                         |
+| --------------- | ----------------------------------------------------------------------------------------------- |
 | `message`       | Human-readable, safe to show a client. Use a constant from `constants/errors.ts` when one fits. |
-| `statusCode`    | HTTP status. Default `500`.                                                                    |
+| `statusCode`    | HTTP status. Default `500`.                                                                     |
 | `isOperational` | `true` = expected failure (bad input, missing record). `false` = bug. Default `true`.           |
 | `errorCode`     | Machine-readable `ErrorCode`. Default `ErrorCode.INTERNAL_ERROR`.                               |
 
@@ -82,12 +82,12 @@ full details logged server-side only. Use it when you want the stack captured bu
 
 The `ErrorCode` enum is the client-facing contract:
 
-| Group      | Codes                                                                                                     |
-| ---------- | --------------------------------------------------------------------------------------------------------- |
+| Group      | Codes                                                                                                        |
+| ---------- | ------------------------------------------------------------------------------------------------------------ |
 | Auth       | `UNAUTHORIZED`, `FORBIDDEN`, `INVALID_CREDENTIALS`, `ACCOUNT_NOT_VERIFIED`, `TOKEN_EXPIRED`, `TOKEN_INVALID` |
-| Resource   | `NOT_FOUND`, `CONFLICT`                                                                                     |
-| Validation | `VALIDATION_ERROR`                                                                                          |
-| Server     | `INTERNAL_ERROR`, `SERVICE_UNAVAILABLE`                                                                     |
+| Resource   | `NOT_FOUND`, `CONFLICT`                                                                                      |
+| Validation | `VALIDATION_ERROR`                                                                                           |
+| Server     | `INTERNAL_ERROR`, `SERVICE_UNAVAILABLE`                                                                      |
 
 Adding a code is a public API change: add the enum member, document it here, and note it in the
 PR description so SDK and frontend consumers can react.
@@ -98,11 +98,11 @@ Produced by `serializers/error.serializer.ts` and written by the `errorHandler` 
 
 ```jsonc
 {
-  "status": "error",           // always the literal "error"
+  "status": "error", // always the literal "error"
   "message": "Worker not found", // human copy; do not branch on this
-  "code": 404,                  // HTTP status, mirrored in the body
-  "errorCode": "NOT_FOUND",     // ErrorCode — branch on this
-  "traceId": "4bf92f3577b34da6a3ce929d0e0e4736" // present when tracing is active
+  "code": 404, // HTTP status, mirrored in the body
+  "errorCode": "NOT_FOUND", // ErrorCode — branch on this
+  "traceId": "4bf92f3577b34da6a3ce929d0e0e4736", // present when tracing is active
 }
 ```
 
@@ -112,7 +112,7 @@ In `NODE_ENV=development` only, unexpected (non-operational) errors additionally
 The success envelope is `utils/response.ts#sendSuccess`:
 
 ```jsonc
-{ "data": { }, "status": "success", "code": 200, "message": "optional" }
+{ "data": {}, "status": "success", "code": 200, "message": "optional" }
 ```
 
 Paginated endpoints add a sibling `meta` object. `status` and `code` are always present on both
@@ -122,22 +122,22 @@ envelopes, so a client can discriminate on `status` alone.
 
 Use `HttpStatus` from `constants/index.ts` rather than integer literals.
 
-| Situation                              | Status | `errorCode`           | Who produces it                        |
-| -------------------------------------- | ------ | --------------------- | -------------------------------------- |
-| Missing or malformed token             | 401    | `TOKEN_INVALID`       | `middleware/auth.ts`                   |
-| Expired token                          | 401    | `TOKEN_EXPIRED`       | `middleware/auth.ts`                   |
-| Wrong credentials                      | 401    | `INVALID_CREDENTIALS` | auth service                           |
-| Authenticated but wrong role           | 403    | `FORBIDDEN`           | `authorize()`                          |
-| Disallowed CORS origin                 | 403    | `FORBIDDEN`           | `serializeError` (`CORS:` prefix)      |
-| Record does not exist                  | 404    | `NOT_FOUND`           | service layer, or Prisma `P2025`       |
-| Unmatched route                        | 404    | `NOT_FOUND`           | `notFoundHandler`                      |
-| Unique constraint violated             | 409    | `CONFLICT`            | Prisma `P2002`                         |
-| Foreign key violated                   | 400    | `VALIDATION_ERROR`    | Prisma `P2003`                         |
-| Schema validation failed               | 422    | `VALIDATION_ERROR`    | `middleware/validate.ts` — see below   |
-| Business rule rejected valid input     | 422    | `VALIDATION_ERROR`    | service layer                          |
-| Rate limit exceeded                    | 429    | —                     | `middleware/rateLimit.ts` — see below  |
-| Unhandled exception                    | 500    | `INTERNAL_ERROR`      | `errorHandler`                         |
-| Dependency (DB, Stellar, mail) is down | 503    | `SERVICE_UNAVAILABLE` | service layer                          |
+| Situation                              | Status | `errorCode`           | Who produces it                       |
+| -------------------------------------- | ------ | --------------------- | ------------------------------------- |
+| Missing or malformed token             | 401    | `TOKEN_INVALID`       | `middleware/auth.ts`                  |
+| Expired token                          | 401    | `TOKEN_EXPIRED`       | `middleware/auth.ts`                  |
+| Wrong credentials                      | 401    | `INVALID_CREDENTIALS` | auth service                          |
+| Authenticated but wrong role           | 403    | `FORBIDDEN`           | `authorize()`                         |
+| Disallowed CORS origin                 | 403    | `FORBIDDEN`           | `serializeError` (`CORS:` prefix)     |
+| Record does not exist                  | 404    | `NOT_FOUND`           | service layer, or Prisma `P2025`      |
+| Unmatched route                        | 404    | `NOT_FOUND`           | `notFoundHandler`                     |
+| Unique constraint violated             | 409    | `CONFLICT`            | Prisma `P2002`                        |
+| Foreign key violated                   | 400    | `VALIDATION_ERROR`    | Prisma `P2003`                        |
+| Schema validation failed               | 422    | `VALIDATION_ERROR`    | `middleware/validate.ts` — see below  |
+| Business rule rejected valid input     | 422    | `VALIDATION_ERROR`    | service layer                         |
+| Rate limit exceeded                    | 429    | —                     | `middleware/rateLimit.ts` — see below |
+| Unhandled exception                    | 500    | `INTERNAL_ERROR`      | `errorHandler`                        |
+| Dependency (DB, Stellar, mail) is down | 503    | `SERVICE_UNAVAILABLE` | service layer                         |
 
 Prisma error codes are mapped centrally in `serializeError`. Do not catch `P2002`/`P2025` in a
 controller to rewrite the status — that duplicates the mapping and drifts.
@@ -168,18 +168,23 @@ which calls `serializeError`. That is the whole path.
 
 ```ts
 // controllers/workers.ts
-import { catchAsync } from '../utils/catchAsync.js'
-import { AppError, ErrorCode } from '../utils/AppError.js'
-import { sendSuccess } from '../utils/response.js'
-import { ErrorMessages, HttpStatus } from '../constants/index.js'
+import { catchAsync } from '../utils/catchAsync.js';
+import { AppError, ErrorCode } from '../utils/AppError.js';
+import { sendSuccess } from '../utils/response.js';
+import { ErrorMessages, HttpStatus } from '../constants/index.js';
 
 export const getWorker = catchAsync(async (req, res) => {
-  const worker = await workerService.getWorker(req.params.id)
+  const worker = await workerService.getWorker(req.params.id);
   if (!worker) {
-    throw new AppError(ErrorMessages.WORKER_NOT_FOUND, HttpStatus.NOT_FOUND, true, ErrorCode.NOT_FOUND)
+    throw new AppError(
+      ErrorMessages.WORKER_NOT_FOUND,
+      HttpStatus.NOT_FOUND,
+      true,
+      ErrorCode.NOT_FOUND,
+    );
   }
-  return sendSuccess(res, WorkerResource(worker))
-})
+  return sendSuccess(res, WorkerResource(worker));
+});
 ```
 
 Rules:
@@ -193,13 +198,13 @@ Rules:
 
 These exist in the codebase today. Do not add new instances; convert them when you touch a file.
 
-| Pattern                                          | Why it's wrong                                                                | Replace with                      |
-| ------------------------------------------------ | ----------------------------------------------------------------------------- | --------------------------------- |
-| `try { … } catch (err) { return handleError(res, err) }` | `utils/handleError.ts` drops `errorCode` and `traceId` — clients get a thinner envelope. | `catchAsync` + `throw`            |
-| `sendError(res, msg, status)`                    | Emits `{status, message, code}` with no `errorCode`/`traceId`.                 | `throw new AppError(...)`         |
-| `res.status(404).json({ error: 'Not found' })`   | A fourth envelope shape; `error` key exists nowhere else.                      | `throw new AppError(...)`         |
-| `res.status(201).json({ data, status, code })`   | Hand-rolled success envelope, drifts from `sendSuccess`.                       | `sendSuccess(res, data, { statusCode: 201 })` |
-| `catch (err) { console.error(err) }`             | Bypasses Pino: no level, no `context`, no trace correlation.                   | `logger.error({ err }, 'message')` |
+| Pattern                                                  | Why it's wrong                                                                           | Replace with                                  |
+| -------------------------------------------------------- | ---------------------------------------------------------------------------------------- | --------------------------------------------- |
+| `try { … } catch (err) { return handleError(res, err) }` | `utils/handleError.ts` drops `errorCode` and `traceId` — clients get a thinner envelope. | `catchAsync` + `throw`                        |
+| `sendError(res, msg, status)`                            | Emits `{status, message, code}` with no `errorCode`/`traceId`.                           | `throw new AppError(...)`                     |
+| `res.status(404).json({ error: 'Not found' })`           | A fourth envelope shape; `error` key exists nowhere else.                                | `throw new AppError(...)`                     |
+| `res.status(201).json({ data, status, code })`           | Hand-rolled success envelope, drifts from `sendSuccess`.                                 | `sendSuccess(res, data, { statusCode: 201 })` |
+| `catch (err) { console.error(err) }`                     | Bypasses Pino: no level, no `context`, no trace correlation.                             | `logger.error({ err }, 'message')`            |
 
 `utils/handleError.ts` and `utils/response.ts#sendError` are retained only for the call sites that
 still use them and should not gain new callers.
@@ -215,14 +220,14 @@ Two entry points, and nothing else:
   line with `context`. **Prefer this in services.**
 
 ```ts
-import { createServiceLogger } from '../utils/logger.js'
+import { createServiceLogger } from '../utils/logger.js';
 
-const log = createServiceLogger('escrow.service')
+const log = createServiceLogger('escrow.service');
 
-log.info('Escrow funded', { escrowId, amount })
-log.error('Escrow funding failed', err, { escrowId })
+log.info('Escrow funded', { escrowId, amount });
+log.error('Escrow funding failed', err, { escrowId });
 
-const releaseLog = log.child('release')  // context becomes "escrow.service:release"
+const releaseLog = log.child('release'); // context becomes "escrow.service:release"
 ```
 
 ### Log levels
@@ -230,14 +235,14 @@ const releaseLog = log.child('release')  // context becomes "escrow.service:rele
 `LOG_LEVEL` (default `info`) sets the threshold. Development pretty-prints via `pino-pretty`;
 production writes JSON to `storage/logs/api-<date>.log`.
 
-| Level   | Use for                                                                                     | Example                                              | Paging? |
-| ------- | ------------------------------------------------------------------------------------------- | ---------------------------------------------------- | ------- |
-| `fatal` | Process cannot continue and is exiting.                                                      | Cannot connect to the database at boot.              | Yes     |
-| `error` | An operation failed and a human needs to know. Unexpected exceptions, 5xx responses.         | Stellar submission threw after retries.              | Yes     |
-| `warn`  | Degraded but handled: a retry succeeded, a fallback fired, a deprecated route was called.    | Idempotency key replayed; v1 endpoint hit.           | No      |
-| `info`  | Business-significant state changes. The default for "this happened".                         | Worker verified; payout released; user registered.   | No      |
-| `debug` | Developer detail: chosen branches, computed values, external payload sizes.                  | Cache miss for `workers:list:page=2`.                | No      |
-| `trace` | Very high volume, local only. Never enabled in a deployed environment.                       | Per-iteration loop state.                            | No      |
+| Level   | Use for                                                                                   | Example                                            | Paging? |
+| ------- | ----------------------------------------------------------------------------------------- | -------------------------------------------------- | ------- |
+| `fatal` | Process cannot continue and is exiting.                                                   | Cannot connect to the database at boot.            | Yes     |
+| `error` | An operation failed and a human needs to know. Unexpected exceptions, 5xx responses.      | Stellar submission threw after retries.            | Yes     |
+| `warn`  | Degraded but handled: a retry succeeded, a fallback fired, a deprecated route was called. | Idempotency key replayed; v1 endpoint hit.         | No      |
+| `info`  | Business-significant state changes. The default for "this happened".                      | Worker verified; payout released; user registered. | No      |
+| `debug` | Developer detail: chosen branches, computed values, external payload sizes.               | Cache miss for `workers:list:page=2`.              | No      |
+| `trace` | Very high volume, local only. Never enabled in a deployed environment.                    | Per-iteration loop state.                          | No      |
 
 Two rules that matter more than the table:
 
@@ -251,19 +256,19 @@ Two rules that matter more than the table:
 Pass data as the first argument (the merging object), message as the second. Never interpolate.
 
 ```ts
-logger.info({ workerId, categoryId }, 'Worker created')   // ✅
-logger.info(`Worker ${workerId} created`)                 // ❌ unsearchable
+logger.info({ workerId, categoryId }, 'Worker created'); // ✅
+logger.info(`Worker ${workerId} created`); // ❌ unsearchable
 ```
 
 Field names used across the API — reuse them so dashboards keep working:
 
-| Field       | Meaning                                                    |
-| ----------- | ---------------------------------------------------------- |
-| `context`   | Emitting module, e.g. `escrow.service`. Set by `ServiceLogger`. |
-| `traceId`   | Correlation ID. See below.                                 |
-| `userId`    | Authenticated user id, or `null`. Set by `requestLogger`.  |
-| `err`       | Serialized error (`message`, `type`).                      |
-| `durationMs`| Elapsed time for a timed operation.                        |
+| Field        | Meaning                                                         |
+| ------------ | --------------------------------------------------------------- |
+| `context`    | Emitting module, e.g. `escrow.service`. Set by `ServiceLogger`. |
+| `traceId`    | Correlation ID. See below.                                      |
+| `userId`     | Authenticated user id, or `null`. Set by `requestLogger`.       |
+| `err`        | Serialized error (`message`, `type`).                           |
+| `durationMs` | Elapsed time for a timed operation.                             |
 
 ### PII rules
 
@@ -299,9 +304,9 @@ on inbound requests and continues that trace; when the header is absent it start
 span is active (which is also what the all-zero invalid trace ID collapses to):
 
 ```ts
-import { getTraceId } from '../monitoring/tracing.js'
+import { getTraceId } from '../monitoring/tracing.js';
 
-const traceId = getTraceId()   // "4bf92f3577b34da6a3ce929d0e0e4736" | undefined
+const traceId = getTraceId(); // "4bf92f3577b34da6a3ce929d0e0e4736" | undefined
 ```
 
 ### How it propagates
@@ -352,10 +357,10 @@ BlueCollar has two distinct error systems that live at different layers of the s
 **they are intentionally named differently**. This is not an oversight — the difference communicates
 which layer owns the failure.
 
-| Layer | Type | Location | When it applies |
-|---|---|---|---|
-| HTTP API (TypeScript) | `ErrorCode` enum | `packages/api/src/utils/AppError.ts` | Any failure surfaced over the REST API — auth, validation, missing records, server faults |
-| On-chain contracts (Rust) | `ContractError` enum | `packages/contracts/contracts/types/src/errors.rs` | Any failure returned by a Soroban contract invocation |
+| Layer                     | Type                 | Location                                           | When it applies                                                                           |
+| ------------------------- | -------------------- | -------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| HTTP API (TypeScript)     | `ErrorCode` enum     | `packages/api/src/utils/AppError.ts`               | Any failure surfaced over the REST API — auth, validation, missing records, server faults |
+| On-chain contracts (Rust) | `ContractError` enum | `packages/contracts/contracts/types/src/errors.rs` | Any failure returned by a Soroban contract invocation                                     |
 
 Rationale for the different names:
 
@@ -391,17 +396,17 @@ pub fn my_fn(env: Env) -> Result<(), ContractError> {
 The enum is grouped into semantic sections. Each code has a stable integer discriminant that must
 never be reused or changed once deployed to mainnet:
 
-| Group | Example codes |
-|---|---|
-| Initialisation | `NotInitialized (1)`, `AlreadyInitialized (4)` |
-| Authorisation | `MissingRole (2)`, `NotAuthorized (5)`, `Unauthorized (6)`, `NotAdmin (8)` |
-| Not found | `EscrowNotFound (3)`, `WorkerNotFound (13)`, `JobNotFound (16)` |
-| Existence / duplication | `AlreadyExists (22)`, `EscrowAlreadyExists (23)` |
-| State / status | `InvalidStatus (29)`, `EscrowNotActive (34)`, `JobNotOpen (37)` |
-| Expiry / time | `EscrowNotYetExpired (44)`, `ExpiryMustBeInFuture (45)` |
-| Validation | `AmountMustBePositive (48)`, `RatingOutOfRange (52)`, `BatchTooLarge (55)` |
-| Fees | `FeeBpsExceedsMaximum (57)`, `InvalidFeeSplit (59)` |
-| Contract state | `ContractIsPaused (60)`, `WrongSchemaVersion (63)` |
+| Group                        | Example codes                                                              |
+| ---------------------------- | -------------------------------------------------------------------------- |
+| Initialisation               | `NotInitialized (1)`, `AlreadyInitialized (4)`                             |
+| Authorisation                | `MissingRole (2)`, `NotAuthorized (5)`, `Unauthorized (6)`, `NotAdmin (8)` |
+| Not found                    | `EscrowNotFound (3)`, `WorkerNotFound (13)`, `JobNotFound (16)`            |
+| Existence / duplication      | `AlreadyExists (22)`, `EscrowAlreadyExists (23)`                           |
+| State / status               | `InvalidStatus (29)`, `EscrowNotActive (34)`, `JobNotOpen (37)`            |
+| Expiry / time                | `EscrowNotYetExpired (44)`, `ExpiryMustBeInFuture (45)`                    |
+| Validation                   | `AmountMustBePositive (48)`, `RatingOutOfRange (52)`, `BatchTooLarge (55)` |
+| Fees                         | `FeeBpsExceedsMaximum (57)`, `InvalidFeeSplit (59)`                        |
+| Contract state               | `ContractIsPaused (60)`, `WrongSchemaVersion (63)`                         |
 | Market / dispute / insurance | `InvalidThreshold (64)`, `ClaimNotPending (69)`, `CooldownNotElapsed (79)` |
 
 ### Adding a new contract error code
@@ -424,18 +429,28 @@ The API translates these to `AppError` before they reach the error handler:
 ```ts
 // Example mapping in a service that wraps a contract call
 try {
-  await contracts.registerWorker(workerId, data)
+  await contracts.registerWorker(workerId, data);
 } catch (err) {
   // Contract error codes are integers in Soroban error responses.
   // Map the domain code to the appropriate HTTP-layer code.
   if (isSorobanContractError(err, ContractErrorCode.WorkerNotFound)) {
-    throw new AppError(ErrorMessages.WORKER_NOT_FOUND, HttpStatus.NOT_FOUND, true, ErrorCode.NOT_FOUND)
+    throw new AppError(
+      ErrorMessages.WORKER_NOT_FOUND,
+      HttpStatus.NOT_FOUND,
+      true,
+      ErrorCode.NOT_FOUND,
+    );
   }
   if (isSorobanContractError(err, ContractErrorCode.NotAuthorized)) {
-    throw new AppError(ErrorMessages.FORBIDDEN, HttpStatus.FORBIDDEN, true, ErrorCode.FORBIDDEN)
+    throw new AppError(ErrorMessages.FORBIDDEN, HttpStatus.FORBIDDEN, true, ErrorCode.FORBIDDEN);
   }
   // Unmapped contract errors become 503 — the contract layer is unavailable or misbehaving
-  throw new AppError(ErrorMessages.INTERNAL_SERVER_ERROR, HttpStatus.SERVICE_UNAVAILABLE, true, ErrorCode.SERVICE_UNAVAILABLE)
+  throw new AppError(
+    ErrorMessages.INTERNAL_SERVER_ERROR,
+    HttpStatus.SERVICE_UNAVAILABLE,
+    true,
+    ErrorCode.SERVICE_UNAVAILABLE,
+  );
 }
 ```
 
@@ -460,11 +475,11 @@ try {
 
 ```ts
 interface ParsedApiError {
-  message: string       // user-facing copy, already friendly
-  toastType: ToastType  // "error" | "warning" | ...
-  code?: string         // NETWORK_ERROR | RATE_LIMITED | UNAUTHORIZED | ...
-  status?: number
-  retryable: boolean
+  message: string; // user-facing copy, already friendly
+  toastType: ToastType; // "error" | "warning" | ...
+  code?: string; // NETWORK_ERROR | RATE_LIMITED | UNAUTHORIZED | ...
+  status?: number;
+  retryable: boolean;
 }
 ```
 
@@ -477,7 +492,7 @@ Rules:
 - **Show retry only when `retryable`.** `isRetryable(error)` exists for exactly this.
 - `lib/api.ts` owns the 401 path (clear token, redirect to `/auth/login`). Components must not
   reimplement it.
-- Route-level failures render `components/ErrorBoundary.tsx`, which offers *Try again* (`reset()`)
+- Route-level failures render `components/ErrorBoundary.tsx`, which offers _Try again_ (`reset()`)
   and a copyable report containing `message`, `name`, `stack`, `digest`, `url`, and `timestamp`.
 
 ## Frontend: logging
@@ -508,22 +523,24 @@ omits `errorCode` and `traceId` entirely, so a client cannot programmatically di
 ```ts
 export async function getCategory(req: Request, res: Response) {
   try {
-    const category = await categoryService.getCategory(req.params.id as string)
+    const category = await categoryService.getCategory(req.params.id as string);
     if (!category) {
-      return sendError(res, ErrorMessages.CATEGORY_NOT_FOUND, HttpStatus.NOT_FOUND)
+      return sendError(res, ErrorMessages.CATEGORY_NOT_FOUND, HttpStatus.NOT_FOUND);
     }
-    return sendSuccess(res, CategoryResource(category as any))
+    return sendSuccess(res, CategoryResource(category as any));
   } catch (err) {
-    return handleError(res, err)
+    return handleError(res, err);
   }
 }
 
 export async function createCategory(req: Request, res: Response) {
   try {
-    const category = await categoryService.createCategory(req.body)
-    return res.status(201).json({ data: CategoryResource(category as any), status: 'success', code: 201 })
+    const category = await categoryService.createCategory(req.body);
+    return res
+      .status(201)
+      .json({ data: CategoryResource(category as any), status: 'success', code: 201 });
   } catch (err) {
-    return handleError(res, err)
+    return handleError(res, err);
   }
 }
 ```
@@ -537,17 +554,22 @@ export async function createCategory(req: Request, res: Response) {
 
 ```ts
 export const getCategory = catchAsync(async (req: Request, res: Response) => {
-  const category = await categoryService.getCategory(req.params.id as string)
+  const category = await categoryService.getCategory(req.params.id as string);
   if (!category) {
-    throw new AppError(ErrorMessages.CATEGORY_NOT_FOUND, HttpStatus.NOT_FOUND, true, ErrorCode.NOT_FOUND)
+    throw new AppError(
+      ErrorMessages.CATEGORY_NOT_FOUND,
+      HttpStatus.NOT_FOUND,
+      true,
+      ErrorCode.NOT_FOUND,
+    );
   }
-  return sendSuccess(res, CategoryResource(category as any))
-})
+  return sendSuccess(res, CategoryResource(category as any));
+});
 
 export const createCategory = catchAsync(async (req: Request, res: Response) => {
-  const category = await categoryService.createCategory(req.body)
-  return sendSuccess(res, CategoryResource(category as any), { statusCode: HttpStatus.CREATED })
-})
+  const category = await categoryService.createCategory(req.body);
+  return sendSuccess(res, CategoryResource(category as any), { statusCode: HttpStatus.CREATED });
+});
 ```
 
 ```jsonc
@@ -557,7 +579,7 @@ export const createCategory = catchAsync(async (req: Request, res: Response) => 
   "message": "Category not found",
   "code": 404,
   "errorCode": "NOT_FOUND",
-  "traceId": "4bf92f3577b34da6a3ce929d0e0e4736"
+  "traceId": "4bf92f3577b34da6a3ce929d0e0e4736",
 }
 ```
 
@@ -571,10 +593,10 @@ Nineteen lines become twelve, the Prisma unique-constraint case on `createCatego
 ```ts
 export async function releaseEscrow(escrowId: string) {
   try {
-    return await stellar.release(escrowId)
+    return await stellar.release(escrowId);
   } catch (err) {
-    console.error('escrow release failed', escrowId, err)
-    throw err
+    console.error('escrow release failed', escrowId, err);
+    throw err;
   }
 }
 ```
@@ -585,18 +607,18 @@ file, and is logged twice — once here and once by `errorHandler`.
 **After**:
 
 ```ts
-const log = createServiceLogger('escrow.service')
+const log = createServiceLogger('escrow.service');
 
 export async function releaseEscrow(escrowId: string) {
   try {
-    return await stellar.release(escrowId)
+    return await stellar.release(escrowId);
   } catch (err) {
     throw new AppError(
-      ErrorMessages.ESCROW_RELEASE_FAILED,   // add the constant to constants/errors.ts
+      ErrorMessages.ESCROW_RELEASE_FAILED, // add the constant to constants/errors.ts
       HttpStatus.SERVICE_UNAVAILABLE,
       true,
       ErrorCode.SERVICE_UNAVAILABLE,
-    )
+    );
   }
 }
 ```
@@ -617,34 +639,36 @@ context at `warn` so the `error` level stays one line per failure:
 **Before**:
 
 ```tsx
-const [error, setError] = useState<string | null>(null)
+const [error, setError] = useState<string | null>(null);
 
 try {
-  await createReview(workerId, payload)
+  await createReview(workerId, payload);
 } catch (err) {
-  setError((err as Error).message)   // renders "Request failed" or a 500 string
+  setError((err as Error).message); // renders "Request failed" or a 500 string
 }
 
-return error && <p className="text-red-600">{error}</p>
+return error && <p className="text-red-600">{error}</p>;
 ```
 
 **After**:
 
 ```tsx
-const [error, setError] = useState<ParsedApiError | null>(null)
+const [error, setError] = useState<ParsedApiError | null>(null);
 
 try {
-  await createReview(workerId, payload)
+  await createReview(workerId, payload);
 } catch (err) {
-  setError(parseApiError(err, "Could not submit your review."))
+  setError(parseApiError(err, 'Could not submit your review.'));
 }
 
-return error && (
-  <div role="alert" className="text-sm text-red-600">
-    {error.message}
-    {error.retryable && <button onClick={retry}>Try again</button>}
-  </div>
-)
+return (
+  error && (
+    <div role="alert" className="text-sm text-red-600">
+      {error.message}
+      {error.retryable && <button onClick={retry}>Try again</button>}
+    </div>
+  )
+);
 ```
 
 The user now sees "Unable to connect. Please check your internet connection." instead of
@@ -656,17 +680,17 @@ failure because of `role="alert"`.
 **Before** — the job's logs cannot be joined to the request that enqueued it:
 
 ```ts
-await notificationQueue.add('send-email', { userId, template })
+await notificationQueue.add('send-email', { userId, template });
 ```
 
 **After**:
 
 ```ts
-await notificationQueue.add('send-email', { userId, template, traceId: getTraceId() })
+await notificationQueue.add('send-email', { userId, template, traceId: getTraceId() });
 
 // in the worker
-const log = createServiceLogger('notification.worker')
-log.info('Sending email', { userId, template, traceId: job.data.traceId })
+const log = createServiceLogger('notification.worker');
+log.info('Sending email', { userId, template, traceId: job.data.traceId });
 ```
 
 ---

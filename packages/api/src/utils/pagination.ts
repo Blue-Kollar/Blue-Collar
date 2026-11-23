@@ -16,18 +16,18 @@
  */
 
 export interface PaginationParams {
-  page?: number | string
-  limit?: number | string
-  cursor?: string
+  page?: number | string;
+  limit?: number | string;
+  cursor?: string;
 }
 
 export interface PaginationMeta {
-  total: number
-  page: number
-  limit: number
-  pages: number
-  nextCursor: string | null
-  hasMore: boolean
+  total: number;
+  page: number;
+  limit: number;
+  pages: number;
+  nextCursor: string | null;
+  hasMore: boolean;
 }
 
 /**
@@ -36,17 +36,18 @@ export interface PaginationMeta {
  * meant to be parsed by clients — only round-tripped back via `decodeCursor`.
  */
 export function encodeCursor(record: { id: string; createdAt: Date | string }): string {
-  const createdAt = record.createdAt instanceof Date ? record.createdAt.toISOString() : record.createdAt
-  return Buffer.from(JSON.stringify({ id: record.id, createdAt }), 'utf8').toString('base64url')
+  const createdAt =
+    record.createdAt instanceof Date ? record.createdAt.toISOString() : record.createdAt;
+  return Buffer.from(JSON.stringify({ id: record.id, createdAt }), 'utf8').toString('base64url');
 }
 
 export function decodeCursor(cursor: string): { id: string; createdAt: string } | null {
   try {
-    const decoded = JSON.parse(Buffer.from(cursor, 'base64url').toString('utf8'))
-    if (typeof decoded?.id === 'string' && typeof decoded?.createdAt === 'string') return decoded
-    return null
+    const decoded = JSON.parse(Buffer.from(cursor, 'base64url').toString('utf8'));
+    if (typeof decoded?.id === 'string' && typeof decoded?.createdAt === 'string') return decoded;
+    return null;
   } catch {
-    return null
+    return null;
   }
 }
 
@@ -58,14 +59,17 @@ export function parsePaginationParams(
   params: PaginationParams,
   options?: { maxLimit?: number; defaultLimit?: number; defaultPage?: number },
 ): { page: number; limit: number } {
-  const maxLimit = options?.maxLimit ?? 100
-  const defaultLimit = options?.defaultLimit ?? 20
-  const defaultPage = options?.defaultPage ?? 1
+  const maxLimit = options?.maxLimit ?? 100;
+  const defaultLimit = options?.defaultLimit ?? 20;
+  const defaultPage = options?.defaultPage ?? 1;
 
-  const page = Math.max(1, parseInt(String(params.page ?? defaultPage), 10) || defaultPage)
-  const limit = Math.min(maxLimit, Math.max(1, parseInt(String(params.limit ?? defaultLimit), 10) || defaultLimit))
+  const page = Math.max(1, parseInt(String(params.page ?? defaultPage), 10) || defaultPage);
+  const limit = Math.min(
+    maxLimit,
+    Math.max(1, parseInt(String(params.limit ?? defaultLimit), 10) || defaultLimit),
+  );
 
-  return { page, limit }
+  return { page, limit };
 }
 
 /**
@@ -75,7 +79,7 @@ export function calculateSkipTake(page: number, limit: number): { skip: number; 
   return {
     skip: (page - 1) * limit,
     take: limit,
-  }
+  };
 }
 
 /**
@@ -90,8 +94,8 @@ export function buildPaginationMeta(
   limit: number,
   lastRecord?: { id: string; createdAt: Date | string } | null,
 ): PaginationMeta {
-  const pages = Math.ceil(total / limit)
-  const hasMore = page < pages
+  const pages = Math.ceil(total / limit);
+  const hasMore = page < pages;
   return {
     total,
     page,
@@ -99,7 +103,7 @@ export function buildPaginationMeta(
     pages,
     hasMore,
     nextCursor: hasMore && lastRecord ? encodeCursor(lastRecord) : null,
-  }
+  };
 }
 
 /**
@@ -109,9 +113,9 @@ export function createPaginationHelper(
   queryParams: PaginationParams,
   options?: { maxLimit?: number; defaultLimit?: number; defaultPage?: number },
 ) {
-  const { page, limit } = parsePaginationParams(queryParams, options)
-  const { skip, take } = calculateSkipTake(page, limit)
-  const cursor = queryParams.cursor ? decodeCursor(queryParams.cursor) : null
+  const { page, limit } = parsePaginationParams(queryParams, options);
+  const { skip, take } = calculateSkipTake(page, limit);
+  const cursor = queryParams.cursor ? decodeCursor(queryParams.cursor) : null;
 
   return {
     page,
@@ -121,5 +125,5 @@ export function createPaginationHelper(
     cursor,
     buildMeta: (total: number, lastRecord?: { id: string; createdAt: Date | string } | null) =>
       buildPaginationMeta(total, page, limit, lastRecord),
-  }
+  };
 }

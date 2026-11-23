@@ -6,12 +6,7 @@
  * imports from `lib/date` keep working while there is a single formatting source.
  */
 
-export {
-  formatDate,
-  formatDateTime,
-  formatTime,
-  formatRelativeDate,
-} from './format';
+export { formatDate, formatDateTime, formatTime, formatRelativeDate } from './format';
 
 /** The given date at local midnight. */
 export function startOfDay(date: Date): Date {

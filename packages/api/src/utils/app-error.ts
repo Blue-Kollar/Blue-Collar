@@ -35,10 +35,10 @@ export enum ErrorCode {
  * throw new AppError('User not found', 404, true, ErrorCode.NOT_FOUND)
  */
 export class AppError extends Error {
-  public readonly statusCode: number
-  public readonly isOperational: boolean
-  public readonly errorCode: ErrorCode
-  public readonly details?: unknown
+  public readonly statusCode: number;
+  public readonly isOperational: boolean;
+  public readonly errorCode: ErrorCode;
+  public readonly details?: unknown;
 
   constructor(
     message: string,
@@ -47,16 +47,16 @@ export class AppError extends Error {
     errorCode: ErrorCode = ErrorCode.INTERNAL_ERROR,
     details?: unknown,
   ) {
-    super(message)
-    this.statusCode = statusCode
-    this.isOperational = isOperational
-    this.errorCode = errorCode
-    this.details = details
+    super(message);
+    this.statusCode = statusCode;
+    this.isOperational = isOperational;
+    this.errorCode = errorCode;
+    this.details = details;
 
     // Maintains proper stack trace for where our error was thrown (only available on V8)
-    Error.captureStackTrace(this, this.constructor)
+    Error.captureStackTrace(this, this.constructor);
 
     // Set the prototype explicitly to ensure instanceof checks work correctly
-    Object.setPrototypeOf(this, AppError.prototype)
+    Object.setPrototypeOf(this, AppError.prototype);
   }
 }

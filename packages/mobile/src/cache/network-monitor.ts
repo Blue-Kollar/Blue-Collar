@@ -1,7 +1,7 @@
-import { useEffect, useRef, useCallback } from "react";
-import NetInfo, { NetInfoState } from "@react-native-community/netinfo";
-import { cacheStore } from "./cache-store";
-import { NetworkState } from "./types";
+import { useEffect, useRef, useCallback } from 'react';
+import NetInfo, { NetInfoState } from '@react-native-community/netinfo';
+import { cacheStore } from './cache-store';
+import { NetworkState } from './types';
 
 export interface UseNetworkMonitorOptions {
   onReconnect?: () => void | Promise<void>;
@@ -19,7 +19,9 @@ export const useNetworkMonitor = (options: UseNetworkMonitorOptions = {}) => {
       const networkState: NetworkState = {
         isConnected: state.isConnected ?? false,
         isInternetReachable: state.isInternetReachable,
-        lastConnected: state.isConnected ? Date.now() : previousState.current?.lastConnected ?? null,
+        lastConnected: state.isConnected
+          ? Date.now()
+          : (previousState.current?.lastConnected ?? null),
       };
       const wasConnected = previousState.current?.isConnected ?? false;
       cacheStore.setNetworkState(networkState);
@@ -33,12 +35,12 @@ export const useNetworkMonitor = (options: UseNetworkMonitorOptions = {}) => {
         else onReconnect?.();
       }
       if (wasConnected && !state.isConnected) {
-        cacheStore.setSyncStatus("offline");
+        cacheStore.setSyncStatus('offline');
         onDisconnect?.();
       }
       previousState.current = networkState;
     },
-    [onReconnect, onDisconnect, autoSyncOnReconnect]
+    [onReconnect, onDisconnect, autoSyncOnReconnect],
   );
 
   useEffect(() => {

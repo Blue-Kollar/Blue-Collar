@@ -8,4 +8,4 @@
  * This file re-exports them from the SDK so all existing imports inside
  * packages/api remain unbroken.
  */
-export type { ApiResponse, PaginatedResult, Meta } from '@bluecollar/sdk'
+export type { ApiResponse, PaginatedResult, Meta } from '@bluecollar/sdk';

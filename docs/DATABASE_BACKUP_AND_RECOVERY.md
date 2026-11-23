@@ -68,10 +68,10 @@ if pg_dump \
   --verbose \
   --no-password \
   2>> "$BACKUP_LOG" | gzip > "$BACKUP_FILE"; then
-  
+
   BACKUP_SIZE=$(du -h "$BACKUP_FILE" | cut -f1)
   echo "Backup completed successfully: $BACKUP_FILE ($BACKUP_SIZE)" | tee -a "$BACKUP_LOG"
-  
+
   # Upload to S3 if configured
   if [ -n "$S3_BUCKET" ]; then
     echo "Uploading to S3..." | tee -a "$BACKUP_LOG"
@@ -81,11 +81,11 @@ if pg_dump \
       2>> "$BACKUP_LOG"
     echo "S3 upload completed" | tee -a "$BACKUP_LOG"
   fi
-  
+
   # Clean up old backups
   echo "Cleaning up backups older than $RETENTION_DAYS days" | tee -a "$BACKUP_LOG"
   find "$BACKUP_DIR" -name "bluecollar_*.sql.gz" -mtime +$RETENTION_DAYS -delete
-  
+
   echo "Backup process finished at $(date)" | tee -a "$BACKUP_LOG"
   exit 0
 else
@@ -138,14 +138,14 @@ if gunzip -c "$BACKUP_FILE" | psql \
   -U "$DB_USER" \
   -d "$VERIFY_DB" \
   > /dev/null 2>&1; then
-  
+
   echo "Backup restoration: OK"
-  
+
   # Verify database integrity
   echo "Verifying database integrity..."
   TABLES=$(psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$VERIFY_DB" \
     -t -c "SELECT count(*) FROM information_schema.tables WHERE table_schema='public'")
-  
+
   if [ "$TABLES" -gt 0 ]; then
     echo "Database integrity: OK (found $TABLES tables)"
   else
@@ -153,11 +153,11 @@ if gunzip -c "$BACKUP_FILE" | psql \
     dropdb -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" "$VERIFY_DB"
     exit 1
   fi
-  
+
   # Clean up
   echo "Cleaning up temporary database..."
   dropdb -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" "$VERIFY_DB"
-  
+
   echo "Backup verification: PASSED"
   exit 0
 else
@@ -209,7 +209,7 @@ if gunzip -c "$BACKUP_FILE" | psql \
   -p "$DB_PORT" \
   -U "$DB_USER" \
   -d "$DB_NAME"; then
-  
+
   echo "Restore completed successfully at $(date)"
   exit 0
 else
@@ -378,30 +378,30 @@ Backups are fully automated via `.github/workflows/DB_BACKUPS.yml` (closes #797)
 
 ### Schedule
 
-| Job | Cron | Description |
-|-----|------|-------------|
-| `backup` | `0 2 * * *` | Daily encrypted backup → S3 |
+| Job             | Cron        | Description                               |
+| --------------- | ----------- | ----------------------------------------- |
+| `backup`        | `0 2 * * *` | Daily encrypted backup → S3               |
 | `restore-drill` | `0 3 * * 0` | Weekly restore-to-scratch integrity drill |
 
 Both jobs can also be triggered manually via `workflow_dispatch`.
 
 ### Scripts
 
-| Script | Purpose |
-|--------|---------|
-| `deploy/backups/backup.sh` | `pg_dump` → gzip → GPG-encrypt → S3 upload → retention prune |
-| `deploy/backups/restore-drill.sh` | Decrypt → restore to temp DB → count tables → teardown |
+| Script                            | Purpose                                                      |
+| --------------------------------- | ------------------------------------------------------------ |
+| `deploy/backups/backup.sh`        | `pg_dump` → gzip → GPG-encrypt → S3 upload → retention prune |
+| `deploy/backups/restore-drill.sh` | Decrypt → restore to temp DB → count tables → teardown       |
 
 ### Required GitHub Secrets
 
-| Secret | Description |
-|--------|-------------|
-| `DB_PASSWORD` | PostgreSQL password |
-| `BACKUP_GPG_PASSPHRASE` | Symmetric GPG passphrase for encryption at rest |
-| `BACKUP_S3_BUCKET` | S3 bucket name (optional — artifact fallback used if unset) |
-| `AWS_ACCESS_KEY_ID` | AWS key (required if S3 bucket is set) |
-| `AWS_SECRET_ACCESS_KEY` | AWS secret (required if S3 bucket is set) |
-| `AWS_REGION` | AWS region (default: `us-east-1`) |
+| Secret                  | Description                                                 |
+| ----------------------- | ----------------------------------------------------------- |
+| `DB_PASSWORD`           | PostgreSQL password                                         |
+| `BACKUP_GPG_PASSPHRASE` | Symmetric GPG passphrase for encryption at rest             |
+| `BACKUP_S3_BUCKET`      | S3 bucket name (optional — artifact fallback used if unset) |
+| `AWS_ACCESS_KEY_ID`     | AWS key (required if S3 bucket is set)                      |
+| `AWS_SECRET_ACCESS_KEY` | AWS secret (required if S3 bucket is set)                   |
+| `AWS_REGION`            | AWS region (default: `us-east-1`)                           |
 
 ### Failure Alerting
 

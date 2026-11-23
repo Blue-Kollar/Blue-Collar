@@ -37,11 +37,11 @@ const svc = createCategoryService({ categoryRepository: mockRepo })
 
 ## Service modules with DI factories
 
-| Module | Factory | Deps interface |
-|---|---|---|
+| Module                | Factory                       | Deps interface        |
+| --------------------- | ----------------------------- | --------------------- |
 | `category.service.ts` | `createCategoryService(deps)` | `CategoryServiceDeps` |
-| `user.service.ts` | `createUserService(deps)` | `UserServiceDeps` |
-| `auth.service.ts` | `createAuthService(deps)` | `AuthServiceDeps` |
+| `user.service.ts`     | `createUserService(deps)`     | `UserServiceDeps`     |
+| `auth.service.ts`     | `createAuthService(deps)`     | `AuthServiceDeps`     |
 
 ---
 
@@ -50,8 +50,8 @@ const svc = createCategoryService({ categoryRepository: mockRepo })
 ### category.service
 
 ```ts
-import { createCategoryService } from '../services/category.service.js'
-import type { ICategoryRepository } from '../repositories/category.repository.js'
+import { createCategoryService } from '../services/category.service.js';
+import type { ICategoryRepository } from '../repositories/category.repository.js';
 
 // Test
 const mockRepo: ICategoryRepository = {
@@ -62,9 +62,9 @@ const mockRepo: ICategoryRepository = {
   update: vi.fn(),
   delete: vi.fn(),
   count: vi.fn(),
-}
-const svc = createCategoryService({ categoryRepository: mockRepo })
-const cats = await svc.listCategories()
+};
+const svc = createCategoryService({ categoryRepository: mockRepo });
+const cats = await svc.listCategories();
 ```
 
 ### user.service
@@ -88,7 +88,7 @@ await svc.updateProfile('1', { firstName: 'Alice' })
 ### auth.service
 
 ```ts
-import { createAuthService } from '../services/auth.service.js'
+import { createAuthService } from '../services/auth.service.js';
 
 const mockRepo = {
   findByEmail: vi.fn(),
@@ -96,11 +96,11 @@ const mockRepo = {
   findByResetToken: vi.fn(),
   create: vi.fn(),
   update: vi.fn(),
-}
+};
 const mockMailer = {
   sendVerificationEmail: vi.fn().mockResolvedValue(undefined),
   sendPasswordResetEmail: vi.fn().mockResolvedValue(undefined),
-}
+};
 const mockDb = {
   refreshToken: {
     create: vi.fn().mockResolvedValue({}),
@@ -112,8 +112,8 @@ const mockDb = {
     create: vi.fn().mockResolvedValue({ id: 'dev-1' }),
     updateMany: vi.fn(),
   },
-}
-const svc = createAuthService({ userRepository: mockRepo, mailer: mockMailer, db: mockDb })
+};
+const svc = createAuthService({ userRepository: mockRepo, mailer: mockMailer, db: mockDb });
 ```
 
 ---
@@ -121,14 +121,16 @@ const svc = createAuthService({ userRepository: mockRepo, mailer: mockMailer, db
 ## Adding DI to a new service
 
 1. **Define a deps interface** in `src/container/types.ts`:
+
    ```ts
    export interface FooServiceDeps {
-     fooRepository: IFooRepository
+     fooRepository: IFooRepository;
      // add other deps as needed
    }
    ```
 
 2. **Add the factory** to the service module:
+
    ```ts
    export function createFooService(deps: FooServiceDeps) {
      const { fooRepository } = deps
@@ -139,15 +141,19 @@ const svc = createAuthService({ userRepository: mockRepo, mailer: mockMailer, db
    ```
 
 3. **Keep backward-compatible module exports**:
+
    ```ts
-   const _default = createFooService({ fooRepository: defaultFooRepository })
-   export async function doThing() { return _default.doThing() }
+   const _default = createFooService({ fooRepository: defaultFooRepository });
+   export async function doThing() {
+     return _default.doThing();
+   }
    ```
 
 4. **Export from the container**:
+
    ```ts
    // src/container/index.ts
-   export { createFooService } from '../services/foo.service.js'
+   export { createFooService } from '../services/foo.service.js';
    ```
 
 5. **Write tests using injected mocks** (see `*.di.test.ts` files for examples).

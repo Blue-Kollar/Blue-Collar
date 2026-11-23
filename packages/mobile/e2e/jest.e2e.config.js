@@ -25,4 +25,4 @@ module.exports = {
     ['jest-junit', { outputDirectory: '<rootDir>/e2e-results', outputName: 'e2e-junit.xml' }],
   ],
   coverageDirectory: '<rootDir>/e2e-coverage',
-}
+};

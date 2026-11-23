@@ -2,23 +2,23 @@
 
 ## Structure
 
-| Directory | Purpose | CI? |
-|-----------|---------|-----|
-| `backups/` | DB backup and restore-drill scripts (referenced by `DB_BACKUPS.yml` CI) | ✅ Yes |
-| `terraform/` | Canonical Terraform IaC (backend, provider, modules) | Manual ops |
-| `k8s/` | Kubernetes manifests | Manual ops |
-| `helm/` | Helm charts | Manual ops |
-| `nginx/` | Nginx reverse-proxy config | Manual ops |
-| `grafana/` | Grafana dashboards and datasources | Manual ops |
-| `prometheus/` | Prometheus scrape configs and alerting rules | Manual ops |
-| `alertmanager/` | Alertmanager routing config | Manual ops |
-| `jaeger/` | Jaeger distributed tracing config | Manual ops |
-| `otel/` | OpenTelemetry Collector config | Manual ops |
-| `logstash/` | Logstash pipeline config | Manual ops |
-| `vault/` | Vault server and agent configs | Manual ops |
-| `monitoring/` | Monitoring manifests | Manual ops |
-| `argocd/` | ArgoCD GitOps configs | Manual ops |
-| `load-tests/` | Load test scenarios | Manual ops |
+| Directory       | Purpose                                                                 | CI?        |
+| --------------- | ----------------------------------------------------------------------- | ---------- |
+| `backups/`      | DB backup and restore-drill scripts (referenced by `DB_BACKUPS.yml` CI) | ✅ Yes     |
+| `terraform/`    | Canonical Terraform IaC (backend, provider, modules)                    | Manual ops |
+| `k8s/`          | Kubernetes manifests                                                    | Manual ops |
+| `helm/`         | Helm charts                                                             | Manual ops |
+| `nginx/`        | Nginx reverse-proxy config                                              | Manual ops |
+| `grafana/`      | Grafana dashboards and datasources                                      | Manual ops |
+| `prometheus/`   | Prometheus scrape configs and alerting rules                            | Manual ops |
+| `alertmanager/` | Alertmanager routing config                                             | Manual ops |
+| `jaeger/`       | Jaeger distributed tracing config                                       | Manual ops |
+| `otel/`         | OpenTelemetry Collector config                                          | Manual ops |
+| `logstash/`     | Logstash pipeline config                                                | Manual ops |
+| `vault/`        | Vault server and agent configs                                          | Manual ops |
+| `monitoring/`   | Monitoring manifests                                                    | Manual ops |
+| `argocd/`       | ArgoCD GitOps configs                                                   | Manual ops |
+| `load-tests/`   | Load test scenarios                                                     | Manual ops |
 
 ## Removed in issue #1899
 

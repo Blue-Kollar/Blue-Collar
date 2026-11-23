@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import * as React from "react";
+import * as React from 'react';
 import {
   ChevronUp,
   ChevronDown,
@@ -8,13 +8,13 @@ import {
   ChevronLeft,
   ChevronRight,
   Loader2,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
-import { useTranslations } from "next-intl";
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { useTranslations } from 'next-intl';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export type SortDirection = "asc" | "desc";
+export type SortDirection = 'asc' | 'desc';
 
 export interface ColumnDef<T> {
   key: string;
@@ -31,7 +31,7 @@ export interface RowAction<T> {
   label: string;
   icon?: React.ReactNode;
   onClick: (row: T) => void;
-  variant?: "default" | "danger";
+  variant?: 'default' | 'danger';
   disabled?: (row: T) => boolean;
 }
 
@@ -53,16 +53,18 @@ export interface TableProps<T extends { id: string | number }> {
   onSelectionChange?: (ids: Set<string | number>) => void;
   emptyMessage?: string;
   className?: string;
-  "aria-label"?: string;
+  'aria-label'?: string;
 }
 
 // ─── Sort icon helper ─────────────────────────────────────────────────────────
 
 function SortIcon({ active, dir }: { active: boolean; dir?: SortDirection }) {
   if (!active) return <ChevronsUpDown size={14} className="text-gray-400" />;
-  return dir === "asc"
-    ? <ChevronUp size={14} className="text-brand-600" />
-    : <ChevronDown size={14} className="text-brand-600" />;
+  return dir === 'asc' ? (
+    <ChevronUp size={14} className="text-brand-600" />
+  ) : (
+    <ChevronDown size={14} className="text-brand-600" />
+  );
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -84,10 +86,10 @@ export function Table<T extends { id: string | number }>({
   onSelectionChange,
   emptyMessage,
   className,
-  "aria-label": ariaLabel,
+  'aria-label': ariaLabel,
 }: TableProps<T>) {
-  const t = useTranslations("componentText");
-  const resolvedEmptyMessage = emptyMessage ?? t("noResults");
+  const t = useTranslations('componentText');
+  const resolvedEmptyMessage = emptyMessage ?? t('noResults');
   const allIds = data.map((r) => r.id);
   const allSelected = allIds.length > 0 && allIds.every((id) => selectedIds?.has(id));
   const someSelected = !allSelected && allIds.some((id) => selectedIds?.has(id));
@@ -116,16 +118,21 @@ export function Table<T extends { id: string | number }>({
   const handleSort = (col: ColumnDef<T>) => {
     if (!col.sortable || !onSort) return;
     if (sortKey === col.key) {
-      onSort(col.key, sortDir === "asc" ? "desc" : "asc");
+      onSort(col.key, sortDir === 'asc' ? 'desc' : 'asc');
     } else {
-      onSort(col.key, "asc");
+      onSort(col.key, 'asc');
     }
   };
 
   const visibleCols = columns.filter((c) => !c.hideOnMobile);
 
   return (
-    <div className={cn("w-full overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700", className)}>
+    <div
+      className={cn(
+        'w-full overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700',
+        className,
+      )}
+    >
       {/* Desktop table */}
       <div className="overflow-x-auto">
         <table
@@ -139,9 +146,11 @@ export function Table<T extends { id: string | number }>({
                 <th className="w-10 px-4 py-3">
                   <input
                     type="checkbox"
-                    aria-label={t("selectAll")}
+                    aria-label={t('selectAll')}
                     checked={allSelected}
-                    ref={(el) => { if (el) el.indeterminate = someSelected; }}
+                    ref={(el) => {
+                      if (el) el.indeterminate = someSelected;
+                    }}
                     onChange={toggleAll}
                     className="accent-brand-600 cursor-pointer"
                   />
@@ -152,14 +161,17 @@ export function Table<T extends { id: string | number }>({
                   key={col.key}
                   scope="col"
                   className={cn(
-                    "px-4 py-3 text-left font-semibold",
-                    col.sortable && "cursor-pointer select-none hover:bg-gray-100 dark:hover:bg-gray-700",
-                    col.className
+                    'px-4 py-3 text-left font-semibold',
+                    col.sortable &&
+                      'cursor-pointer select-none hover:bg-gray-100 dark:hover:bg-gray-700',
+                    col.className,
                   )}
                   onClick={() => handleSort(col)}
                   aria-sort={
                     sortKey === col.key
-                      ? sortDir === "asc" ? "ascending" : "descending"
+                      ? sortDir === 'asc'
+                        ? 'ascending'
+                        : 'descending'
                       : undefined
                   }
                 >
@@ -171,7 +183,7 @@ export function Table<T extends { id: string | number }>({
               ))}
               {rowActions && rowActions.length > 0 && (
                 <th scope="col" className="px-4 py-3 text-right font-semibold">
-                  {t("actions")}
+                  {t('actions')}
                 </th>
               )}
             </tr>
@@ -183,7 +195,7 @@ export function Table<T extends { id: string | number }>({
                   colSpan={columns.length + (selectable ? 1 : 0) + (rowActions ? 1 : 0)}
                   className="py-16 text-center text-gray-400"
                 >
-                  <Loader2 size={28} className="mx-auto animate-spin" aria-label={t("loading")} />
+                  <Loader2 size={28} className="mx-auto animate-spin" aria-label={t('loading')} />
                 </td>
               </tr>
             ) : data.length === 0 ? (
@@ -200,15 +212,15 @@ export function Table<T extends { id: string | number }>({
                 <tr
                   key={row.id}
                   className={cn(
-                    "transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50",
-                    selectedIds?.has(row.id) && "bg-brand-50 dark:bg-brand-900/20"
+                    'transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50',
+                    selectedIds?.has(row.id) && 'bg-brand-50 dark:bg-brand-900/20',
                   )}
                 >
                   {selectable && (
                     <td className="px-4 py-3">
                       <input
                         type="checkbox"
-                        aria-label={t("selectRow", { id: row.id })}
+                        aria-label={t('selectRow', { id: row.id })}
                         checked={selectedIds?.has(row.id) ?? false}
                         onChange={() => toggleRow(row.id)}
                         className="accent-brand-600 cursor-pointer"
@@ -216,8 +228,13 @@ export function Table<T extends { id: string | number }>({
                     </td>
                   )}
                   {columns.map((col) => (
-                    <td key={col.key} className={cn("px-4 py-3 text-gray-900 dark:text-gray-100", col.className)}>
-                      {col.cell ? col.cell(row) : String((row as Record<string, unknown>)[col.key] ?? "")}
+                    <td
+                      key={col.key}
+                      className={cn('px-4 py-3 text-gray-900 dark:text-gray-100', col.className)}
+                    >
+                      {col.cell
+                        ? col.cell(row)
+                        : String((row as Record<string, unknown>)[col.key] ?? '')}
                     </td>
                   ))}
                   {rowActions && rowActions.length > 0 && (
@@ -232,11 +249,11 @@ export function Table<T extends { id: string | number }>({
                             title={action.label}
                             aria-label={action.label}
                             className={cn(
-                              "inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium transition-colors",
-                              "disabled:pointer-events-none disabled:opacity-50",
-                              action.variant === "danger"
-                                ? "text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
-                                : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                              'inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium transition-colors',
+                              'disabled:pointer-events-none disabled:opacity-50',
+                              action.variant === 'danger'
+                                ? 'text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20'
+                                : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700',
                             )}
                           >
                             {action.icon}
@@ -260,27 +277,35 @@ export function Table<T extends { id: string | number }>({
             <Loader2 size={28} className="mx-auto animate-spin" />
           </div>
         ) : data.length === 0 ? (
-          <div className="py-12 text-center text-sm text-gray-400">          {resolvedEmptyMessage}</div>
+          <div className="py-12 text-center text-sm text-gray-400"> {resolvedEmptyMessage}</div>
         ) : (
           data.map((row) => (
-            <div key={row.id} className={cn("p-4 space-y-2", selectedIds?.has(row.id) && "bg-brand-50 dark:bg-brand-900/20")}>
+            <div
+              key={row.id}
+              className={cn(
+                'p-4 space-y-2',
+                selectedIds?.has(row.id) && 'bg-brand-50 dark:bg-brand-900/20',
+              )}
+            >
               {selectable && (
                 <div className="flex items-center gap-2">
                   <input
                     type="checkbox"
                     checked={selectedIds?.has(row.id) ?? false}
                     onChange={() => toggleRow(row.id)}
-                    aria-label={t("selectRow", { id: row.id })}
+                    aria-label={t('selectRow', { id: row.id })}
                     className="accent-brand-600"
                   />
-                  <span className="text-xs text-gray-400">{t("select")}</span>
+                  <span className="text-xs text-gray-400">{t('select')}</span>
                 </div>
               )}
               {visibleCols.map((col) => (
                 <div key={col.key} className="flex justify-between text-sm">
                   <span className="font-medium text-gray-500 dark:text-gray-400">{col.header}</span>
                   <span className="text-gray-900 dark:text-gray-100 text-right">
-                    {col.cell ? col.cell(row) : String((row as Record<string, unknown>)[col.key] ?? "")}
+                    {col.cell
+                      ? col.cell(row)
+                      : String((row as Record<string, unknown>)[col.key] ?? '')}
                   </span>
                 </div>
               ))}
@@ -293,11 +318,11 @@ export function Table<T extends { id: string | number }>({
                       onClick={() => action.onClick(row)}
                       disabled={action.disabled?.(row)}
                       className={cn(
-                        "flex-1 rounded-md py-1.5 text-xs font-medium border transition-colors",
-                        "disabled:pointer-events-none disabled:opacity-50",
-                        action.variant === "danger"
-                          ? "border-red-200 text-red-600 hover:bg-red-50"
-                          : "border-gray-200 text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
+                        'flex-1 rounded-md py-1.5 text-xs font-medium border transition-colors',
+                        'disabled:pointer-events-none disabled:opacity-50',
+                        action.variant === 'danger'
+                          ? 'border-red-200 text-red-600 hover:bg-red-50'
+                          : 'border-gray-200 text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300',
                       )}
                     >
                       {action.label}
@@ -314,15 +339,15 @@ export function Table<T extends { id: string | number }>({
       {totalPages !== undefined && totalPages > 1 && (
         <div className="flex items-center justify-between border-t border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-3 text-sm">
           <span className="text-gray-500 dark:text-gray-400">
-            {t("pageOf", { page, totalPages })}
-            {total !== undefined && ` · ${t("totalRecords", { total })}`}
+            {t('pageOf', { page, totalPages })}
+            {total !== undefined && ` · ${t('totalRecords', { total })}`}
           </span>
           <div className="flex items-center gap-1">
             <button
               type="button"
               onClick={() => onPageChange?.(page - 1)}
               disabled={page <= 1}
-              aria-label={t("previous")}
+              aria-label={t('previous')}
               className="rounded p-1.5 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:pointer-events-none disabled:opacity-40"
             >
               <ChevronLeft size={16} />
@@ -331,7 +356,7 @@ export function Table<T extends { id: string | number }>({
               type="button"
               onClick={() => onPageChange?.(page + 1)}
               disabled={page >= totalPages}
-              aria-label={t("next")}
+              aria-label={t('next')}
               className="rounded p-1.5 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:pointer-events-none disabled:opacity-40"
             >
               <ChevronRight size={16} />

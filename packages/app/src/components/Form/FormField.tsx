@@ -1,7 +1,7 @@
-import type { ReactNode } from "react";
-import { CheckCircle2, AlertCircle, Info } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { FieldError } from "./FormError";
+import type { ReactNode } from 'react';
+import { CheckCircle2, AlertCircle, Info } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { FieldError } from './FormError';
 
 interface Props {
   label: string;
@@ -15,7 +15,7 @@ interface Props {
 
 export default function FormField({ label, id, error, hint, isValid, className, children }: Props) {
   return (
-    <div className={cn("flex flex-col gap-1.5", className)}>
+    <div className={cn('flex flex-col gap-1.5', className)}>
       <label htmlFor={id} className="text-sm font-medium text-gray-700 dark:text-gray-300">
         {label}
       </label>

@@ -1,14 +1,14 @@
-import type { Prisma } from '@prisma/client'
-import { db } from '@/db.js'
-import { logger } from '@/config/logger.js'
-import { nowUtc, parseUtcDate } from '@/utils/date.js'
+import type { Prisma } from '@prisma/client';
+import { db } from '@/db.js';
+import { logger } from '@/config/logger.js';
+import { nowUtc, parseUtcDate } from '@/utils/date.js';
 
 export interface AuditOptions {
-  userId?: string
-  action: string
-  resource?: string
-  resourceId?: string
-  meta?: Record<string, unknown>
+  userId?: string;
+  action: string;
+  resource?: string;
+  resourceId?: string;
+  meta?: Record<string, unknown>;
 }
 
 /** Write an audit log entry (fire-and-forget safe) */
@@ -21,26 +21,26 @@ export async function log(opts: AuditOptions) {
       meta: opts.meta as Prisma.InputJsonValue | undefined,
       createdAt: nowUtc(),
       ...(opts.userId ? { userId: opts.userId } : {}),
-    }
-    await db.auditLog.create({ data })
+    };
+    await db.auditLog.create({ data });
   } catch (err) {
-    logger.error({ err }, 'Failed to write audit log')
+    logger.error({ err }, 'Failed to write audit log');
   }
 }
 
 /** Query audit logs with filters and pagination */
 export async function queryLogs(opts: {
-  userId?: string
-  action?: string
-  resource?: string
-  from?: Date
-  to?: Date
-  page?: number
-  limit?: number
+  userId?: string;
+  action?: string;
+  resource?: string;
+  from?: Date;
+  to?: Date;
+  page?: number;
+  limit?: number;
 }) {
-  const { userId, action, resource, page = 1, limit = 50 } = opts
-  const from = opts.from ? parseUtcDate(opts.from) : undefined
-  const to = opts.to ? parseUtcDate(opts.to) : undefined
+  const { userId, action, resource, page = 1, limit = 50 } = opts;
+  const from = opts.from ? parseUtcDate(opts.from) : undefined;
+  const to = opts.to ? parseUtcDate(opts.to) : undefined;
 
   const where: Prisma.AuditLogWhereInput = {
     ...(userId ? { userId } : {}),
@@ -49,7 +49,7 @@ export async function queryLogs(opts: {
     ...(from || to
       ? { createdAt: { ...(from ? { gte: from } : {}), ...(to ? { lte: to } : {}) } }
       : {}),
-  }
+  };
 
   const [data, total] = await Promise.all([
     db.auditLog.findMany({
@@ -60,7 +60,7 @@ export async function queryLogs(opts: {
       include: { user: { select: { id: true, firstName: true, lastName: true, email: true } } },
     }),
     db.auditLog.count({ where }),
-  ])
+  ]);
 
-  return { data, meta: { total, page, limit, pages: Math.ceil(total / limit) } }
+  return { data, meta: { total, page, limit, pages: Math.ceil(total / limit) } };
 }

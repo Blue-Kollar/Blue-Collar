@@ -2,14 +2,14 @@ name: Contract CI
 
 on:
   push:
-    branches: ["**"]
+    branches: ['**']
     paths:
-      - "packages/contracts/**"
-      - ".github/workflows/contract.yml"
+      - 'packages/contracts/**'
+      - '.github/workflows/contract.yml'
   pull_request:
     paths:
-      - "packages/contracts/**"
-      - ".github/workflows/contract.yml"
+      - 'packages/contracts/**'
+      - '.github/workflows/contract.yml'
 
 defaults:
   run:

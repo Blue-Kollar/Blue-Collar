@@ -9,4 +9,4 @@ export {
   resetPasswordSchema as resetPasswordRules,
   verifyAccountSchema as verifyAccountRules,
   resendVerificationSchema as resendVerificationRules,
-} from '@bluecollar/types'
+} from '@bluecollar/types';

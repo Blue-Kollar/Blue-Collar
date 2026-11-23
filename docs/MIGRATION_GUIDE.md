@@ -5,6 +5,7 @@ This document provides guidance for integrating with and migrating between BlueC
 ## Overview
 
 The BlueCollar API uses **URL path versioning** with support for multiple concurrent versions:
+
 - **Current version**: `v2`
 - **Supported versions**: `v1`, `v2`
 - **Deprecated versions**: None (as of this release)
@@ -37,16 +38,19 @@ curl -X GET https://api.bluecollar.app/api/v1/workers \
 ### Worker Resource
 
 **v1 Fields:**
+
 - `id`, `name`, `phone`, `email`, `bio`
 - `isActive`, `walletAddress`
 - `avgRating`, `reviewCount`, `categoryId`
 - `createdAt`, `updatedAt`
 
 **v2 Changes:**
+
 - **Added**: `verificationStatus` (enum: `unverified`, `pending`, `verified`)
 - All v1 fields are backward compatible
 
 **Migration Example:**
+
 ```javascript
 // v1 response
 {
@@ -72,10 +76,12 @@ curl -X GET https://api.bluecollar.app/api/v1/workers \
 ### User Resource
 
 **v1 Fields:**
+
 - `id`, `email`, `firstName`, `lastName`
 - `role`, `verified`
 
 **v2 Changes:**
+
 - **Added**: `twoFactorEnabled` (boolean)
 - All v1 fields are backward compatible
 
@@ -111,11 +117,12 @@ Warning: 299 - "API version v1 is deprecated. Migrate to v2."
 Different versions have different rate limits:
 
 | Version | Requests | Window |
-| ------- | --------- | ------ |
-| v1      | 100       | 1 min  |
-| v2      | 150       | 1 min  |
+| ------- | -------- | ------ |
+| v1      | 100      | 1 min  |
+| v2      | 150      | 1 min  |
 
 See current limits at:
+
 ```bash
 curl https://api.bluecollar.app/api/v1/versions
 curl https://api.bluecollar.app/api/v2/versions
@@ -138,13 +145,13 @@ If migrating from v1 API key auth:
 ```javascript
 // v1: Works with API key
 const headers = {
-  'Authorization': `ApiKey ${apiKey}`
-}
+  Authorization: `ApiKey ${apiKey}`,
+};
 
 // v2: Must use JWT
 const headers = {
-  'Authorization': `Bearer ${jwtToken}`
-}
+  Authorization: `Bearer ${jwtToken}`,
+};
 ```
 
 ## Migration Checklist
@@ -168,22 +175,22 @@ const headers = {
 async function getWorkers() {
   const response = await fetch('https://api.bluecollar.app/api/v1/workers', {
     headers: {
-      'X-API-Version': 'v1'
-    }
-  })
-  return response.json()
+      'X-API-Version': 'v1',
+    },
+  });
+  return response.json();
 }
 
 // After (v2)
 async function getWorkers() {
   const response = await fetch('https://api.bluecollar.app/api/v2/workers', {
     headers: {
-      'X-API-Version': 'v2'
-    }
-  })
-  const data = response.json()
+      'X-API-Version': 'v2',
+    },
+  });
+  const data = response.json();
   // Handle new verificationStatus field
-  return data
+  return data;
 }
 ```
 
@@ -237,18 +244,18 @@ If you need to maintain compatibility with both v1 and v2 clients:
 
 ```javascript
 function getWorkers(version = 'v2') {
-  const baseUrl = `https://api.bluecollar.app/api/${version}`
+  const baseUrl = `https://api.bluecollar.app/api/${version}`;
   return fetch(`${baseUrl}/workers`, {
     headers: {
       'X-API-Version': version,
-      'Authorization': `Bearer ${token}`
-    }
-  }).then(r => r.json())
+      Authorization: `Bearer ${token}`,
+    },
+  }).then((r) => r.json());
 }
 
 // Both work
-const v1Workers = await getWorkers('v1')
-const v2Workers = await getWorkers('v2')
+const v1Workers = await getWorkers('v1');
+const v2Workers = await getWorkers('v2');
 ```
 
 ## Version Sunset Process
@@ -328,12 +335,12 @@ When deploying v2 clients:
 
 ## Version Compatibility Matrix
 
-| Client | Supports | Current | Notes |
-| ------ | --------- | ------- | ----- |
-| Browser App | v1, v2 | v2 | Auto-updates |
-| Mobile App | v1, v2 | v1 | Plan to upgrade |
-| Partner API | v1 | v1 | Should migrate soon |
-| Internal Tools | v2 | v2 | Already updated |
+| Client         | Supports | Current | Notes               |
+| -------------- | -------- | ------- | ------------------- |
+| Browser App    | v1, v2   | v2      | Auto-updates        |
+| Mobile App     | v1, v2   | v1      | Plan to upgrade     |
+| Partner API    | v1       | v1      | Should migrate soon |
+| Internal Tools | v2       | v2      | Already updated     |
 
 ## Feedback
 

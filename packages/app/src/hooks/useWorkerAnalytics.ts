@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { useState, useCallback, useEffect, useMemo } from "react";
-import { useAuth } from "@/context/AuthContext";
+import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useAuth } from '@/context/AuthContext';
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/api";
+const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000/api';
 
-export type DatePreset = "7" | "30" | "90" | "custom";
+export type DatePreset = '7' | '30' | '90' | 'custom';
 
 export type DashboardWorker = {
   id: string;
@@ -64,8 +64,8 @@ export function today() {
 export function useWorkerAnalytics() {
   const { user, token, isLoading: authLoading } = useAuth();
   const [workers, setWorkers] = useState<DashboardWorker[]>([]);
-  const [selectedWorkerId, setSelectedWorkerId] = useState("");
-  const [preset, setPreset] = useState<DatePreset>("30");
+  const [selectedWorkerId, setSelectedWorkerId] = useState('');
+  const [preset, setPreset] = useState<DatePreset>('30');
   const [startDate, setStartDate] = useState(dateDaysAgo(30));
   const [endDate, setEndDate] = useState(today());
   const [data, setData] = useState<PersonalAnalytics | null>(null);
@@ -82,7 +82,7 @@ export function useWorkerAnalytics() {
     const res = await fetch(`${API}/workers/mine?limit=100`, {
       headers: { Authorization: `Bearer ${token}` },
     });
-    if (!res.ok) throw new Error("Failed to load your workers");
+    if (!res.ok) throw new Error('Failed to load your workers');
     const json = await res.json();
     const rows = json.data ?? [];
     setWorkers(rows);
@@ -94,17 +94,20 @@ export function useWorkerAnalytics() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${API}/workers/${selectedWorkerId}/analytics/dashboard?${rangeParams}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await fetch(
+        `${API}/workers/${selectedWorkerId}/analytics/dashboard?${rangeParams}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
       if (!res.ok) {
         const json = await res.json().catch(() => ({}));
-        throw new Error(json.message ?? "Failed to load worker analytics");
+        throw new Error(json.message ?? 'Failed to load worker analytics');
       }
       const json = await res.json();
       setData(json.data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load worker analytics");
+      setError(err instanceof Error ? err.message : 'Failed to load worker analytics');
       setData(null);
     } finally {
       setLoading(false);
@@ -114,7 +117,7 @@ export function useWorkerAnalytics() {
   useEffect(() => {
     if (!authLoading && token) {
       loadWorkers().catch((err) => {
-        setError(err instanceof Error ? err.message : "Failed to load your workers");
+        setError(err instanceof Error ? err.message : 'Failed to load your workers');
         setLoading(false);
       });
     }
@@ -126,7 +129,7 @@ export function useWorkerAnalytics() {
 
   const applyPreset = (nextPreset: DatePreset) => {
     setPreset(nextPreset);
-    if (nextPreset !== "custom") {
+    if (nextPreset !== 'custom') {
       const days = Number(nextPreset);
       setStartDate(dateDaysAgo(days));
       setEndDate(today());
@@ -135,7 +138,7 @@ export function useWorkerAnalytics() {
 
   const exportCsv = () => {
     if (!selectedWorkerId || !token) return;
-    window.open(`${API}/workers/${selectedWorkerId}/analytics/export?${rangeParams}`, "_blank");
+    window.open(`${API}/workers/${selectedWorkerId}/analytics/export?${rangeParams}`, '_blank');
   };
 
   return {

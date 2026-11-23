@@ -71,10 +71,10 @@ Passwords are hashed with **Argon2id** via the [`argon2`](https://www.npmjs.com/
 
 ```ts
 // Hashing on registration / password reset
-const hashed = await argon2.hash(password)
+const hashed = await argon2.hash(password);
 
 // Verification on login
-const valid = await argon2.verify(user.password, password)
+const valid = await argon2.verify(user.password, password);
 ```
 
 The library uses secure defaults (memory cost, time cost, parallelism) automatically. No manual salt management is required — Argon2 handles salting internally.
@@ -133,10 +133,10 @@ The Market and Registry Soroban contracts use `require_auth()` on every mutating
 
 CORS behaviour differs between environments:
 
-| Environment | Behaviour |
-|---|---|
-| Development (`NODE_ENV !== 'production'`) | All origins allowed (`*`) |
-| Production | Only origins listed in `ALLOWED_ORIGINS` are permitted |
+| Environment                               | Behaviour                                              |
+| ----------------------------------------- | ------------------------------------------------------ |
+| Development (`NODE_ENV !== 'production'`) | All origins allowed (`*`)                              |
+| Production                                | Only origins listed in `ALLOWED_ORIGINS` are permitted |
 
 Configure allowed origins in `packages/api/.env`:
 
@@ -161,6 +161,7 @@ Content-Security-Policy:
 ```
 
 This means:
+
 - No scripts, styles, images, or frames can be loaded from this origin.
 - The API cannot be embedded in an iframe (`frame-ancestors 'none'`).
 - Form submissions to this origin are blocked (`form-action 'none'`).
@@ -169,13 +170,13 @@ These headers are set by Helmet automatically on every response.
 
 ### Other security headers set by Helmet
 
-| Header | Value |
-|---|---|
-| `X-Content-Type-Options` | `nosniff` |
-| `X-Frame-Options` | `DENY` |
+| Header                      | Value                                 |
+| --------------------------- | ------------------------------------- |
+| `X-Content-Type-Options`    | `nosniff`                             |
+| `X-Frame-Options`           | `DENY`                                |
 | `Strict-Transport-Security` | `max-age=15552000; includeSubDomains` |
-| `X-DNS-Prefetch-Control` | `off` |
-| `Referrer-Policy` | `no-referrer` |
+| `X-DNS-Prefetch-Control`    | `off`                                 |
+| `Referrer-Policy`           | `no-referrer`                         |
 
 ---
 
@@ -219,10 +220,10 @@ Prisma uses parameterised queries by default. Avoid using `$queryRaw` with strin
 
 ```ts
 // Safe
-await db.$queryRaw`SELECT * FROM users WHERE email = ${email}`
+await db.$queryRaw`SELECT * FROM users WHERE email = ${email}`;
 
 // Unsafe — never do this
-await db.$queryRaw(`SELECT * FROM users WHERE email = '${email}'`)
+await db.$queryRaw(`SELECT * FROM users WHERE email = '${email}'`);
 ```
 
 ### 10. Admin key compromise (Stellar contracts)
@@ -235,12 +236,12 @@ See the [Threat Model](./THREAT_MODEL.md#key-custody--admin-powers) for a full b
 
 ## Cross-References
 
-| Document | Content |
-|---|---|
-| [THREAT_MODEL.md](./THREAT_MODEL.md) | Full STRIDE threat model covering all trust boundaries (API, DB, contracts, wallet) |
-| [SECURITY_AUDIT_REPORT.md](./SECURITY_AUDIT_REPORT.md) | Internal smart contract audit findings |
-| [SECURITY_TESTING.md](./SECURITY_TESTING.md) | Security test strategy (unit, DAST, dependency scan, secret scan) |
-| [INCIDENT_RUNBOOK.md](./INCIDENT_RUNBOOK.md) | Production incident response procedures |
-| [packages/api/SECURITY.md](../packages/api/SECURITY.md) | Responsible disclosure policy (`security@bluecollar.dev`) |
-| [packages/contracts/SECURITY.md](../packages/contracts/SECURITY.md) | Contract-specific threat model & access control matrix |
-| [SECRETS_MANAGEMENT.md](./SECRETS_MANAGEMENT.md) | Vault-based secrets lifecycle
+| Document                                                            | Content                                                                             |
+| ------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| [THREAT_MODEL.md](./THREAT_MODEL.md)                                | Full STRIDE threat model covering all trust boundaries (API, DB, contracts, wallet) |
+| [SECURITY_AUDIT_REPORT.md](./SECURITY_AUDIT_REPORT.md)              | Internal smart contract audit findings                                              |
+| [SECURITY_TESTING.md](./SECURITY_TESTING.md)                        | Security test strategy (unit, DAST, dependency scan, secret scan)                   |
+| [INCIDENT_RUNBOOK.md](./INCIDENT_RUNBOOK.md)                        | Production incident response procedures                                             |
+| [packages/api/SECURITY.md](../packages/api/SECURITY.md)             | Responsible disclosure policy (`security@bluecollar.dev`)                           |
+| [packages/contracts/SECURITY.md](../packages/contracts/SECURITY.md) | Contract-specific threat model & access control matrix                              |
+| [SECRETS_MANAGEMENT.md](./SECRETS_MANAGEMENT.md)                    | Vault-based secrets lifecycle                                                       |

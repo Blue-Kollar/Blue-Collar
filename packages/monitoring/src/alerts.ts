@@ -22,79 +22,79 @@
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
-export type ComparisonOperator = '>' | '<' | '>=' | '<=' | '==' | '!='
+export type ComparisonOperator = '>' | '<' | '>=' | '<=' | '==' | '!=';
 
-export type AlertSeverity = 'info' | 'warning' | 'critical'
+export type AlertSeverity = 'info' | 'warning' | 'critical';
 
 /** A single metric sample: metric name → numeric value (or missing/invalid). */
-export type MetricSample = Record<string, number | string | boolean | null | undefined>
+export type MetricSample = Record<string, number | string | boolean | null | undefined>;
 
 /** A structured, evaluator-ready alert rule. */
 export interface AlertRule {
   /** Stable identifier (usually the alert name from the YAML). */
-  id: string
+  id: string;
   /** Human readable name. */
-  name?: string
+  name?: string;
   /** Metric name resolved from the sample map. */
-  metric: string
+  metric: string;
   /** Comparison operator applied to (value <operator> threshold). */
-  operator: ComparisonOperator
+  operator: ComparisonOperator;
   /** Threshold the metric is compared against. */
-  threshold: number
+  threshold: number;
   /** Severity label carried through to the evaluation. */
-  severity?: AlertSeverity
+  severity?: AlertSeverity;
   /**
    * "for" duration in milliseconds (matches Prometheus `for:`).
    * The rule must breach continuously for this long before it is reported as
    * firing — this is the debounce that prevents flapping. Defaults to 0.
    */
-  forMs?: number
+  forMs?: number;
   /** When false the rule is ignored. Defaults to true. */
-  enabled?: boolean
+  enabled?: boolean;
 }
 
-export type AlertStatus = 'firing' | 'pending' | 'ok' | 'no-data' | 'disabled'
+export type AlertStatus = 'firing' | 'pending' | 'ok' | 'no-data' | 'disabled';
 
 export interface AlertEvaluation {
-  ruleId: string
-  metric: string
-  status: AlertStatus
-  severity: AlertSeverity
-  firing: boolean
+  ruleId: string;
+  metric: string;
+  status: AlertStatus;
+  severity: AlertSeverity;
+  firing: boolean;
   /** Whether the most recent sample breached the threshold (pre-debounce). */
-  breaching: boolean
-  value: number | null
-  threshold: number
-  operator: ComparisonOperator
+  breaching: boolean;
+  value: number | null;
+  threshold: number;
+  operator: ComparisonOperator;
   /** Epoch ms the alert first began breaching (for debounce tracking). */
-  breachingSince: number | null
-  message: string
+  breachingSince: number | null;
+  message: string;
 }
 
 /** Per-rule debounce state owned by the evaluator. */
 export interface RuleState {
-  breachingSince: number | null
+  breachingSince: number | null;
 }
 
-export type EvaluatorState = Record<string, RuleState>
+export type EvaluatorState = Record<string, RuleState>;
 
 // ─── Raw YAML shapes (only the parts we consume) ──────────────────────────────
 
 export interface RawAlertRule {
-  alert: string
-  expr: string
-  for?: string
-  labels?: Record<string, string>
-  annotations?: Record<string, string>
+  alert: string;
+  expr: string;
+  for?: string;
+  labels?: Record<string, string>;
+  annotations?: Record<string, string>;
 }
 
 export interface RawAlertGroup {
-  name: string
-  rules: RawAlertRule[]
+  name: string;
+  rules: RawAlertRule[];
 }
 
 export interface RawAlertGroups {
-  groups: RawAlertGroup[]
+  groups: RawAlertGroup[];
 }
 
 // ─── Primitive comparator ──────────────────────────────────────────────────────
@@ -112,25 +112,25 @@ export function evaluateComparison(
 ): boolean {
   switch (operator) {
     case '>':
-      return value > threshold
+      return value > threshold;
     case '<':
-      return value < threshold
+      return value < threshold;
     case '>=':
-      return value >= threshold
+      return value >= threshold;
     case '<=':
-      return value <= threshold
+      return value <= threshold;
     case '==':
-      return value === threshold
+      return value === threshold;
     case '!=':
-      return value !== threshold
+      return value !== threshold;
     default:
-      return false
+      return false;
   }
 }
 
 // ─── Expression parser ─────────────────────────────────────────────────────────
 
-const COMPARISON_RE = /(.*?)\s*(>=|<=|==|!=|>|<)\s*(.+)$/
+const COMPARISON_RE = /(.*?)\s*(>=|<=|==|!=|>|<)\s*(.+)$/;
 
 /** Tokens that look like functions/aggregations and are not metric names. */
 const RESERVED_TOKENS = new Set([
@@ -149,7 +149,7 @@ const RESERVED_TOKENS = new Set([
   'abs',
   'clamp_max',
   'clamp_min',
-])
+]);
 
 /**
  * Parse a Prometheus-style alert expression into a structured
@@ -164,22 +164,22 @@ const RESERVED_TOKENS = new Set([
  * @throws Error when the expression has no comparison operator or no numeric threshold.
  */
 export function parseAlertExpression(expr: string): {
-  metric: string
-  operator: ComparisonOperator
-  threshold: number
+  metric: string;
+  operator: ComparisonOperator;
+  threshold: number;
 } {
-  const match = COMPARISON_RE.exec(expr)
+  const match = COMPARISON_RE.exec(expr);
   if (!match) {
-    throw new Error(`Unable to parse alert expression (no comparison found): ${expr}`)
+    throw new Error(`Unable to parse alert expression (no comparison found): ${expr}`);
   }
 
-  const lhs = match[1]
-  const operator = match[2] as ComparisonOperator
-  const rhs = match[3].trim()
+  const lhs = match[1]!;
+  const operator = match[2] as ComparisonOperator;
+  const rhs = match[3]!.trim();
 
-  const threshold = Number(rhs)
+  const threshold = Number(rhs);
   if (!Number.isFinite(threshold)) {
-    throw new Error(`Unable to parse alert threshold from expression: ${expr}`)
+    throw new Error(`Unable to parse alert threshold from expression: ${expr}`);
   }
 
   // Extract candidate metric identifiers from the LHS by stripping function
@@ -190,53 +190,53 @@ export function parseAlertExpression(expr: string): {
     .replace(/\[[^\]]*\]/g, ' ') // [5m] windows
     .replace(/\{[^}]*\}/g, ' ') // {status=~"5.."} label matchers
     .replace(/\bby\s*\([^)]*\)/g, ' ') //  by (le)
-    .replace(/[^\w\s]/g, ' ') // remaining punctuation
+    .replace(/[^\w\s]/g, ' '); // remaining punctuation
 
   const candidates = cleaned
     .split(/\s+/)
     .map((t) => t.trim())
-    .filter((t) => t.length > 0 && /^[a-zA-Z_]/.test(t) && !RESERVED_TOKENS.has(t))
+    .filter((t) => t.length > 0 && /^[a-zA-Z_]/.test(t) && !RESERVED_TOKENS.has(t));
 
   if (candidates.length === 0) {
-    throw new Error(`Unable to extract a metric name from expression: ${expr}`)
+    throw new Error(`Unable to extract a metric name from expression: ${expr}`);
   }
 
   // De-duplicate while preserving order; use the first distinct metric.
-  const seen = new Set<string>()
-  let metric = candidates[0]
+  const seen = new Set<string>();
+  let metric = candidates[0]!;
   for (const c of candidates) {
     if (!seen.has(c)) {
-      seen.add(c)
-      metric = c
-      break
+      seen.add(c);
+      metric = c;
+      break;
     }
   }
 
-  return { metric, operator, threshold }
+  return { metric, operator, threshold };
 }
 
 // ─── YAML group loader ─────────────────────────────────────────────────────────
 
-const DURATION_RE = /^(\d+)\s*(ms|s|m|h)$/
+const DURATION_RE = /^(\d+)\s*(ms|s|m|h)$/;
 
 /** Parse a Prometheus duration string (`5m`, `30s`, `2h`) into milliseconds. */
 export function parseDuration(duration: string | undefined): number {
-  if (!duration) return 0
-  const match = DURATION_RE.exec(duration.trim())
-  if (!match) return 0
-  const amount = Number(match[1])
-  const unit = match[2]
+  if (!duration) return 0;
+  const match = DURATION_RE.exec(duration.trim());
+  if (!match) return 0;
+  const amount = Number(match[1]);
+  const unit = match[2];
   switch (unit) {
     case 'ms':
-      return amount
+      return amount;
     case 's':
-      return amount * 1_000
+      return amount * 1_000;
     case 'm':
-      return amount * 60_000
+      return amount * 60_000;
     case 'h':
-      return amount * 3_600_000
+      return amount * 3_600_000;
     default:
-      return 0
+      return 0;
   }
 }
 
@@ -245,10 +245,10 @@ export function parseDuration(duration: string | undefined): number {
  * of structured {@link AlertRule}s ready for evaluation.
  */
 export function loadAlertGroups(groups: RawAlertGroups): AlertRule[] {
-  const rules: AlertRule[] = []
+  const rules: AlertRule[] = [];
   for (const group of groups.groups ?? []) {
     for (const raw of group.rules ?? []) {
-      const parsed = parseAlertExpression(raw.expr)
+      const parsed = parseAlertExpression(raw.expr);
       rules.push({
         id: raw.alert,
         name: raw.alert,
@@ -257,18 +257,18 @@ export function loadAlertGroups(groups: RawAlertGroups): AlertRule[] {
         threshold: parsed.threshold,
         severity: (raw.labels?.severity as AlertSeverity) ?? 'warning',
         forMs: parseDuration(raw.for),
-      })
+      });
     }
   }
-  return rules
+  return rules;
 }
 
 // ─── Pure evaluator ────────────────────────────────────────────────────────────
 
 function resolveValue(metric: string, sample: MetricSample): number | null {
-  const raw = sample[metric]
-  if (typeof raw === 'number' && Number.isFinite(raw)) return raw
-  return null
+  const raw = sample[metric];
+  if (typeof raw === 'number' && Number.isFinite(raw)) return raw;
+  return null;
 }
 
 /**
@@ -284,10 +284,10 @@ export function evaluateRules(
   previousState: EvaluatorState = {},
   now: number = Date.now(),
 ): { evaluations: AlertEvaluation[]; state: EvaluatorState } {
-  const evaluator = new AlertEvaluator(rules)
-  evaluator.hydrate(previousState)
-  const evaluations = evaluator.evaluate(sample, now)
-  return { evaluations, state: evaluator.getState() }
+  const evaluator = new AlertEvaluator(rules);
+  evaluator.hydrate(previousState);
+  const evaluations = evaluator.evaluate(sample, now);
+  return { evaluations, state: evaluator.getState() };
 }
 
 // ─── Stateful evaluator ────────────────────────────────────────────────────────
@@ -302,47 +302,47 @@ export function evaluateRules(
  * and never count as firing.
  */
 export class AlertEvaluator {
-  private rules: AlertRule[]
-  private state: EvaluatorState
+  private rules: AlertRule[];
+  private state: EvaluatorState;
 
   constructor(rules: AlertRule[] = []) {
-    this.rules = rules
-    this.state = {}
+    this.rules = rules;
+    this.state = {};
     for (const rule of rules) {
-      this.state[rule.id] = { breachingSince: null }
+      this.state[rule.id] = { breachingSince: null };
     }
   }
 
   /** Replace the active rule set (existing state is preserved when ids overlap). */
   setRules(rules: AlertRule[]): void {
-    this.rules = rules
+    this.rules = rules;
     for (const rule of rules) {
       if (!this.state[rule.id]) {
-        this.state[rule.id] = { breachingSince: null }
+        this.state[rule.id] = { breachingSince: null };
       }
     }
   }
 
   /** Replace the entire internal state (used to restore persisted state). */
   hydrate(state: EvaluatorState): void {
-    this.state = {}
+    this.state = {};
     for (const rule of this.rules) {
-      const existing = state[rule.id] ?? {}
+      const existing = state[rule.id] ?? { breachingSince: null };
       this.state[rule.id] = {
         ...existing,
         breachingSince: existing.breachingSince ?? null,
-      }
+      };
     }
   }
 
   getState(): EvaluatorState {
-    return this.state
+    return this.state;
   }
 
   /** Reset all debounce state without changing the rules. */
   reset(): void {
     for (const rule of this.rules) {
-      this.state[rule.id] = { breachingSince: null }
+      this.state[rule.id] = { breachingSince: null };
     }
   }
 
@@ -351,13 +351,13 @@ export class AlertEvaluator {
    * Mutates internal debounce state and returns one evaluation per rule.
    */
   evaluate(sample: MetricSample, now: number = Date.now()): AlertEvaluation[] {
-    const evaluations: AlertEvaluation[] = []
+    const evaluations: AlertEvaluation[] = [];
 
     for (const rule of this.rules) {
-      const enabled = rule.enabled !== false
-      const value = enabled ? resolveValue(rule.metric, sample) : null
-      const severity: AlertSeverity = rule.severity ?? 'warning'
-      const st = this.state[rule.id] ?? (this.state[rule.id] = { breachingSince: null })
+      const enabled = rule.enabled !== false;
+      const value = enabled ? resolveValue(rule.metric, sample) : null;
+      const severity: AlertSeverity = rule.severity ?? 'warning';
+      const st = this.state[rule.id] ?? (this.state[rule.id] = { breachingSince: null });
 
       // Disabled rules.
       if (!enabled) {
@@ -373,13 +373,13 @@ export class AlertEvaluator {
           operator: rule.operator,
           breachingSince: null,
           message: `Rule "${rule.id}" is disabled`,
-        })
-        continue
+        });
+        continue;
       }
 
       // Missing / invalid metric value.
       if (value === null) {
-        st.breachingSince = null
+        st.breachingSince = null;
         evaluations.push({
           ruleId: rule.id,
           metric: rule.metric,
@@ -392,15 +392,15 @@ export class AlertEvaluator {
           operator: rule.operator,
           breachingSince: null,
           message: `No data for metric "${rule.metric}"`,
-        })
-        continue
+        });
+        continue;
       }
 
-      const breaching = evaluateComparison(value, rule.operator, rule.threshold)
-      const forMs = rule.forMs ?? 0
+      const breaching = evaluateComparison(value, rule.operator, rule.threshold);
+      const forMs = rule.forMs ?? 0;
 
       if (!breaching) {
-        st.breachingSince = null
+        st.breachingSince = null;
         evaluations.push({
           ruleId: rule.id,
           metric: rule.metric,
@@ -413,15 +413,15 @@ export class AlertEvaluator {
           operator: rule.operator,
           breachingSince: null,
           message: `Metric "${rule.metric}" (${value}) is within threshold ${rule.operator} ${rule.threshold}`,
-        })
-        continue
+        });
+        continue;
       }
 
       // Breaching — handle debounce.
       if (st.breachingSince === null) {
-        st.breachingSince = now
+        st.breachingSince = now;
       }
-      const elapsed = now - st.breachingSince
+      const elapsed = now - st.breachingSince;
 
       if (elapsed >= forMs) {
         evaluations.push({
@@ -436,7 +436,7 @@ export class AlertEvaluator {
           operator: rule.operator,
           breachingSince: st.breachingSince,
           message: `ALERT ${severity.toUpperCase()}: "${rule.metric}"=${value} breaches ${rule.operator} ${rule.threshold}`,
-        })
+        });
       } else {
         evaluations.push({
           ruleId: rule.id,
@@ -450,17 +450,17 @@ export class AlertEvaluator {
           operator: rule.operator,
           breachingSince: st.breachingSince,
           message: `Pending: "${rule.metric}"=${value} breaching ${rule.operator} ${rule.threshold} for ${elapsed}ms of ${forMs}ms`,
-        })
+        });
       }
     }
 
-    return evaluations
+    return evaluations;
   }
 
   /** Convenience: only the currently firing evaluations. */
   getFiringEvaluations(sample: MetricSample, now: number = Date.now()): AlertEvaluation[] {
-    return this.evaluate(sample, now).filter((e) => e.firing)
+    return this.evaluate(sample, now).filter((e) => e.firing);
   }
 }
 
-export default AlertEvaluator
+export default AlertEvaluator;

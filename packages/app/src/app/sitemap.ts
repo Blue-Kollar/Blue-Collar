@@ -1,9 +1,9 @@
-import { MetadataRoute } from 'next'
-import { routes } from '@/lib/routes'
+import { MetadataRoute } from 'next';
+import { routes } from '@/lib/routes';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://bluecollar.app'
-  const locales = ['en', 'fr', 'es', 'pt']
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://bluecollar.app';
+  const locales = ['en', 'fr', 'es', 'pt'];
 
   const sitemapRoutes = [
     routes.home,
@@ -11,9 +11,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     routes.about,
     routes.auth.login,
     routes.auth.register,
-  ]
+  ];
 
-  const sitemapEntries: MetadataRoute.Sitemap = []
+  const sitemapEntries: MetadataRoute.Sitemap = [];
 
   locales.forEach((locale) => {
     sitemapRoutes.forEach((route) => {
@@ -22,9 +22,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
         lastModified: new Date(),
         changeFrequency: route === '' ? 'daily' : 'weekly',
         priority: route === '' ? 1 : 0.8,
-      })
-    })
-  })
+      });
+    });
+  });
 
-  return sitemapEntries
+  return sitemapEntries;
 }

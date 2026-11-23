@@ -110,7 +110,7 @@ let _keyIndex = 0;
 function nextDeterministicKey(): [string, string] {
   const pair = DETERMINISTIC_KEYS[_keyIndex % DETERMINISTIC_KEYS.length];
   _keyIndex++;
-  return pair;
+  return pair!;
 }
 
 /**
@@ -408,9 +408,9 @@ export function makeTestWorkerFixture(
   const category = WORKER_CATEGORIES[idx % WORKER_CATEGORIES.length];
   return {
     id: `worker_${String(idx).padStart(3, '0')}`,
-    ownerAddress: DETERMINISTIC_KEYS[idx % DETERMINISTIC_KEYS.length][0],
+    ownerAddress: DETERMINISTIC_KEYS[idx % DETERMINISTIC_KEYS.length]![0],
     name: `Test Worker ${idx}`,
-    category,
+    category: category!,
     wasmHash: '0'.repeat(64),
     ...overrides,
   };

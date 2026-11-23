@@ -1,4 +1,7 @@
-interface Props { className?: string; size?: number }
+interface Props {
+  className?: string;
+  size?: number;
+}
 
 export default function PhoneIcon({ className, size = 24 }: Props) {
   return (

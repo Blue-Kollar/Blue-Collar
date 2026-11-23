@@ -2,13 +2,13 @@
  * Worker validation schemas for the API.
  * Core schemas are imported from @bluecollar/types to stay in sync with the App.
  */
-import { z } from 'zod'
+import { z } from 'zod';
 
 export {
   createWorkerSchema as createWorkerRules,
   updateWorkerSchema as updateWorkerRules,
   createReviewSchema as createReviewRules,
-} from '@bluecollar/types'
+} from '@bluecollar/types';
 
 /**
  * Issue #1685 — Shared sanitised free-text field.
@@ -33,12 +33,12 @@ export const sanitizedString = (max: number, min = 0) =>
         // Neutralise stray angle brackets
         .replace(/[<>]/g, '')
         .trim(),
-    )
+    );
 
 // POST /workers/:id/contact — API-only (no frontend form schema needed)
 export const contactRequestRules = z.object({
   message: sanitizedString(2000, 10),
-})
+});
 
 // Advanced search — API-only query parsing
 export const advancedSearchRules = z.object({
@@ -56,7 +56,7 @@ export const advancedSearchRules = z.object({
   sortBy: z.enum(['relevance', 'rating', 'distance', 'newest', 'reviews']).optional(),
   page: z.coerce.number().int().min(1).optional(),
   limit: z.coerce.number().int().min(1).max(100).optional(),
-})
+});
 
 /**
  * Issue #1236 — Validate and sanitize GET /workers list query parameters.
@@ -99,8 +99,8 @@ export const listWorkersQuerySchema = z.object({
     .optional(),
 
   // Location filters
-  city:    z.string().max(100).optional(),
-  state:   z.string().max(100).optional(),
+  city: z.string().max(100).optional(),
+  state: z.string().max(100).optional(),
   country: z.string().max(100).optional(),
 
   // Numeric filters with sensible bounds
@@ -110,22 +110,22 @@ export const listWorkersQuerySchema = z.object({
   listedSince: z.coerce.number().int().min(0).max(10).optional(), // years, max 10
 
   // Geo
-  lat:    z.coerce.number().min(-90).max(90).optional(),
-  lng:    z.coerce.number().min(-180).max(180).optional(),
+  lat: z.coerce.number().min(-90).max(90).optional(),
+  lng: z.coerce.number().min(-180).max(180).optional(),
   radius: z.coerce.number().min(0.1).max(1000).optional(),
 
   // Sort
-  sortBy:    z.enum(['rating', 'newest', 'oldest', 'name', 'relevance', 'distance']).optional(),
+  sortBy: z.enum(['rating', 'newest', 'oldest', 'name', 'relevance', 'distance']).optional(),
   sortOrder: z.enum(['asc', 'desc']).optional(),
 
   // Boolean flags — coerce string 'true'/'false' from query string
   isVerified: z.coerce.boolean().optional(),
 
   // Pagination
-  page:   z.coerce.number().int().min(1).default(1),
-  limit:  z.coerce.number().int().min(1).max(100).default(20),
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
   cursor: z.string().max(200).optional(),
-})
+});
 
 /**
  * Issue #1236 — Validate GET /workers/search query parameters.
@@ -135,21 +135,21 @@ export const listWorkersQuerySchema = z.object({
  * long queries that could cause expensive query plans.
  */
 export const searchWorkersQuerySchema = z.object({
-  q:     z.string().max(500).optional(),
+  q: z.string().max(500).optional(),
   query: z.string().max(500).optional(),
-  lang:  z
+  lang: z
     .string()
     .regex(/^(simple|english|french|german|spanish|portuguese|italian|dutch|russian|arabic)$/i)
     .optional(),
-  lat:       z.coerce.number().min(-90).max(90).optional(),
-  lng:       z.coerce.number().min(-180).max(180).optional(),
-  radius:    z.coerce.number().min(0.1).max(1000).optional(),
+  lat: z.coerce.number().min(-90).max(90).optional(),
+  lng: z.coerce.number().min(-180).max(180).optional(),
+  radius: z.coerce.number().min(0.1).max(1000).optional(),
   categories: z.string().max(500).optional(),
   minRating: z.coerce.number().min(1).max(5).optional(),
   maxRating: z.coerce.number().min(1).max(5).optional(),
   dayOfWeek: z.coerce.number().int().min(0).max(6).optional(),
   isVerified: z.coerce.boolean().optional(),
-  sortBy:    z.enum(['relevance', 'rating', 'distance', 'newest']).optional(),
-  page:      z.coerce.number().int().min(1).default(1),
-  limit:     z.coerce.number().int().min(1).max(100).default(20),
-})
+  sortBy: z.enum(['relevance', 'rating', 'distance', 'newest']).optional(),
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+});

@@ -14,7 +14,7 @@ ingress:
   enabled: true
   className: nginx
   annotations:
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    cert-manager.io/cluster-issuer: 'letsencrypt-prod'
   hosts:
     - host: api.bluecollar.io
       paths:
@@ -27,11 +27,11 @@ ingress:
 
 resources:
   requests:
-    memory: "256Mi"
-    cpu: "250m"
+    memory: '256Mi'
+    cpu: '250m'
   limits:
-    memory: "512Mi"
-    cpu: "500m"
+    memory: '512Mi'
+    cpu: '500m'
 
 autoscaling:
   enabled: true
@@ -59,8 +59,8 @@ readinessProbe:
   failureThreshold: 2
 
 env:
-  PORT: "3000"
+  PORT: '3000'
 
 secrets:
-  databaseUrl: ""
-  jwtSecret: ""
+  databaseUrl: ''
+  jwtSecret: ''

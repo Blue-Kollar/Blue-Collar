@@ -1,5 +1,5 @@
 pnpm format:check
-pnpm lint-staged
+pnpm lint:staged
 pnpm type-check
 
 # Enforce rustfmt across contract crates when Rust files are staged (issue #1679)

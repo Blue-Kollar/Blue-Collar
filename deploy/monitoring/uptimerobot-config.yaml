@@ -3,19 +3,19 @@
 # For production setup, use: https://uptimerobot.com
 
 monitors:
-  - name: "API Health Check"
-    url: "https://api.bluecollar.app/health"
-    interval: 60
-    type: http
-    
-  - name: "API Ready Check"
-    url: "https://api.bluecollar.app/ready"
-    interval: 60
-    type: http
-    
-  - name: "App Home Page"
-    url: "https://bluecollar.app"
+  - name: 'API Health Check'
+    url: 'https://api.bluecollar.app/health'
     interval: 60
     type: http
 
-status_page_url: "https://status.bluecollar.app"
+  - name: 'API Ready Check'
+    url: 'https://api.bluecollar.app/ready'
+    interval: 60
+    type: http
+
+  - name: 'App Home Page'
+    url: 'https://bluecollar.app'
+    interval: 60
+    type: http
+
+status_page_url: 'https://status.bluecollar.app'

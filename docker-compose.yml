@@ -15,17 +15,17 @@ services:
   db:
     image: postgres:16-alpine
     restart: unless-stopped
-    profiles: [""]
+    profiles: ['']
     environment:
       POSTGRES_USER: bluecollar
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-bluecollar}
       POSTGRES_DB: bluecollar
     ports:
-      - "5432:5432"
+      - '5432:5432'
     volumes:
       - db_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U bluecollar -d bluecollar"]
+      test: ['CMD-SHELL', 'pg_isready -U bluecollar -d bluecollar']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -33,13 +33,13 @@ services:
   redis:
     image: redis:7-alpine
     restart: unless-stopped
-    profiles: [""]
+    profiles: ['']
     ports:
-      - "6379:6379"
+      - '6379:6379'
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ['CMD', 'redis-cli', 'ping']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -49,14 +49,14 @@ services:
       context: .
       dockerfile: packages/api/Dockerfile
     restart: unless-stopped
-    profiles: [""]
+    profiles: ['']
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_healthy
     ports:
-      - "3000:3000"
+      - '3000:3000'
     environment:
       DATABASE_URL: postgresql://bluecollar:${POSTGRES_PASSWORD:-bluecollar}@db:5432/bluecollar
       REDIS_URL: redis://redis:6379
@@ -64,7 +64,7 @@ services:
     env_file:
       - packages/api/.env
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/health || exit 1"]
+      test: ['CMD-SHELL', 'wget -qO- http://localhost:3000/health || exit 1']
       interval: 30s
       timeout: 10s
       retries: 3
@@ -81,12 +81,12 @@ services:
         NEXT_PUBLIC_REGISTRY_CONTRACT_ID: ${NEXT_PUBLIC_REGISTRY_CONTRACT_ID:-}
         NEXT_PUBLIC_VAPID_PUBLIC_KEY: ${NEXT_PUBLIC_VAPID_PUBLIC_KEY:-}
     restart: unless-stopped
-    profiles: [""]
+    profiles: ['']
     depends_on:
       api:
         condition: service_healthy
     ports:
-      - "3001:3001"
+      - '3001:3001'
     environment:
       NODE_ENV: production
       PORT: 3001
@@ -94,41 +94,41 @@ services:
   adminer:
     image: adminer:latest
     restart: unless-stopped
-    profiles: [""]
+    profiles: ['']
     depends_on:
       - db
     ports:
-      - "8080:8080"
+      - '8080:8080'
 
   # ── Monitoring services (opt-in via --profile monitoring) ────────────────────
   otel-collector:
     image: otel/opentelemetry-collector-contrib:0.96.0
     restart: unless-stopped
-    profiles: ["monitoring"]
-    command: ["--config=/etc/otel-collector-config.yml"]
+    profiles: ['monitoring']
+    command: ['--config=/etc/otel-collector-config.yml']
     volumes:
       - ./deploy/otel/otel-collector-config.yml:/etc/otel-collector-config.yml:ro
     ports:
-      - "4317:4317"
-      - "4318:4318"
-      - "8888:8888"
+      - '4317:4317'
+      - '4318:4318'
+      - '8888:8888'
 
   loki:
     image: grafana/loki:2.9.4
     restart: unless-stopped
-    profiles: ["monitoring"]
+    profiles: ['monitoring']
     command: -config.file=/etc/loki/loki.yml
     volumes:
       - ./deploy/loki/loki.yml:/etc/loki/loki.yml:ro
       - ./deploy/loki/alerts.yml:/etc/loki/rules/fake/alerts.yml:ro
       - loki_data:/loki
     ports:
-      - "3100:3100"
+      - '3100:3100'
 
   promtail:
     image: grafana/promtail:2.9.4
     restart: unless-stopped
-    profiles: ["monitoring"]
+    profiles: ['monitoring']
     command: -config.file=/etc/promtail/promtail.yml
     volumes:
       - ./deploy/promtail/promtail.yml:/etc/promtail/promtail.yml:ro

@@ -30,12 +30,12 @@ component and `cargo-llvm-cov`) if they are not already present.
 
 ## Coverage Targets Explained
 
-| Target             | Output                                   | CI gate |
-| ------------------ | ---------------------------------------- | ------- |
-| `coverage`         | `target/coverage/lcov.info`              | ✅ Yes  |
-| `coverage-html`    | `target/coverage/html/index.html`        | ❌ No   |
-| `coverage-open`    | Same as `coverage-html`, then opens it   | ❌ No   |
-| `coverage-summary` | Text table printed to stdout             | ❌ No   |
+| Target             | Output                                 | CI gate |
+| ------------------ | -------------------------------------- | ------- |
+| `coverage`         | `target/coverage/lcov.info`            | ✅ Yes  |
+| `coverage-html`    | `target/coverage/html/index.html`      | ❌ No   |
+| `coverage-open`    | Same as `coverage-html`, then opens it | ❌ No   |
+| `coverage-summary` | Text table printed to stdout           | ❌ No   |
 
 ### `coverage`
 
@@ -45,7 +45,7 @@ make coverage
 
 Runs the full workspace test suite under `cargo-llvm-cov`, writes an LCOV data
 file to `target/coverage/lcov.info`, and exits with a non-zero status code if
-line coverage falls below **90%**.  This is the target that runs in CI; it is
+line coverage falls below **90%**. This is the target that runs in CI; it is
 the authoritative gate.
 
 ### `coverage-html`
@@ -55,7 +55,7 @@ make coverage-html
 ```
 
 Runs the test suite and generates a self-contained HTML report under
-`target/coverage/html/`.  Open `target/coverage/html/index.html` in any browser
+`target/coverage/html/`. Open `target/coverage/html/index.html` in any browser
 to explore coverage line-by-line across all crates.
 
 ### `coverage-open`
@@ -76,7 +76,7 @@ make coverage-summary
 ```
 
 Prints a per-file and per-crate text table to stdout without writing any output
-files.  Useful for a quick sanity check or for grepping specific numbers in
+files. Useful for a quick sanity check or for grepping specific numbers in
 scripts.
 
 ---
@@ -87,8 +87,8 @@ scripts.
 
 ### Why 90%?
 
-Smart contracts handle real funds and operate in a trustless environment.  A bug
-that passes CI can be exploited on-chain with no recourse.  90% line coverage is
+Smart contracts handle real funds and operate in a trustless environment. A bug
+that passes CI can be exploited on-chain with no recourse. 90% line coverage is
 a pragmatic threshold that:
 
 - Forces every public function to have at least one positive-path test.
@@ -100,8 +100,8 @@ a pragmatic threshold that:
 ### How It Is Enforced
 
 The `coverage` Makefile target passes `--fail-under-lines 90` to
-`cargo-llvm-cov`.  If the measured line coverage drops below 90%, the command
-exits with a non-zero status, failing the Make rule.  In CI this causes the
+`cargo-llvm-cov`. If the measured line coverage drops below 90%, the command
+exits with a non-zero status, failing the Make rule. In CI this causes the
 workflow job to fail, blocking the pull request from being merged.
 
 Locally, the same exit code means `make coverage` will print an error and stop:
@@ -160,7 +160,7 @@ machine or in a fresh CI runner):
    make coverage
    ```
 
-   A passing run ends with a summary table and exits with code `0`.  A failing
+   A passing run ends with a summary table and exits with code `0`. A failing
    run prints the coverage shortfall and exits with code `1`.
 
 6. **(Optional) Inspect the full HTML report**:
@@ -179,16 +179,16 @@ After running `make coverage-html`, open `target/coverage/html/index.html`.
 The report is structured as follows:
 
 - **Index page** — shows each source file with its line, function, and region
-  coverage percentages.  Files are colour-coded: green ≥ 90%, amber 75–90%,
+  coverage percentages. Files are colour-coded: green ≥ 90%, amber 75–90%,
   red < 75%.
-- **File view** — click any filename to see the annotated source.  Each line is
+- **File view** — click any filename to see the annotated source. Each line is
   highlighted:
   - **Green** — executed at least once during the test run.
   - **Red** — never executed (needs a test).
   - **No highlight** — not instrumented (comments, blank lines, macros that
     expand to nothing).
 - **Count badges** — the number on the left of each line shows how many times
-  that line was hit.  A count of `0` on a red line confirms it is uncovered.
+  that line was hit. A count of `0` on a red line confirms it is uncovered.
 
 Focus your test-writing effort on red lines inside `pub` functions — these are
 the paths most likely to contain real bugs.
@@ -197,14 +197,14 @@ the paths most likely to contain real bugs.
 
 ## Per-Crate Breakdown
 
-The workspace currently contains multiple crates.  To see coverage broken down
+The workspace currently contains multiple crates. To see coverage broken down
 per crate rather than per file, use the text summary:
 
 ```bash
 make coverage-summary
 ```
 
-The output table includes a `Filename` column that shows the crate path.  You
+The output table includes a `Filename` column that shows the crate path. You
 can filter it with `grep`:
 
 ```bash
@@ -241,7 +241,7 @@ The relevant workflow step is:
   working-directory: packages/contracts
 ```
 
-If coverage drops below 90%, the step fails and the PR cannot be merged.  The
+If coverage drops below 90%, the step fails and the PR cannot be merged. The
 generated `target/coverage/lcov.info` file is uploaded as a workflow artifact so
 reviewers can download and inspect it without running the suite locally.
 

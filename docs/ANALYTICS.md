@@ -15,14 +15,14 @@ BlueCollar tracks user behavior across critical funnels to measure engagement, o
 ### Consent Management
 
 ```typescript
-import { analytics } from '@/lib/analytics'
+import { analytics } from '@/lib/analytics';
 
 // Set user consent
 analytics.setConsent({
   analytics: true,
   functional: true,
   marketing: false,
-})
+});
 ```
 
 ## Event Taxonomy
@@ -44,79 +44,79 @@ Events follow a structured naming convention: `{object}_{action}` (e.g., `worker
 
 **Goal**: Measure how users discover and view worker profiles.
 
-| Event | Category | Properties | Description |
-|-------|----------|------------|-------------|
-| `worker_searched` | discovery | `queryLength`, `resultCount` | User performs a search |
-| `worker_category_viewed` | discovery | `categoryId` | User views a category page |
-| `worker_filter_applied` | discovery | `filterType` | User applies a filter (location, category, rating) |
-| `worker_profile_viewed` | profile | `workerId`, `source` | User views a worker profile |
+| Event                    | Category  | Properties                   | Description                                        |
+| ------------------------ | --------- | ---------------------------- | -------------------------------------------------- |
+| `worker_searched`        | discovery | `queryLength`, `resultCount` | User performs a search                             |
+| `worker_category_viewed` | discovery | `categoryId`                 | User views a category page                         |
+| `worker_filter_applied`  | discovery | `filterType`                 | User applies a filter (location, category, rating) |
+| `worker_profile_viewed`  | profile   | `workerId`, `source`         | User views a worker profile                        |
 
 **Usage Example**:
 
 ```typescript
-import { analytics } from '@/lib/analytics'
+import { analytics } from '@/lib/analytics';
 
 // When user searches
-analytics.workerSearched('plumber', 12)
+analytics.workerSearched('plumber', 12);
 
 // When user views a profile
-analytics.workerProfileViewed('worker_123', 'search_results')
+analytics.workerProfileViewed('worker_123', 'search_results');
 ```
 
 ### 2. Profile → Contact Funnel
 
 **Goal**: Measure engagement with worker profiles.
 
-| Event | Category | Properties | Description |
-|-------|----------|------------|-------------|
-| `worker_profile_viewed` | profile | `workerId`, `source` | User views a profile |
-| `worker_contact_clicked` | profile | `workerId` | User clicks contact button |
-| `worker_bookmarked` | profile | `workerId` | User bookmarks a worker |
+| Event                    | Category | Properties           | Description                |
+| ------------------------ | -------- | -------------------- | -------------------------- |
+| `worker_profile_viewed`  | profile  | `workerId`, `source` | User views a profile       |
+| `worker_contact_clicked` | profile  | `workerId`           | User clicks contact button |
+| `worker_bookmarked`      | profile  | `workerId`           | User bookmarks a worker    |
 
 ### 3. Tip Funnel
 
 **Goal**: Measure tip conversion and identify drop-off points.
 
-| Event | Category | Properties | Description |
-|-------|----------|------------|-------------|
-| `tip_modal_opened` | tip | `workerId` | User opens tip modal |
-| `tip_amount_entered` | tip | `amount` | User enters tip amount |
-| `tip_confirmed` | tip | `workerId`, `amount` | User confirms tip |
-| `tip_completed` | tip | `workerId`, `amount`, `duration` | Tip transaction completed |
-| `tip_failed` | tip | `workerId`, `reason` | Tip transaction failed |
+| Event                | Category | Properties                       | Description               |
+| -------------------- | -------- | -------------------------------- | ------------------------- |
+| `tip_modal_opened`   | tip      | `workerId`                       | User opens tip modal      |
+| `tip_amount_entered` | tip      | `amount`                         | User enters tip amount    |
+| `tip_confirmed`      | tip      | `workerId`, `amount`             | User confirms tip         |
+| `tip_completed`      | tip      | `workerId`, `amount`, `duration` | Tip transaction completed |
+| `tip_failed`         | tip      | `workerId`, `reason`             | Tip transaction failed    |
 
 **Usage Example**:
 
 ```typescript
 // When user opens tip modal
-analytics.tipModalOpened('worker_123')
+analytics.tipModalOpened('worker_123');
 
 // When user completes tip
-const startTime = Date.now()
+const startTime = Date.now();
 // ... transaction logic
-const duration = Date.now() - startTime
-analytics.tipCompleted('worker_123', 50, duration)
+const duration = Date.now() - startTime;
+analytics.tipCompleted('worker_123', 50, duration);
 ```
 
 ### 4. Review Funnel
 
 **Goal**: Measure review submission rates.
 
-| Event | Category | Properties | Description |
-|-------|----------|------------|-------------|
-| `review_modal_opened` | review | `workerId` | User opens review modal |
-| `review_rating_selected` | review | `rating` | User selects a rating |
-| `review_submitted` | review | `workerId`, `rating` | User submits review |
+| Event                    | Category | Properties           | Description             |
+| ------------------------ | -------- | -------------------- | ----------------------- |
+| `review_modal_opened`    | review   | `workerId`           | User opens review modal |
+| `review_rating_selected` | review   | `rating`             | User selects a rating   |
+| `review_submitted`       | review   | `workerId`, `rating` | User submits review     |
 
 ### 5. Auth Funnel
 
 **Goal**: Track authentication flows and conversion.
 
-| Event | Category | Properties | Description |
-|-------|----------|------------|-------------|
-| `login_attempted` | auth | `method` | User attempts login |
-| `login_completed` | auth | `method` | User completes login |
-| `signup_completed` | auth | `method` | User completes registration |
+| Event              | Category | Properties | Description                 |
+| ------------------ | -------- | ---------- | --------------------------- |
+| `login_attempted`  | auth     | `method`   | User attempts login         |
+| `login_completed`  | auth     | `method`   | User completes login        |
+| `signup_completed` | auth     | `method`   | User completes registration |
 
 ## Implementation Guidelines
 
@@ -125,13 +125,13 @@ analytics.tipCompleted('worker_123', 50, duration)
 1. Import the analytics library:
 
 ```typescript
-import { analytics } from '@/lib/analytics'
+import { analytics } from '@/lib/analytics';
 ```
 
 2. Call the appropriate event method:
 
 ```typescript
-analytics.workerProfileViewed('worker_123', 'search_results')
+analytics.workerProfileViewed('worker_123', 'search_results');
 ```
 
 ### Server-Side Tracking
@@ -158,7 +158,7 @@ Events are sent to `/api/analytics/events` and should be forwarded to a dedicate
 
 ```typescript
 // In analyticsEvents.ts controller
-import { ClickHouse } from 'clickhouse'
+import { ClickHouse } from 'clickhouse';
 
 const clickhouse = new ClickHouse({
   url: process.env.CLICKHOUSE_URL,
@@ -166,12 +166,12 @@ const clickhouse = new ClickHouse({
     username: process.env.CLICKHOUSE_USER,
     password: process.env.CLICKHOUSE_PASSWORD,
   },
-})
+});
 
 export async function recordEvents(req: Request, res: Response) {
-  const { events } = req.body
-  await clickhouse.insert('analytics_events', events)
-  return res.json({ status: 'success' })
+  const { events } = req.body;
+  await clickhouse.insert('analytics_events', events);
+  return res.json({ status: 'success' });
 }
 ```
 

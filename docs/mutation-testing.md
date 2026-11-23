@@ -80,7 +80,7 @@ Reports are written to `packages/api/reports/mutation/`
 
 Baseline (before added tests): the initial run surfaced mutants on the
 uncovered standalone `updateFeeBps` bounds guard and on every thrown error
-message (the existing tests only asserted the `AppError` *class*, not the
+message (the existing tests only asserted the `AppError` _class_, not the
 message text).
 
 Fixes applied:

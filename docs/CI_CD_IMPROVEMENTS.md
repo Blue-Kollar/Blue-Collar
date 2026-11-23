@@ -16,6 +16,7 @@ Enhanced GitHub Actions workflows for faster, more reliable builds and deploymen
 ### 2. Build Caching Strategies
 
 #### Node.js/pnpm Caching
+
 ```yaml
 - uses: actions/setup-node@v6
   with:
@@ -24,6 +25,7 @@ Enhanced GitHub Actions workflows for faster, more reliable builds and deploymen
 ```
 
 #### Next.js Build Cache
+
 ```yaml
 - uses: actions/cache@v5
   with:
@@ -32,6 +34,7 @@ Enhanced GitHub Actions workflows for faster, more reliable builds and deploymen
 ```
 
 #### Cargo/Rust Caching
+
 ```yaml
 - uses: actions/cache@v5
   with:
@@ -53,12 +56,14 @@ Enhanced GitHub Actions workflows for faster, more reliable builds and deploymen
 **Deployment Script**: `deploy/scripts/deploy-with-rollback.sh`
 
 Features:
+
 - Health check verification (30 retries, 10s interval)
 - Automatic rollback on deployment failure
 - Timeout protection (300s default)
 - Detailed logging
 
 Usage:
+
 ```bash
 ./deploy/scripts/deploy-with-rollback.sh production v1.2.3
 ./deploy/scripts/deploy-with-rollback.sh staging latest
@@ -75,6 +80,7 @@ Usage:
 ### `enhanced-ci-cd.yml`
 
 Main CI/CD pipeline with:
+
 - Parallel job execution
 - Build caching
 - Docker image building
@@ -105,21 +111,23 @@ IMAGE_NAME: ${{ github.repository }}
 
 ## Performance Improvements
 
-| Metric | Before | After | Improvement |
-|--------|--------|-------|-------------|
-| Total Pipeline Time | ~15 min | ~9 min | 40% faster |
-| Cache Hit Rate | 0% | 85% | Significant |
-| Deployment Time | ~5 min | ~2 min | 60% faster |
+| Metric              | Before  | After  | Improvement |
+| ------------------- | ------- | ------ | ----------- |
+| Total Pipeline Time | ~15 min | ~9 min | 40% faster  |
+| Cache Hit Rate      | 0%      | 85%    | Significant |
+| Deployment Time     | ~5 min  | ~2 min | 60% faster  |
 
 ## Monitoring
 
 ### View Workflow Runs
+
 ```bash
 gh run list --repo Blue-Kollar/Blue-Collar
 gh run view <run-id>
 ```
 
 ### View Logs
+
 ```bash
 gh run view <run-id> --log
 ```
@@ -127,12 +135,14 @@ gh run view <run-id> --log
 ## Troubleshooting
 
 ### Cache Not Working
+
 ```bash
 # Clear cache
 gh actions-cache delete <cache-key> --repo Blue-Kollar/Blue-Collar
 ```
 
 ### Deployment Stuck
+
 ```bash
 # Check deployment status
 kubectl rollout status deployment/bluecollar-api -n bluecollar
@@ -142,6 +152,7 @@ kubectl rollout undo deployment/bluecollar-api -n bluecollar
 ```
 
 ### Slack Notifications Not Sending
+
 - Verify `SLACK_WEBHOOK` secret is set
 - Check webhook URL is valid
 - Verify Slack workspace permissions

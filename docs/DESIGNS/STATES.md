@@ -31,13 +31,13 @@ A consistent set of empty-state illustrations, skeletons, and error pages used a
 
 ## Design Principles
 
-| Principle | Rule |
-|---|---|
-| **Clarity** | Every state must tell the user *what happened* and *what to do next*. |
-| **Consistency** | All states share the same layout spine: icon/illustration → heading → body → action. |
-| **Optimism** | Use encouraging language ("No workers yet" not "No workers found"). Suggest the next action. |
-| **Performance** | Skeletons mirror the real layout exactly — same heights, gaps, and border-radii — to avoid layout shift. |
-| **Accessibility** | All illustrations carry `role="img"` + `aria-label`. Skeleton containers carry `aria-busy="true"`. |
+| Principle         | Rule                                                                                                     |
+| ----------------- | -------------------------------------------------------------------------------------------------------- |
+| **Clarity**       | Every state must tell the user _what happened_ and _what to do next_.                                    |
+| **Consistency**   | All states share the same layout spine: icon/illustration → heading → body → action.                     |
+| **Optimism**      | Use encouraging language ("No workers yet" not "No workers found"). Suggest the next action.             |
+| **Performance**   | Skeletons mirror the real layout exactly — same heights, gaps, and border-radii — to avoid layout shift. |
+| **Accessibility** | All illustrations carry `role="img"` + `aria-label`. Skeleton containers carry `aria-busy="true"`.       |
 
 ---
 
@@ -63,13 +63,13 @@ All error pages are full-viewport centered layouts. They share a common anatomy:
 
 ### 404 — Not Found
 
-| Property | Value |
-|---|---|
+| Property         | Value                                                                               |
+| ---------------- | ----------------------------------------------------------------------------------- |
 | **Illustration** | `empty-search.svg` — magnifying glass with question mark, blue-100/blue-500 palette |
-| **Heading** | "Page not found" |
-| **Body** | "The page you're looking for doesn't exist or has been moved." |
-| **Primary CTA** | "Go Home" → `/` |
-| **Secondary** | "Browse Workers" → `/workers` |
+| **Heading**      | "Page not found"                                                                    |
+| **Body**         | "The page you're looking for doesn't exist or has been moved."                      |
+| **Primary CTA**  | "Go Home" → `/`                                                                     |
+| **Secondary**    | "Browse Workers" → `/workers`                                                       |
 
 **Layout spec:**
 
@@ -108,13 +108,13 @@ All error pages are full-viewport centered layouts. They share a common anatomy:
 
 ### 500 — Server Error
 
-| Property | Value |
-|---|---|
-| **Illustration** | `server-error.svg` — broken gear icon, red-50/red-500 palette |
-| **Heading** | "Something went wrong" |
-| **Body** | "Our servers hit an unexpected error. We've been notified and are looking into it." |
-| **Primary CTA** | "Try Again" → `window.location.reload()` |
-| **Secondary** | "Go Home" → `/` |
+| Property         | Value                                                                               |
+| ---------------- | ----------------------------------------------------------------------------------- |
+| **Illustration** | `server-error.svg` — broken gear icon, red-50/red-500 palette                       |
+| **Heading**      | "Something went wrong"                                                              |
+| **Body**         | "Our servers hit an unexpected error. We've been notified and are looking into it." |
+| **Primary CTA**  | "Try Again" → `window.location.reload()`                                            |
+| **Secondary**    | "Go Home" → `/`                                                                     |
 
 **Layout spec:** Same anatomy as 404. Uses `destructive` colour for the illustration container:
 
@@ -132,14 +132,15 @@ Error code:
 
 ### Offline
 
-| Property | Value |
-|---|---|
+| Property         | Value                                                              |
+| ---------------- | ------------------------------------------------------------------ |
 | **Illustration** | `offline.svg` — disconnected Wi-Fi icon, gray-200/gray-400 palette |
-| **Heading** | "You're offline" |
-| **Body** | "Check your internet connection and try again." |
-| **Primary CTA** | "Retry" → `window.location.reload()` |
+| **Heading**      | "You're offline"                                                   |
+| **Body**         | "Check your internet connection and try again."                    |
+| **Primary CTA**  | "Retry" → `window.location.reload()`                               |
 
 **Behaviour:**
+
 - Auto-detects via `navigator.onLine` and `online`/`offline` window events.
 - When connection resumes, automatically reload the current route.
 - The CTA button shows a spinner while retrying.
@@ -196,13 +197,13 @@ For data tables (e.g., dashboard worker list, admin panels).
 
 **Spec per row:**
 
-| Column | Skeleton width | Height |
-|---|---|---|
-| Name | `w-32` | `h-4` |
-| Category | `w-20` | `h-5 rounded-full` |
-| Status | `w-14` | `h-5 rounded-full` |
-| Date | `w-24` | `h-4` |
-| Actions | two `w-7 h-7` circles | `rounded-md` |
+| Column   | Skeleton width        | Height             |
+| -------- | --------------------- | ------------------ |
+| Name     | `w-32`                | `h-4`              |
+| Category | `w-20`                | `h-5 rounded-full` |
+| Status   | `w-14`                | `h-5 rounded-full` |
+| Date     | `w-24`                | `h-4`              |
+| Actions  | two `w-7 h-7` circles | `rounded-md`       |
 
 Render 5 rows by default. Each row separated by `divide-y`.
 
@@ -289,55 +290,55 @@ All empty states follow a shared layout:
 
 ### No Results
 
-| Property | Value |
-|---|---|
-| **Context** | Worker search/filter returns zero matches |
-| **Illustration** | `empty-search.svg` — magnifying glass with "0" |
-| **Heading** | "No workers found" |
-| **Body** | "Try adjusting your filters or search in a different area." |
-| **CTA** | "Clear Filters" → resets all filters |
+| Property         | Value                                                       |
+| ---------------- | ----------------------------------------------------------- |
+| **Context**      | Worker search/filter returns zero matches                   |
+| **Illustration** | `empty-search.svg` — magnifying glass with "0"              |
+| **Heading**      | "No workers found"                                          |
+| **Body**         | "Try adjusting your filters or search in a different area." |
+| **CTA**          | "Clear Filters" → resets all filters                        |
 
 ### No Messages
 
-| Property | Value |
-|---|---|
-| **Context** | User's message inbox is empty |
-| **Illustration** | `empty-inbox.svg` — open envelope, blue-100 palette |
-| **Heading** | "No messages yet" |
-| **Body** | "When you contact a worker or receive a reply, it will show up here." |
-| **CTA** | "Browse Workers" → `/workers` |
+| Property         | Value                                                                 |
+| ---------------- | --------------------------------------------------------------------- |
+| **Context**      | User's message inbox is empty                                         |
+| **Illustration** | `empty-inbox.svg` — open envelope, blue-100 palette                   |
+| **Heading**      | "No messages yet"                                                     |
+| **Body**         | "When you contact a worker or receive a reply, it will show up here." |
+| **CTA**          | "Browse Workers" → `/workers`                                         |
 
 ### No Listings
 
-| Property | Value |
-|---|---|
-| **Context** | Curator dashboard has no worker listings |
-| **Illustration** | `empty-listings.svg` — clipboard with plus sign |
-| **Heading** | "No workers yet" |
-| **Body** | "Create your first worker listing to get started." |
-| **CTA** | "Create Worker" → `/dashboard/workers/new` |
+| Property         | Value                                              |
+| ---------------- | -------------------------------------------------- |
+| **Context**      | Curator dashboard has no worker listings           |
+| **Illustration** | `empty-listings.svg` — clipboard with plus sign    |
+| **Heading**      | "No workers yet"                                   |
+| **Body**         | "Create your first worker listing to get started." |
+| **CTA**          | "Create Worker" → `/dashboard/workers/new`         |
 
-*Note: This pattern is already implemented inline in `dashboard/page.tsx`. The design formalises it with an illustration asset.*
+_Note: This pattern is already implemented inline in `dashboard/page.tsx`. The design formalises it with an illustration asset._
 
 ### No Reviews
 
-| Property | Value |
-|---|---|
-| **Context** | Worker profile has no reviews |
-| **Illustration** | `empty-reviews.svg` — star with speech bubble |
-| **Heading** | "No reviews yet" |
-| **Body** | "Be the first to leave a review after completing a job." |
-| **CTA** | "Write a Review" (shown only if user has a completed transaction) |
+| Property         | Value                                                             |
+| ---------------- | ----------------------------------------------------------------- |
+| **Context**      | Worker profile has no reviews                                     |
+| **Illustration** | `empty-reviews.svg` — star with speech bubble                     |
+| **Heading**      | "No reviews yet"                                                  |
+| **Body**         | "Be the first to leave a review after completing a job."          |
+| **CTA**          | "Write a Review" (shown only if user has a completed transaction) |
 
 ### No Notifications
 
-| Property | Value |
-|---|---|
-| **Context** | Notification centre is empty |
-| **Illustration** | `empty-notifications.svg` — bell with checkmark |
-| **Heading** | "You're all caught up" |
-| **Body** | "New notifications will appear here when there's activity on your account." |
-| **CTA** | None (passive state) |
+| Property         | Value                                                                       |
+| ---------------- | --------------------------------------------------------------------------- |
+| **Context**      | Notification centre is empty                                                |
+| **Illustration** | `empty-notifications.svg` — bell with checkmark                             |
+| **Heading**      | "You're all caught up"                                                      |
+| **Body**         | "New notifications will appear here when there's activity on your account." |
+| **CTA**          | None (passive state)                                                        |
 
 ---
 
@@ -345,15 +346,15 @@ All empty states follow a shared layout:
 
 All illustrations are optimised SVGs using the BlueCollar colour palette. They should be placed in `packages/app/public/illustrations/`.
 
-| Asset file | Used by | Palette | Size |
-|---|---|---|---|
-| `empty-search.svg` | 404, No Results | `blue-100`, `blue-500`, `gray-200` | 120×120 |
-| `server-error.svg` | 500 | `red-50`, `red-500`, `gray-200` | 120×120 |
-| `offline.svg` | Offline page | `gray-200`, `gray-400` | 120×120 |
-| `empty-inbox.svg` | No Messages | `blue-100`, `blue-500` | 80×80 |
-| `empty-listings.svg` | No Listings | `blue-100`, `blue-500` | 80×80 |
-| `empty-reviews.svg` | No Reviews | `yellow-100`, `yellow-500`, `blue-500` | 80×80 |
-| `empty-notifications.svg` | No Notifications | `blue-100`, `blue-500` | 80×80 |
+| Asset file                | Used by          | Palette                                | Size    |
+| ------------------------- | ---------------- | -------------------------------------- | ------- |
+| `empty-search.svg`        | 404, No Results  | `blue-100`, `blue-500`, `gray-200`     | 120×120 |
+| `server-error.svg`        | 500              | `red-50`, `red-500`, `gray-200`        | 120×120 |
+| `offline.svg`             | Offline page     | `gray-200`, `gray-400`                 | 120×120 |
+| `empty-inbox.svg`         | No Messages      | `blue-100`, `blue-500`                 | 80×80   |
+| `empty-listings.svg`      | No Listings      | `blue-100`, `blue-500`                 | 80×80   |
+| `empty-reviews.svg`       | No Reviews       | `yellow-100`, `yellow-500`, `blue-500` | 80×80   |
+| `empty-notifications.svg` | No Notifications | `blue-100`, `blue-500`                 | 80×80   |
 
 **Illustration guidelines:**
 
@@ -369,39 +370,39 @@ All illustrations are optimised SVGs using the BlueCollar colour palette. They s
 
 ### Existing Components
 
-| Component | File | Status |
-|---|---|---|
-| `Skeleton` (base) | `src/components/Skeleton.tsx` | Implemented |
-| `WorkerCardSkeleton` | `src/components/Skeleton.tsx` | Implemented |
-| `WorkerProfileSkeleton` | `src/components/Skeleton.tsx` | Implemented |
-| `ErrorBoundary` | `src/components/ErrorBoundary.tsx` | Implemented |
-| Workers error page | `src/app/workers/error.tsx` | Implemented |
-| Worker profile error | `src/app/workers/[id]/error.tsx` | Implemented |
-| Workers loading | `src/app/workers/loading.tsx` | Implemented |
-| Worker profile loading | `src/app/workers/[id]/loading.tsx` | Implemented |
+| Component               | File                               | Status      |
+| ----------------------- | ---------------------------------- | ----------- |
+| `Skeleton` (base)       | `src/components/Skeleton.tsx`      | Implemented |
+| `WorkerCardSkeleton`    | `src/components/Skeleton.tsx`      | Implemented |
+| `WorkerProfileSkeleton` | `src/components/Skeleton.tsx`      | Implemented |
+| `ErrorBoundary`         | `src/components/ErrorBoundary.tsx` | Implemented |
+| Workers error page      | `src/app/workers/error.tsx`        | Implemented |
+| Worker profile error    | `src/app/workers/[id]/error.tsx`   | Implemented |
+| Workers loading         | `src/app/workers/loading.tsx`      | Implemented |
+| Worker profile loading  | `src/app/workers/[id]/loading.tsx` | Implemented |
 
 ### Components to Add
 
-| Component | Proposed file | Description |
-|---|---|---|
-| `NotFoundPage` | `src/app/not-found.tsx` | Global 404 page |
-| `GlobalError` | `src/app/global-error.tsx` | Global 500 page |
-| `OfflineBanner` | `src/components/OfflineBanner.tsx` | Offline detection + full-page fallback |
-| `EmptyState` | `src/components/EmptyState.tsx` | Reusable empty-state shell (icon, heading, body, CTA) |
-| `TableRowSkeleton` | `src/components/Skeleton.tsx` | Add to existing file |
-| `FormSkeleton` | `src/components/Skeleton.tsx` | Add to existing file |
+| Component          | Proposed file                      | Description                                           |
+| ------------------ | ---------------------------------- | ----------------------------------------------------- |
+| `NotFoundPage`     | `src/app/not-found.tsx`            | Global 404 page                                       |
+| `GlobalError`      | `src/app/global-error.tsx`         | Global 500 page                                       |
+| `OfflineBanner`    | `src/components/OfflineBanner.tsx` | Offline detection + full-page fallback                |
+| `EmptyState`       | `src/components/EmptyState.tsx`    | Reusable empty-state shell (icon, heading, body, CTA) |
+| `TableRowSkeleton` | `src/components/Skeleton.tsx`      | Add to existing file                                  |
+| `FormSkeleton`     | `src/components/Skeleton.tsx`      | Add to existing file                                  |
 
 ### Reusable `EmptyState` Component API
 
 ```tsx
 interface EmptyStateProps {
-  illustration: string;      // path to SVG in /public/illustrations/
+  illustration: string; // path to SVG in /public/illustrations/
   heading: string;
   description: string;
   action?: {
     label: string;
-    href?: string;           // renders Link
-    onClick?: () => void;    // renders button
+    href?: string; // renders Link
+    onClick?: () => void; // renders button
   };
   className?: string;
 }
@@ -409,10 +410,10 @@ interface EmptyStateProps {
 
 ### Colour Tokens (reference)
 
-| Token | Light | Dark |
-|---|---|---|
-| `--primary` | `hsl(221, 83%, 53%)` | `hsl(217, 91%, 60%)` |
-| `--destructive` | `hsl(0, 84%, 60%)` | `hsl(0, 63%, 31%)` |
-| `--muted` | `hsl(214, 32%, 91%)` | `hsl(217, 33%, 17%)` |
-| `--muted-foreground` | `hsl(215, 16%, 47%)` | `hsl(215, 20%, 65%)` |
-| Skeleton pulse | `bg-gray-200` | `bg-gray-700` (dark mode) |
+| Token                | Light                | Dark                      |
+| -------------------- | -------------------- | ------------------------- |
+| `--primary`          | `hsl(221, 83%, 53%)` | `hsl(217, 91%, 60%)`      |
+| `--destructive`      | `hsl(0, 84%, 60%)`   | `hsl(0, 63%, 31%)`        |
+| `--muted`            | `hsl(214, 32%, 91%)` | `hsl(217, 33%, 17%)`      |
+| `--muted-foreground` | `hsl(215, 16%, 47%)` | `hsl(215, 20%, 65%)`      |
+| Skeleton pulse       | `bg-gray-200`        | `bg-gray-700` (dark mode) |

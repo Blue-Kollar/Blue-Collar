@@ -3,82 +3,58 @@
   "workspaces": {
     ".": {
       "entry": ["scripts/*.{js,mjs,cjs,ts}"],
-      "project": ["*.{js,mjs,cjs,ts}", "scripts/**/*.{js,mjs,cjs,ts}"],
-      "ignore": [
-        "**/*.d.ts",
-        "**/dist/**",
-        "**/build/**",
-        "**/coverage/**"
-      ]
+      "project": ["*.{js,mjs,cjs,ts}", "scripts/**/*.{js,mjs,cjs,ts}"]
     },
-    "packages/*": {
+    "packages/api": {
       "entry": [
-        "src/index.{ts,tsx,js,jsx}",
-        "src/main.{ts,tsx,js,jsx}",
-        "src/cli.{ts,tsx,js,jsx}"
+        "src/index.ts",
+        "src/commands/**/*.ts",
+        "src/scripts/**/*.ts",
+        "src/**/*.test.ts",
+        "src/__tests__/**/*.ts",
+        "vitest*.config.ts"
       ],
-      "project": ["src/**/*.{ts,tsx,js,jsx}"],
-      "ignore": [
-        "**/*.test.{ts,tsx,js,jsx}",
-        "**/*.spec.{ts,tsx,js,jsx}",
-        "**/__tests__/**",
-        "**/*.d.ts",
-        "**/dist/**",
-        "**/build/**"
-      ]
+      "project": ["src/**/*.ts"]
     },
     "packages/app": {
       "entry": [
-        "src/app/**/{page,layout,route,error,loading,not-found,template,default}.{ts,tsx,js,jsx}",
-        "src/middleware.{ts,tsx,js,jsx}",
-        "src/instrumentation.{ts,tsx,js,jsx}",
-        "next.config.{js,mjs,cjs,ts}",
-        "src/index.{ts,tsx,js,jsx}",
-        "src/main.{ts,tsx,js,jsx}"
+        "src/app/**/*.{ts,tsx}",
+        "src/middleware.ts",
+        "src/instrumentation.ts",
+        "src/**/*.test.{ts,tsx}",
+        "e2e/**/*.ts",
+        "e2e/**/*.tsx",
+        "*.config.{js,mjs,ts}"
       ],
-      "project": ["src/**/*.{ts,tsx,js,jsx}"],
-      "ignore": [
-        "**/*.test.{ts,tsx,js,jsx}",
-        "**/*.spec.{ts,tsx,js,jsx}",
-        "**/__tests__/**",
-        "**/*.d.ts",
-        "**/dist/**",
-        "**/build/**",
-        "**/.next/**",
-        "**/storybook-static/**",
-        "e2e/**"
-      ]
+      "project": ["src/**/*.{ts,tsx}", "e2e/**/*.{ts,tsx}"]
     },
-    "mobile": {
+    "packages/mobile": {
       "entry": [
-        "index.{js,ts,jsx,tsx}",
-        "App.{js,ts,jsx,tsx}",
-        "src/index.{ts,tsx,js,jsx}"
+        "src/app/**/*.{ts,tsx}",
+        "src/**/*.test.{ts,tsx}",
+        "e2e/**/*.{ts,tsx}",
+        "jest.setup.ts",
+        "babel.config.js"
       ],
-      "project": ["src/**/*.{ts,tsx,js,jsx}"],
-      "ignore": [
-        "**/*.test.{ts,tsx,js,jsx}",
-        "**/*.spec.{ts,tsx,js,jsx}",
-        "**/__tests__/**",
-        "**/*.d.ts"
-      ]
+      "project": ["src/**/*.{ts,tsx}"]
     },
-    "backend": {
-      "entry": ["src/index.{ts,js}", "src/server.{ts,js}"],
-      "project": ["src/**/*.{ts,js}"],
-      "ignore": ["**/*.test.{ts,js}", "**/*.spec.{ts,js}", "**/__tests__/**", "**/*.d.ts"]
+    "packages/monitoring": {
+      "entry": ["src/index.ts", "src/**/*.test.ts"],
+      "project": ["src/**/*.ts"]
     },
-    "indexer": {
-      "entry": ["src/index.{ts,js}"],
-      "project": ["src/**/*.{ts,js}"],
-      "ignore": ["**/*.test.{ts,js}", "**/*.spec.{ts,js}", "**/__tests__/**", "**/*.d.ts"]
+    "packages/sdk": {
+      "entry": ["src/index.ts", "src/**/*.test.ts"],
+      "project": ["src/**/*.ts"]
     },
-    "contracts": {
-      "entry": ["src/lib.{ts,js}"],
-      "project": ["src/**/*.{ts,js}"],
-      "ignore": ["**/*.test.{ts,js}", "**/*.spec.{ts,js}", "**/__tests__/**", "**/*.d.ts"]
+    "packages/test-utils": {
+      "entry": ["src/index.ts", "tests/**/*.test.ts"],
+      "project": ["src/**/*.ts", "tests/**/*.ts"]
     },
-    "docs": {
+    "packages/types": {
+      "entry": ["src/index.ts", "src/**/*.test.ts", "src/__tests__/**/*.ts"],
+      "project": ["src/**/*.ts"]
+    },
+    "packages/contracts": {
       "entry": [],
       "project": []
     }
@@ -92,7 +68,8 @@
     "**/.next/**",
     "**/.expo/**",
     "**/storybook-static/**",
-    "**/public/**"
+    "**/public/**",
+    "**/*.d.ts"
   ],
   "ignoreDependencies": [
     "@types/*",

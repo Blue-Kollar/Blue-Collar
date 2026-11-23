@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 /**
  * Scoped context for the worker tip/payment flow.
@@ -11,7 +11,7 @@
  * working unchanged.
  */
 
-import { createContext, useContext, type ReactNode } from "react";
+import { createContext, useContext, type ReactNode } from 'react';
 
 export interface PaymentFlowContextValue {
   workerName: string;

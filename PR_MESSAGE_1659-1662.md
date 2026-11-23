@@ -20,26 +20,31 @@ This PR adds comprehensive unit tests for four critical services in the Blue-Col
 Comprehensive tests for insurance document management:
 
 **uploadInsurance Tests:**
+
 - ✅ Uploads insurance document for valid worker with all fields
 - ✅ Throws error if worker not found (404)
 - ✅ Handles optional provider and policy number parameters
 
 **getWorkerInsurance Tests:**
+
 - ✅ Returns all insurance documents for worker sorted by creation date
 - ✅ Returns empty array when no documents found
 
 **updateInsuranceStatus Tests:**
+
 - ✅ Updates status to "verified"
 - ✅ Updates status to "rejected"
 - ✅ Throws error if document not found (404)
 
 **sendRenewalReminders Tests:**
+
 - ✅ Sends reminders for documents expiring within threshold (30 days default)
 - ✅ Does not send reminders for documents expiring beyond threshold
 - ✅ Handles custom days ahead parameter
 - ✅ Uses Promise.allSettled to handle mail failures gracefully
 
 **Test Statistics:**
+
 - 13 test cases
 - 100% function coverage
 - All edge cases covered (missing records, expired documents, email failures)
@@ -51,6 +56,7 @@ Comprehensive tests for insurance document management:
 Comprehensive tests for CSV worker import functionality:
 
 **CSV Parsing Tests:**
+
 - ✅ Imports workers with all available fields (name, categoryId, bio, phone, email, walletAddress)
 - ✅ Imports workers with minimum required fields only
 - ✅ Handles quoted CSV fields with embedded commas
@@ -58,6 +64,7 @@ Comprehensive tests for CSV worker import functionality:
 - ✅ Trims whitespace from all fields
 
 **Validation Tests:**
+
 - ✅ Skips rows with missing required name field
 - ✅ Skips rows with missing required categoryId field
 - ✅ Throws error if required CSV header is missing
@@ -65,6 +72,7 @@ Comprehensive tests for CSV worker import functionality:
 - ✅ Validates all categoryIds before insertion
 
 **Edge Cases:**
+
 - ✅ Returns zero imports when all rows are invalid
 - ✅ Handles empty CSV
 - ✅ Handles CSV with only headers
@@ -72,6 +80,7 @@ Comprehensive tests for CSV worker import functionality:
 - ✅ Proper error reporting with row numbers and reasons
 
 **Test Statistics:**
+
 - 13 test cases
 - 100% function coverage
 - Comprehensive validation and error handling
@@ -84,43 +93,51 @@ Comprehensive tests for CSV worker import functionality:
 Comprehensive tests for conversation and messaging functionality:
 
 **createConversation Tests:**
+
 - ✅ Creates conversation with multiple participants
 - ✅ Creates conversation with optional subject
 - ✅ Creates conversation with single participant
 
 **getConversation Tests:**
+
 - ✅ Returns conversation with all messages for authorized user
 - ✅ Throws error if conversation not found (404)
 - ✅ Throws error if user is not participant (authorization check)
 - ✅ Limits messages to last 50
 
 **getUserConversations Tests:**
+
 - ✅ Returns paginated conversations sorted by last update
 - ✅ Uses default pagination values (page 1, limit 20)
 - ✅ Calculates correct pagination offset
 - ✅ Calculates total pages correctly
 
 **searchMessages Tests:**
+
 - ✅ Searches messages within conversation
 - ✅ Throws error if conversation not found
 - ✅ Handles multi-word search queries with pipe delimiters
 
 **deleteMessage Tests:**
+
 - ✅ Soft deletes message for authorized sender
 - ✅ Throws error if message not found (404)
 - ✅ Throws error if user is not sender (403 Unauthorized)
 - ✅ Updates message body to "[deleted]"
 
 **markConversationAsRead Tests:**
+
 - ✅ Updates last read timestamp for participant
 
 **getUnreadCount Tests:**
+
 - ✅ Returns zero when all messages are read
 - ✅ Counts unread messages created after last read timestamp
 - ✅ Counts all messages when no last read timestamp exists
 - ✅ Sums unread counts across multiple conversations
 
 **Test Statistics:**
+
 - 23 test cases
 - 100% function coverage
 - Complete authorization and permission verification
@@ -134,6 +151,7 @@ Comprehensive tests for conversation and messaging functionality:
 Comprehensive tests for soft-delete record purging functionality:
 
 **purgeExpiredSoftDeletes Tests:**
+
 - ✅ Deletes workers with deletedAt older than 90 days
 - ✅ Deletes users with deletedAt older than 90 days
 - ✅ Executes worker and user delete operations in parallel
@@ -143,6 +161,7 @@ Comprehensive tests for soft-delete record purging functionality:
 - ✅ Handles database errors gracefully
 
 **startPurgeScheduler Tests:**
+
 - ✅ Runs purge immediately on startup
 - ✅ Schedules purge to run every 24 hours (setInterval)
 - ✅ Handles errors in startup execution
@@ -150,12 +169,14 @@ Comprehensive tests for soft-delete record purging functionality:
 - ✅ Does not throw during scheduler setup
 
 **Integration Tests:**
+
 - ✅ Verifies 90-day threshold constant (7776000000 ms)
 - ✅ Verifies 24-hour interval constant (86400000 ms)
 - ✅ Identifies records older than 90 days correctly
 - ✅ Ignores records within 90-day window
 
 **Test Statistics:**
+
 - 15 test cases
 - 100% function coverage
 - Proper error handling verified
@@ -164,28 +185,31 @@ Comprehensive tests for soft-delete record purging functionality:
 
 ## Test Coverage Summary
 
-| Service | Test File | Lines | Test Cases | Coverage |
-|---------|-----------|-------|-----------|----------|
-| Insurance | insurance.service.test.ts | 276 | 13 | 100% |
-| CSV Import | csv-import.service.test.ts | 284 | 13 | 100% |
-| Messaging | messaging.service.test.ts | 496 | 23 | 100% |
-| Purge | purge.service.test.ts | 258 | 15 | 100% |
-| **TOTAL** | **4 test files** | **1,314** | **64** | **100%** |
+| Service    | Test File                  | Lines     | Test Cases | Coverage |
+| ---------- | -------------------------- | --------- | ---------- | -------- |
+| Insurance  | insurance.service.test.ts  | 276       | 13         | 100%     |
+| CSV Import | csv-import.service.test.ts | 284       | 13         | 100%     |
+| Messaging  | messaging.service.test.ts  | 496       | 23         | 100%     |
+| Purge      | purge.service.test.ts      | 258       | 15         | 100%     |
+| **TOTAL**  | **4 test files**           | **1,314** | **64**     | **100%** |
 
 ## Testing Approach
 
 ### Framework & Dependencies
+
 - **Test Runner:** Vitest (consistent with existing tests)
 - **Mocking:** vi.mock() for database and external services
 - **Patterns:** Following existing service test patterns (auth.service.test.ts, payment.service.test.ts)
 
 ### Mock Strategy
+
 - All database operations mocked with vi.fn()
 - External services (mailer, logger) properly mocked
 - No actual database calls during tests
 - Promise-based operations handled with async/await
 
 ### Test Types Included
+
 1. **Happy Path Tests** — Functions work with valid inputs
 2. **Error Handling** — Proper error throwing and 404/403 responses
 3. **Edge Cases** — Empty inputs, null values, boundary conditions
@@ -195,7 +219,9 @@ Comprehensive tests for soft-delete record purging functionality:
 7. **Scheduling** — Timer-based jobs tested with vi.useFakeTimers()
 
 ### Helper Functions
+
 Each test file includes:
+
 - `createMock*` functions for generating test data
 - Consistent beforeEach cleanup with vi.clearAllMocks()
 - Proper setup/teardown for mocks and timers
@@ -213,6 +239,7 @@ packages/api/src/services/
 ## Running the Tests
 
 ### Run individual service tests:
+
 ```bash
 npm run test insurance.service.test
 npm run test csv-import.service.test
@@ -221,11 +248,13 @@ npm run test purge.service.test
 ```
 
 ### Run all four test files:
+
 ```bash
 npm run test -- services/(insurance|csv-import|messaging|purge)
 ```
 
 ### Run all service tests with coverage:
+
 ```bash
 npm run test:coverage packages/api/src/services/
 ```

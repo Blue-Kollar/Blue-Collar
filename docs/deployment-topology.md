@@ -5,6 +5,7 @@ This document maps the infrastructure configuration directories and their target
 ## Overview
 
 The project uses a combination of:
+
 - **`deploy/`** (18 subdirectories) — deployment configurations and orchestration scripts
 - **`terraform/`** — infrastructure-as-code modules and state management
 
@@ -12,51 +13,51 @@ The project uses a combination of:
 
 ### Core Infrastructure
 
-| Directory | Purpose | Target Environment | Type |
-|-----------|---------|-------------------|------|
-| `deploy/base` | Base layer configurations | All | Foundation |
-| `deploy/helm` | Kubernetes Helm charts | Kubernetes clusters | K8s Deployment |
-| `deploy/docker` | Docker build and registry configs | All | Container |
-| `deploy/scripts` | Deployment automation scripts | All | Orchestration |
+| Directory        | Purpose                           | Target Environment  | Type           |
+| ---------------- | --------------------------------- | ------------------- | -------------- |
+| `deploy/base`    | Base layer configurations         | All                 | Foundation     |
+| `deploy/helm`    | Kubernetes Helm charts            | Kubernetes clusters | K8s Deployment |
+| `deploy/docker`  | Docker build and registry configs | All                 | Container      |
+| `deploy/scripts` | Deployment automation scripts     | All                 | Orchestration  |
 
 ### Environment-Specific
 
-| Directory | Purpose | Target Environment | Type |
-|-----------|---------|-------------------|------|
-| `deploy/dev` | Development environment config | Local/Development | Environment |
-| `deploy/staging` | Staging environment config | Staging cluster | Environment |
-| `deploy/production` | Production environment config | Production cluster | Environment |
-| `deploy/testing` | Testing-specific deployments | Test environment | Environment |
+| Directory           | Purpose                        | Target Environment | Type        |
+| ------------------- | ------------------------------ | ------------------ | ----------- |
+| `deploy/dev`        | Development environment config | Local/Development  | Environment |
+| `deploy/staging`    | Staging environment config     | Staging cluster    | Environment |
+| `deploy/production` | Production environment config  | Production cluster | Environment |
+| `deploy/testing`    | Testing-specific deployments   | Test environment   | Environment |
 
 ### Database & Migrations
 
-| Directory | Purpose | Target Environment | Type |
-|-----------|---------|-------------------|------|
-| `deploy/db` | Database deployment specs | All (env-specific) | Database |
-| `deploy/migrations` | Schema migration scripts | All (env-specific) | Database |
+| Directory           | Purpose                   | Target Environment | Type     |
+| ------------------- | ------------------------- | ------------------ | -------- |
+| `deploy/db`         | Database deployment specs | All (env-specific) | Database |
+| `deploy/migrations` | Schema migration scripts  | All (env-specific) | Database |
 
 ### Monitoring & Observability
 
-| Directory | Purpose | Target Environment | Type |
-|-----------|---------|-------------------|------|
-| `deploy/monitoring` | Monitoring stack config | All | Observability |
-| `deploy/logging` | Centralized logging setup | All | Observability |
-| `deploy/alerts` | Alert definitions and rules | All | Observability |
+| Directory           | Purpose                     | Target Environment | Type          |
+| ------------------- | --------------------------- | ------------------ | ------------- |
+| `deploy/monitoring` | Monitoring stack config     | All                | Observability |
+| `deploy/logging`    | Centralized logging setup   | All                | Observability |
+| `deploy/alerts`     | Alert definitions and rules | All                | Observability |
 
 ### Networking & Security
 
-| Directory | Purpose | Target Environment | Type |
-|-----------|---------|-------------------|------|
-| `deploy/network` | Network policies and config | All | Infrastructure |
-| `deploy/security` | Security policies and secrets management | All | Security |
-| `deploy/tls` | TLS/SSL certificate management | All | Security |
+| Directory         | Purpose                                  | Target Environment | Type           |
+| ----------------- | ---------------------------------------- | ------------------ | -------------- |
+| `deploy/network`  | Network policies and config              | All                | Infrastructure |
+| `deploy/security` | Security policies and secrets management | All                | Security       |
+| `deploy/tls`      | TLS/SSL certificate management           | All                | Security       |
 
 ### CI/CD
 
-| Directory | Purpose | Target Environment | Type |
-|-----------|---------|-------------------|------|
-| `deploy/ci` | CI/CD pipeline configurations | CI system | Automation |
-| `deploy/github-actions` | GitHub Actions workflows | GitHub | CI/CD |
+| Directory               | Purpose                       | Target Environment | Type       |
+| ----------------------- | ----------------------------- | ------------------ | ---------- |
+| `deploy/ci`             | CI/CD pipeline configurations | CI system          | Automation |
+| `deploy/github-actions` | GitHub Actions workflows      | GitHub             | CI/CD      |
 
 ## Terraform Module Structure
 
@@ -74,15 +75,15 @@ terraform/
 
 ### Module Organization
 
-| Module Path | Purpose | State Backend |
-|------------|---------|----------------|
-| `terraform/modules/networking` | VPC, subnets, routing | Shared (prod state) |
-| `terraform/modules/kubernetes` | EKS/AKS cluster management | Per-environment |
-| `terraform/modules/database` | RDS, PostgreSQL, backups | Per-environment |
-| `terraform/modules/storage` | S3, file storage, CDN | Per-environment |
-| `terraform/modules/compute` | EC2, instances, auto-scaling | Per-environment |
-| `terraform/modules/security` | IAM, security groups, policies | Shared (prod state) |
-| `terraform/modules/monitoring` | CloudWatch, Datadog, dashboards | Per-environment |
+| Module Path                    | Purpose                         | State Backend       |
+| ------------------------------ | ------------------------------- | ------------------- |
+| `terraform/modules/networking` | VPC, subnets, routing           | Shared (prod state) |
+| `terraform/modules/kubernetes` | EKS/AKS cluster management      | Per-environment     |
+| `terraform/modules/database`   | RDS, PostgreSQL, backups        | Per-environment     |
+| `terraform/modules/storage`    | S3, file storage, CDN           | Per-environment     |
+| `terraform/modules/compute`    | EC2, instances, auto-scaling    | Per-environment     |
+| `terraform/modules/security`   | IAM, security groups, policies  | Shared (prod state) |
+| `terraform/modules/monitoring` | CloudWatch, Datadog, dashboards | Per-environment     |
 
 ### State Management
 
@@ -94,12 +95,12 @@ terraform/
 
 ## Environment Matrix
 
-| Environment | Deploy Dir | Terraform Env | Cluster Type | Data Persistence |
-|-------------|-----------|---|---|---|
-| Local Development | `deploy/dev` | `dev` | Docker Compose | Local volume |
-| Integration Testing | `deploy/testing` | `test` | Kubernetes (Kind) | Ephemeral |
-| Staging | `deploy/staging` | `staging` | EKS | RDS PostgreSQL |
-| Production | `deploy/production` | `prod` | EKS | RDS PostgreSQL + backups |
+| Environment         | Deploy Dir          | Terraform Env | Cluster Type      | Data Persistence         |
+| ------------------- | ------------------- | ------------- | ----------------- | ------------------------ |
+| Local Development   | `deploy/dev`        | `dev`         | Docker Compose    | Local volume             |
+| Integration Testing | `deploy/testing`    | `test`        | Kubernetes (Kind) | Ephemeral                |
+| Staging             | `deploy/staging`    | `staging`     | EKS               | RDS PostgreSQL           |
+| Production          | `deploy/production` | `prod`        | EKS               | RDS PostgreSQL + backups |
 
 ## Critical Dependencies
 
@@ -130,21 +131,21 @@ monitoring (CloudWatch in same VPC)
 
 ### High-Risk Changes
 
-| Change | Blast Radius | Mitigation |
-|--------|-------------|-----------|
-| Networking module (VPC CIDR) | All environments | Plan carefully, backup state |
-| Security policies (IAM roles) | All services | Dry-run, test in staging first |
-| Database schema migrations | Data loss possible | Backup before `deploy/migrations` |
-| Kubernetes cluster config | Service downtime possible | Rolling updates, canary deployments |
+| Change                        | Blast Radius              | Mitigation                          |
+| ----------------------------- | ------------------------- | ----------------------------------- |
+| Networking module (VPC CIDR)  | All environments          | Plan carefully, backup state        |
+| Security policies (IAM roles) | All services              | Dry-run, test in staging first      |
+| Database schema migrations    | Data loss possible        | Backup before `deploy/migrations`   |
+| Kubernetes cluster config     | Service downtime possible | Rolling updates, canary deployments |
 
 ### Low-Risk Changes
 
-| Change | Blast Radius | Notes |
-|--------|-------------|-------|
-| Monitoring rule changes | No impact | Only affects alerting |
-| Logging configuration | No impact | Only affects observability |
-| DNS/TLS certificate updates | Brief connectivity blips | Plan during maintenance window |
-| Scaling policies | Gradual impact | Auto-scaling handles gracefully |
+| Change                      | Blast Radius             | Notes                           |
+| --------------------------- | ------------------------ | ------------------------------- |
+| Monitoring rule changes     | No impact                | Only affects alerting           |
+| Logging configuration       | No impact                | Only affects observability      |
+| DNS/TLS certificate updates | Brief connectivity blips | Plan during maintenance window  |
+| Scaling policies            | Gradual impact           | Auto-scaling handles gracefully |
 
 ## Common Deployment Tasks
 

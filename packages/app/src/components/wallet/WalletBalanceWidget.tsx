@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 /**
  * WalletBalanceWidget
@@ -14,11 +14,11 @@
  * Closes #1206
  */
 
-import { memo } from "react";
-import { Wallet } from "lucide-react";
-import { useWalletBalance } from "@/hooks/useWallet";
-import { cn } from "@/lib/utils";
-import { formatNumber } from "@/lib/format";
+import { memo } from 'react';
+import { Wallet } from 'lucide-react';
+import { useWalletBalance } from '@/hooks/useWallet';
+import { cn } from '@/lib/utils';
+import { formatNumber } from '@/lib/format';
 
 interface WalletBalanceWidgetProps {
   className?: string;
@@ -44,7 +44,7 @@ export const WalletBalanceWidget = memo(function WalletBalanceWidget({
     <span
       aria-label={`Wallet balance: ${formatted} XLM`}
       className={cn(
-        "inline-flex items-center gap-1 rounded-full border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs font-medium text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300",
+        'inline-flex items-center gap-1 rounded-full border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs font-medium text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300',
         className,
       )}
     >

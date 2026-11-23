@@ -141,7 +141,7 @@ name: Invalidate CDN Cache
 
 on:
   workflow_run:
-    workflows: ["Deploy to Production"]
+    workflows: ['Deploy to Production']
     types: [completed]
 
 jobs:
@@ -228,6 +228,7 @@ aws s3 sync .next s3://bluecollar-assets-prod \
 ### Cache Not Updating
 
 1. Check invalidation status:
+
    ```bash
    aws cloudfront list-invalidations --distribution-id E123EXAMPLE456
    ```

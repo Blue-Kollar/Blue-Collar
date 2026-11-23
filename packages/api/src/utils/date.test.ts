@@ -1,10 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-  parseUtcDate,
-  formatUtcIso,
-  addUtcMs,
-  nowUtc,
-} from './date';
+import { parseUtcDate, formatUtcIso, addUtcMs, nowUtc } from './date';
 
 describe('parseUtcDate', () => {
   it('treats timezone-less ISO input as UTC', () => {
@@ -84,12 +79,8 @@ describe('addUtcMs', () => {
   });
 
   it('accepts a string or epoch as the base', () => {
-    expect(addUtcMs('2024-01-01T00:00:00', 1000).toISOString()).toBe(
-      '2024-01-01T00:00:01.000Z',
-    );
-    expect(addUtcMs(1704067200000, 1000).toISOString()).toBe(
-      '2024-01-01T00:00:01.000Z',
-    );
+    expect(addUtcMs('2024-01-01T00:00:00', 1000).toISOString()).toBe('2024-01-01T00:00:01.000Z');
+    expect(addUtcMs(1704067200000, 1000).toISOString()).toBe('2024-01-01T00:00:01.000Z');
   });
 });
 

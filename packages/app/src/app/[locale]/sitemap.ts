@@ -1,12 +1,12 @@
-import type { MetadataRoute } from "next";
+import type { MetadataRoute } from 'next';
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/api";
-const BASE = process.env.NEXT_PUBLIC_APP_URL ?? "https://bluecollar.app";
+const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000/api';
+const BASE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://bluecollar.app';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticRoutes: MetadataRoute.Sitemap = [
-    { url: BASE, lastModified: new Date(), changeFrequency: "weekly", priority: 1 },
-    { url: `${BASE}/workers`, lastModified: new Date(), changeFrequency: "daily", priority: 0.9 },
+    { url: BASE, lastModified: new Date(), changeFrequency: 'weekly', priority: 1 },
+    { url: `${BASE}/workers`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.9 },
   ];
 
   try {
@@ -17,9 +17,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       (w: { id: string; updatedAt?: string }) => ({
         url: `${BASE}/workers/${w.id}`,
         lastModified: w.updatedAt ? new Date(w.updatedAt) : new Date(),
-        changeFrequency: "weekly" as const,
+        changeFrequency: 'weekly' as const,
         priority: 0.7,
-      })
+      }),
     );
     return [...staticRoutes, ...workerRoutes];
   } catch {

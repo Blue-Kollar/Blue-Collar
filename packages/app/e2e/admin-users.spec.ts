@@ -198,7 +198,9 @@ test.describe('Admin users page — moderation actions', () => {
     let suspended = false;
 
     await page.route('**/v1/admin/users?**', (route) => {
-      const data = users.map((u) => (u.id === 'u-1' && suspended ? { ...u, deletedAt: new Date().toISOString() } : u));
+      const data = users.map((u) =>
+        u.id === 'u-1' && suspended ? { ...u, deletedAt: new Date().toISOString() } : u,
+      );
       return route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -210,7 +212,11 @@ test.describe('Admin users page — moderation actions', () => {
       return route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ data: { id: 'u-1', suspended: true }, status: 'success', code: 200 }),
+        body: JSON.stringify({
+          data: { id: 'u-1', suspended: true },
+          status: 'success',
+          code: 200,
+        }),
       });
     });
 
@@ -233,7 +239,9 @@ test.describe('Admin users page — moderation actions', () => {
     let unsuspended = false;
 
     await page.route('**/v1/admin/users?**', (route) => {
-      const data = users.map((u) => (u.id === 'u-1' && unsuspended ? { ...u, deletedAt: null } : u));
+      const data = users.map((u) =>
+        u.id === 'u-1' && unsuspended ? { ...u, deletedAt: null } : u,
+      );
       return route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -245,7 +253,11 @@ test.describe('Admin users page — moderation actions', () => {
       return route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ data: { id: 'u-1', suspended: false }, status: 'success', code: 200 }),
+        body: JSON.stringify({
+          data: { id: 'u-1', suspended: false },
+          status: 'success',
+          code: 200,
+        }),
       });
     });
 
@@ -307,7 +319,9 @@ test.describe('Admin users page — moderation actions', () => {
     let roleChanged = false;
 
     await page.route('**/v1/admin/users?**', (route) => {
-      const data = users.map((u) => (u.id === 'u-1' && roleChanged ? { ...u, role: 'curator' } : u));
+      const data = users.map((u) =>
+        u.id === 'u-1' && roleChanged ? { ...u, role: 'curator' } : u,
+      );
       return route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -320,7 +334,13 @@ test.describe('Admin users page — moderation actions', () => {
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify({
-          data: { id: 'u-1', email: 'wanda@example.com', firstName: 'Wanda', lastName: 'Worker', role: 'curator' },
+          data: {
+            id: 'u-1',
+            email: 'wanda@example.com',
+            firstName: 'Wanda',
+            lastName: 'Worker',
+            role: 'curator',
+          },
           status: 'success',
           code: 200,
         }),
@@ -342,7 +362,9 @@ test.describe('Admin users page — bulk operations', () => {
     let bulkSuspendedIds: string[] = [];
 
     await page.route('**/v1/admin/users?**', (route) => {
-      const data = users.map((u) => (bulkSuspendedIds.includes(u.id) ? { ...u, deletedAt: new Date().toISOString() } : u));
+      const data = users.map((u) =>
+        bulkSuspendedIds.includes(u.id) ? { ...u, deletedAt: new Date().toISOString() } : u,
+      );
       return route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -355,7 +377,11 @@ test.describe('Admin users page — bulk operations', () => {
       return route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ data: { updated: body.ids.length, suspended: true }, status: 'success', code: 200 }),
+        body: JSON.stringify({
+          data: { updated: body.ids.length, suspended: true },
+          status: 'success',
+          code: 200,
+        }),
       });
     });
 
@@ -392,11 +418,20 @@ test.describe('Admin users page — audit log cross-validation', () => {
   test('a suspend action produces a matching audit log entry', async ({ page }) => {
     await loginAs(page, ADMIN_USER);
     const users = makeUsers();
-    const auditEntries: Array<{ id: string; action: string; resource: string; resourceId: string; createdAt: string; user: typeof ADMIN_USER }> = [];
+    const auditEntries: Array<{
+      id: string;
+      action: string;
+      resource: string;
+      resourceId: string;
+      createdAt: string;
+      user: typeof ADMIN_USER;
+    }> = [];
     let suspended = false;
 
     await page.route('**/v1/admin/users?**', (route) => {
-      const data = users.map((u) => (u.id === 'u-1' && suspended ? { ...u, deletedAt: new Date().toISOString() } : u));
+      const data = users.map((u) =>
+        u.id === 'u-1' && suspended ? { ...u, deletedAt: new Date().toISOString() } : u,
+      );
       return route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -416,7 +451,11 @@ test.describe('Admin users page — audit log cross-validation', () => {
       return route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ data: { id: 'u-1', suspended: true }, status: 'success', code: 200 }),
+        body: JSON.stringify({
+          data: { id: 'u-1', suspended: true },
+          status: 'success',
+          code: 200,
+        }),
       });
     });
     await page.route('**/v1/audit?**', (route) =>

@@ -18,14 +18,14 @@
  *
  * Setup: Requires TEST_DATABASE_URL pointing at a disposable test database.
  */
-import { describe, it, expect, beforeAll, afterAll } from 'vitest'
-import { db, TEST_DB_URL } from './setup.js'
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { db, TEST_DB_URL } from './setup.js';
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
-let locationId: string
-let categoryId: string
-let userId: string
+let locationId: string;
+let categoryId: string;
+let userId: string;
 
 beforeAll(async () => {
   // Create prerequisite data for tests that need relationships
@@ -37,41 +37,41 @@ beforeAll(async () => {
       lat: 40.7128,
       lng: -74.006,
     },
-  })
-  locationId = location.id
+  });
+  locationId = location.id;
 
   const category = await db.category.create({
     data: {
       name: 'Test Plumbing',
       description: 'Test category for plumbing',
     },
-  })
-  categoryId = category.id
-})
+  });
+  categoryId = category.id;
+});
 
 afterAll(async () => {
   // Final cleanup
-  await db.$executeRawUnsafe('DELETE FROM "Worker"')
-  await db.$executeRawUnsafe('DELETE FROM "User"')
-  await db.$executeRawUnsafe('DELETE FROM "Category"')
-  await db.$executeRawUnsafe('DELETE FROM "Location"')
-})
+  await db.$executeRawUnsafe('DELETE FROM "Worker"');
+  await db.$executeRawUnsafe('DELETE FROM "User"');
+  await db.$executeRawUnsafe('DELETE FROM "Category"');
+  await db.$executeRawUnsafe('DELETE FROM "Location"');
+});
 
 // ── Database Connection ────────────────────────────────────────────────────────
 
 describe('Database connection', () => {
   it('connects to the test database', async () => {
-    expect(TEST_DB_URL).toBeDefined()
+    expect(TEST_DB_URL).toBeDefined();
     // Simple query to verify connection
-    const result = await db.$queryRaw`SELECT 1 as alive`
-    expect(result).toEqual([{ alive: 1 }])
-  })
+    const result = await db.$queryRaw`SELECT 1 as alive`;
+    expect(result).toEqual([{ alive: 1 }]);
+  });
 
   it('runs against the correct database (not production)', () => {
-    expect(TEST_DB_URL).not.toContain('bluecollar_prod')
-    expect(TEST_DB_URL).not.toContain('production')
-  })
-})
+    expect(TEST_DB_URL).not.toContain('bluecollar_prod');
+    expect(TEST_DB_URL).not.toContain('production');
+  });
+});
 
 // ── User CRUD ──────────────────────────────────────────────────────────────────
 
@@ -84,18 +84,18 @@ describe('User CRUD operations', () => {
         lastName: 'Tester',
         role: 'user',
       },
-    })
+    });
 
-    expect(user).toBeDefined()
-    expect(user.id).toBeDefined()
-    expect(user.email).toBe('crud-test@example.com')
-    expect(user.firstName).toBe('Crud')
-    expect(user.lastName).toBe('Tester')
-    expect(user.role).toBe('user')
-    expect(user.verified).toBe(false)
-    expect(user.createdAt).toBeInstanceOf(Date)
-    expect(user.updatedAt).toBeInstanceOf(Date)
-  })
+    expect(user).toBeDefined();
+    expect(user.id).toBeDefined();
+    expect(user.email).toBe('crud-test@example.com');
+    expect(user.firstName).toBe('Crud');
+    expect(user.lastName).toBe('Tester');
+    expect(user.role).toBe('user');
+    expect(user.verified).toBe(false);
+    expect(user.createdAt).toBeInstanceOf(Date);
+    expect(user.updatedAt).toBeInstanceOf(Date);
+  });
 
   it('retrieves a user by id', async () => {
     const created = await db.user.create({
@@ -105,14 +105,14 @@ describe('User CRUD operations', () => {
         lastName: 'Tester',
         role: 'user',
       },
-    })
+    });
 
-    const found = await db.user.findUnique({ where: { id: created.id } })
+    const found = await db.user.findUnique({ where: { id: created.id } });
 
-    expect(found).not.toBeNull()
-    expect(found!.email).toBe('retrieve-test@example.com')
-    expect(found!.firstName).toBe('Retrieve')
-  })
+    expect(found).not.toBeNull();
+    expect(found!.email).toBe('retrieve-test@example.com');
+    expect(found!.firstName).toBe('Retrieve');
+  });
 
   it('retrieves a user by email (unique field)', async () => {
     await db.user.create({
@@ -122,15 +122,15 @@ describe('User CRUD operations', () => {
         lastName: 'Tester',
         role: 'curator',
       },
-    })
+    });
 
     const found = await db.user.findUnique({
       where: { email: 'unique-lookup@example.com' },
-    })
+    });
 
-    expect(found).not.toBeNull()
-    expect(found!.role).toBe('curator')
-  })
+    expect(found).not.toBeNull();
+    expect(found!.role).toBe('curator');
+  });
 
   it('updates a user record', async () => {
     const user = await db.user.create({
@@ -140,17 +140,17 @@ describe('User CRUD operations', () => {
         lastName: 'Name',
         role: 'user',
       },
-    })
+    });
 
     const updated = await db.user.update({
       where: { id: user.id },
       data: { firstName: 'New', lastName: 'Updated' },
-    })
+    });
 
-    expect(updated.firstName).toBe('New')
-    expect(updated.lastName).toBe('Updated')
-    expect(updated.email).toBe('update-test@example.com')
-  })
+    expect(updated.firstName).toBe('New');
+    expect(updated.lastName).toBe('Updated');
+    expect(updated.email).toBe('update-test@example.com');
+  });
 
   it('soft-deletes a user (sets deletedAt)', async () => {
     const user = await db.user.create({
@@ -160,17 +160,17 @@ describe('User CRUD operations', () => {
         lastName: 'Me',
         role: 'user',
       },
-    })
+    });
 
-    expect(user.deletedAt).toBeNull()
+    expect(user.deletedAt).toBeNull();
 
     const softDeleted = await db.user.update({
       where: { id: user.id },
       data: { deletedAt: new Date() },
-    })
+    });
 
-    expect(softDeleted.deletedAt).not.toBeNull()
-  })
+    expect(softDeleted.deletedAt).not.toBeNull();
+  });
 
   it('hard-deletes a user', async () => {
     const user = await db.user.create({
@@ -180,14 +180,14 @@ describe('User CRUD operations', () => {
         lastName: 'Delete',
         role: 'user',
       },
-    })
+    });
 
-    await db.user.delete({ where: { id: user.id } })
+    await db.user.delete({ where: { id: user.id } });
 
-    const found = await db.user.findUnique({ where: { id: user.id } })
-    expect(found).toBeNull()
-  })
-})
+    const found = await db.user.findUnique({ where: { id: user.id } });
+    expect(found).toBeNull();
+  });
+});
 
 // ── User Constraints ───────────────────────────────────────────────────────────
 
@@ -200,7 +200,7 @@ describe('User constraints', () => {
         lastName: 'User',
         role: 'user',
       },
-    })
+    });
 
     await expect(
       db.user.create({
@@ -211,8 +211,8 @@ describe('User constraints', () => {
           role: 'user',
         },
       }),
-    ).rejects.toThrow()
-  })
+    ).rejects.toThrow();
+  });
 
   it('enforces required email field', async () => {
     await expect(
@@ -224,8 +224,8 @@ describe('User constraints', () => {
           role: 'user',
         },
       }),
-    ).rejects.toThrow()
-  })
+    ).rejects.toThrow();
+  });
 
   it('enforces required firstName field', async () => {
     await expect(
@@ -237,8 +237,8 @@ describe('User constraints', () => {
           role: 'user',
         },
       }),
-    ).rejects.toThrow()
-  })
+    ).rejects.toThrow();
+  });
 
   it('defaults role to "user" when not specified', async () => {
     const user = await db.user.create({
@@ -247,10 +247,10 @@ describe('User constraints', () => {
         firstName: 'Default',
         lastName: 'Role',
       },
-    })
+    });
 
-    expect(user.role).toBe('user')
-  })
+    expect(user.role).toBe('user');
+  });
 
   it('defaults verified to false', async () => {
     const user = await db.user.create({
@@ -259,11 +259,11 @@ describe('User constraints', () => {
         firstName: 'Unverified',
         lastName: 'User',
       },
-    })
+    });
 
-    expect(user.verified).toBe(false)
-  })
-})
+    expect(user.verified).toBe(false);
+  });
+});
 
 // ── Category CRUD ──────────────────────────────────────────────────────────────
 
@@ -275,45 +275,45 @@ describe('Category CRUD operations', () => {
         description: 'Electrical services',
         icon: '⚡',
       },
-    })
+    });
 
-    expect(category).toBeDefined()
-    expect(category.name).toBe('Electrician')
-    expect(category.description).toBe('Electrical services')
-    expect(category.icon).toBe('⚡')
-  })
+    expect(category).toBeDefined();
+    expect(category.name).toBe('Electrician');
+    expect(category.description).toBe('Electrical services');
+    expect(category.icon).toBe('⚡');
+  });
 
   it('enforces unique category name', async () => {
     await db.category.create({
       data: { name: 'Plumbing' },
-    })
+    });
 
     await expect(
       db.category.create({
         data: { name: 'Plumbing' },
       }),
-    ).rejects.toThrow()
-  })
+    ).rejects.toThrow();
+  });
 
   it('retrieves all categories', async () => {
-    await db.category.create({ data: { name: 'Carpentry' } })
-    await db.category.create({ data: { name: 'Painting' } })
+    await db.category.create({ data: { name: 'Carpentry' } });
+    await db.category.create({ data: { name: 'Painting' } });
 
-    const categories = await db.category.findMany()
-    expect(categories.length).toBeGreaterThanOrEqual(2)
-  })
+    const categories = await db.category.findMany();
+    expect(categories.length).toBeGreaterThanOrEqual(2);
+  });
 
   it('deletes a category', async () => {
     const category = await db.category.create({
       data: { name: 'To Be Deleted' },
-    })
+    });
 
-    await db.category.delete({ where: { id: category.id } })
+    await db.category.delete({ where: { id: category.id } });
 
-    const found = await db.category.findUnique({ where: { id: category.id } })
-    expect(found).toBeNull()
-  })
-})
+    const found = await db.category.findUnique({ where: { id: category.id } });
+    expect(found).toBeNull();
+  });
+});
 
 // ── Worker CRUD with Relationships ─────────────────────────────────────────────
 
@@ -326,7 +326,7 @@ describe('Worker CRUD with relationships', () => {
         lastName: 'Owner',
         role: 'curator',
       },
-    })
+    });
 
     const worker = await db.worker.create({
       data: {
@@ -337,15 +337,15 @@ describe('Worker CRUD with relationships', () => {
         locationId: locationId,
         isActive: true,
       },
-    })
+    });
 
-    expect(worker).toBeDefined()
-    expect(worker.name).toBe('Test Worker')
-    expect(worker.categoryId).toBe(categoryId)
-    expect(worker.curatorId).toBe(user.id)
-    expect(worker.locationId).toBe(locationId)
-    expect(worker.isActive).toBe(true)
-  })
+    expect(worker).toBeDefined();
+    expect(worker.name).toBe('Test Worker');
+    expect(worker.categoryId).toBe(categoryId);
+    expect(worker.curatorId).toBe(user.id);
+    expect(worker.locationId).toBe(locationId);
+    expect(worker.isActive).toBe(true);
+  });
 
   it('retrieves a worker with its category relation', async () => {
     const user = await db.user.create({
@@ -355,7 +355,7 @@ describe('Worker CRUD with relationships', () => {
         lastName: 'Tester',
         role: 'curator',
       },
-    })
+    });
 
     const worker = await db.worker.create({
       data: {
@@ -363,17 +363,17 @@ describe('Worker CRUD with relationships', () => {
         categoryId: categoryId,
         curatorId: user.id,
       },
-    })
+    });
 
     const found = await db.worker.findUnique({
       where: { id: worker.id },
       include: { category: true },
-    })
+    });
 
-    expect(found).not.toBeNull()
-    expect(found!.category).toBeDefined()
-    expect(found!.category.name).toBe('Test Plumbing')
-  })
+    expect(found).not.toBeNull();
+    expect(found!.category).toBeDefined();
+    expect(found!.category.name).toBe('Test Plumbing');
+  });
 
   it('retrieves a worker with its curator (user) relation', async () => {
     const user = await db.user.create({
@@ -383,7 +383,7 @@ describe('Worker CRUD with relationships', () => {
         lastName: 'Tester',
         role: 'curator',
       },
-    })
+    });
 
     const worker = await db.worker.create({
       data: {
@@ -391,17 +391,17 @@ describe('Worker CRUD with relationships', () => {
         categoryId: categoryId,
         curatorId: user.id,
       },
-    })
+    });
 
     const found = await db.worker.findUnique({
       where: { id: worker.id },
       include: { curator: true },
-    })
+    });
 
-    expect(found).not.toBeNull()
-    expect(found!.curator).toBeDefined()
-    expect(found!.curator.email).toBe('curator-relation@example.com')
-  })
+    expect(found).not.toBeNull();
+    expect(found!.curator).toBeDefined();
+    expect(found!.curator.email).toBe('curator-relation@example.com');
+  });
 
   it('enforces foreign key constraint on categoryId', async () => {
     const user = await db.user.create({
@@ -411,7 +411,7 @@ describe('Worker CRUD with relationships', () => {
         lastName: 'Test',
         role: 'curator',
       },
-    })
+    });
 
     await expect(
       db.worker.create({
@@ -421,8 +421,8 @@ describe('Worker CRUD with relationships', () => {
           curatorId: user.id,
         },
       }),
-    ).rejects.toThrow()
-  })
+    ).rejects.toThrow();
+  });
 
   it('enforces foreign key constraint on curatorId', async () => {
     await expect(
@@ -433,8 +433,8 @@ describe('Worker CRUD with relationships', () => {
           curatorId: 'non-existent-user-id',
         },
       }),
-    ).rejects.toThrow()
-  })
+    ).rejects.toThrow();
+  });
 
   it('defaults isActive to true', async () => {
     const user = await db.user.create({
@@ -444,7 +444,7 @@ describe('Worker CRUD with relationships', () => {
         lastName: 'Default',
         role: 'curator',
       },
-    })
+    });
 
     const worker = await db.worker.create({
       data: {
@@ -452,10 +452,10 @@ describe('Worker CRUD with relationships', () => {
         categoryId: categoryId,
         curatorId: user.id,
       },
-    })
+    });
 
-    expect(worker.isActive).toBe(true)
-  })
+    expect(worker.isActive).toBe(true);
+  });
 
   it('can toggle isActive', async () => {
     const user = await db.user.create({
@@ -465,7 +465,7 @@ describe('Worker CRUD with relationships', () => {
         lastName: 'Active',
         role: 'curator',
       },
-    })
+    });
 
     const worker = await db.worker.create({
       data: {
@@ -474,16 +474,16 @@ describe('Worker CRUD with relationships', () => {
         curatorId: user.id,
         isActive: true,
       },
-    })
+    });
 
     const deactivated = await db.worker.update({
       where: { id: worker.id },
       data: { isActive: false },
-    })
+    });
 
-    expect(deactivated.isActive).toBe(false)
-  })
-})
+    expect(deactivated.isActive).toBe(false);
+  });
+});
 
 // ── Query Filters & Ordering ───────────────────────────────────────────────────
 
@@ -496,7 +496,7 @@ describe('Query filters and ordering', () => {
         lastName: 'Tester',
         role: 'curator',
       },
-    })
+    });
 
     await db.worker.create({
       data: {
@@ -505,7 +505,7 @@ describe('Query filters and ordering', () => {
         curatorId: user.id,
         isActive: true,
       },
-    })
+    });
 
     await db.worker.create({
       data: {
@@ -514,14 +514,14 @@ describe('Query filters and ordering', () => {
         curatorId: user.id,
         isActive: false,
       },
-    })
+    });
 
     const activeWorkers = await db.worker.findMany({
       where: { isActive: true },
-    })
+    });
 
-    expect(activeWorkers.every((w) => w.isActive)).toBe(true)
-  })
+    expect(activeWorkers.every((w) => w.isActive)).toBe(true);
+  });
 
   it('filters workers by categoryId', async () => {
     const user = await db.user.create({
@@ -531,11 +531,11 @@ describe('Query filters and ordering', () => {
         lastName: 'Filter',
         role: 'curator',
       },
-    })
+    });
 
     const otherCategory = await db.category.create({
       data: { name: 'Unique Filter Cat' },
-    })
+    });
 
     await db.worker.create({
       data: {
@@ -543,7 +543,7 @@ describe('Query filters and ordering', () => {
         categoryId: categoryId,
         curatorId: user.id,
       },
-    })
+    });
 
     await db.worker.create({
       data: {
@@ -551,14 +551,14 @@ describe('Query filters and ordering', () => {
         categoryId: otherCategory.id,
         curatorId: user.id,
       },
-    })
+    });
 
     const plumbingWorkers = await db.worker.findMany({
       where: { categoryId },
-    })
+    });
 
-    expect(plumbingWorkers.every((w) => w.categoryId === categoryId)).toBe(true)
-  })
+    expect(plumbingWorkers.every((w) => w.categoryId === categoryId)).toBe(true);
+  });
 
   it('orders users by createdAt', async () => {
     const user1 = await db.user.create({
@@ -567,7 +567,7 @@ describe('Query filters and ordering', () => {
         firstName: 'First',
         lastName: 'User',
       },
-    })
+    });
 
     const user2 = await db.user.create({
       data: {
@@ -575,19 +575,19 @@ describe('Query filters and ordering', () => {
         firstName: 'Second',
         lastName: 'User',
       },
-    })
+    });
 
     const users = await db.user.findMany({
       orderBy: { createdAt: 'asc' },
       where: {
         email: { in: ['order-1@example.com', 'order-2@example.com'] },
       },
-    })
+    });
 
-    expect(users).toHaveLength(2)
-    expect(users[0]!.id).toBe(user1.id)
-    expect(users[1]!.id).toBe(user2.id)
-  })
+    expect(users).toHaveLength(2);
+    expect(users[0]!.id).toBe(user1.id);
+    expect(users[1]!.id).toBe(user2.id);
+  });
 
   it('supports pagination with take and skip', async () => {
     const user = await db.user.create({
@@ -597,7 +597,7 @@ describe('Query filters and ordering', () => {
         lastName: 'Tester',
         role: 'curator',
       },
-    })
+    });
 
     // Create 5 workers
     for (let i = 0; i < 5; i++) {
@@ -607,7 +607,7 @@ describe('Query filters and ordering', () => {
           categoryId: categoryId,
           curatorId: user.id,
         },
-      })
+      });
     }
 
     const page1 = await db.worker.findMany({
@@ -615,20 +615,20 @@ describe('Query filters and ordering', () => {
       orderBy: { createdAt: 'asc' },
       take: 2,
       skip: 0,
-    })
+    });
 
     const page2 = await db.worker.findMany({
       where: { curatorId: user.id },
       orderBy: { createdAt: 'asc' },
       take: 2,
       skip: 2,
-    })
+    });
 
-    expect(page1).toHaveLength(2)
-    expect(page2).toHaveLength(2)
-    expect(page1[0]!.id).not.toBe(page2[0]!.id)
-  })
-})
+    expect(page1).toHaveLength(2);
+    expect(page2).toHaveLength(2);
+    expect(page1[0]!.id).not.toBe(page2[0]!.id);
+  });
+});
 
 // ── Transaction Behavior ───────────────────────────────────────────────────────
 
@@ -641,7 +641,7 @@ describe('Transaction behavior', () => {
           firstName: 'TX',
           lastName: 'Commit',
         },
-      })
+      });
 
       const worker = await tx.worker.create({
         data: {
@@ -649,26 +649,26 @@ describe('Transaction behavior', () => {
           categoryId: categoryId,
           curatorId: user.id,
         },
-      })
+      });
 
-      return { user, worker }
-    })
+      return { user, worker };
+    });
 
-    expect(result.user).toBeDefined()
-    expect(result.worker).toBeDefined()
+    expect(result.user).toBeDefined();
+    expect(result.worker).toBeDefined();
 
     // Verify both records exist
-    const foundUser = await db.user.findUnique({ where: { id: result.user.id } })
-    const foundWorker = await db.worker.findUnique({ where: { id: result.worker.id } })
-    expect(foundUser).not.toBeNull()
-    expect(foundWorker).not.toBeNull()
-  })
+    const foundUser = await db.user.findUnique({ where: { id: result.user.id } });
+    const foundWorker = await db.worker.findUnique({ where: { id: result.worker.id } });
+    expect(foundUser).not.toBeNull();
+    expect(foundWorker).not.toBeNull();
+  });
 
   it('rolls back a transaction on failure', async () => {
-    let userCountBefore: number
+    let userCountBefore: number;
 
     try {
-      userCountBefore = (await db.user.findMany()).length
+      userCountBefore = (await db.user.findMany()).length;
 
       await db.$transaction(async (tx) => {
         await tx.user.create({
@@ -677,39 +677,39 @@ describe('Transaction behavior', () => {
             firstName: 'TX',
             lastName: 'Rollback',
           },
-        })
+        });
 
         // Force an error to trigger rollback
-        throw new Error('Intentional rollback')
-      })
+        throw new Error('Intentional rollback');
+      });
     } catch {
       // Expected — transaction should have rolled back
     }
 
-    const userCountAfter = (await db.user.findMany()).length
-    expect(userCountAfter).toBe(userCountBefore!)
-  })
-})
+    const userCountAfter = (await db.user.findMany()).length;
+    expect(userCountAfter).toBe(userCountBefore!);
+  });
+});
 
 // ── Timestamps ─────────────────────────────────────────────────────────────────
 
 describe('Timestamp behavior', () => {
   it('auto-generates createdAt and updatedAt on create', async () => {
-    const before = new Date()
+    const before = new Date();
     const user = await db.user.create({
       data: {
         email: 'timestamps@example.com',
         firstName: 'Timestamp',
         lastName: 'Test',
       },
-    })
-    const after = new Date()
+    });
+    const after = new Date();
 
-    expect(user.createdAt).toBeInstanceOf(Date)
-    expect(user.updatedAt).toBeInstanceOf(Date)
-    expect(user.createdAt.getTime()).toBeGreaterThanOrEqual(before.getTime())
-    expect(user.createdAt.getTime()).toBeLessThanOrEqual(after.getTime())
-  })
+    expect(user.createdAt).toBeInstanceOf(Date);
+    expect(user.updatedAt).toBeInstanceOf(Date);
+    expect(user.createdAt.getTime()).toBeGreaterThanOrEqual(before.getTime());
+    expect(user.createdAt.getTime()).toBeLessThanOrEqual(after.getTime());
+  });
 
   it('auto-updates updatedAt on update', async () => {
     const user = await db.user.create({
@@ -718,9 +718,9 @@ describe('Timestamp behavior', () => {
         firstName: 'Update',
         lastName: 'Test',
       },
-    })
+    });
 
-    const originalUpdatedAt = user.updatedAt
+    const originalUpdatedAt = user.updatedAt;
 
     // updatedAt is set by the database; Prisma's @updatedAt directive ensures
     // the field is refreshed on every UPDATE. We perform an immediate update
@@ -730,11 +730,11 @@ describe('Timestamp behavior', () => {
     const updated = await db.user.update({
       where: { id: user.id },
       data: { firstName: 'Updated' },
-    })
+    });
 
-    expect(updated.updatedAt.getTime()).toBeGreaterThanOrEqual(originalUpdatedAt.getTime())
-  })
-})
+    expect(updated.updatedAt.getTime()).toBeGreaterThanOrEqual(originalUpdatedAt.getTime());
+  });
+});
 
 // ── Optional Fields ────────────────────────────────────────────────────────────
 
@@ -751,14 +751,14 @@ describe('Optional fields', () => {
         walletAddress: null,
         locationId: null,
       },
-    })
+    });
 
-    expect(user.phone).toBeNull()
-    expect(user.avatar).toBeNull()
-    expect(user.bio).toBeNull()
-    expect(user.walletAddress).toBeNull()
-    expect(user.locationId).toBeNull()
-  })
+    expect(user.phone).toBeNull();
+    expect(user.avatar).toBeNull();
+    expect(user.bio).toBeNull();
+    expect(user.walletAddress).toBeNull();
+    expect(user.locationId).toBeNull();
+  });
 
   it('allows setting optional fields', async () => {
     const user = await db.user.create({
@@ -770,10 +770,10 @@ describe('Optional fields', () => {
         avatar: 'https://example.com/avatar.jpg',
         bio: 'Test bio',
       },
-    })
+    });
 
-    expect(user.phone).toBe('+1234567890')
-    expect(user.avatar).toBe('https://example.com/avatar.jpg')
-    expect(user.bio).toBe('Test bio')
-  })
-})
+    expect(user.phone).toBe('+1234567890');
+    expect(user.avatar).toBe('https://example.com/avatar.jpg');
+    expect(user.bio).toBe('Test bio');
+  });
+});

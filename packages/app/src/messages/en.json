@@ -649,8 +649,8 @@
     "budgetLabel": "Budget: ",
     "applicantCount": "{count, plural, one {# applicant} other {# applicants}}",
     "expiresToday": "Expires today",
-    "daysLeft": "{count}d left"
-    ,"saveWorkerFailed": "Failed to save worker",
+    "daysLeft": "{count}d left",
+    "saveWorkerFailed": "Failed to save worker",
     "formFullName": "Full name",
     "nameExample": "e.g. John Doe",
     "formCategory": "Category",

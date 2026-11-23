@@ -1,14 +1,22 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { cn } from "@/lib/utils";
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { cn } from '@/lib/utils';
 
 export function isPathActive(pathname: string, href: string) {
-  return pathname === href || (href !== "/" && pathname.startsWith(href));
+  return pathname === href || (href !== '/' && pathname.startsWith(href));
 }
 
-export function NavLink({ href, label, onClick }: { href: string; label: string; onClick?: () => void }) {
+export function NavLink({
+  href,
+  label,
+  onClick,
+}: {
+  href: string;
+  label: string;
+  onClick?: () => void;
+}) {
   const pathname = usePathname();
   const isActive = isPathActive(pathname, href);
   return (
@@ -17,13 +25,11 @@ export function NavLink({ href, label, onClick }: { href: string; label: string;
       onClick={onClick}
       // Colour and an underline alone don't convey "current page" to assistive
       // tech — aria-current does.
-      aria-current={isActive ? "page" : undefined}
+      aria-current={isActive ? 'page' : undefined}
       className={cn(
-        "relative rounded text-sm font-medium transition-colors hover:text-blue-600",
-        "focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2",
-        isActive
-          ? "text-blue-600 font-semibold"
-          : "text-gray-600 dark:text-gray-300"
+        'relative rounded text-sm font-medium transition-colors hover:text-blue-600',
+        'focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2',
+        isActive ? 'text-blue-600 font-semibold' : 'text-gray-600 dark:text-gray-300',
       )}
     >
       {label}

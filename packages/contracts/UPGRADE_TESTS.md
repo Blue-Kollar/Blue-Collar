@@ -11,8 +11,8 @@
 
 #[cfg(test)]
 mod upgrade_tests {
-    use super::*;
-    use soroban_sdk::{testutils::Address as _, Address, BytesN, Env, String, Symbol};
+use super::*;
+use soroban_sdk::{testutils::Address as _, Address, BytesN, Env, String, Symbol};
 
     struct UpgradeTestEnv {
         env: Env,
@@ -269,4 +269,5 @@ mod upgrade_tests {
         // Contract ID should remain the same
         assert_eq!(t.contract_id, contract_id_before);
     }
+
 }

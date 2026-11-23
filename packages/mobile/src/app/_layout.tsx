@@ -1,9 +1,13 @@
-import { Stack } from "expo-router";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { cacheStore } from "@/cache";
-import { OfflineBanner } from "@/cache/OfflineBanner";
+import { Stack } from 'expo-router';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { cacheStore } from '@/cache';
+import { OfflineBanner } from '@/cache/OfflineBanner';
 
-cacheStore.setNetworkState({ isConnected: true, isInternetReachable: null, lastConnected: Date.now() });
+cacheStore.setNetworkState({
+  isConnected: true,
+  isInternetReachable: null,
+  lastConnected: Date.now(),
+});
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -22,9 +26,9 @@ export default function RootLayout() {
       <OfflineBanner />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="worker/[id]" options={{ headerShown: true, title: "Worker Profile" }} />
-        <Stack.Screen name="auth/login" options={{ headerShown: true, title: "Login" }} />
-        <Stack.Screen name="auth/register" options={{ headerShown: true, title: "Register" }} />
+        <Stack.Screen name="worker/[id]" options={{ headerShown: true, title: 'Worker Profile' }} />
+        <Stack.Screen name="auth/login" options={{ headerShown: true, title: 'Login' }} />
+        <Stack.Screen name="auth/register" options={{ headerShown: true, title: 'Register' }} />
       </Stack>
     </QueryClientProvider>
   );

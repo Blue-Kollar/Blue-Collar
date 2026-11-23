@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import EmptyState from "@/components/EmptyState";
-import { useTransactionList } from "@/hooks/useTransactionList";
-import TransactionListPagination from "./TransactionListPagination";
-import TransactionListTable from "./TransactionListTable";
-import { useTranslations } from "next-intl";
+import EmptyState from '@/components/EmptyState';
+import { useTransactionList } from '@/hooks/useTransactionList';
+import TransactionListPagination from './TransactionListPagination';
+import TransactionListTable from './TransactionListTable';
+import { useTranslations } from 'next-intl';
 
 interface TransactionListProps {
   walletAddress: string;
@@ -15,11 +15,8 @@ interface TransactionListProps {
  * Container: owns data-fetching (via useTransactionList) and picks which
  * presentational state to render. All markup lives in the child components.
  */
-export default function TransactionList({
-  walletAddress,
-  marketContractId,
-}: TransactionListProps) {
-  const t = useTranslations("componentText");
+export default function TransactionList({ walletAddress, marketContractId }: TransactionListProps) {
+  const t = useTranslations('componentText');
   const { transactions, page, setPage, totalPages, loading, error } = useTransactionList({
     walletAddress,
     marketContractId,
@@ -27,13 +24,11 @@ export default function TransactionList({
 
   return (
     <div className="mt-8 border-t pt-6">
-      <h2 className="text-sm font-semibold text-gray-700 mb-4">{t("tipHistory")}</h2>
+      <h2 className="text-sm font-semibold text-gray-700 mb-4">{t('tipHistory')}</h2>
 
-      {loading && (
-        <p className="text-sm text-gray-400 animate-pulse">{t("loadingTransactions")}</p>
-      )}
+      {loading && <p className="text-sm text-gray-400 animate-pulse">{t('loadingTransactions')}</p>}
 
-      {error && <p className="text-sm text-red-500">{t("errorPrefix", { message: error })}</p>}
+      {error && <p className="text-sm text-red-500">{t('errorPrefix', { message: error })}</p>}
 
       {!loading && !error && transactions.length === 0 && (
         <EmptyState variant="no-transactions" ctaHref="/workers" />
@@ -42,11 +37,7 @@ export default function TransactionList({
       {!loading && !error && transactions.length > 0 && (
         <>
           <TransactionListTable transactions={transactions} />
-          <TransactionListPagination
-            page={page}
-            totalPages={totalPages}
-            onPageChange={setPage}
-          />
+          <TransactionListPagination page={page} totalPages={totalPages} onPageChange={setPage} />
         </>
       )}
     </div>

@@ -15,8 +15,8 @@ metadata:
     slot: blue
   annotations:
     # Populated by deploy script
-    bluecollar.io/deploy-sha: ""
-    bluecollar.io/deployed-at: ""
+    bluecollar.io/deploy-sha: ''
+    bluecollar.io/deployed-at: ''
 spec:
   replicas: 3
   # Recreate is safe for the IDLE slot — no live traffic hits it during the swap.
@@ -37,9 +37,9 @@ spec:
         app.kubernetes.io/name: bluecollar-api
         slot: blue
       annotations:
-        prometheus.io/scrape: "true"
-        prometheus.io/port: "3000"
-        prometheus.io/path: "/metrics"
+        prometheus.io/scrape: 'true'
+        prometheus.io/port: '3000'
+        prometheus.io/path: '/metrics'
     spec:
       # Spread pods across nodes for HA
       topologySpreadConstraints:
@@ -62,9 +62,9 @@ spec:
               protocol: TCP
           env:
             - name: NODE_ENV
-              value: "production"
+              value: 'production'
             - name: PORT
-              value: "3000"
+              value: '3000'
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
@@ -82,7 +82,7 @@ spec:
                   key: redis-url
                   optional: true
             - name: SLOT
-              value: "blue"
+              value: 'blue'
           # Liveness: is the process alive?
           livenessProbe:
             httpGet:
@@ -110,19 +110,19 @@ spec:
               port: 3000
             initialDelaySeconds: 10
             periodSeconds: 5
-            failureThreshold: 24   # 2 minutes total (24 × 5s)
+            failureThreshold: 24 # 2 minutes total (24 × 5s)
           resources:
             requests:
-              cpu: "250m"
-              memory: "256Mi"
+              cpu: '250m'
+              memory: '256Mi'
             limits:
-              cpu: "500m"
-              memory: "512Mi"
+              cpu: '500m'
+              memory: '512Mi'
           lifecycle:
             # Graceful shutdown: stop accepting new connections before SIGTERM
             preStop:
               exec:
-                command: ["/bin/sh", "-c", "sleep 5"]
+                command: ['/bin/sh', '-c', 'sleep 5']
       # Pull from private registry if needed
       # imagePullSecrets:
       #   - name: registry-credentials

@@ -583,8 +583,8 @@
     "budgetLabel": "Orçamento: ",
     "applicantCount": "{count, plural, one {# candidato} other {# candidatos}}",
     "expiresToday": "Expira hoje",
-    "daysLeft": "Restam {count} dias"
-    ,"saveWorkerFailed": "Falha ao salvar trabalhador",
+    "daysLeft": "Restam {count} dias",
+    "saveWorkerFailed": "Falha ao salvar trabalhador",
     "formFullName": "Nome completo",
     "nameExample": "ex.: João Silva",
     "formCategory": "Categoria",

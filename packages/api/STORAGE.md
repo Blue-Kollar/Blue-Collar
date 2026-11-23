@@ -108,12 +108,12 @@ Variants: `thumb`, `medium`, `full`
 
 ### Common Issues
 
-| Issue | Cause | Solution |
-|-------|-------|----------|
-| "S3 SDK not available" | AWS SDK v3 not installed | `npm install @aws-sdk/client-s3 @aws-sdk/s3-request-presigner` |
-| Files not uploading | S3 credentials invalid | Verify `S3_ACCESS_KEY`, `S3_SECRET_KEY`, and `S3_REGION` |
-| Pre-signed URLs expire too quickly | `S3_SIGNED_URL_TTL` too low | Increase to at least 3600 seconds |
-| Disk space full | Local fallback overflow | Monitor `UPLOAD_DIR` or migrate to S3 |
+| Issue                              | Cause                       | Solution                                                       |
+| ---------------------------------- | --------------------------- | -------------------------------------------------------------- |
+| "S3 SDK not available"             | AWS SDK v3 not installed    | `npm install @aws-sdk/client-s3 @aws-sdk/s3-request-presigner` |
+| Files not uploading                | S3 credentials invalid      | Verify `S3_ACCESS_KEY`, `S3_SECRET_KEY`, and `S3_REGION`       |
+| Pre-signed URLs expire too quickly | `S3_SIGNED_URL_TTL` too low | Increase to at least 3600 seconds                              |
+| Disk space full                    | Local fallback overflow     | Monitor `UPLOAD_DIR` or migrate to S3                          |
 
 ## Migration from Local to S3
 

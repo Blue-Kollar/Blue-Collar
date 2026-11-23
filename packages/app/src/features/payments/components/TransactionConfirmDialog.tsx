@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 /**
  * TransactionConfirmDialog — shows users a human-readable summary of what
@@ -8,13 +8,13 @@
  * Accessibility pass: #972
  */
 
-import * as Dialog from "@radix-ui/react-dialog";
-import { AlertTriangle, CheckCircle2, X } from "lucide-react";
-import { cn } from "@/lib/utils";
-import type { TransactionSummary } from "@/lib/transactions";
+import * as Dialog from '@radix-ui/react-dialog';
+import { AlertTriangle, CheckCircle2, X } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import type { TransactionSummary } from '@/lib/transactions';
 
 const FOCUS_RING =
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-900";
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-900';
 
 interface TransactionConfirmDialogProps {
   open: boolean;
@@ -37,9 +37,9 @@ export default function TransactionConfirmDialog({
   // Point the (disabled) confirm button at whichever element explains why it
   // cannot be used, so the reason is not conveyed by visual state alone.
   const confirmDescribedBy = networkWarning
-    ? "tx-network-warning"
+    ? 'tx-network-warning'
     : !summary
-      ? "tx-loading-status"
+      ? 'tx-loading-status'
       : undefined;
 
   return (
@@ -58,7 +58,7 @@ export default function TransactionConfirmDialog({
               aria-label="Close transaction details"
               onClick={onCancel}
               className={cn(
-                "rounded-lg p-1.5 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 transition-colors",
+                'rounded-lg p-1.5 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 transition-colors',
                 FOCUS_RING,
               )}
             >
@@ -78,8 +78,8 @@ export default function TransactionConfirmDialog({
             >
               <AlertTriangle size={16} className="mt-0.5 shrink-0" aria-hidden="true" />
               <span>
-                Your wallet is connected to a <strong>different network</strong> than
-                this app expects. Signing may fail or funds may be lost.
+                Your wallet is connected to a <strong>different network</strong> than this app
+                expects. Signing may fail or funds may be lost.
               </span>
             </div>
           )}
@@ -92,17 +92,17 @@ export default function TransactionConfirmDialog({
                 <dd className="text-right">
                   <span
                     className={cn(
-                      "inline-block rounded px-2 py-0.5 text-xs font-semibold",
-                      summary.networkName === "MAINNET"
-                        ? "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400"
-                        : "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-400",
+                      'inline-block rounded px-2 py-0.5 text-xs font-semibold',
+                      summary.networkName === 'MAINNET'
+                        ? 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400'
+                        : 'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-400',
                     )}
                   >
                     {summary.networkName}
                   </span>
                 </dd>
 
-                {summary.type === "payment" && (
+                {summary.type === 'payment' && (
                   <>
                     <dt className="text-gray-600 dark:text-gray-400">To</dt>
                     <dd className="text-right">
@@ -126,7 +126,7 @@ export default function TransactionConfirmDialog({
                   </>
                 )}
 
-                {summary.type === "contract_call" && (
+                {summary.type === 'contract_call' && (
                   <>
                     <dt className="text-gray-600 dark:text-gray-400">Action</dt>
                     <dd className="text-right text-gray-700 dark:text-gray-300">
@@ -176,7 +176,7 @@ export default function TransactionConfirmDialog({
               onClick={onCancel}
               data-testid="cancel-btn"
               className={cn(
-                "flex-1 rounded-lg border border-gray-300 dark:border-gray-700 py-2.5 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors",
+                'flex-1 rounded-lg border border-gray-300 dark:border-gray-700 py-2.5 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors',
                 FOCUS_RING,
               )}
             >
@@ -189,11 +189,11 @@ export default function TransactionConfirmDialog({
               aria-describedby={confirmDescribedBy}
               data-testid="confirm-sign-btn"
               className={cn(
-                "flex-1 flex items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-semibold transition-colors",
+                'flex-1 flex items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-semibold transition-colors',
                 FOCUS_RING,
                 blocked
-                  ? "bg-gray-300 dark:bg-gray-700 text-gray-400 cursor-not-allowed"
-                  : "bg-blue-600 hover:bg-blue-700 text-white",
+                  ? 'bg-gray-300 dark:bg-gray-700 text-gray-400 cursor-not-allowed'
+                  : 'bg-blue-600 hover:bg-blue-700 text-white',
               )}
             >
               <CheckCircle2 size={15} aria-hidden="true" />

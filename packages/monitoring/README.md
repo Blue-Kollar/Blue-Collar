@@ -13,17 +13,20 @@ Event monitoring and alerting service for BlueCollar smart contracts.
 ## Setup
 
 1. Install dependencies:
+
 ```bash
 pnpm install
 ```
 
 2. Configure environment:
+
 ```bash
 cp .env.example .env
 # Edit .env with your contract IDs and RPC endpoint
 ```
 
 3. Run the monitor:
+
 ```bash
 pnpm dev
 ```
@@ -38,12 +41,14 @@ pnpm dev
 ## Monitored Events
 
 ### Critical Events (trigger alerts):
+
 - `WrkReg`: Worker registration
 - `EscCrt`: Escrow creation
 - `ArbReq`: Arbitration requested
 - `ArbRes`: Arbitration resolved
 
 ### Tracked Metrics:
+
 - Contract balance changes
 - Event frequency
 - Gas usage trends

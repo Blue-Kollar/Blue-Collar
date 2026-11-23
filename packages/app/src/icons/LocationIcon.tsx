@@ -1,4 +1,7 @@
-interface Props { className?: string; size?: number }
+interface Props {
+  className?: string;
+  size?: number;
+}
 
 export default function LocationIcon({ className, size = 24 }: Props) {
   return (

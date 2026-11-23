@@ -5,6 +5,7 @@ This document describes the gradual deployment mechanism for BlueCollar API vers
 ## Overview
 
 The version rollout system enables safe, gradual rollout of new API versions with:
+
 - **Canary deployments**: Route a percentage of traffic to new version
 - **User-based routing**: Consistent routing for the same user
 - **Feature flags**: Enable/disable features per version
@@ -31,7 +32,7 @@ export const ROLLOUT_CONFIG: Record<string, RolloutConfig> = {
       twoFactorAuth: true,
     },
   },
-}
+};
 ```
 
 ## Gradual Rollout Phases
@@ -50,6 +51,7 @@ curl -X PUT https://api.bluecollar.app/api/admin/rollout \
 ```
 
 **Monitoring:**
+
 - Track error rates for v2 vs v1
 - Monitor latency differences
 - Check user feedback
@@ -70,6 +72,7 @@ curl -X PUT https://api.bluecollar.app/api/admin/rollout \
 ```
 
 **Monitoring:**
+
 - Load testing and performance validation
 - Integration testing with existing clients
 - Security scanning
@@ -90,6 +93,7 @@ curl -X PUT https://api.bluecollar.app/api/admin/rollout \
 ```
 
 **Monitoring:**
+
 - Real-world load testing
 - Database performance under load
 - Cache effectiveness
@@ -110,6 +114,7 @@ curl -X PUT https://api.bluecollar.app/api/admin/rollout \
 ```
 
 **Post-Rollout:**
+
 - Keep v1 available for 12 months as per deprecation policy
 - Monitor for any regressions
 - Support clients migrating to v2
@@ -212,7 +217,7 @@ curl -X PUT https://api.bluecollar.app/api/admin/rollout \
 ### Using Feature Flags in Code
 
 ```typescript
-import { isFeatureEnabled } from './utils/versionRollout'
+import { isFeatureEnabled } from './utils/versionRollout';
 
 // In API handler
 if (isFeatureEnabled(version, 'twoFactorAuth')) {
@@ -233,6 +238,7 @@ The system uses consistent hashing to route the same user to the same version:
 ```
 
 This ensures:
+
 - Same user always gets consistent experience
 - Predictable traffic distribution
 - Easier debugging of issues
@@ -339,22 +345,22 @@ curl -X PUT https://api.bluecollar.app/api/admin/rollout \
 ## Automated Rollout (Example)
 
 ```typescript
-import { GradualRollout } from './utils/versionRollout'
+import { GradualRollout } from './utils/versionRollout';
 
 const rollout = new GradualRollout('v2', [
-  { percentage: 10, durationMs: 60 * 60 * 1000 },  // 1 hour at 10%
-  { percentage: 25, durationMs: 4 * 60 * 60 * 1000 },  // 4 hours at 25%
-  { percentage: 50, durationMs: 24 * 60 * 60 * 1000 },  // 1 day at 50%
-  { percentage: 100, durationMs: 0 },  // Stay at 100%
-])
+  { percentage: 10, durationMs: 60 * 60 * 1000 }, // 1 hour at 10%
+  { percentage: 25, durationMs: 4 * 60 * 60 * 1000 }, // 4 hours at 25%
+  { percentage: 50, durationMs: 24 * 60 * 60 * 1000 }, // 1 day at 50%
+  { percentage: 100, durationMs: 0 }, // Stay at 100%
+]);
 
 // Check and advance periodically (e.g., every minute)
 setInterval(() => {
-  const advanced = rollout.checkAdvance()
+  const advanced = rollout.checkAdvance();
   if (advanced) {
-    console.log('Advancing to next phase:', rollout.getStatus())
+    console.log('Advancing to next phase:', rollout.getStatus());
   }
-}, 60000)
+}, 60000);
 ```
 
 ## Documentation

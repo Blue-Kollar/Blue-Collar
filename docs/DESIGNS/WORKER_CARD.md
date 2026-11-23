@@ -27,12 +27,12 @@ The worker card is the primary discovery unit. This redesign surfaces trust sign
 
 ## Design Principles
 
-| Principle | Rule |
-|---|---|
-| **Trust first** | Verification badge and rating score are placed immediately adjacent to the worker's name — never below the fold. |
-| **Scannability** | Category tag uses a filled pill so it reads as a label, not a link. Rating uses both stars and a numeric score for colour-blind users. |
-| **Progressive detail** | Bio and location are secondary. They are present in standard/featured but truncated; absent in compact. |
-| **Consistent elevation** | Cards use a single shadow level at rest, elevated on hover — never the reverse. |
+| Principle                | Rule                                                                                                                                   |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
+| **Trust first**          | Verification badge and rating score are placed immediately adjacent to the worker's name — never below the fold.                       |
+| **Scannability**         | Category tag uses a filled pill so it reads as a label, not a link. Rating uses both stars and a numeric score for colour-blind users. |
+| **Progressive detail**   | Bio and location are secondary. They are present in standard/featured but truncated; absent in compact.                                |
+| **Consistent elevation** | Cards use a single shadow level at rest, elevated on hover — never the reverse.                                                        |
 
 ---
 
@@ -40,28 +40,28 @@ The worker card is the primary discovery unit. This redesign surfaces trust sign
 
 All values map directly to the CSS custom properties in `src/app/globals.css`.
 
-| Token | Value | Usage |
-|---|---|---|
-| `--primary` | `hsl(221 83% 53%)` | Verification badge, category pill border, CTA button, ring |
-| `--primary-foreground` | `hsl(0 0% 100%)` | Text on primary fills |
-| `--secondary` | `hsl(214 32% 91%)` | Category pill background, card border |
-| `--muted-foreground` | `hsl(215 16% 47%)` | Bio text, location text, review count |
-| `--border` | `hsl(214 32% 91%)` | Card border at rest |
-| `--radius` | `0.5rem` | Base radius (cards use `calc(var(--radius) * 2) = 1rem`) |
-| `--destructive` | `hsl(0 84% 60%)` | Inactive / error badge |
+| Token                  | Value              | Usage                                                      |
+| ---------------------- | ------------------ | ---------------------------------------------------------- |
+| `--primary`            | `hsl(221 83% 53%)` | Verification badge, category pill border, CTA button, ring |
+| `--primary-foreground` | `hsl(0 0% 100%)`   | Text on primary fills                                      |
+| `--secondary`          | `hsl(214 32% 91%)` | Category pill background, card border                      |
+| `--muted-foreground`   | `hsl(215 16% 47%)` | Bio text, location text, review count                      |
+| `--border`             | `hsl(214 32% 91%)` | Card border at rest                                        |
+| `--radius`             | `0.5rem`           | Base radius (cards use `calc(var(--radius) * 2) = 1rem`)   |
+| `--destructive`        | `hsl(0 84% 60%)`   | Inactive / error badge                                     |
 
 **Spacing scale used in cards** (Tailwind):
 
-| Usage | Token | px |
-|---|---|---|
-| Card padding (standard) | `p-5` | 20 px |
-| Card padding (compact) | `p-3` | 12 px |
-| Card padding (featured) | `p-6` | 24 px |
-| Avatar → name gap | `gap-3` | 12 px |
-| Section gap (standard) | `gap-4` | 16 px |
-| Badge icon size (compact) | 14 px | — |
-| Badge icon size (standard) | 16 px | — |
-| Badge icon size (featured) | 20 px | — |
+| Usage                      | Token   | px    |
+| -------------------------- | ------- | ----- |
+| Card padding (standard)    | `p-5`   | 20 px |
+| Card padding (compact)     | `p-3`   | 12 px |
+| Card padding (featured)    | `p-6`   | 24 px |
+| Avatar → name gap          | `gap-3` | 12 px |
+| Section gap (standard)     | `gap-4` | 16 px |
+| Badge icon size (compact)  | 14 px   | —     |
+| Badge icon size (standard) | 16 px   | —     |
+| Badge icon size (featured) | 20 px   | —     |
 
 ---
 
@@ -186,16 +186,16 @@ Shown in "Featured Workers" homepage section and top of search results. Mobile: 
 
 ## Mobile vs Desktop Differences
 
-| Property | Mobile (< 640 px) | Desktop (≥ 640 px) |
-|---|---|---|
-| Standard card width | 100% (single column) | 280–320 px (3-column grid) |
-| Featured card width | 100% | 360–400 px |
-| Compact card width | 100% | min 200 px |
-| Avatar size (standard) | `h-12 w-12` | `h-14 w-14` |
-| Bio line clamp (standard) | 2 lines | 2 lines |
-| Bio line clamp (featured) | 2 lines | 3 lines |
-| Compare checkbox | Hidden (space-constrained) | Visible top-right |
-| CTA button | Full width | Full width within card |
+| Property                  | Mobile (< 640 px)          | Desktop (≥ 640 px)         |
+| ------------------------- | -------------------------- | -------------------------- |
+| Standard card width       | 100% (single column)       | 280–320 px (3-column grid) |
+| Featured card width       | 100%                       | 360–400 px                 |
+| Compact card width        | 100%                       | min 200 px                 |
+| Avatar size (standard)    | `h-12 w-12`                | `h-14 w-14`                |
+| Bio line clamp (standard) | 2 lines                    | 2 lines                    |
+| Bio line clamp (featured) | 2 lines                    | 3 lines                    |
+| Compare checkbox          | Hidden (space-constrained) | Visible top-right          |
+| CTA button                | Full width                 | Full width within card     |
 
 ---
 
@@ -221,7 +221,8 @@ Shown while `GET /workers` is in flight. Mirrors standard card dimensions exactl
 └──────────────────────────────────────────┘
 ```
 
-**Implementation**: `animate-pulse` on each shimmer element.  
+**Implementation**: `animate-pulse` on each shimmer element.
+
 - Avatar circle: `h-14 w-14 rounded-full bg-secondary`
 - Name bar: `h-4 w-32 rounded bg-secondary`
 - Category bar: `h-3 w-20 rounded-full bg-secondary`
@@ -274,6 +275,7 @@ Icon uses `text-destructive` (`hsl(var(--destructive))`).
 ### Inactive Worker Card
 
 When `isActive = false` and the card must still be shown (curator dashboard):
+
 - Card opacity: `opacity-60`
 - Status badge: `bg-secondary text-muted-foreground` pill "Inactive" — replaces the active/verified area
 - No CTA button — replaced with `text-xs text-muted-foreground` "Profile not visible to users"
@@ -284,20 +286,20 @@ When `isActive = false` and the card must still be shown (curator dashboard):
 
 ### Standard & Featured — hover
 
-| Property | Value |
-|---|---|
-| Transform | `translateY(-4px)` (`hover:-translate-y-1`) |
-| Shadow | `shadow-lg` (elevated from `shadow-sm`) |
+| Property        | Value                                             |
+| --------------- | ------------------------------------------------- |
+| Transform       | `translateY(-4px)` (`hover:-translate-y-1`)       |
+| Shadow          | `shadow-lg` (elevated from `shadow-sm`)           |
 | CTA border+text | → fills with `bg-primary text-primary-foreground` |
-| Transition | `transition-all duration-200 ease-in-out` |
+| Transition      | `transition-all duration-200 ease-in-out`         |
 
 ### Compact — hover
 
-| Property | Value |
-|---|---|
-| Shadow | `shadow-md` (elevated from `shadow-sm`) |
-| Border | `border-primary/40` |
-| No transform (too small) | — |
+| Property                 | Value                                   |
+| ------------------------ | --------------------------------------- |
+| Shadow                   | `shadow-md` (elevated from `shadow-sm`) |
+| Border                   | `border-primary/40`                     |
+| No transform (too small) | —                                       |
 
 ### Press / active state (mobile tap)
 
@@ -306,11 +308,13 @@ When `isActive = false` and the card must still be shown (curator dashboard):
 transform: translateY(0px) scale(0.98);
 box-shadow: shadow-sm;
 ```
+
 `active:scale-[0.98] active:translate-y-0`
 
 ### Focus (keyboard navigation)
 
 The entire card is a `<Link>` (or wraps one). Focus ring:
+
 ```css
 focus-visible:outline-none
 focus-visible:ring-2
@@ -327,9 +331,9 @@ focus-visible:ring-offset-background
 
 ## Verification Badge Spec
 
-| Variant | Icon | Size | Colour | Position |
-|---|---|---|---|---|
-| Compact | `BadgeCheck` | 14 px | `text-primary` | Inline, right of name |
+| Variant  | Icon         | Size  | Colour         | Position              |
+| -------- | ------------ | ----- | -------------- | --------------------- |
+| Compact  | `BadgeCheck` | 14 px | `text-primary` | Inline, right of name |
 | Standard | `BadgeCheck` | 16 px | `text-primary` | Inline, right of name |
 | Featured | `BadgeCheck` | 20 px | `text-primary` | Inline, right of name |
 
@@ -342,11 +346,11 @@ focus-visible:ring-offset-background
 
 Rating is always shown as **stars + numeric score + review count** to serve both sighted users and colour-blind users.
 
-| Variant | Stars | Score | Count |
-|---|---|---|---|
-| Compact | 1 `Star` icon (filled/unfilled) | `text-xs` | `text-xs` in `()` |
-| Standard | Full `StarRating` (5 stars) | `text-xs text-muted-foreground` | `text-xs` in `()` |
-| Featured | Full `StarRating` (5 stars) | `text-sm font-semibold text-foreground` | `text-sm text-muted-foreground` |
+| Variant  | Stars                           | Score                                   | Count                           |
+| -------- | ------------------------------- | --------------------------------------- | ------------------------------- |
+| Compact  | 1 `Star` icon (filled/unfilled) | `text-xs`                               | `text-xs` in `()`               |
+| Standard | Full `StarRating` (5 stars)     | `text-xs text-muted-foreground`         | `text-xs` in `()`               |
+| Featured | Full `StarRating` (5 stars)     | `text-sm font-semibold text-foreground` | `text-sm text-muted-foreground` |
 
 **When `averageRating = null`** (no reviews yet): show `"No reviews yet"` in `text-xs text-muted-foreground`. Do not render the star row.
 
@@ -412,16 +416,16 @@ aria-label: "Verified worker"
 
 ## Accessibility Annotations
 
-| Element | Requirement |
-|---|---|
-| Card link (`<Link>`) | `aria-label="View profile of {worker.name}"` when card contains nested interactive elements |
-| Verification badge icon | `aria-label="Verified worker"` — NOT `aria-hidden` |
-| Star rating | `role="img"` + `aria-label="Rating: 4.8 out of 5 stars, 32 reviews"` |
-| Bookmark button | `aria-label="Bookmark {worker.name}"` / `"Remove bookmark for {worker.name}"` |
-| Compare checkbox | `aria-label="Compare {worker.name}"` |
-| Avatar `<Image>` | `alt="{worker.name}"` |
-| Initials fallback `<div>` | `aria-hidden="true"` (name is already in the DOM) |
-| Skeleton cards | `aria-hidden="true"` on each skeleton; `aria-busy="true"` on list container |
-| Inactive badge | `aria-label="Worker is currently inactive"` |
-| Focus ring | `focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2` |
-| Card hover animation | Respects `prefers-reduced-motion`: `@media (prefers-reduced-motion: reduce) { .card { transition: none; transform: none; } }` |
+| Element                   | Requirement                                                                                                                   |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Card link (`<Link>`)      | `aria-label="View profile of {worker.name}"` when card contains nested interactive elements                                   |
+| Verification badge icon   | `aria-label="Verified worker"` — NOT `aria-hidden`                                                                            |
+| Star rating               | `role="img"` + `aria-label="Rating: 4.8 out of 5 stars, 32 reviews"`                                                          |
+| Bookmark button           | `aria-label="Bookmark {worker.name}"` / `"Remove bookmark for {worker.name}"`                                                 |
+| Compare checkbox          | `aria-label="Compare {worker.name}"`                                                                                          |
+| Avatar `<Image>`          | `alt="{worker.name}"`                                                                                                         |
+| Initials fallback `<div>` | `aria-hidden="true"` (name is already in the DOM)                                                                             |
+| Skeleton cards            | `aria-hidden="true"` on each skeleton; `aria-busy="true"` on list container                                                   |
+| Inactive badge            | `aria-label="Worker is currently inactive"`                                                                                   |
+| Focus ring                | `focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2`                                                    |
+| Card hover animation      | Respects `prefers-reduced-motion`: `@media (prefers-reduced-motion: reduce) { .card { transition: none; transform: none; } }` |

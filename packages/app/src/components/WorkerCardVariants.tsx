@@ -1,32 +1,32 @@
-'use client'
+'use client';
 
-import Link from 'next/link'
-import Image from 'next/image'
-import { BadgeCheck, MapPin, Star } from 'lucide-react'
-import type { Worker } from '@/types'
-import BookmarkButton from './BookmarkButton'
-import StarRating from './StarRating'
-import { useCompare } from '@/context/CompareContext'
-import { useTranslations } from 'next-intl'
+import Link from 'next/link';
+import Image from 'next/image';
+import { BadgeCheck, MapPin, Star } from 'lucide-react';
+import type { Worker } from '@/types';
+import BookmarkButton from './BookmarkButton';
+import StarRating from './StarRating';
+import { useCompare } from '@/context/CompareContext';
+import { useTranslations } from 'next-intl';
 
-type CardVariant = 'compact' | 'standard' | 'featured'
+type CardVariant = 'compact' | 'standard' | 'featured';
 
 interface WorkerCardVariantProps {
-  worker: Worker
-  variant?: CardVariant
+  worker: Worker;
+  variant?: CardVariant;
 }
 
 export function CompactWorkerCard({ worker }: WorkerCardVariantProps) {
-  const t = useTranslations('workerCard')
-  const { toggle, isSelected, isFull } = useCompare()
-  const checked = isSelected(worker.id)
+  const t = useTranslations('workerCard');
+  const { toggle, isSelected, isFull } = useCompare();
+  const checked = isSelected(worker.id);
 
   const initials = worker.name
     .split(' ')
     .map((n) => n[0])
     .slice(0, 2)
     .join('')
-    .toUpperCase()
+    .toUpperCase();
 
   return (
     <div className="relative group flex flex-col gap-2 rounded-lg border bg-white p-3 shadow-sm transition-all duration-200 hover:shadow-md">
@@ -82,20 +82,20 @@ export function CompactWorkerCard({ worker }: WorkerCardVariantProps) {
         )}
       </Link>
     </div>
-  )
+  );
 }
 
 export function StandardWorkerCard({ worker }: WorkerCardVariantProps) {
-  const t = useTranslations('workerCard')
-  const { toggle, isSelected, isFull } = useCompare()
-  const checked = isSelected(worker.id)
+  const t = useTranslations('workerCard');
+  const { toggle, isSelected, isFull } = useCompare();
+  const checked = isSelected(worker.id);
 
   const initials = worker.name
     .split(' ')
     .map((n) => n[0])
     .slice(0, 2)
     .join('')
-    .toUpperCase()
+    .toUpperCase();
 
   return (
     <div className="relative group flex flex-col gap-4 rounded-xl border bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
@@ -135,7 +135,11 @@ export function StandardWorkerCard({ worker }: WorkerCardVariantProps) {
             <div className="flex items-center gap-1.5 font-semibold text-gray-800 truncate">
               <span className="truncate">{worker.name}</span>
               {worker.isVerified && (
-                <BadgeCheck size={16} className="shrink-0 text-blue-500" aria-label={t('verified')} />
+                <BadgeCheck
+                  size={16}
+                  className="shrink-0 text-blue-500"
+                  aria-label={t('verified')}
+                />
               )}
             </div>
             <span className="mt-0.5 inline-block rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-600">
@@ -173,17 +177,17 @@ export function StandardWorkerCard({ worker }: WorkerCardVariantProps) {
         </div>
       </Link>
     </div>
-  )
+  );
 }
 
 export function FeaturedWorkerCard({ worker }: WorkerCardVariantProps) {
-  const t = useTranslations('workerCard')
+  const t = useTranslations('workerCard');
   const initials = worker.name
     .split(' ')
     .map((n) => n[0])
     .slice(0, 2)
     .join('')
-    .toUpperCase()
+    .toUpperCase();
 
   return (
     <Link href={`/workers/${worker.id}`}>
@@ -217,7 +221,11 @@ export function FeaturedWorkerCard({ worker }: WorkerCardVariantProps) {
             <div className="flex items-center gap-2">
               <h3 className="text-lg font-bold text-gray-900 truncate">{worker.name}</h3>
               {worker.isVerified && (
-                <BadgeCheck size={20} className="shrink-0 text-blue-600" aria-label={t('verified')} />
+                <BadgeCheck
+                  size={20}
+                  className="shrink-0 text-blue-600"
+                  aria-label={t('verified')}
+                />
               )}
             </div>
 
@@ -232,7 +240,11 @@ export function FeaturedWorkerCard({ worker }: WorkerCardVariantProps) {
                     <Star
                       key={i}
                       size={16}
-                      className={i < Math.round(worker.averageRating!) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}
+                      className={
+                        i < Math.round(worker.averageRating!)
+                          ? 'text-yellow-400 fill-yellow-400'
+                          : 'text-gray-300'
+                      }
                     />
                   ))}
                 </div>
@@ -265,5 +277,5 @@ export function FeaturedWorkerCard({ worker }: WorkerCardVariantProps) {
         </div>
       </div>
     </Link>
-  )
+  );
 }

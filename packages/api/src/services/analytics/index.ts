@@ -12,7 +12,7 @@
  */
 
 // Platform-wide KPIs
-export { getPlatformAnalytics } from './platform.service.js'
+export { getPlatformAnalytics } from './platform.service.js';
 
 // Worker engagement / recording
 export {
@@ -28,18 +28,18 @@ export {
   getWorkerPersonalDashboard,
   getWorkerDashboardSeries,
   getTopWorkers,
-} from './worker.service.js'
+} from './worker.service.js';
 
 // Revenue / escrow aggregation
-export { getRevenueMetrics, getDisputeMetrics } from './revenue.service.js'
-export type { DateRangeFilter } from './revenue.service.js'
+export { getRevenueMetrics, getDisputeMetrics } from './revenue.service.js';
+export type { DateRangeFilter } from './revenue.service.js';
 
 // CSV / report formatting
 export {
   exportWorkerAnalyticsCsv,
   exportPlatformAnalyticsCsv,
   exportPersonalWorkerAnalyticsCsv,
-} from './export.service.js'
+} from './export.service.js';
 
 // Shared types (useful for external consumers)
-export type { DateRange, TimeSeriesPoint } from './shared.js'
+export type { DateRange, TimeSeriesPoint } from './shared.js';

@@ -3,6 +3,7 @@
 ## Overview
 
 This guide documents the implementation of two core backend features:
+
 - **Issue #751**: On-Chain Event Indexer Service
 - **Issue #752**: Wallet Integration Service
 
@@ -11,9 +12,11 @@ This guide documents the implementation of two core backend features:
 ### Issue #751: Event Indexer Service
 
 #### Purpose
+
 Ingest Soroban contract events from Stellar Horizon RPC into PostgreSQL for fast querying and analytics without requiring live Horizon calls for every query.
 
 #### Components
+
 - **ContractEvent** (Prisma model): Stores indexed contract events
   - Unique constraint on `(contractId, ledger, txIndex, eventIndex)` prevents duplicates
   - Indexed by `contractId`, `ledger`, `eventName`, `createdAt` for fast queries
@@ -54,16 +57,19 @@ ContractEvent table (indexed, queryable, survives restarts)
 #### Usage
 
 **Query indexed events:**
+
 ```bash
 curl "http://localhost:3000/api/events?contractId=CBQHLSNW...&limit=50&offset=0"
 ```
 
 **Get worker registrations by owner:**
+
 ```bash
 curl "http://localhost:3000/api/events/worker-registrations/CBQHLSNW.../GAQFH4..."
 ```
 
 **Get cursor position:**
+
 ```bash
 curl "http://localhost:3000/api/events/cursor/CBQHLSNW..."
 ```
@@ -71,9 +77,11 @@ curl "http://localhost:3000/api/events/cursor/CBQHLSNW..."
 ### Issue #752: Wallet Integration Service
 
 #### Purpose
+
 Provide backend helpers for Stellar account operations: balance inquiry, transaction building/signing, broadcasting, and testnet funding.
 
 #### Components
+
 - **StellarAccount** (Prisma model): Links Stellar wallets to users
   - One-to-many: User has multiple StellarAccounts
   - Stores `publicKey`, `balance`, `sequences` for quick queries
@@ -102,6 +110,7 @@ Provide backend helpers for Stellar account operations: balance inquiry, transac
 #### Workflows
 
 **1. User links wallet:**
+
 ```typescript
 // Frontend gets public key from Freighter
 const publicKey = 'GAQFH4...'
@@ -118,6 +127,7 @@ POST /api/wallet/link
 ```
 
 **2. Send tip (payment flow):**
+
 ```typescript
 // Frontend: Get unsigned transaction
 POST /api/wallet/build-tx
@@ -162,6 +172,7 @@ GET /api/wallet/tx-status/abc123...
 ```
 
 **3. Fund testnet account:**
+
 ```bash
 curl -X POST http://localhost:3000/api/wallet/testnet-fund \
   -H "Content-Type: application/json" \
@@ -173,6 +184,7 @@ curl -X POST http://localhost:3000/api/wallet/testnet-fund \
 ## Database Schema
 
 ### ContractEvent
+
 ```sql
 CREATE TABLE "ContractEvent" (
     id            TEXT PRIMARY KEY,
@@ -185,7 +197,7 @@ CREATE TABLE "ContractEvent" (
     data          JSONB,                  -- additional payload
     processedAt   TIMESTAMP DEFAULT NOW(),
     createdAt     TIMESTAMP DEFAULT NOW(),
-    
+
     UNIQUE(contractId, ledger, txIndex, eventIndex)
 );
 
@@ -196,6 +208,7 @@ CREATE INDEX idx_event_created ON "ContractEvent"(createdAt);
 ```
 
 ### EventIndexerCursor
+
 ```sql
 CREATE TABLE "EventIndexerCursor" (
     id         TEXT PRIMARY KEY,
@@ -207,6 +220,7 @@ CREATE TABLE "EventIndexerCursor" (
 ```
 
 ### StellarAccount
+
 ```sql
 CREATE TABLE "StellarAccount" (
     id           TEXT PRIMARY KEY,
@@ -217,7 +231,7 @@ CREATE TABLE "StellarAccount" (
     lastSyncedAt TIMESTAMP,
     createdAt    TIMESTAMP DEFAULT NOW(),
     updatedAt    TIMESTAMP,
-    
+
     FOREIGN KEY (userId) REFERENCES "User"(id) ON DELETE CASCADE
 );
 
@@ -229,10 +243,13 @@ CREATE INDEX idx_stellar_userId ON "StellarAccount"(userId);
 ### Event Indexer Endpoints
 
 #### Query Events
+
 ```
 GET /api/events?contractId=...&eventName=...&limit=50&offset=0
 ```
+
 Response:
+
 ```json
 {
   "status": "success",
@@ -261,12 +278,14 @@ Response:
 ### Wallet Endpoints
 
 #### Get Balance (Protected)
+
 ```
 GET /api/wallet/balance
 Authorization: Bearer <jwt>
 ```
 
 #### Link Wallet (Protected)
+
 ```
 POST /api/wallet/link
 Authorization: Bearer <jwt>
@@ -276,6 +295,7 @@ Content-Type: application/json
 ```
 
 #### Build Unsigned Transaction (Protected)
+
 ```
 POST /api/wallet/build-tx
 Authorization: Bearer <jwt>
@@ -290,6 +310,7 @@ Content-Type: application/json
 ```
 
 #### Broadcast Transaction (Protected)
+
 ```
 POST /api/wallet/broadcast
 Authorization: Bearer <jwt>
@@ -314,11 +335,13 @@ MARKET_CONTRACT_ID="CABC..."
 ### Manual Testing
 
 **1. Query events:**
+
 ```bash
 curl http://localhost:3000/api/events?contractId=CBQHLSNW...
 ```
 
 **2. Fund testnet account:**
+
 ```bash
 curl -X POST http://localhost:3000/api/wallet/testnet-fund \
   -H "Content-Type: application/json" \
@@ -326,6 +349,7 @@ curl -X POST http://localhost:3000/api/wallet/testnet-fund \
 ```
 
 **3. Link wallet (requires auth):**
+
 ```bash
 curl -X POST http://localhost:3000/api/wallet/link \
   -H "Authorization: Bearer <jwt>" \
@@ -336,18 +360,21 @@ curl -X POST http://localhost:3000/api/wallet/link \
 ## Troubleshooting
 
 ### Events not being indexed
+
 1. Check `HORIZON_URL` and contract IDs are set correctly
 2. Verify `horizon-poller.service` is running (started in `index.ts`)
 3. Check logs for Horizon connection errors
 4. Confirm contracts are emitting events
 
 ### Transaction broadcast fails
+
 1. Verify XDR is properly signed by the source account
 2. Check account has sufficient XLM for fees
 3. Confirm destination account exists or use `CREATE_ACCOUNT` op
 4. Check sequence number is correct (one higher than current)
 
 ### Balance not updating
+
 1. Call `GET /api/wallet/balance` to get cached value
 2. Call `GET /api/wallet/account/:publicKey` to refresh from Horizon
 3. Check `lastSyncedAt` to see when last synced

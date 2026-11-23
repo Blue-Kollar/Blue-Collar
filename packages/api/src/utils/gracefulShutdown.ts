@@ -9,18 +9,18 @@
  * timeout instead of exiting immediately.
  */
 
-import type { Worker } from 'bullmq'
-import { logger } from '@/config/logger.js'
-import { config } from '@/config/config.js'
+import type { Worker } from 'bullmq';
+import { logger } from '@/config/logger.js';
+import { config } from '@/config/config.js';
 
 export interface GracefulShutdownOptions {
   /** Max time (ms) to wait for in-flight jobs to finish before forcing exit. */
-  timeoutMs?: number
+  timeoutMs?: number;
   /** Called after the worker has closed (successfully or via timeout). */
-  onShutdown?: () => void | Promise<void>
+  onShutdown?: () => void | Promise<void>;
 }
 
-const DEFAULT_SHUTDOWN_TIMEOUT_MS = config.worker.shutdownTimeoutMs
+const DEFAULT_SHUTDOWN_TIMEOUT_MS = config.worker.shutdownTimeoutMs;
 
 /**
  * Registers SIGTERM/SIGINT handlers that close the given worker(s) gracefully.
@@ -33,43 +33,43 @@ export function registerGracefulShutdown(
   name: string,
   options: GracefulShutdownOptions = {},
 ): void {
-  const workers = Array.isArray(worker) ? worker : [worker]
-  const timeoutMs = options.timeoutMs ?? DEFAULT_SHUTDOWN_TIMEOUT_MS
-  let shuttingDown = false
+  const workers = Array.isArray(worker) ? worker : [worker];
+  const timeoutMs = options.timeoutMs ?? DEFAULT_SHUTDOWN_TIMEOUT_MS;
+  let shuttingDown = false;
 
   const shutdown = async (signal: NodeJS.Signals) => {
     if (shuttingDown) {
-      logger.warn({ signal, name }, 'Shutdown already in progress, ignoring duplicate signal')
-      return
+      logger.warn({ signal, name }, 'Shutdown already in progress, ignoring duplicate signal');
+      return;
     }
-    shuttingDown = true
+    shuttingDown = true;
 
-    logger.info({ signal, name, timeoutMs }, 'Received shutdown signal, draining in-flight jobs')
+    logger.info({ signal, name, timeoutMs }, 'Received shutdown signal, draining in-flight jobs');
 
     const forceExitTimer = setTimeout(() => {
       logger.error(
         { name, timeoutMs },
         'Graceful shutdown timed out; forcing exit. In-flight jobs will be requeued after lock expiry.',
-      )
-      process.exit(1)
-    }, timeoutMs)
-    forceExitTimer.unref()
+      );
+      process.exit(1);
+    }, timeoutMs);
+    forceExitTimer.unref();
 
     try {
       // Worker#close() stops fetching new jobs and waits for the active job
       // to finish processing before resolving, releasing its lock so BullMQ
       // can safely hand it back to another worker if it never completed.
-      await Promise.all(workers.map((w) => w.close()))
-      logger.info({ name }, 'Worker closed cleanly, all in-flight jobs settled')
+      await Promise.all(workers.map((w) => w.close()));
+      logger.info({ name }, 'Worker closed cleanly, all in-flight jobs settled');
     } catch (err) {
-      logger.error({ err, name }, 'Error while closing worker during shutdown')
+      logger.error({ err, name }, 'Error while closing worker during shutdown');
     } finally {
-      clearTimeout(forceExitTimer)
-      await options.onShutdown?.()
-      process.exit(0)
+      clearTimeout(forceExitTimer);
+      await options.onShutdown?.();
+      process.exit(0);
     }
-  }
+  };
 
-  process.on('SIGTERM', () => void shutdown('SIGTERM'))
-  process.on('SIGINT', () => void shutdown('SIGINT'))
+  process.on('SIGTERM', () => void shutdown('SIGTERM'));
+  process.on('SIGINT', () => void shutdown('SIGINT'));
 }

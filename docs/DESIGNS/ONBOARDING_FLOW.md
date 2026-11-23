@@ -171,6 +171,7 @@ First screen after landing. Determines which path the user follows.
 Maps to `POST /auth/register` with `{ email, password, firstName, lastName }`.
 
 **Validation** (inline, on blur):
+
 - First/last name: required
 - Email: valid format, shown as taken if 409 returned
 - Password: ≥ 8 characters, strength indicator bar (weak/fair/strong)
@@ -587,14 +588,14 @@ Clicking "Continue" restores the wizard at the last completed step.
 
 ### Resume Entry Points
 
-| Scenario | Resume point |
-|---|---|
-| Left after registration, before email verify | Email verification gate |
-| Verified email, left before profile steps | Step 1 — Basic Info |
-| Completed steps 1–2, left on step 3 | Step 3 — Contact & Wallet |
-| Profile created, left before verification | Submit Documents |
-| Verification pending | Pending State |
-| Verification approved, skipped on-chain | Approved screen with on-chain CTA |
+| Scenario                                     | Resume point                      |
+| -------------------------------------------- | --------------------------------- |
+| Left after registration, before email verify | Email verification gate           |
+| Verified email, left before profile steps    | Step 1 — Basic Info               |
+| Completed steps 1–2, left on step 3          | Step 3 — Contact & Wallet         |
+| Profile created, left before verification    | Submit Documents                  |
+| Verification pending                         | Pending State                     |
+| Verification approved, skipped on-chain      | Approved screen with on-chain CTA |
 
 ### Expired / Invalid Resume
 
@@ -604,17 +605,17 @@ If `bc_onboarding_progress` is stale (> 7 days) or the worker record no longer e
 
 ## Accessibility Annotations
 
-| Element | Requirement |
-|---|---|
-| Step wizard progress bar | `role="progressbar"`, `aria-valuenow=<step>`, `aria-valuemin="1"`, `aria-valuemax="4"`, `aria-label="Step 2 of 4"` |
-| Step headings | Each step has an `<h1>` that matches the step title; focus moves to `<h1>` on step transition |
-| Form fields | All inputs have associated `<label>` elements; required fields have `aria-required="true"` |
-| Inline errors | `aria-describedby` links input to error message; `role="alert"` on error container |
-| Password visibility toggle | `aria-label="Show password"` / `aria-label="Hide password"` toggled on click |
-| Password strength indicator | `aria-live="polite"` region announces strength label (Weak / Fair / Strong) |
-| Email verification polling | `aria-live="polite"` status region announces "Verified! Continuing…" |
-| Celebration confetti | `aria-hidden="true"`; heading "You're verified!" is the primary announcement |
-| Wallet connect button | `aria-busy="true"` while awaiting Freighter; `aria-label="Connect Freighter wallet"` |
-| Role selection cards | `role="radio"` + `aria-checked`; group wrapped in `role="radiogroup"` |
-| "Save & exit" / "Skip" | Clearly labelled; keyboard accessible; does not submit the form |
-| Mobile step navigation (back arrow) | `aria-label="Go back to previous step"` |
+| Element                             | Requirement                                                                                                        |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Step wizard progress bar            | `role="progressbar"`, `aria-valuenow=<step>`, `aria-valuemin="1"`, `aria-valuemax="4"`, `aria-label="Step 2 of 4"` |
+| Step headings                       | Each step has an `<h1>` that matches the step title; focus moves to `<h1>` on step transition                      |
+| Form fields                         | All inputs have associated `<label>` elements; required fields have `aria-required="true"`                         |
+| Inline errors                       | `aria-describedby` links input to error message; `role="alert"` on error container                                 |
+| Password visibility toggle          | `aria-label="Show password"` / `aria-label="Hide password"` toggled on click                                       |
+| Password strength indicator         | `aria-live="polite"` region announces strength label (Weak / Fair / Strong)                                        |
+| Email verification polling          | `aria-live="polite"` status region announces "Verified! Continuing…"                                               |
+| Celebration confetti                | `aria-hidden="true"`; heading "You're verified!" is the primary announcement                                       |
+| Wallet connect button               | `aria-busy="true"` while awaiting Freighter; `aria-label="Connect Freighter wallet"`                               |
+| Role selection cards                | `role="radio"` + `aria-checked`; group wrapped in `role="radiogroup"`                                              |
+| "Save & exit" / "Skip"              | Clearly labelled; keyboard accessible; does not submit the form                                                    |
+| Mobile step navigation (back arrow) | `aria-label="Go back to previous step"`                                                                            |

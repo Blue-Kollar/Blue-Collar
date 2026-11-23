@@ -81,6 +81,6 @@ export const ErrorMessages = {
   DB_RECORD_NOT_FOUND: 'Record not found',
   DB_RELATED_NOT_FOUND: 'Related record not found',
   DB_ERROR: 'Database error',
-} as const
+} as const;
 
-type ErrorMessage = (typeof ErrorMessages)[keyof typeof ErrorMessages]
+type ErrorMessage = (typeof ErrorMessages)[keyof typeof ErrorMessages];

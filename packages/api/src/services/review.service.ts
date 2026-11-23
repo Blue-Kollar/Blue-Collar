@@ -1,25 +1,29 @@
-import type { Prisma } from '@prisma/client'
-import { reviewRepository as defaultReviewRepository } from '@/repositories/review.repository.js'
-import { AppError } from '@/utils/app-error.js'
-import { createServiceLogger } from '@/utils/logger.js'
-import { sanitizeText } from '@/utils/sanitize.js'
-import type { ReviewServiceDeps } from '@/container/types.js'
+import type { Prisma } from '@prisma/client';
+import { reviewRepository as defaultReviewRepository } from '@/repositories/review.repository.js';
+import { AppError } from '@/utils/app-error.js';
+import { createServiceLogger } from '@/utils/logger.js';
+import { sanitizeText } from '@/utils/sanitize.js';
+import type { ReviewServiceDeps } from '@/container/types.js';
 
-const logger = createServiceLogger('ReviewService')
+const logger = createServiceLogger('ReviewService');
 
 // ── Factory ───────────────────────────────────────────────────────────────────
 
 export function createReviewService(deps: ReviewServiceDeps) {
-  const { reviewRepository: repo } = deps
+  const { reviewRepository: repo } = deps;
 
-  async function verifyOnChainTransaction(userId: string, workerId: string, transactionHash?: string): Promise<boolean> {
+  async function verifyOnChainTransaction(
+    userId: string,
+    workerId: string,
+    transactionHash?: string,
+  ): Promise<boolean> {
     if (transactionHash) {
-      logger.debug('Verifying transaction hash', { transactionHash })
-      return true
+      logger.debug('Verifying transaction hash', { transactionHash });
+      return true;
     }
 
-    const { user, worker } = await repo.findWalletAddresses(userId, workerId)
-    return !!(user?.walletAddress && worker?.walletAddress)
+    const { user, worker } = await repo.findWalletAddresses(userId, workerId);
+    return !!(user?.walletAddress && worker?.walletAddress);
   }
 
   return {
@@ -35,29 +39,32 @@ export function createReviewService(deps: ReviewServiceDeps) {
       transactionHash?: string,
     ) {
       if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
-        throw new AppError('Rating must be between 1 and 5', 400)
+        throw new AppError('Rating must be between 1 and 5', 400);
       }
 
       if (!body || !body.trim()) {
-        throw new AppError('Review body is required', 400)
+        throw new AppError('Review body is required', 400);
       }
 
-      const worker = await repo.findById(workerId)
-      if (!worker) throw new AppError('Worker not found', 404)
+      const worker = await repo.findById(workerId);
+      if (!worker) throw new AppError('Worker not found', 404);
 
-      const existing = await repo.findByUserAndWorker(authorId, workerId)
-      if (existing) throw new AppError('You have already reviewed this worker', 409)
+      const existing = await repo.findByUserAndWorker(authorId, workerId);
+      if (existing) throw new AppError('You have already reviewed this worker', 409);
 
-      const isVerified = await verifyOnChainTransaction(authorId, workerId, transactionHash)
+      const isVerified = await verifyOnChainTransaction(authorId, workerId, transactionHash);
       if (!isVerified && !transactionHash) {
-        throw new AppError('You must have an on-chain interaction with this worker to leave a review', 403)
+        throw new AppError(
+          'You must have an on-chain interaction with this worker to leave a review',
+          403,
+        );
       }
 
-      logger.info('Creating review', { workerId, authorId, rating, isVerified })
+      logger.info('Creating review', { workerId, authorId, rating, isVerified });
 
       // Neutralise any HTML/script content in the free-text comment before storage,
       // even if the controller-level validation is bypassed.
-      const sanitizedComment = comment ? sanitizeText(comment) : comment
+      const sanitizedComment = comment ? sanitizeText(comment) : comment;
 
       return repo.createReview({
         workerId,
@@ -67,15 +74,19 @@ export function createReviewService(deps: ReviewServiceDeps) {
         transactionHash,
         isVerified,
         status: 'pending',
-      })
+      });
     },
 
     /**
      * Return a paginated list of reviews for a worker, plus aggregate stats and rating distribution.
      */
     async listReviews(workerId: string, page: number, limit: number, filterRating?: number) {
-      const where: Prisma.ReviewWhereInput = { workerId, status: 'approved', ...(filterRating ? { rating: filterRating } : {}) }
-      const baseWhere: Prisma.ReviewWhereInput = { workerId, status: 'approved' }
+      const where: Prisma.ReviewWhereInput = {
+        workerId,
+        status: 'approved',
+        ...(filterRating ? { rating: filterRating } : {}),
+      };
+      const baseWhere: Prisma.ReviewWhereInput = { workerId, status: 'approved' };
 
       // Batch all reads into a single round-trip set to avoid N+1 queries.
       const [reviews, total, agg, allRatings, totalReviews] = await Promise.all([
@@ -84,17 +95,17 @@ export function createReviewService(deps: ReviewServiceDeps) {
         repo.aggregateRating(baseWhere),
         repo.groupByRating(baseWhere),
         repo.countReviews(baseWhere),
-      ])
+      ]);
 
       const distribution = [5, 4, 3, 2, 1].map((star) => {
-        const entry = allRatings.find((r) => r.rating === star)
-        const count = entry?._count.rating ?? 0
+        const entry = allRatings.find((r) => r.rating === star);
+        const count = entry?._count.rating ?? 0;
         return {
           rating: star,
           count,
           percentage: totalReviews > 0 ? Math.round((count / totalReviews) * 100) : 0,
-        }
-      })
+        };
+      });
 
       return {
         data: reviews,
@@ -103,43 +114,46 @@ export function createReviewService(deps: ReviewServiceDeps) {
         reviewCount: totalReviews,
         distribution,
         verified: reviews.filter((r) => r.isVerified).length,
-      }
+      };
     },
 
     /**
      * Flag a review for moderation.
      */
     async flagReview(reviewId: string, reason: string) {
-      const review = await repo.findById(reviewId)
-      if (!review) throw new AppError('Review not found', 404)
-      return repo.updateReview(reviewId, { flagged: true, flagReason: sanitizeText(reason) })
+      const review = await repo.findById(reviewId);
+      if (!review) throw new AppError('Review not found', 404);
+      return repo.updateReview(reviewId, { flagged: true, flagReason: sanitizeText(reason) });
     },
 
     /**
      * Approve a pending review (admin/moderator).
      */
     async approveReview(reviewId: string) {
-      const review = await repo.findById(reviewId)
-      if (!review) throw new AppError('Review not found', 404)
-      return repo.updateReview(reviewId, { status: 'approved' })
+      const review = await repo.findById(reviewId);
+      if (!review) throw new AppError('Review not found', 404);
+      return repo.updateReview(reviewId, { status: 'approved' });
     },
 
     /**
      * Reject a review (admin/moderator).
      */
     async rejectReview(reviewId: string, reason?: string) {
-      const review = await repo.findById(reviewId)
-      if (!review) throw new AppError('Review not found', 404)
-      return repo.updateReview(reviewId, { status: 'rejected', flagReason: reason ? sanitizeText(reason) : reason })
+      const review = await repo.findById(reviewId);
+      if (!review) throw new AppError('Review not found', 404);
+      return repo.updateReview(reviewId, {
+        status: 'rejected',
+        flagReason: reason ? sanitizeText(reason) : reason,
+      });
     },
-  }
+  };
 }
 
 // ── Default service instance (backward-compatible module-level API) ───────────
 
 const _defaultService = createReviewService({
   reviewRepository: defaultReviewRepository,
-})
+});
 
 export async function createReview(
   workerId: string,
@@ -149,21 +163,26 @@ export async function createReview(
   comment?: string,
   transactionHash?: string,
 ) {
-  return _defaultService.createReview(workerId, authorId, rating, body, comment, transactionHash)
+  return _defaultService.createReview(workerId, authorId, rating, body, comment, transactionHash);
 }
 
-export async function listReviews(workerId: string, page: number, limit: number, filterRating?: number) {
-  return _defaultService.listReviews(workerId, page, limit, filterRating)
+export async function listReviews(
+  workerId: string,
+  page: number,
+  limit: number,
+  filterRating?: number,
+) {
+  return _defaultService.listReviews(workerId, page, limit, filterRating);
 }
 
 export async function flagReview(reviewId: string, reason: string) {
-  return _defaultService.flagReview(reviewId, reason)
+  return _defaultService.flagReview(reviewId, reason);
 }
 
 export async function approveReview(reviewId: string) {
-  return _defaultService.approveReview(reviewId)
+  return _defaultService.approveReview(reviewId);
 }
 
 export async function rejectReview(reviewId: string, reason?: string) {
-  return _defaultService.rejectReview(reviewId, reason)
+  return _defaultService.rejectReview(reviewId, reason);
 }

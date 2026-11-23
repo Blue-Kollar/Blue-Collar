@@ -4,7 +4,7 @@
  * Displays a personalised greeting, quick-action tiles, and a summary
  * of recent worker interactions pulled from the API.
  */
-import React from 'react'
+import React from 'react';
 import {
   View,
   Text,
@@ -13,15 +13,15 @@ import {
   ScrollView,
   ActivityIndicator,
   FlatList,
-} from 'react-native'
-import { useAuth } from '@/context/AuthContext'
-import { workersApi, contactRequestsApi } from '@/lib/api'
-import { useStaleWhileRevalidate } from '@/cache'
+} from 'react-native';
+import { useAuth } from '@/context/AuthContext';
+import { workersApi, contactRequestsApi } from '@/lib/api';
+import { useStaleWhileRevalidate } from '@/cache';
 
 export interface HomeScreenProps {
-  onNavigateToDiscovery?: () => void
-  onNavigateToProfile?: () => void
-  onNavigateToWallet?: () => void
+  onNavigateToDiscovery?: () => void;
+  onNavigateToProfile?: () => void;
+  onNavigateToWallet?: () => void;
 }
 
 export default function HomeScreen({
@@ -29,7 +29,7 @@ export default function HomeScreen({
   onNavigateToProfile,
   onNavigateToWallet,
 }: HomeScreenProps) {
-  const { user } = useAuth()
+  const { user } = useAuth();
 
   const {
     data: recentWorkers,
@@ -38,29 +38,26 @@ export default function HomeScreen({
   } = useStaleWhileRevalidate({
     queryKey: ['workers', 'recent'],
     queryFn: async () => {
-      const res = await workersApi.getAll({ limit: 5 })
-      if (!res.ok) throw new Error(res.error || 'Failed to load workers')
-      return res.data
+      const res = await workersApi.getAll({ limit: 5 });
+      if (!res.ok) throw new Error(res.error || 'Failed to load workers');
+      return res.data;
     },
     cacheKey: 'home:recent-workers',
     ttl: 30 * 60 * 1000,
-  })
+  });
 
-  const {
-    data: myRequests,
-    isLoading: loadingRequests,
-  } = useStaleWhileRevalidate({
+  const { data: myRequests, isLoading: loadingRequests } = useStaleWhileRevalidate({
     queryKey: ['contact-requests', 'mine'],
     queryFn: async () => {
-      const res = await contactRequestsApi.getMyRequests()
-      if (!res.ok) throw new Error(res.error || 'Failed to load requests')
-      return res.data
+      const res = await contactRequestsApi.getMyRequests();
+      if (!res.ok) throw new Error(res.error || 'Failed to load requests');
+      return res.data;
     },
     cacheKey: 'home:my-requests',
     ttl: 10 * 60 * 1000,
-  })
+  });
 
-  const displayName = user ? `${user.firstName}` : 'there'
+  const displayName = user ? `${user.firstName}` : 'there';
 
   return (
     <ScrollView
@@ -153,7 +150,7 @@ export default function HomeScreen({
         </View>
       )}
     </ScrollView>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -207,4 +204,4 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   requestsText: { color: '#FFF', fontWeight: '600', fontSize: 14 },
-})
+});

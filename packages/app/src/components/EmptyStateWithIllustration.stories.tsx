@@ -1,44 +1,44 @@
-import type { Meta, StoryObj } from '@storybook/react'
-import EmptyStateWithIllustration from '@/components/EmptyStateWithIllustration'
+import type { Meta, StoryObj } from '@storybook/react';
+import EmptyStateWithIllustration from '@/components/EmptyStateWithIllustration';
 
 const meta: Meta<typeof EmptyStateWithIllustration> = {
   title: 'Components/EmptyStateWithIllustration',
   component: EmptyStateWithIllustration,
   tags: ['autodocs'],
-}
-export default meta
+};
+export default meta;
 
-type Story = StoryObj<typeof EmptyStateWithIllustration>
+type Story = StoryObj<typeof EmptyStateWithIllustration>;
 
 export const NoWorkers: Story = {
   args: {
     variant: 'no-workers',
   },
-}
+};
 
 export const NoBookmarks: Story = {
   args: {
     variant: 'no-bookmarks',
   },
-}
+};
 
 export const NoReviews: Story = {
   args: {
     variant: 'no-reviews',
   },
-}
+};
 
 export const NoSearchResults: Story = {
   args: {
     variant: 'no-search-results',
   },
-}
+};
 
 export const NoTransactions: Story = {
   args: {
     variant: 'no-transactions',
   },
-}
+};
 
 export const AllVariants: Story = {
   render: () => (
@@ -65,4 +65,4 @@ export const AllVariants: Story = {
       </div>
     </div>
   ),
-}
+};

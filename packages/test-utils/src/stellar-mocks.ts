@@ -29,67 +29,64 @@
  *   }))
  */
 
-import { vi } from 'vitest'
+import { vi } from 'vitest';
 
 // ─── Well-known test addresses ────────────────────────────────────────────────
 
 /** A stable 56-character Stellar public key used as a generic "payer" address in tests. */
-export const MOCK_STELLAR_ADDRESS =
-  'GDQP2KPQGKIHYJGXNUIYOMHARUARCA7DJT5FO2FFOOKY3B2WSQHG4W37'
+export const MOCK_STELLAR_ADDRESS = 'GDQP2KPQGKIHYJGXNUIYOMHARUARCA7DJT5FO2FFOOKY3B2WSQHG4W37';
 
 /** A stable address used as the "worker" / recipient in payment tests. */
-export const MOCK_WORKER_ADDRESS =
-  'GCKFBEIYTKP6RCZX6LRJLPWLZBQK3RGZDVQBVQXAHXQ7VQXAHXQ7VQXA'
+export const MOCK_WORKER_ADDRESS = 'GCKFBEIYTKP6RCZX6LRJLPWLZBQK3RGZDVQBVQXAHXQ7VQXAHXQ7VQXA';
 
 /** A stable address used as the fee-distribution recipient in market tests. */
 export const MOCK_FEE_RECIPIENT_ADDRESS =
-  'GBZVR55UH7NODXNZMBMOZSGSGQKGLYFQSYWJBGX2MKMJCSVPAJFX7KRF'
+  'GBZVR55UH7NODXNZMBMOZSGSGQKGLYFQSYWJBGX2MKMJCSVPAJFX7KRF';
 
 // ─── Common fixture constants (#1265) ─────────────────────────────────────────
 
 /** A stable 64-hex-character transaction hash used as a fixture in Stellar tests. */
-export const MOCK_TX_HASH =
-  'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890'
+export const MOCK_TX_HASH = 'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
 
 /** A stable sequence number (as bigint) returned by account-info fixtures. */
-export const MOCK_SEQUENCE = BigInt(1234567)
+export const MOCK_SEQUENCE = BigInt(1234567);
 
 /** A stable XLM balance (as a number) returned by account-info fixtures. */
-export const MOCK_BALANCE = 100
+export const MOCK_BALANCE = 100;
 
 // ─── Default fixture values ────────────────────────────────────────────────────
 
-const DEFAULT_BALANCE = '100.0000000'
-const DEFAULT_SEQUENCE = '1234567'
-const DEFAULT_TX_HASH = MOCK_TX_HASH
+const DEFAULT_BALANCE = '100.0000000';
+const DEFAULT_SEQUENCE = '1234567';
+const DEFAULT_TX_HASH = MOCK_TX_HASH;
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
 export interface MockHorizonOptions {
   /** Override the native XLM balance returned by /accounts/:id */
-  balance?: string
+  balance?: string;
   /** Override the sequence number returned by /accounts/:id */
-  sequence?: string
+  sequence?: string;
   /** Override the transaction hash returned by POST /transactions */
-  txHash?: string
+  txHash?: string;
   /** Whether the transaction is successful (default: true) */
-  txSuccessful?: boolean
+  txSuccessful?: boolean;
   /** Result code string for transaction status responses (default: 'ok') */
-  txResultCode?: string
+  txResultCode?: string;
   /** If true, /accounts/:id responds with 404 (account not found) */
-  accountNotFound?: boolean
+  accountNotFound?: boolean;
   /** If true, POST /transactions responds with 400 (broadcast failure) */
-  broadcastFails?: boolean
+  broadcastFails?: boolean;
   /** If true, /transactions/:hash responds with 404 (pending) */
-  txPending?: boolean
+  txPending?: boolean;
   /** Extra balances to include alongside native XLM */
-  extraBalances?: Array<{ asset_type: string; balance: string; asset_code?: string }>
+  extraBalances?: Array<{ asset_type: string; balance: string; asset_code?: string }>;
 }
 
 export interface MockFreighterOptions {
-  isConnected?: boolean
-  address?: string
-  network?: string
+  isConnected?: boolean;
+  address?: string;
+  network?: string;
 }
 
 // ─── Horizon fetch mock ───────────────────────────────────────────────────────
@@ -116,15 +113,15 @@ export function makeMockHorizonFetch(options: MockHorizonOptions = {}) {
     broadcastFails = false,
     txPending = false,
     extraBalances = [],
-  } = options
+  } = options;
 
   return vi.fn().mockImplementation(async (url: string, init?: RequestInit) => {
-    const urlStr = typeof url === 'string' ? url : String(url)
-    const method = (init?.method ?? 'GET').toUpperCase()
+    const urlStr = typeof url === 'string' ? url : String(url);
+    const method = (init?.method ?? 'GET').toUpperCase();
 
     // ── Friendbot ──────────────────────────────────────────────────────────
     if (urlStr.includes('friendbot')) {
-      return new Response(JSON.stringify({ hash: txHash }), { status: 200 })
+      return new Response(JSON.stringify({ hash: txHash }), { status: 200 });
     }
 
     // ── POST /transactions (broadcast) ─────────────────────────────────────
@@ -133,52 +130,45 @@ export function makeMockHorizonFetch(options: MockHorizonOptions = {}) {
         return new Response(
           JSON.stringify({ title: 'Transaction Failed', detail: 'op_underfunded' }),
           { status: 400 },
-        )
+        );
       }
-      return new Response(
-        JSON.stringify({ hash: txHash, id: `id_${txHash.slice(0, 8)}` }),
-        { status: 200 },
-      )
+      return new Response(JSON.stringify({ hash: txHash, id: `id_${txHash.slice(0, 8)}` }), {
+        status: 200,
+      });
     }
 
     // ── GET /transactions/:hash (status) ───────────────────────────────────
-    if (method === 'GET' && /\/transactions\/[^/]+$/.test(urlStr) && !urlStr.includes('/accounts/')) {
+    if (
+      method === 'GET' &&
+      /\/transactions\/[^/]+$/.test(urlStr) &&
+      !urlStr.includes('/accounts/')
+    ) {
       if (txPending) {
-        return new Response('{}', { status: 404 })
+        return new Response('{}', { status: 404 });
       }
-      return new Response(
-        JSON.stringify({ successful: txSuccessful, result_code: txResultCode }),
-        { status: 200 },
-      )
+      return new Response(JSON.stringify({ successful: txSuccessful, result_code: txResultCode }), {
+        status: 200,
+      });
     }
 
     // ── GET /accounts/:id/transactions (history) ───────────────────────────
     if (method === 'GET' && urlStr.includes('/transactions') && urlStr.includes('/accounts/')) {
-      return new Response(
-        JSON.stringify({ _embedded: { records: [] } }),
-        { status: 200 },
-      )
+      return new Response(JSON.stringify({ _embedded: { records: [] } }), { status: 200 });
     }
 
     // ── GET /accounts/:id (account info) ──────────────────────────────────
     if (method === 'GET' && urlStr.includes('/accounts/')) {
       if (accountNotFound) {
-        return new Response('{}', { status: 404 })
+        return new Response('{}', { status: 404 });
       }
-      const balances = [
-        { asset_type: 'native', balance },
-        ...extraBalances,
-      ]
-      return new Response(
-        JSON.stringify({ balances, sequence }),
-        { status: 200 },
-      )
+      const balances = [{ asset_type: 'native', balance }, ...extraBalances];
+      return new Response(JSON.stringify({ balances, sequence }), { status: 200 });
     }
 
     // ── Fallback: unexpected URL ───────────────────────────────────────────
-    console.warn(`[test-utils] Unhandled mock fetch: ${method} ${urlStr}`)
-    return new Response('{}', { status: 200 })
-  })
+    console.warn(`[test-utils] Unhandled mock fetch: ${method} ${urlStr}`);
+    return new Response('{}', { status: 200 });
+  });
 }
 
 // ─── Freighter API mock ────────────────────────────────────────────────────────
@@ -197,11 +187,7 @@ export function makeMockHorizonFetch(options: MockHorizonOptions = {}) {
  * ```
  */
 export function makeFreighterMock(options: MockFreighterOptions = {}) {
-  const {
-    isConnected = false,
-    address = MOCK_STELLAR_ADDRESS,
-    network = 'TESTNET',
-  } = options
+  const { isConnected = false, address = MOCK_STELLAR_ADDRESS, network = 'TESTNET' } = options;
 
   return {
     isConnected: vi.fn().mockResolvedValue({ isConnected }),
@@ -210,18 +196,18 @@ export function makeFreighterMock(options: MockFreighterOptions = {}) {
     getNetwork: vi.fn().mockResolvedValue({ network }),
     signTransaction: vi.fn().mockResolvedValue({ signedXDR: 'MOCK_SIGNED_XDR' }),
     signBlob: vi.fn().mockResolvedValue({ signedBlob: 'MOCK_SIGNED_BLOB' }),
-  }
+  };
 }
 
 // ─── Soroban RPC mock ──────────────────────────────────────────────────────────
 
 export interface MockSorobanRpcOptions {
   /** Contract ID to simulate (default: 'MOCK_CONTRACT_ID') */
-  contractId?: string
+  contractId?: string;
   /** Simulated return value for invokeContract (stringified JSON) */
-  simulateResult?: unknown
+  simulateResult?: unknown;
   /** If true, simulation throws an error */
-  simulateFails?: boolean
+  simulateFails?: boolean;
 }
 
 /**
@@ -240,7 +226,7 @@ export function makeSorobanRpcMock(options: MockSorobanRpcOptions = {}) {
     contractId = 'MOCK_CONTRACT_ID',
     simulateResult = { success: true },
     simulateFails = false,
-  } = options
+  } = options;
 
   const mockSimulate = simulateFails
     ? vi.fn().mockRejectedValue(new Error('Soroban simulation failed'))
@@ -248,7 +234,7 @@ export function makeSorobanRpcMock(options: MockSorobanRpcOptions = {}) {
         results: [{ xdr: Buffer.from(JSON.stringify(simulateResult)).toString('base64') }],
         cost: { cpuInsns: '100', memBytes: '1000' },
         latestLedger: 42,
-      })
+      });
 
   return {
     SorobanRpc: {
@@ -307,7 +293,7 @@ export function makeSorobanRpcMock(options: MockSorobanRpcOptions = {}) {
       text: vi.fn().mockReturnValue({}),
     },
     BASE_FEE: '100',
-  }
+  };
 }
 
 // ─── Fixture helpers (#1265) ──────────────────────────────────────────────────
@@ -316,25 +302,25 @@ export function makeSorobanRpcMock(options: MockSorobanRpcOptions = {}) {
  * Shape of the object returned by `StellarClient.getAccountInfo`.
  */
 export interface AccountInfoFixture {
-  publicKey: string
-  balance: number
-  sequence: bigint
+  publicKey: string;
+  balance: number;
+  sequence: bigint;
 }
 
 /**
  * Shape of the object returned by `StellarClient.broadcastTransaction`.
  */
 export interface TransactionFixture {
-  txHash: string
-  txId: string
+  txHash: string;
+  txId: string;
 }
 
 /**
  * Shape of the object returned by `StellarClient.pollTransactionStatus`.
  */
 export interface BalanceFixture {
-  status: string
-  resultCode?: string
+  status: string;
+  resultCode?: string;
 }
 
 /**
@@ -352,7 +338,7 @@ export function accountFixture(overrides: Partial<AccountInfoFixture> = {}): Acc
     balance: MOCK_BALANCE,
     sequence: MOCK_SEQUENCE,
     ...overrides,
-  }
+  };
 }
 
 /**
@@ -364,13 +350,15 @@ export function accountFixture(overrides: Partial<AccountInfoFixture> = {}): Acc
  * // { txHash: 'deadbeef...', txId: 'id_deadbeef' }
  * ```
  */
-export function transactionFixture(overrides: Partial<TransactionFixture> = {}): TransactionFixture {
-  const txHash = overrides.txHash ?? MOCK_TX_HASH
+export function transactionFixture(
+  overrides: Partial<TransactionFixture> = {},
+): TransactionFixture {
+  const txHash = overrides.txHash ?? MOCK_TX_HASH;
   return {
     txHash,
     txId: `id_${txHash.slice(0, 8)}`,
     ...overrides,
-  }
+  };
 }
 
 /**
@@ -386,7 +374,7 @@ export function balanceFixture(overrides: Partial<BalanceFixture> = {}): Balance
     status: 'confirmed',
     resultCode: 'ok',
     ...overrides,
-  }
+  };
 }
 
 // ─── MockStellarClient (#1265) ────────────────────────────────────────────────
@@ -399,29 +387,29 @@ export function balanceFixture(overrides: Partial<BalanceFixture> = {}): Balance
  */
 export interface MockStellarClientOptions {
   /** Override the resolved value of `getAccountInfo`. */
-  accountInfo?: AccountInfoFixture
+  accountInfo?: AccountInfoFixture;
   /** If true, `getAccountInfo` rejects with an error. */
-  accountInfoFails?: boolean
+  accountInfoFails?: boolean;
 
   /** Override the resolved value of `broadcastTransaction`. */
-  broadcastResult?: TransactionFixture
+  broadcastResult?: TransactionFixture;
   /** If true, `broadcastTransaction` rejects with an error. */
-  broadcastFails?: boolean
+  broadcastFails?: boolean;
 
   /** Override the resolved value of `pollTransactionStatus`. */
-  txStatus?: BalanceFixture
+  txStatus?: BalanceFixture;
   /** If true, `pollTransactionStatus` rejects with an error. */
-  pollFails?: boolean
+  pollFails?: boolean;
 
   /** Override the resolved value of `fundTestnetAccount`. */
-  fundResult?: { txHash: string; message: string }
+  fundResult?: { txHash: string; message: string };
   /** If true, `fundTestnetAccount` rejects with an error. */
-  fundFails?: boolean
+  fundFails?: boolean;
 
   /** Override the resolved value of `getAccountTransactions`. */
-  accountTransactions?: Array<{ hash: string; created_at: string }>
+  accountTransactions?: Array<{ hash: string; created_at: string }>;
   /** If true, `getAccountTransactions` rejects with an error. */
-  accountTransactionsFails?: boolean
+  accountTransactionsFails?: boolean;
 }
 
 /**
@@ -460,7 +448,7 @@ export function makeMockStellarClient(options: MockStellarClientOptions = {}) {
     fundFails = false,
     accountTransactions = [],
     accountTransactionsFails = false,
-  } = options
+  } = options;
 
   return {
     getAccountInfo: accountInfoFails
@@ -482,5 +470,5 @@ export function makeMockStellarClient(options: MockStellarClientOptions = {}) {
     getAccountTransactions: accountTransactionsFails
       ? vi.fn().mockRejectedValue(new Error('Failed to fetch transactions'))
       : vi.fn().mockResolvedValue(accountTransactions),
-  }
+  };
 }

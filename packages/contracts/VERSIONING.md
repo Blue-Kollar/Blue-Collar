@@ -8,9 +8,9 @@ code without breaking existing callers (the SDK, the app, external integrators).
 
 ## Why this is separate from the upgrade guide
 
-`UPGRADE_GUIDE.md` and `SECURITY.md`'s migration pattern answer *how* to deploy new
+`UPGRADE_GUIDE.md` and `SECURITY.md`'s migration pattern answer _how_ to deploy new
 code and migrate on-chain storage (`propose_upgrade`/`upgrade`, `migrate`,
-`get_schema_version`). They don't say what changes are *safe* to ship in that new code.
+`get_schema_version`). They don't say what changes are _safe_ to ship in that new code.
 That's the gap this document fills, for anyone reading `docs/CONTRACTS.md` or building
 against `packages/sdk`.
 
@@ -23,11 +23,11 @@ same way as semver, applied to the **function signatures and behavior documented
 (these contracts are not published to crates.io; `Cargo.toml` versions track internal
 workspace state, not a public interface contract):
 
-| Change type | Examples | Safe to ship via... |
-|---|---|---|
-| **Patch** (non-breaking, no signature change) | Bug fixes, gas optimizations, internal refactors, tightening an overly-permissive check | `upgrade()` (or `execute_upgrade()` after timelock), no `migrate()` needed unless storage layout changed |
-| **Minor** (additive, backward-compatible) | New public function, new optional parameter *at the end* of an existing function via a new function overload (Soroban has no default params — add a new fn instead of changing an existing signature), new event | `upgrade()`, callers on the old interface are unaffected |
-| **Major** (breaking) | Changing an existing function's parameter types/order, removing a function, changing a return type, changing storage key encoding | `upgrade()` **+ `migrate()`** if storage changed; bump `SchemaVersion`; requires coordinated updates to `packages/sdk` and any other caller before/alongside the on-chain upgrade |
+| Change type                                   | Examples                                                                                                                                                                                                         | Safe to ship via...                                                                                                                                                               |
+| --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Patch** (non-breaking, no signature change) | Bug fixes, gas optimizations, internal refactors, tightening an overly-permissive check                                                                                                                          | `upgrade()` (or `execute_upgrade()` after timelock), no `migrate()` needed unless storage layout changed                                                                          |
+| **Minor** (additive, backward-compatible)     | New public function, new optional parameter _at the end_ of an existing function via a new function overload (Soroban has no default params — add a new fn instead of changing an existing signature), new event | `upgrade()`, callers on the old interface are unaffected                                                                                                                          |
+| **Major** (breaking)                          | Changing an existing function's parameter types/order, removing a function, changing a return type, changing storage key encoding                                                                                | `upgrade()` **+ `migrate()`** if storage changed; bump `SchemaVersion`; requires coordinated updates to `packages/sdk` and any other caller before/alongside the on-chain upgrade |
 
 A "breaking" change to the interface and a storage-layout change that requires
 `migrate()` are related but not the same thing — you can have one without the other.
@@ -47,7 +47,7 @@ Always check both independently before an upgrade.
    contracts directly (see [packages/sdk/README.md](../sdk/README.md)) and has no
    independent versioning of its own to cushion a breaking on-chain change.
 4. **Deprecating a function**: mark it in its rustdoc comment (`/// @deprecated — use
-   X instead. Will be removed no earlier than <target release/date>.`) and note it in
+X instead. Will be removed no earlier than <target release/date>.`) and note it in
    `docs/CONTRACTS.md`'s function table before removing it in a later major change.
    There's no on-chain deprecation flag — this is a documentation-level contract with
    consumers, not an enforced one.

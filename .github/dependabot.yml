@@ -11,22 +11,22 @@ updates:
     schedule:
       interval: weekly
       day: monday
-      time: "06:00"
+      time: '06:00'
       timezone: UTC
     open-pull-requests-limit: 5
     groups:
       dev-tooling:
         patterns:
-          - "eslint*"
-          - "prettier*"
-          - "typescript*"
-          - "@types/*"
-          - "vitest*"
-          - "vite*"
+          - 'eslint*'
+          - 'prettier*'
+          - 'typescript*'
+          - '@types/*'
+          - 'vitest*'
+          - 'vite*'
     ignore:
       # Avoid major-version bumps until manually reviewed
-      - dependency-name: "*"
-        update-types: ["version-update:semver-major"]
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
     labels:
       - dependencies
       - devops
@@ -39,25 +39,25 @@ updates:
     schedule:
       interval: weekly
       day: monday
-      time: "06:00"
+      time: '06:00'
       timezone: UTC
     open-pull-requests-limit: 5
     groups:
       api-security:
         patterns:
-          - "argon2*"
-          - "jsonwebtoken*"
-          - "passport*"
-          - "helmet*"
-          - "express-rate-limit*"
+          - 'argon2*'
+          - 'jsonwebtoken*'
+          - 'passport*'
+          - 'helmet*'
+          - 'express-rate-limit*'
       api-runtime:
         patterns:
-          - "express*"
-          - "prisma*"
-          - "@prisma/*"
+          - 'express*'
+          - 'prisma*'
+          - '@prisma/*'
     ignore:
-      - dependency-name: "*"
-        update-types: ["version-update:semver-major"]
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
     labels:
       - dependencies
       - devops
@@ -70,28 +70,28 @@ updates:
     schedule:
       interval: weekly
       day: monday
-      time: "06:00"
+      time: '06:00'
       timezone: UTC
     open-pull-requests-limit: 5
     groups:
       nextjs-ecosystem:
         patterns:
-          - "next*"
-          - "react*"
-          - "@next/*"
+          - 'next*'
+          - 'react*'
+          - '@next/*'
       stellar-sdk:
         patterns:
-          - "@stellar/*"
-          - "stellar*"
+          - '@stellar/*'
+          - 'stellar*'
       ui-components:
         patterns:
-          - "@radix-ui/*"
-          - "tailwindcss*"
-          - "class-variance-authority*"
-          - "lucide-react*"
+          - '@radix-ui/*'
+          - 'tailwindcss*'
+          - 'class-variance-authority*'
+          - 'lucide-react*'
     ignore:
-      - dependency-name: "*"
-        update-types: ["version-update:semver-major"]
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
     labels:
       - dependencies
       - devops
@@ -104,17 +104,17 @@ updates:
     schedule:
       interval: weekly
       day: monday
-      time: "06:00"
+      time: '06:00'
       timezone: UTC
     open-pull-requests-limit: 5
     groups:
       soroban-sdk:
         patterns:
-          - "soroban-sdk*"
-          - "stellar-sdk*"
+          - 'soroban-sdk*'
+          - 'stellar-sdk*'
     ignore:
-      - dependency-name: "*"
-        update-types: ["version-update:semver-major"]
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
     labels:
       - dependencies
       - devops
@@ -127,13 +127,13 @@ updates:
     schedule:
       interval: weekly
       day: monday
-      time: "06:00"
+      time: '06:00'
       timezone: UTC
     open-pull-requests-limit: 5
     groups:
       github-actions:
         patterns:
-          - "*"
+          - '*'
     labels:
       - dependencies
       - devops

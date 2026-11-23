@@ -6,9 +6,9 @@ BlueCollar uses [Pact](https://pact.io/) for consumer-driven contract testing to
 
 ## Overview
 
-| Role | File | Purpose |
-|------|------|---------|
-| Consumer | `src/__tests__/contract/consumer.workers.pact.test.ts` | App defines expected API shape |
+| Role     | File                                                        | Purpose                                  |
+| -------- | ----------------------------------------------------------- | ---------------------------------------- |
+| Consumer | `src/__tests__/contract/consumer.workers.pact.test.ts`      | App defines expected API shape           |
 | Provider | `src/__tests__/contract/provider.verification.pact.test.ts` | API verifies it satisfies consumer pacts |
 
 ## Running Locally

@@ -1,9 +1,11 @@
 # Incident Runbook
 
 ## Overview
+
 This runbook provides step-by-step procedures for common incidents.
 
 ## Table of Contents
+
 1. [API High Error Rate](#api-high-error-rate)
 2. [API High Latency](#api-high-latency)
 3. [Indexer Lag](#indexer-lag)
@@ -15,6 +17,7 @@ This runbook provides step-by-step procedures for common incidents.
 ## API High Error Rate
 
 ### Alert
+
 kubectl exec -it deployment/blue-collar-api --namespace blue-collar -- curl http://postgresql:5432
 kubectl top pods --namespace blue-collar
 APIHighLatency - API p95 latency exceeds 2s

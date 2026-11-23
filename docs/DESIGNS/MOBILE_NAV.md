@@ -42,11 +42,11 @@ Each tab item consists of:
 
 ### States
 
-| State | Icon colour | Label colour | Background |
-|---|---|---|---|
-| Inactive | `gray-400` | `gray-500` | transparent |
-| Active | `blue-600` | `blue-600` | transparent |
-| Pressed | `blue-700` | `blue-700` | `blue-50` (brief) |
+| State    | Icon colour | Label colour | Background        |
+| -------- | ----------- | ------------ | ----------------- |
+| Inactive | `gray-400`  | `gray-500`   | transparent       |
+| Active   | `blue-600`  | `blue-600`   | transparent       |
+| Pressed  | `blue-700`  | `blue-700`   | `blue-50` (brief) |
 
 - The active tab has an additional 2 px rounded indicator pill above the icon:
   - Colour: `blue-600`
@@ -59,10 +59,10 @@ Each tab item consists of:
 
 All interactive areas in the bottom nav must meet the 48 × 48 dp minimum.
 
-| Element | Visual size | Tappable area |
-|---|---|---|
+| Element  | Visual size                | Tappable area                    |
+| -------- | -------------------------- | -------------------------------- |
 | Tab item | ~56 × 48 px (icon + label) | Full column width × 64 px height |
-| Badge | 16 × 16 px | Inherits parent tab hit area |
+| Badge    | 16 × 16 px                 | Inherits parent tab hit area     |
 
 - The tap target extends to the full width of the tab column and the full height of the bar — no dead zones between tabs.
 - On devices with a bottom safe area (iPhone notch), the visual bar is 64 px + `env(safe-area-inset-bottom)`, but the extra inset area is **not** tappable.
@@ -108,6 +108,7 @@ When switching between tabs, content transitions using a cross-fade:
 ### Reduced motion
 
 When `prefers-reduced-motion: reduce` is active:
+
 - No fade transition — instant swap
 - Active indicator appears immediately (no scale animation)
 
@@ -124,40 +125,40 @@ Primary tab destinations vary by user role:
 
 ### Unauthenticated / Guest
 
-| Tab | Destination | Icon |
-|---|---|---|
-| Home | Landing page (`/`) | `Home` |
+| Tab     | Destination                   | Icon      |
+| ------- | ----------------------------- | --------- |
+| Home    | Landing page (`/`)            | `Home`    |
 | Workers | Worker discovery (`/workers`) | `HardHat` |
-| Login | Login page (`/auth/login`) | `LogIn` |
+| Login   | Login page (`/auth/login`)    | `LogIn`   |
 
 3-tab layout for guests — simpler IA until authenticated.
 
 ### Authenticated — Standard user
 
-| Tab | Destination | Icon |
-|---|---|---|
-| Home | Landing page (`/`) | `Home` |
-| Workers | Worker discovery (`/workers`) | `HardHat` |
+| Tab      | Destination                         | Icon            |
+| -------- | ----------------------------------- | --------------- |
+| Home     | Landing page (`/`)                  | `Home`          |
+| Workers  | Worker discovery (`/workers`)       | `HardHat`       |
 | Activity | Booking/activity feed (`/activity`) | `ClipboardList` |
-| Profile | User profile (`/profile`) | `User` |
+| Profile  | User profile (`/profile`)           | `User`          |
 
 ### Authenticated — Curator
 
-| Tab | Destination | Icon |
-|---|---|---|
-| Home | Landing page (`/`) | `Home` |
-| Workers | Worker discovery (`/workers`) | `HardHat` |
+| Tab       | Destination                      | Icon              |
+| --------- | -------------------------------- | ----------------- |
+| Home      | Landing page (`/`)               | `Home`            |
+| Workers   | Worker discovery (`/workers`)    | `HardHat`         |
 | Dashboard | Curator dashboard (`/dashboard`) | `LayoutDashboard` |
-| Profile | User profile (`/profile`) | `User` |
+| Profile   | User profile (`/profile`)        | `User`            |
 
 ### Authenticated — Admin
 
-| Tab | Destination | Icon |
-|---|---|---|
-| Home | Landing page (`/`) | `Home` |
-| Workers | Worker discovery (`/workers`) | `HardHat` |
+| Tab       | Destination                    | Icon              |
+| --------- | ------------------------------ | ----------------- |
+| Home      | Landing page (`/`)             | `Home`            |
+| Workers   | Worker discovery (`/workers`)  | `HardHat`         |
 | Dashboard | Admin dashboard (`/dashboard`) | `LayoutDashboard` |
-| Profile | User profile (`/profile`) | `User` |
+| Profile   | User profile (`/profile`)      | `User`            |
 
 ---
 

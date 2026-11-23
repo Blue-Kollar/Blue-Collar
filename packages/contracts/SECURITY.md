@@ -9,48 +9,48 @@ This document covers the security posture of the BlueCollar Soroban smart contra
 
 ### Registry Contract
 
-| Function | Auth required | Role |
-|---|---|---|
-| `initialize` | none (one-shot) | — |
-| `grant_role` / `revoke_role` | `require_auth()` on caller | `ROLE_ADMIN` |
-| `add_curator` / `remove_curator` | `require_auth()` on caller | `ROLE_CURATOR_MGR` |
-| `register` / `batch_register` | `require_auth()` on curator | curator list |
-| `toggle` / `update` / `update_worker` | `require_auth()` on caller | owner or delegate |
-| `deregister` | `require_auth()` on caller | owner only |
-| `update_reputation` | `require_auth()` on caller | `ROLE_REP_MGR` |
-| `update_reviews` / `update_subscription` | `require_auth()` on caller | `ROLE_ADMIN` |
-| `verify_category` | `require_auth()` on curator | curator list |
-| `verify_location` | `require_auth()` on verifier | any (verifier self-attests) |
-| `update_availability` | `require_auth()` on caller | owner only |
-| `stake` / `request_unstake` / `unstake` | `require_auth()` on caller | owner only |
-| `award_badge` | `require_auth()` on issuer | `ROLE_ADMIN` or curator |
-| `revoke_badge` | `require_auth()` on caller | `ROLE_ADMIN` or original issuer |
-| `upgrade` | `require_auth()` on caller | `ROLE_UPGRADER` |
-| `pause` / `unpause` | `require_auth()` on caller | `ROLE_PAUSER` |
-| `migrate` | `require_auth()` on caller | `ROLE_ADMIN` |
+| Function                                 | Auth required                | Role                            |
+| ---------------------------------------- | ---------------------------- | ------------------------------- |
+| `initialize`                             | none (one-shot)              | —                               |
+| `grant_role` / `revoke_role`             | `require_auth()` on caller   | `ROLE_ADMIN`                    |
+| `add_curator` / `remove_curator`         | `require_auth()` on caller   | `ROLE_CURATOR_MGR`              |
+| `register` / `batch_register`            | `require_auth()` on curator  | curator list                    |
+| `toggle` / `update` / `update_worker`    | `require_auth()` on caller   | owner or delegate               |
+| `deregister`                             | `require_auth()` on caller   | owner only                      |
+| `update_reputation`                      | `require_auth()` on caller   | `ROLE_REP_MGR`                  |
+| `update_reviews` / `update_subscription` | `require_auth()` on caller   | `ROLE_ADMIN`                    |
+| `verify_category`                        | `require_auth()` on curator  | curator list                    |
+| `verify_location`                        | `require_auth()` on verifier | any (verifier self-attests)     |
+| `update_availability`                    | `require_auth()` on caller   | owner only                      |
+| `stake` / `request_unstake` / `unstake`  | `require_auth()` on caller   | owner only                      |
+| `award_badge`                            | `require_auth()` on issuer   | `ROLE_ADMIN` or curator         |
+| `revoke_badge`                           | `require_auth()` on caller   | `ROLE_ADMIN` or original issuer |
+| `upgrade`                                | `require_auth()` on caller   | `ROLE_UPGRADER`                 |
+| `pause` / `unpause`                      | `require_auth()` on caller   | `ROLE_PAUSER`                   |
+| `migrate`                                | `require_auth()` on caller   | `ROLE_ADMIN`                    |
 
 ### Market Contract
 
-| Function | Auth required | Role |
-|---|---|---|
-| `initialize` | none (one-shot) | — |
-| `grant_role` / `revoke_role` | `require_auth()` on caller | `ROLE_ADMIN` |
-| `update_fee` | `require_auth()` on caller | `ROLE_FEE_MANAGER` |
-| `set_treasury` | `require_auth()` on caller | `ROLE_ADMIN` |
-| `tip` | `require_auth()` on `from` | payer |
-| `create_escrow` | `require_auth()` on `from` | payer |
-| `release_escrow` | `require_auth()` on caller | `from` or `to` |
-| `cancel_escrow` | `require_auth()` on caller | `from` only, after expiry |
-| `cancel_expired_escrow` | none | anyone |
-| `create_multisig_escrow` | `require_auth()` on `from` | payer |
-| `approve_multisig_release` | `require_auth()` on caller | signer |
-| `cancel_multisig_escrow` | `require_auth()` on caller | `from` only, after expiry |
-| `add_arbitrator` / `remove_arbitrator` | `require_auth()` on admin | `ROLE_ADMIN` |
-| `request_arbitration` | `require_auth()` on caller | `from` or `to` |
-| `resolve_arbitration` | `require_auth()` on arbitrator | assigned arbitrator |
-| `upgrade` | `require_auth()` on caller | `ROLE_UPGRADER` |
-| `pause` / `unpause` | `require_auth()` on caller | `ROLE_PAUSER` |
-| `migrate` | `require_auth()` on caller | `ROLE_ADMIN` |
+| Function                               | Auth required                  | Role                      |
+| -------------------------------------- | ------------------------------ | ------------------------- |
+| `initialize`                           | none (one-shot)                | —                         |
+| `grant_role` / `revoke_role`           | `require_auth()` on caller     | `ROLE_ADMIN`              |
+| `update_fee`                           | `require_auth()` on caller     | `ROLE_FEE_MANAGER`        |
+| `set_treasury`                         | `require_auth()` on caller     | `ROLE_ADMIN`              |
+| `tip`                                  | `require_auth()` on `from`     | payer                     |
+| `create_escrow`                        | `require_auth()` on `from`     | payer                     |
+| `release_escrow`                       | `require_auth()` on caller     | `from` or `to`            |
+| `cancel_escrow`                        | `require_auth()` on caller     | `from` only, after expiry |
+| `cancel_expired_escrow`                | none                           | anyone                    |
+| `create_multisig_escrow`               | `require_auth()` on `from`     | payer                     |
+| `approve_multisig_release`             | `require_auth()` on caller     | signer                    |
+| `cancel_multisig_escrow`               | `require_auth()` on caller     | `from` only, after expiry |
+| `add_arbitrator` / `remove_arbitrator` | `require_auth()` on admin      | `ROLE_ADMIN`              |
+| `request_arbitration`                  | `require_auth()` on caller     | `from` or `to`            |
+| `resolve_arbitration`                  | `require_auth()` on arbitrator | assigned arbitrator       |
+| `upgrade`                              | `require_auth()` on caller     | `ROLE_UPGRADER`           |
+| `pause` / `unpause`                    | `require_auth()` on caller     | `ROLE_PAUSER`             |
+| `migrate`                              | `require_auth()` on caller     | `ROLE_ADMIN`              |
 
 **Finding:** Every state-mutating function calls `require_auth()` on the appropriate
 principal before performing any state changes. View functions (`get_*`, `list_*`,
@@ -67,18 +67,18 @@ All arithmetic that could overflow uses Rust's checked arithmetic methods:
 
 ### Registry — affected calculations
 
-| Location | Operation | Protection |
-|---|---|---|
-| `stake` | reward accumulation | `checked_mul`, `checked_div`, `checked_add` |
-| `unstake` | final reward + total return | `checked_mul`, `checked_div`, `checked_add` |
-| `update_metrics` | weighted average rating | `checked_mul`, `checked_add` |
-| `calculate_performance_score` | score components | `checked_mul`, `checked_add` |
+| Location                      | Operation                   | Protection                                  |
+| ----------------------------- | --------------------------- | ------------------------------------------- |
+| `stake`                       | reward accumulation         | `checked_mul`, `checked_div`, `checked_add` |
+| `unstake`                     | final reward + total return | `checked_mul`, `checked_div`, `checked_add` |
+| `update_metrics`              | weighted average rating     | `checked_mul`, `checked_add`                |
+| `calculate_performance_score` | score components            | `checked_mul`, `checked_add`                |
 
 ### Market — affected calculations
 
-| Location | Operation | Protection |
-|---|---|---|
-| `tip` | fee = amount × fee_bps / 10_000 | `checked_mul`, `checked_div`, `checked_sub` |
+| Location | Operation                       | Protection                                  |
+| -------- | ------------------------------- | ------------------------------------------- |
+| `tip`    | fee = amount × fee_bps / 10_000 | `checked_mul`, `checked_div`, `checked_sub` |
 
 ---
 
@@ -129,6 +129,7 @@ Both contracts expose an `upgrade(new_wasm_hash)` function gated behind `ROLE_UP
 The upgrade replaces the WASM in-place, preserving the contract ID and all storage.
 
 Risks:
+
 - A malicious WASM hash could replace contract logic entirely.
 - Mitigation: `ROLE_UPGRADER` should be held by a multisig or governance contract in
   production, not a single EOA.
@@ -213,13 +214,13 @@ summarised here.
 Scripts under `scripts/` read configuration from the environment rather than
 hard-coded values. Typical variables:
 
-| Variable | Purpose |
-|---|---|
-| `STELLAR_NETWORK` | `testnet` or `mainnet` target |
-| `STELLAR_RPC_URL` / `STELLAR_NETWORK_PASSPHRASE` | RPC endpoint and network passphrase |
-| `STELLAR_SOURCE_ACCOUNT` | public key of the deployer/admin identity |
-| `STELLAR_SECRET_KEY` | secret key, **only** for ephemeral CI/testnet use |
-| `REGISTRY_CONTRACT_ID` / `MARKET_CONTRACT_ID` | existing contract IDs for upgrades |
+| Variable                                         | Purpose                                           |
+| ------------------------------------------------ | ------------------------------------------------- |
+| `STELLAR_NETWORK`                                | `testnet` or `mainnet` target                     |
+| `STELLAR_RPC_URL` / `STELLAR_NETWORK_PASSPHRASE` | RPC endpoint and network passphrase               |
+| `STELLAR_SOURCE_ACCOUNT`                         | public key of the deployer/admin identity         |
+| `STELLAR_SECRET_KEY`                             | secret key, **only** for ephemeral CI/testnet use |
+| `REGISTRY_CONTRACT_ID` / `MARKET_CONTRACT_ID`    | existing contract IDs for upgrades                |
 
 Rules:
 

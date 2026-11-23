@@ -6,12 +6,12 @@ weren't documented anywhere before: refresh tokens, 2FA, and device sessions.
 
 ## Overview
 
-| Mechanism | Used for |
-|---|---|
-| JWT bearer token | All authenticated REST requests |
-| Refresh token | Obtaining a new JWT without re-entering credentials |
-| Google OAuth 2.0 | Alternative to email/password login |
-| TOTP 2FA + backup codes | Optional second factor on top of password login |
+| Mechanism               | Used for                                            |
+| ----------------------- | --------------------------------------------------- |
+| JWT bearer token        | All authenticated REST requests                     |
+| Refresh token           | Obtaining a new JWT without re-entering credentials |
+| Google OAuth 2.0        | Alternative to email/password login                 |
+| TOTP 2FA + backup codes | Optional second factor on top of password login     |
 
 Passwords are hashed with Argon2. JWTs are signed with `JWT_SECRET` (see `.env.example`).
 
@@ -99,14 +99,14 @@ Alternative to email/password:
 
 Opt-in, on top of password login. All 2FA endpoints are under `/api/v1/auth/2fa`:
 
-| Endpoint | Auth required | Purpose |
-|---|---|---|
-| `POST /2fa/setup` | bearer | Generate a TOTP secret + QR code for an authenticator app |
-| `POST /2fa/enable` | bearer | Verify the first TOTP code and activate 2FA (body: `{ token }`) |
-| `POST /2fa/verify` | none | Verify a TOTP code during login (body: `{ userId, token }`) |
-| `POST /2fa/verify-backup` | none | Verify a one-time backup code instead of a TOTP code (body: `{ userId, code }`) |
-| `DELETE /2fa` | bearer | Disable 2FA (body: `{ token }`) |
-| `POST /2fa/backup-codes/regenerate` | bearer | Invalidate and reissue backup codes (body: `{ token }`) |
+| Endpoint                            | Auth required | Purpose                                                                         |
+| ----------------------------------- | ------------- | ------------------------------------------------------------------------------- |
+| `POST /2fa/setup`                   | bearer        | Generate a TOTP secret + QR code for an authenticator app                       |
+| `POST /2fa/enable`                  | bearer        | Verify the first TOTP code and activate 2FA (body: `{ token }`)                 |
+| `POST /2fa/verify`                  | none          | Verify a TOTP code during login (body: `{ userId, token }`)                     |
+| `POST /2fa/verify-backup`           | none          | Verify a one-time backup code instead of a TOTP code (body: `{ userId, code }`) |
+| `DELETE /2fa`                       | bearer        | Disable 2FA (body: `{ token }`)                                                 |
+| `POST /2fa/backup-codes/regenerate` | bearer        | Invalidate and reissue backup codes (body: `{ token }`)                         |
 
 Flow once 2FA is enabled: `POST /auth/login` succeeds as normal (2FA is enforced by the
 client calling `/2fa/verify` with the `userId` from the login response before treating

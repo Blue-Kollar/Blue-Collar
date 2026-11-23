@@ -1,4 +1,4 @@
-import { Skeleton, WorkerCardSkeleton } from "@/components/Skeleton";
+import { Skeleton, WorkerCardSkeleton } from '@/components/Skeleton';
 
 export default function WorkersLoading() {
   return (

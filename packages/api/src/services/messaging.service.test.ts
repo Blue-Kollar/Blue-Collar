@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import * as messagingService from './messaging.service.js'
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import * as messagingService from './messaging.service.js';
 
 // Mock dependencies
 vi.mock('../db.js', () => ({
@@ -19,11 +19,11 @@ vi.mock('../db.js', () => ({
       update: vi.fn(),
     },
   },
-}))
+}));
 
-import { db } from '../db.js'
+import { db } from '../db.js';
 
-const mockDb = db as any
+const mockDb = db as any;
 
 // Helper functions
 function createMockParticipant(userId: string) {
@@ -38,7 +38,7 @@ function createMockParticipant(userId: string) {
       lastName: 'Doe',
       avatar: 'https://example.com/avatar.jpg',
     },
-  }
+  };
 }
 
 function createMockConversation(overrides = {}) {
@@ -58,7 +58,7 @@ function createMockConversation(overrides = {}) {
       },
     ],
     ...overrides,
-  }
+  };
 }
 
 function createMockMessage(overrides = {}) {
@@ -70,83 +70,77 @@ function createMockMessage(overrides = {}) {
     createdAt: new Date('2024-01-02'),
     updatedAt: new Date('2024-01-02'),
     ...overrides,
-  }
+  };
 }
 
 beforeEach(() => {
-  vi.clearAllMocks()
-})
+  vi.clearAllMocks();
+});
 
 describe('Messaging Service', () => {
   describe('createConversation', () => {
     it('should create conversation with multiple participants', async () => {
-      const mockConv = createMockConversation()
+      const mockConv = createMockConversation();
 
-      mockDb.conversation.create.mockResolvedValue(mockConv)
+      mockDb.conversation.create.mockResolvedValue(mockConv);
 
       const result = await messagingService.createConversation(
         ['user-1', 'user-2'],
-        'Test Conversation'
-      )
+        'Test Conversation',
+      );
 
       expect(mockDb.conversation.create).toHaveBeenCalledWith({
         data: {
           subject: 'Test Conversation',
           participants: {
-            create: [
-              { userId: 'user-1' },
-              { userId: 'user-2' },
-            ],
+            create: [{ userId: 'user-1' }, { userId: 'user-2' }],
           },
         },
         include: { participants: true },
-      })
-      expect(result).toEqual(mockConv)
-    })
+      });
+      expect(result).toEqual(mockConv);
+    });
 
     it('should create conversation without subject', async () => {
-      const mockConv = createMockConversation({ subject: null })
+      const mockConv = createMockConversation({ subject: null });
 
-      mockDb.conversation.create.mockResolvedValue(mockConv)
+      mockDb.conversation.create.mockResolvedValue(mockConv);
 
-      const result = await messagingService.createConversation(['user-1', 'user-2'])
+      const result = await messagingService.createConversation(['user-1', 'user-2']);
 
       expect(mockDb.conversation.create).toHaveBeenCalledWith({
         data: {
           subject: undefined,
           participants: {
-            create: [
-              { userId: 'user-1' },
-              { userId: 'user-2' },
-            ],
+            create: [{ userId: 'user-1' }, { userId: 'user-2' }],
           },
         },
         include: { participants: true },
-      })
-      expect(result).toEqual(mockConv)
-    })
+      });
+      expect(result).toEqual(mockConv);
+    });
 
     it('should create conversation with single participant', async () => {
       const mockConv = createMockConversation({
         participants: [createMockParticipant('user-1')],
-      })
+      });
 
-      mockDb.conversation.create.mockResolvedValue(mockConv)
+      mockDb.conversation.create.mockResolvedValue(mockConv);
 
-      const result = await messagingService.createConversation(['user-1'])
+      const result = await messagingService.createConversation(['user-1']);
 
-      expect(mockDb.conversation.create).toHaveBeenCalled()
-      expect(result).toEqual(mockConv)
-    })
-  })
+      expect(mockDb.conversation.create).toHaveBeenCalled();
+      expect(result).toEqual(mockConv);
+    });
+  });
 
   describe('getConversation', () => {
     it('should return conversation with all messages for authorized user', async () => {
-      const mockConv = createMockConversation()
+      const mockConv = createMockConversation();
 
-      mockDb.conversation.findFirst.mockResolvedValue(mockConv)
+      mockDb.conversation.findFirst.mockResolvedValue(mockConv);
 
-      const result = await messagingService.getConversation('conv-1', 'user-1')
+      const result = await messagingService.getConversation('conv-1', 'user-1');
 
       expect(mockDb.conversation.findFirst).toHaveBeenCalledWith({
         where: {
@@ -154,57 +148,61 @@ describe('Messaging Service', () => {
           participants: { some: { userId: 'user-1' } },
         },
         include: {
-          participants: { include: { user: { select: { id: true, firstName: true, lastName: true, avatar: true } } } },
+          participants: {
+            include: {
+              user: { select: { id: true, firstName: true, lastName: true, avatar: true } },
+            },
+          },
           messages: { take: 50, orderBy: { createdAt: 'asc' } },
         },
-      })
-      expect(result).toEqual(mockConv)
-    })
+      });
+      expect(result).toEqual(mockConv);
+    });
 
     it('should throw error if conversation not found', async () => {
-      mockDb.conversation.findFirst.mockResolvedValue(null)
+      mockDb.conversation.findFirst.mockResolvedValue(null);
 
-      await expect(
-        messagingService.getConversation('invalid-conv', 'user-1')
-      ).rejects.toThrow('Conversation not found')
-    })
+      await expect(messagingService.getConversation('invalid-conv', 'user-1')).rejects.toThrow(
+        'Conversation not found',
+      );
+    });
 
     it('should throw error if user is not participant', async () => {
-      mockDb.conversation.findFirst.mockResolvedValue(null)
+      mockDb.conversation.findFirst.mockResolvedValue(null);
 
-      await expect(
-        messagingService.getConversation('conv-1', 'unauthorized-user')
-      ).rejects.toThrow('Conversation not found')
-    })
+      await expect(messagingService.getConversation('conv-1', 'unauthorized-user')).rejects.toThrow(
+        'Conversation not found',
+      );
+    });
 
     it('should limit messages to last 50', async () => {
-      const mockConv = createMockConversation()
+      const mockConv = createMockConversation();
 
-      mockDb.conversation.findFirst.mockResolvedValue(mockConv)
+      mockDb.conversation.findFirst.mockResolvedValue(mockConv);
 
-      await messagingService.getConversation('conv-1', 'user-1')
+      await messagingService.getConversation('conv-1', 'user-1');
 
       expect(mockDb.conversation.findFirst).toHaveBeenCalledWith(
         expect.objectContaining({
           include: expect.objectContaining({
             messages: expect.objectContaining({ take: 50 }),
           }),
-        })
-      )
-    })
-  })
+        }),
+      );
+    });
+  });
 
   describe('getUserConversations', () => {
     it('should return paginated conversations for user', async () => {
       const mockConvs = [
         createMockConversation({ id: 'conv-1' }),
         createMockConversation({ id: 'conv-2' }),
-      ]
+      ];
 
-      mockDb.conversation.findMany.mockResolvedValue(mockConvs)
-      mockDb.conversation.count.mockResolvedValue(10)
+      mockDb.conversation.findMany.mockResolvedValue(mockConvs);
+      mockDb.conversation.count.mockResolvedValue(10);
 
-      const result = await messagingService.getUserConversations('user-1', 1, 20)
+      const result = await messagingService.getUserConversations('user-1', 1, 20);
 
       expect(mockDb.conversation.findMany).toHaveBeenCalledWith({
         where: { participants: { some: { userId: 'user-1' } } },
@@ -215,73 +213,73 @@ describe('Messaging Service', () => {
         orderBy: { updatedAt: 'desc' },
         skip: 0,
         take: 20,
-      })
-      expect(result.data).toEqual(mockConvs)
-      expect(result.meta.total).toBe(10)
-      expect(result.meta.page).toBe(1)
-      expect(result.meta.limit).toBe(20)
-      expect(result.meta.pages).toBe(1)
-    })
+      });
+      expect(result.data).toEqual(mockConvs);
+      expect(result.meta.total).toBe(10);
+      expect(result.meta.page).toBe(1);
+      expect(result.meta.limit).toBe(20);
+      expect(result.meta.pages).toBe(1);
+    });
 
     it('should use default pagination values', async () => {
-      mockDb.conversation.findMany.mockResolvedValue([])
-      mockDb.conversation.count.mockResolvedValue(0)
+      mockDb.conversation.findMany.mockResolvedValue([]);
+      mockDb.conversation.count.mockResolvedValue(0);
 
-      const result = await messagingService.getUserConversations('user-1')
+      const result = await messagingService.getUserConversations('user-1');
 
       expect(mockDb.conversation.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           skip: 0,
           take: 20,
-        })
-      )
-      expect(result.meta.limit).toBe(20)
-      expect(result.meta.page).toBe(1)
-    })
+        }),
+      );
+      expect(result.meta.limit).toBe(20);
+      expect(result.meta.page).toBe(1);
+    });
 
     it('should calculate correct pagination offset', async () => {
-      mockDb.conversation.findMany.mockResolvedValue([])
-      mockDb.conversation.count.mockResolvedValue(100)
+      mockDb.conversation.findMany.mockResolvedValue([]);
+      mockDb.conversation.count.mockResolvedValue(100);
 
-      await messagingService.getUserConversations('user-1', 3, 10)
+      await messagingService.getUserConversations('user-1', 3, 10);
 
       expect(mockDb.conversation.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           skip: 20,
           take: 10,
-        })
-      )
-    })
+        }),
+      );
+    });
 
     it('should calculate total pages correctly', async () => {
-      mockDb.conversation.findMany.mockResolvedValue([])
-      mockDb.conversation.count.mockResolvedValue(55)
+      mockDb.conversation.findMany.mockResolvedValue([]);
+      mockDb.conversation.count.mockResolvedValue(55);
 
-      const result = await messagingService.getUserConversations('user-1', 1, 10)
+      const result = await messagingService.getUserConversations('user-1', 1, 10);
 
-      expect(result.meta.pages).toBe(6)
-    })
-  })
+      expect(result.meta.pages).toBe(6);
+    });
+  });
 
   describe('searchMessages', () => {
     it('should search messages in conversation', async () => {
-      const mockConv = createMockConversation()
+      const mockConv = createMockConversation();
       const mockMessages = [
         createMockMessage({ body: 'test message' }),
         createMockMessage({ body: 'another test' }),
-      ]
+      ];
 
-      mockDb.conversation.findFirst.mockResolvedValue(mockConv)
-      mockDb.message.findMany.mockResolvedValue(mockMessages)
+      mockDb.conversation.findFirst.mockResolvedValue(mockConv);
+      mockDb.message.findMany.mockResolvedValue(mockMessages);
 
-      const result = await messagingService.searchMessages('conv-1', 'test', 'user-1')
+      const result = await messagingService.searchMessages('conv-1', 'test', 'user-1');
 
       expect(mockDb.conversation.findFirst).toHaveBeenCalledWith({
         where: {
           id: 'conv-1',
           participants: { some: { userId: 'user-1' } },
         },
-      })
+      });
       expect(mockDb.message.findMany).toHaveBeenCalledWith({
         where: {
           conversationId: 'conv-1',
@@ -289,25 +287,25 @@ describe('Messaging Service', () => {
         },
         orderBy: { createdAt: 'desc' },
         take: 50,
-      })
-      expect(result).toEqual(mockMessages)
-    })
+      });
+      expect(result).toEqual(mockMessages);
+    });
 
     it('should throw error if conversation not found', async () => {
-      mockDb.conversation.findFirst.mockResolvedValue(null)
+      mockDb.conversation.findFirst.mockResolvedValue(null);
 
       await expect(
-        messagingService.searchMessages('invalid-conv', 'test', 'user-1')
-      ).rejects.toThrow('Conversation not found')
-    })
+        messagingService.searchMessages('invalid-conv', 'test', 'user-1'),
+      ).rejects.toThrow('Conversation not found');
+    });
 
     it('should handle multi-word search queries', async () => {
-      const mockConv = createMockConversation()
+      const mockConv = createMockConversation();
 
-      mockDb.conversation.findFirst.mockResolvedValue(mockConv)
-      mockDb.message.findMany.mockResolvedValue([])
+      mockDb.conversation.findFirst.mockResolvedValue(mockConv);
+      mockDb.message.findMany.mockResolvedValue([]);
 
-      await messagingService.searchMessages('conv-1', 'hello world', 'user-1')
+      await messagingService.searchMessages('conv-1', 'hello world', 'user-1');
 
       expect(mockDb.message.findMany).toHaveBeenCalledWith({
         where: {
@@ -316,73 +314,73 @@ describe('Messaging Service', () => {
         },
         orderBy: { createdAt: 'desc' },
         take: 50,
-      })
-    })
-  })
+      });
+    });
+  });
 
   describe('deleteMessage', () => {
     it('should soft delete message for authorized user', async () => {
-      const mockMsg = createMockMessage({ senderId: 'user-1' })
-      const deletedMsg = createMockMessage({ senderId: 'user-1', body: '[deleted]' })
+      const mockMsg = createMockMessage({ senderId: 'user-1' });
+      const deletedMsg = createMockMessage({ senderId: 'user-1', body: '[deleted]' });
 
-      mockDb.message.findUnique.mockResolvedValue(mockMsg)
-      mockDb.message.update.mockResolvedValue(deletedMsg)
+      mockDb.message.findUnique.mockResolvedValue(mockMsg);
+      mockDb.message.update.mockResolvedValue(deletedMsg);
 
-      const result = await messagingService.deleteMessage('msg-1', 'user-1')
+      const result = await messagingService.deleteMessage('msg-1', 'user-1');
 
       expect(mockDb.message.findUnique).toHaveBeenCalledWith({
         where: { id: 'msg-1' },
-      })
+      });
       expect(mockDb.message.update).toHaveBeenCalledWith({
         where: { id: 'msg-1' },
         data: { body: '[deleted]' },
-      })
-      expect(result.body).toBe('[deleted]')
-    })
+      });
+      expect(result.body).toBe('[deleted]');
+    });
 
     it('should throw error if message not found', async () => {
-      mockDb.message.findUnique.mockResolvedValue(null)
+      mockDb.message.findUnique.mockResolvedValue(null);
 
-      await expect(
-        messagingService.deleteMessage('invalid-msg', 'user-1')
-      ).rejects.toThrow('Message not found')
-    })
+      await expect(messagingService.deleteMessage('invalid-msg', 'user-1')).rejects.toThrow(
+        'Message not found',
+      );
+    });
 
     it('should throw error if user is not sender', async () => {
-      const mockMsg = createMockMessage({ senderId: 'user-2' })
+      const mockMsg = createMockMessage({ senderId: 'user-2' });
 
-      mockDb.message.findUnique.mockResolvedValue(mockMsg)
+      mockDb.message.findUnique.mockResolvedValue(mockMsg);
 
-      await expect(
-        messagingService.deleteMessage('msg-1', 'user-1')
-      ).rejects.toThrow('Unauthorized')
-    })
-  })
+      await expect(messagingService.deleteMessage('msg-1', 'user-1')).rejects.toThrow(
+        'Unauthorized',
+      );
+    });
+  });
 
   describe('markConversationAsRead', () => {
     it('should update last read timestamp', async () => {
-      const now = new Date()
+      const now = new Date();
       const updatedParticipant = {
         conversationId: 'conv-1',
         userId: 'user-1',
         lastReadAt: now,
-      }
+      };
 
-      mockDb.conversationParticipant.update.mockResolvedValue(updatedParticipant)
+      mockDb.conversationParticipant.update.mockResolvedValue(updatedParticipant);
 
-      const result = await messagingService.markConversationAsRead('conv-1', 'user-1')
+      const result = await messagingService.markConversationAsRead('conv-1', 'user-1');
 
       expect(mockDb.conversationParticipant.update).toHaveBeenCalledWith({
         where: { conversationId_userId: { conversationId: 'conv-1', userId: 'user-1' } },
         data: { lastReadAt: expect.any(Date) },
-      })
-      expect(result.lastReadAt).toBeDefined()
-    })
-  })
+      });
+      expect(result.lastReadAt).toBeDefined();
+    });
+  });
 
   describe('getUnreadCount', () => {
     it('should return zero unread messages when all are read', async () => {
-      const now = new Date()
+      const now = new Date();
       const mockConvs = [
         {
           id: 'conv-1',
@@ -399,17 +397,17 @@ describe('Messaging Service', () => {
             },
           ],
         },
-      ]
+      ];
 
-      mockDb.conversation.findMany.mockResolvedValue(mockConvs)
+      mockDb.conversation.findMany.mockResolvedValue(mockConvs);
 
-      const result = await messagingService.getUnreadCount('user-1')
+      const result = await messagingService.getUnreadCount('user-1');
 
-      expect(result).toBe(0)
-    })
+      expect(result).toBe(0);
+    });
 
     it('should count unread messages created after last read', async () => {
-      const lastReadAt = new Date('2024-01-01')
+      const lastReadAt = new Date('2024-01-01');
       const mockConvs = [
         {
           id: 'conv-1',
@@ -434,14 +432,14 @@ describe('Messaging Service', () => {
             },
           ],
         },
-      ]
+      ];
 
-      mockDb.conversation.findMany.mockResolvedValue(mockConvs)
+      mockDb.conversation.findMany.mockResolvedValue(mockConvs);
 
-      const result = await messagingService.getUnreadCount('user-1')
+      const result = await messagingService.getUnreadCount('user-1');
 
-      expect(result).toBe(2)
-    })
+      expect(result).toBe(2);
+    });
 
     it('should count unread messages when no last read timestamp', async () => {
       const mockConvs = [
@@ -458,14 +456,14 @@ describe('Messaging Service', () => {
             { id: 'msg-2', createdAt: new Date() },
           ],
         },
-      ]
+      ];
 
-      mockDb.conversation.findMany.mockResolvedValue(mockConvs)
+      mockDb.conversation.findMany.mockResolvedValue(mockConvs);
 
-      const result = await messagingService.getUnreadCount('user-1')
+      const result = await messagingService.getUnreadCount('user-1');
 
-      expect(result).toBe(2)
-    })
+      expect(result).toBe(2);
+    });
 
     it('should sum unread counts across multiple conversations', async () => {
       const mockConvs = [
@@ -480,17 +478,15 @@ describe('Messaging Service', () => {
         {
           id: 'conv-2',
           participants: [{ userId: 'user-1', lastReadAt: new Date('2024-01-01') }],
-          messages: [
-            { id: 'msg-3', createdAt: new Date('2024-01-02') },
-          ],
+          messages: [{ id: 'msg-3', createdAt: new Date('2024-01-02') }],
         },
-      ]
+      ];
 
-      mockDb.conversation.findMany.mockResolvedValue(mockConvs)
+      mockDb.conversation.findMany.mockResolvedValue(mockConvs);
 
-      const result = await messagingService.getUnreadCount('user-1')
+      const result = await messagingService.getUnreadCount('user-1');
 
-      expect(result).toBe(3)
-    })
-  })
-})
+      expect(result).toBe(3);
+    });
+  });
+});

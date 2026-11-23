@@ -46,14 +46,14 @@ Muitos profissionais qualificados carecem de uma plataforma para se destacarem. 
 
 ## Visão Geral
 
-| Recurso                    | Descrição                                                                                    |
-| -------------------------- | -------------------------------------------------------------------------------------------- |
-| Listagens descentralizadas | Perfis de profissionais são ancorados on-chain via contratos Soroban do Stellar              |
-| Curação comunitária        | Curadores (membros verificados da comunidade) criam e gerenciam listagens de profissionais   |
-| Pagamentos sem confiança   | Gorjetas e pagamentos fluem diretamente entre usuários e profissionais via contrato Market   |
-| Google OAuth               | Usuários podem fazer login com Google além de email/senha                                    |
-| Acesso baseado em função   | Três funções: `user`, `curator`, `admin`                                                     |
-| Upload de mídia            | Imagens de perfil tratadas com requisições PUT com spoofing de método (multipart/form-data)  |
+| Recurso                    | Descrição                                                                                   |
+| -------------------------- | ------------------------------------------------------------------------------------------- |
+| Listagens descentralizadas | Perfis de profissionais são ancorados on-chain via contratos Soroban do Stellar             |
+| Curação comunitária        | Curadores (membros verificados da comunidade) criam e gerenciam listagens de profissionais  |
+| Pagamentos sem confiança   | Gorjetas e pagamentos fluem diretamente entre usuários e profissionais via contrato Market  |
+| Google OAuth               | Usuários podem fazer login com Google além de email/senha                                   |
+| Acesso baseado em função   | Três funções: `user`, `curator`, `admin`                                                    |
+| Upload de mídia            | Imagens de perfil tratadas com requisições PUT com spoofing de método (multipart/form-data) |
 
 ---
 
@@ -137,10 +137,10 @@ A API REST backend construída com **Node.js**, **Express** e **TypeScript**. Us
 
 | Módulo                      | Propósito                                         |
 | --------------------------- | ------------------------------------------------- |
-| `controllers/auth.ts`       | Login, registro, logout, redefinição de senha    |
+| `controllers/auth.ts`       | Login, registro, logout, redefinição de senha     |
 | `controllers/workers.ts`    | CRUD para listagens de profissionais              |
 | `controllers/categories.ts` | Listagem e busca de categorias                    |
-| `middleware/auth.ts`        | Autenticação JWT + autorização baseada em função |
+| `middleware/auth.ts`        | Autenticação JWT + autorização baseada em função  |
 | `prisma/schema.prisma`      | Schema do banco de dados (User, Worker, Category) |
 
 **Stack de tecnologia:** Express · TypeScript · Prisma · PostgreSQL · Argon2 · JWT · Passport (Google OAuth) · Nodemailer · Vitest
@@ -188,16 +188,16 @@ URL Base: `http://localhost:3000/api`
 
 ### Autenticação
 
-| Método   | Endpoint                | Descrição                        |
-| -------- | ----------------------- | -------------------------------- |
-| `POST`   | `/auth/login`           | Login com email + senha          |
-| `POST`   | `/auth/register`        | Criar nova conta                 |
-| `PUT`    | `/auth/verify-account`  | Verificar endereço de email      |
-| `DELETE` | `/auth/logout`          | Logout (requer autenticação)     |
-| `POST`   | `/auth/forgot-password` | Solicitar email de redefinição   |
-| `PUT`    | `/auth/reset-password`  | Redefinir senha com token        |
-| `GET`    | `/auth/google`          | Iniciar Google OAuth             |
-| `GET`    | `/auth/google/callback` | Callback do Google OAuth         |
+| Método   | Endpoint                | Descrição                      |
+| -------- | ----------------------- | ------------------------------ |
+| `POST`   | `/auth/login`           | Login com email + senha        |
+| `POST`   | `/auth/register`        | Criar nova conta               |
+| `PUT`    | `/auth/verify-account`  | Verificar endereço de email    |
+| `DELETE` | `/auth/logout`          | Logout (requer autenticação)   |
+| `POST`   | `/auth/forgot-password` | Solicitar email de redefinição |
+| `PUT`    | `/auth/reset-password`  | Redefinir senha com token      |
+| `GET`    | `/auth/google`          | Iniciar Google OAuth           |
+| `GET`    | `/auth/google/callback` | Callback do Google OAuth       |
 
 **Exemplo de resposta de login:**
 
@@ -220,21 +220,21 @@ URL Base: `http://localhost:3000/api`
 
 ### Categorias
 
-| Método | Endpoint          | Descrição                |
-| ------ | ----------------- | ------------------------ |
+| Método | Endpoint          | Descrição                  |
+| ------ | ----------------- | -------------------------- |
 | `GET`  | `/categories`     | Listar todas as categorias |
-| `GET`  | `/categories/:id` | Obter uma categoria única |
+| `GET`  | `/categories/:id` | Obter uma categoria única  |
 
 ### Profissionais (Curador)
 
-| Método   | Endpoint                              | Descrição                                  | Autenticação |
-| -------- | ------------------------------------- | ------------------------------------------ | ------------ |
-| `GET`    | `/workers`                            | Listar profissionais ativos (paginado)     | Pública      |
-| `GET`    | `/workers/:id`                        | Obter um profissional único                | Pública      |
-| `POST`   | `/workers`                            | Criar listagem de profissional             | Curador      |
-| `POST`   | `/workers/:id` + `X-HTTP-Method: PUT` | Atualizar profissional (suporta upload)    | Curador      |
-| `DELETE` | `/workers/:id`                        | Deletar profissional                       | Curador      |
-| `PATCH`  | `/workers/:id/toggle`                 | Alternar status ativo                      | Curador      |
+| Método   | Endpoint                              | Descrição                               | Autenticação |
+| -------- | ------------------------------------- | --------------------------------------- | ------------ |
+| `GET`    | `/workers`                            | Listar profissionais ativos (paginado)  | Pública      |
+| `GET`    | `/workers/:id`                        | Obter um profissional único             | Pública      |
+| `POST`   | `/workers`                            | Criar listagem de profissional          | Curador      |
+| `POST`   | `/workers/:id` + `X-HTTP-Method: PUT` | Atualizar profissional (suporta upload) | Curador      |
+| `DELETE` | `/workers/:id`                        | Deletar profissional                    | Curador      |
+| `PATCH`  | `/workers/:id/toggle`                 | Alternar status ativo                   | Curador      |
 
 > **Spoofing de método para uploads de arquivo:** Formulários HTML e requisições `multipart/form-data` suportam apenas `GET`/`POST`. Para atualizar um profissional com upload de arquivo, envie uma requisição `POST` com o header `X-HTTP-Method: PUT`. A API usa o middleware [`method-override`](https://www.npmjs.com/package/method-override) para reescrever o método da requisição para `PUT` antes de chegar ao manipulador de rota, então a rota de atualização se comporta identicamente a um `PUT` padrão.
 >
@@ -310,10 +310,10 @@ Os mesmos passos se aplicam ao contrato de Mercado. O argumento `admin` deve cor
 
 As entradas de armazenamento persistente do Soroban têm um TTL (time-to-live) medido em ledgers. Sem extensão, as entradas podem expirar e ser removidas do ledger.
 
-| Constante       | Valor           | Duração aproximada     |
-| --------------- | --------------- | ---------------------- |
-| `TTL_EXTEND_TO` | 535.000 ledgers | ~1 ano (a 5s/ledger)   |
-| `TTL_THRESHOLD` | 267.500 ledgers | ~6 meses               |
+| Constante       | Valor           | Duração aproximada   |
+| --------------- | --------------- | -------------------- |
+| `TTL_EXTEND_TO` | 535.000 ledgers | ~1 ano (a 5s/ledger) |
+| `TTL_THRESHOLD` | 267.500 ledgers | ~6 meses             |
 
 **Como funciona:**
 
@@ -400,18 +400,18 @@ pnpm dev           # iniciar Next.js em :3001
 
 Todas as variáveis da API vivem em `packages/api/.env` (copie de `.env.example`):
 
-| Variável               | Descrição                                  |
-| ---------------------- | ------------------------------------------ |
-| `DATABASE_URL`         | String de conexão PostgreSQL               |
-| `JWT_SECRET`           | Chave secreta para assinar JWTs            |
-| `PORT`                 | Porta da API (padrão: 3000)                |
-| `GOOGLE_CLIENT_ID`     | ID do cliente Google OAuth                 |
-| `GOOGLE_CLIENT_SECRET` | Segredo do cliente Google OAuth            |
-| `MAIL_HOST`            | Host SMTP                                  |
-| `MAIL_PORT`            | Porta SMTP                                 |
-| `MAIL_USER`            | Usuário SMTP                               |
-| `MAIL_PASS`            | Senha SMTP                                 |
-| `APP_URL`              | URL pública do app (usada em emails)       |
+| Variável               | Descrição                            |
+| ---------------------- | ------------------------------------ |
+| `DATABASE_URL`         | String de conexão PostgreSQL         |
+| `JWT_SECRET`           | Chave secreta para assinar JWTs      |
+| `PORT`                 | Porta da API (padrão: 3000)          |
+| `GOOGLE_CLIENT_ID`     | ID do cliente Google OAuth           |
+| `GOOGLE_CLIENT_SECRET` | Segredo do cliente Google OAuth      |
+| `MAIL_HOST`            | Host SMTP                            |
+| `MAIL_PORT`            | Porta SMTP                           |
+| `MAIL_USER`            | Usuário SMTP                         |
+| `MAIL_PASS`            | Senha SMTP                           |
+| `APP_URL`              | URL pública do app (usada em emails) |
 
 ---
 
@@ -429,21 +429,21 @@ Use o runbook de produção em [docs/PRODUCTION_DEPLOYMENT.md](./docs/PRODUCTION
 
 ## Roteiro
 
-| Status         | Recurso                                                 |
-| -------------- | ------------------------------------------------------- |
-| ✅ Concluído   | CRUD de profissional com listagens controladas por curador |
-| ✅ Concluído   | Autenticação JWT + verificação de email + redefinição de senha |
-| ✅ Concluído   | Google OAuth 2.0                                        |
-| ✅ Concluído   | Contratos Soroban de Registro & Mercado (testnet)       |
-| ✅ Concluído   | Pagamentos em caução com cancelamento com tempo limite   |
-| ✅ Concluído   | Acesso baseado em função (user / curator / admin)       |
-| ✅ Concluído   | Uploads de imagem de perfil (Multer + Sharp)            |
+| Status          | Recurso                                                            |
+| --------------- | ------------------------------------------------------------------ |
+| ✅ Concluído    | CRUD de profissional com listagens controladas por curador         |
+| ✅ Concluído    | Autenticação JWT + verificação de email + redefinição de senha     |
+| ✅ Concluído    | Google OAuth 2.0                                                   |
+| ✅ Concluído    | Contratos Soroban de Registro & Mercado (testnet)                  |
+| ✅ Concluído    | Pagamentos em caução com cancelamento com tempo limite             |
+| ✅ Concluído    | Acesso baseado em função (user / curator / admin)                  |
+| ✅ Concluído    | Uploads de imagem de perfil (Multer + Sharp)                       |
 | 🔄 Em progresso | Frontend Next.js (descoberta de profissional, conexão de carteira) |
-| 🔄 Em progresso | Integração de carteira Freighter                        |
-| 📋 Planejado   | Implantação em Mainnet                                  |
-| 📋 Planejado   | Avaliações e classificações de profissionais            |
-| 📋 Planejado   | Notificações push                                       |
-| 📋 Planejado   | App móvel (React Native)                                |
+| 🔄 Em progresso | Integração de carteira Freighter                                   |
+| 📋 Planejado    | Implantação em Mainnet                                             |
+| 📋 Planejado    | Avaliações e classificações de profissionais                       |
+| 📋 Planejado    | Notificações push                                                  |
+| 📋 Planejado    | App móvel (React Native)                                           |
 
 ---
 

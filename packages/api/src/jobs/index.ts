@@ -26,24 +26,28 @@
  * ```
  */
 
-import { logger } from '@/config/logger.js'
-import { startReminderJob, stopReminderJob } from './reminder.job.js'
-import { startHorizonPollerJob, stopHorizonPollerJob } from './horizon-poller.job.js'
+import { logger } from '@/config/logger.js';
+import { startReminderJob, stopReminderJob } from './reminder.job.js';
+import { startHorizonPollerJob, stopHorizonPollerJob } from './horizon-poller.job.js';
 
-export { JobRunner } from './job-runner.js'
-export type { JobRunnerOptions } from './job-runner.js'
-export { startReminderJob, stopReminderJob, reminderJobRunner } from './reminder.job.js'
-export { startHorizonPollerJob, stopHorizonPollerJob, horizonPollerJobRunner } from './horizon-poller.job.js'
+export { JobRunner } from './job-runner.js';
+export type { JobRunnerOptions } from './job-runner.js';
+export { startReminderJob, stopReminderJob, reminderJobRunner } from './reminder.job.js';
+export {
+  startHorizonPollerJob,
+  stopHorizonPollerJob,
+  horizonPollerJobRunner,
+} from './horizon-poller.job.js';
 
 /**
  * Start all background jobs.
  * Call once after the HTTP server begins listening.
  */
 export function startAllJobs(): void {
-  logger.info('Starting all background jobs')
-  startReminderJob()
-  startHorizonPollerJob()
-  logger.info('All background jobs started')
+  logger.info('Starting all background jobs');
+  startReminderJob();
+  startHorizonPollerJob();
+  logger.info('All background jobs started');
 }
 
 /**
@@ -51,8 +55,8 @@ export function startAllJobs(): void {
  * Call during graceful shutdown (SIGTERM / SIGINT handler).
  */
 export function stopAllJobs(): void {
-  logger.info('Stopping all background jobs')
-  stopReminderJob()
-  stopHorizonPollerJob()
-  logger.info('All background jobs stopped')
+  logger.info('Stopping all background jobs');
+  stopReminderJob();
+  stopHorizonPollerJob();
+  logger.info('All background jobs stopped');
 }

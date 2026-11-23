@@ -20,7 +20,7 @@ export const CacheTTL = {
   DAY: 86_400,
   /** 1 800 s — personalised recommendations */
   RECOMMENDATIONS: 1_800,
-} as const
+} as const;
 
 /** Standard key builders namespace every cache entry. */
 export const CacheKeys = {
@@ -32,4 +32,4 @@ export const CacheKeys = {
   ratingAggregate: (workerId: string) => `cache:ratings:${workerId}`,
   availability: (workerId: string) => `cache:availability:${workerId}`,
   recommendations: (userId: string) => `recommendations:${userId}`,
-} as const
+} as const;

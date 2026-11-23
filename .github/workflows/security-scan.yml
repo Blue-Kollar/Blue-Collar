@@ -6,17 +6,17 @@ on:
   push:
     branches: [main]
     paths:
-      - "packages/**"
-      - "**/Dockerfile"
-      - ".github/workflows/security-scan.yml"
+      - 'packages/**'
+      - '**/Dockerfile'
+      - '.github/workflows/security-scan.yml'
   pull_request:
     paths:
-      - "packages/**"
-      - "**/Dockerfile"
-      - ".github/workflows/security-scan.yml"
+      - 'packages/**'
+      - '**/Dockerfile'
+      - '.github/workflows/security-scan.yml'
   schedule:
     # Weekly: catch newly-published CVEs even without code changes
-    - cron: "0 4 * * 1"
+    - cron: '0 4 * * 1'
   workflow_dispatch:
 
 jobs:
@@ -29,7 +29,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # full history required for diff-based scanning
+          fetch-depth: 0 # full history required for diff-based scanning
 
       - name: Install Gitleaks
         run: |
@@ -180,7 +180,7 @@ jobs:
           format: sarif
           output: trivy-results.sarif
           severity: HIGH,CRITICAL
-          exit-code: "1"
+          exit-code: '1'
           ignore-unfixed: true
 
       - name: Upload Trivy SARIF to GitHub Security

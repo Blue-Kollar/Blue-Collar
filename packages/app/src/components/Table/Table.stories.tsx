@@ -1,8 +1,8 @@
-import type { Meta, StoryObj } from "@storybook/react";
-import { useState } from "react";
-import { Pencil, Trash2 } from "lucide-react";
-import { Table } from "./Table";
-import type { ColumnDef, RowAction, SortDirection } from "./Table";
+import type { Meta, StoryObj } from '@storybook/react';
+import { useState } from 'react';
+import { Pencil, Trash2 } from 'lucide-react';
+import { Table } from './Table';
+import type { ColumnDef, RowAction, SortDirection } from './Table';
 
 interface Row {
   id: number;
@@ -15,27 +15,32 @@ interface Row {
 const sampleData: Row[] = Array.from({ length: 8 }, (_, i) => ({
   id: i + 1,
   name: `Worker ${i + 1}`,
-  category: ["Plumber", "Electrician", "Carpenter"][i % 3],
-  status: i % 3 === 0 ? "Inactive" : "Active",
+  category: ['Plumber', 'Electrician', 'Carpenter'][i % 3],
+  status: i % 3 === 0 ? 'Inactive' : 'Active',
   views: (i + 1) * 47,
 }));
 
 const columns: ColumnDef<Row>[] = [
-  { key: "name", header: "Name", sortable: true },
-  { key: "category", header: "Category", sortable: true },
-  { key: "status", header: "Status" },
-  { key: "views", header: "Views", sortable: true, hideOnMobile: true },
+  { key: 'name', header: 'Name', sortable: true },
+  { key: 'category', header: 'Category', sortable: true },
+  { key: 'status', header: 'Status' },
+  { key: 'views', header: 'Views', sortable: true, hideOnMobile: true },
 ];
 
 const actions: RowAction<Row>[] = [
-  { label: "Edit", icon: <Pencil size={13} />, onClick: (r) => alert(`Edit ${r.name}`) },
-  { label: "Delete", icon: <Trash2 size={13} />, onClick: (r) => alert(`Delete ${r.name}`), variant: "danger" },
+  { label: 'Edit', icon: <Pencil size={13} />, onClick: (r) => alert(`Edit ${r.name}`) },
+  {
+    label: 'Delete',
+    icon: <Trash2 size={13} />,
+    onClick: (r) => alert(`Delete ${r.name}`),
+    variant: 'danger',
+  },
 ];
 
 const meta: Meta<typeof Table<Row>> = {
-  title: "Components/Table",
+  title: 'Components/Table',
   component: Table,
-  tags: ["autodocs"],
+  tags: ['autodocs'],
 };
 export default meta;
 type Story = StoryObj<typeof Table<Row>>;
@@ -45,7 +50,9 @@ export const Default: Story = {
 };
 
 export const WithActions: Story = {
-  render: () => <Table columns={columns} data={sampleData} rowActions={actions} aria-label="Workers" />,
+  render: () => (
+    <Table columns={columns} data={sampleData} rowActions={actions} aria-label="Workers" />
+  ),
 };
 
 export const Selectable: Story = {
@@ -84,13 +91,13 @@ export const WithPagination: Story = {
 
 export const WithSorting: Story = {
   render: () => {
-    const [sortKey, setSortKey] = useState<string>("");
-    const [sortDir, setSortDir] = useState<SortDirection>("asc");
+    const [sortKey, setSortKey] = useState<string>('');
+    const [sortDir, setSortDir] = useState<SortDirection>('asc');
     const sorted = [...sampleData].sort((a, b) => {
       if (!sortKey) return 0;
       const av = (a as Record<string, unknown>)[sortKey];
       const bv = (b as Record<string, unknown>)[sortKey];
-      return sortDir === "asc"
+      return sortDir === 'asc'
         ? String(av).localeCompare(String(bv))
         : String(bv).localeCompare(String(av));
     });
@@ -100,7 +107,10 @@ export const WithSorting: Story = {
         data={sorted}
         sortKey={sortKey}
         sortDir={sortDir}
-        onSort={(k, d) => { setSortKey(k); setSortDir(d); }}
+        onSort={(k, d) => {
+          setSortKey(k);
+          setSortDir(d);
+        }}
         aria-label="Sortable workers"
       />
     );

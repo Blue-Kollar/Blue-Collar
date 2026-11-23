@@ -1,34 +1,27 @@
-"use client";
+'use client';
 
-import {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  useCallback,
-  type ReactNode,
-} from "react";
+import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import {
   isConnected,
   requestAccess,
   getAddress,
   getNetwork,
   signTransaction as freighterSignTransaction,
-} from "@stellar/freighter-api";
+} from '@stellar/freighter-api';
 
-const STORAGE_KEY = "bc_wallet_address";
+const STORAGE_KEY = 'bc_wallet_address';
 
 export class WalletNotConnectedError extends Error {
   constructor() {
-    super("Wallet is not connected");
-    this.name = "WalletNotConnectedError";
+    super('Wallet is not connected');
+    this.name = 'WalletNotConnectedError';
   }
 }
 
 export class FreighterNotInstalledError extends Error {
   constructor() {
-    super("Freighter wallet extension not detected");
-    this.name = "FreighterNotInstalledError";
+    super('Freighter wallet extension not detected');
+    this.name = 'FreighterNotInstalledError';
   }
 }
 
@@ -60,12 +53,15 @@ const WalletContext = createContext<WalletContextValue>({
   },
 });
 
-import { HORIZON_URL } from "@/config/stellar";
+import { HORIZON_URL } from '@/config/stellar';
 
 async function fetchBalance(address: string): Promise<string | null> {
   try {
     const json = await fetch(`${HORIZON_URL}/accounts/${address}`).then((r) => r.json());
-    return json.balances?.find((b: { asset_type: string; balance: string }) => b.asset_type === "native")?.balance ?? null;
+    return (
+      json.balances?.find((b: { asset_type: string; balance: string }) => b.asset_type === 'native')
+        ?.balance ?? null
+    );
   } catch {
     return null;
   }
@@ -109,7 +105,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     try {
       const connected = await isConnected();
       if (!connected.isConnected) {
-        window.open("https://www.freighter.app", "_blank");
+        window.open('https://www.freighter.app', '_blank');
         return null;
       }
       await requestAccess();
@@ -122,7 +118,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       localStorage.setItem(STORAGE_KEY, address);
       return address;
     } catch (err) {
-      console.error("[WalletContext] connect error:", err);
+      console.error('[WalletContext] connect error:', err);
       return null;
     } finally {
       setIsConnecting(false);
@@ -152,10 +148,10 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       });
       return signedTxXdr;
     },
-    [publicKey, networkPassphrase]
+    [publicKey, networkPassphrase],
   );
 
-  const networkWarning = !!network && network !== "TESTNET";
+  const networkWarning = !!network && network !== 'TESTNET';
 
   return (
     <WalletContext.Provider

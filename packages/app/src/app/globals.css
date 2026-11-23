@@ -1,7 +1,7 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 /* App-wide accessibility base styles + WCAG-AA contrast tokens. */
-@import "../styles/contrast-tokens.css";
-@import "../styles/accessibility.css";
+@import '../styles/contrast-tokens.css';
+@import '../styles/accessibility.css';
 
 /*
  * Shared design tokens (see packages/app/src/styles/README.md).
@@ -156,7 +156,9 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
-    transition: background-color var(--transition-fast), color var(--transition-fast);
+    transition:
+      background-color var(--transition-fast),
+      color var(--transition-fast);
   }
   /* Reserve space for mobile bottom nav */
   @media (max-width: 767px) {
@@ -171,12 +173,20 @@
 
 @layer utilities {
   @keyframes slide-in-right {
-    from { transform: translateX(100%); }
-    to   { transform: translateX(0); }
+    from {
+      transform: translateX(100%);
+    }
+    to {
+      transform: translateX(0);
+    }
   }
   @keyframes fade-in {
-    from { opacity: 0; }
-    to   { opacity: 1; }
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
   }
   .animate-slide-in-right {
     animation: slide-in-right var(--transition-base);

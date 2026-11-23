@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { validateEscrowForm } from "@/utils/validation";
+import { useState } from 'react';
+import { validateEscrowForm } from '@/utils/validation';
 
 interface EscrowFormData {
   amount: string;
@@ -16,7 +16,12 @@ interface EscrowFormProps {
 }
 
 export default function EscrowForm({ onSubmit, disabled }: EscrowFormProps) {
-  const [form, setForm] = useState<EscrowFormData>({ amount: "", token: "XLM", counterparty: "", terms: "" });
+  const [form, setForm] = useState<EscrowFormData>({
+    amount: '',
+    token: 'XLM',
+    counterparty: '',
+    terms: '',
+  });
   const [errors, setErrors] = useState<Partial<EscrowFormData>>({});
 
   function validate(): boolean {
@@ -30,21 +35,25 @@ export default function EscrowForm({ onSubmit, disabled }: EscrowFormProps) {
     if (validate()) onSubmit(form);
   }
 
-  const set = (field: keyof EscrowFormData) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
-    setForm((f) => ({ ...f, [field]: e.target.value }));
+  const set =
+    (field: keyof EscrowFormData) =>
+    (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
+      setForm((f) => ({ ...f, [field]: e.target.value }));
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+          <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-1">
+            Amount
+          </label>
           <input
             id="amount"
             type="number"
             min="0"
             step="any"
             value={form.amount}
-            onChange={set("amount")}
+            onChange={set('amount')}
             disabled={disabled}
             className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
             placeholder="0.00"
@@ -52,11 +61,13 @@ export default function EscrowForm({ onSubmit, disabled }: EscrowFormProps) {
           {errors.amount && <p className="mt-1 text-xs text-red-600">{errors.amount}</p>}
         </div>
         <div>
-          <label htmlFor="token" className="block text-sm font-medium text-gray-700 mb-1">Token</label>
+          <label htmlFor="token" className="block text-sm font-medium text-gray-700 mb-1">
+            Token
+          </label>
           <select
             id="token"
             value={form.token}
-            onChange={set("token")}
+            onChange={set('token')}
             disabled={disabled}
             className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
           >
@@ -67,12 +78,14 @@ export default function EscrowForm({ onSubmit, disabled }: EscrowFormProps) {
       </div>
 
       <div>
-        <label htmlFor="counterparty" className="block text-sm font-medium text-gray-700 mb-1">Counterparty Address</label>
+        <label htmlFor="counterparty" className="block text-sm font-medium text-gray-700 mb-1">
+          Counterparty Address
+        </label>
         <input
           id="counterparty"
           type="text"
           value={form.counterparty}
-          onChange={set("counterparty")}
+          onChange={set('counterparty')}
           disabled={disabled}
           className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
           placeholder="G..."
@@ -81,11 +94,13 @@ export default function EscrowForm({ onSubmit, disabled }: EscrowFormProps) {
       </div>
 
       <div>
-        <label htmlFor="terms" className="block text-sm font-medium text-gray-700 mb-1">Terms</label>
+        <label htmlFor="terms" className="block text-sm font-medium text-gray-700 mb-1">
+          Terms
+        </label>
         <textarea
           id="terms"
           value={form.terms}
-          onChange={set("terms")}
+          onChange={set('terms')}
           disabled={disabled}
           rows={3}
           className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"

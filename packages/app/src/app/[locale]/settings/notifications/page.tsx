@@ -1,17 +1,17 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
-import { useAuth } from "@/context/AuthContext";
-import { useEmailNotificationPrefs, useUpdateEmailNotificationPrefs } from "@/hooks/queries";
-import type { EmailNotificationPrefs as NotificationPrefs } from "@/lib/api";
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Loader2 } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import { useEmailNotificationPrefs, useUpdateEmailNotificationPrefs } from '@/hooks/queries';
+import type { EmailNotificationPrefs as NotificationPrefs } from '@/lib/api';
 import {
   DEFAULT_PREFS,
   NotificationPrefsList,
   NotificationPrefsActions,
   NotificationToast,
-} from "@/components/settings/notifications";
+} from '@/components/settings/notifications';
 
 export default function NotificationPreferencesPage() {
   const router = useRouter();
@@ -19,23 +19,23 @@ export default function NotificationPreferencesPage() {
 
   const prefsQuery = useEmailNotificationPrefs();
   const [prefs, setPrefs] = useState<NotificationPrefs>(DEFAULT_PREFS);
-  const [toast, setToast] = useState("");
+  const [toast, setToast] = useState('');
 
   const updatePrefs = useUpdateEmailNotificationPrefs();
   const saving = updatePrefs.isPending;
 
   const showToast = (message: string) => {
     setToast(message);
-    setTimeout(() => setToast(""), 3500);
+    setTimeout(() => setToast(''), 3500);
   };
 
   useEffect(() => {
-    if (!isLoading && !user) router.replace("/auth/login");
+    if (!isLoading && !user) router.replace('/auth/login');
   }, [isLoading, router, user]);
 
   useEffect(() => {
     if (!prefsQuery.data) return;
-    const data = "data" in prefsQuery.data ? prefsQuery.data.data : prefsQuery.data;
+    const data = 'data' in prefsQuery.data ? prefsQuery.data.data : prefsQuery.data;
     if (data) setPrefs({ ...DEFAULT_PREFS, ...data });
   }, [prefsQuery.data]);
 
@@ -54,8 +54,8 @@ export default function NotificationPreferencesPage() {
 
   const handleSave = () => {
     updatePrefs.mutate(prefs, {
-      onSuccess: () => showToast("Preferences saved!"),
-      onError: () => showToast("Failed to save preferences."),
+      onSuccess: () => showToast('Preferences saved!'),
+      onError: () => showToast('Failed to save preferences.'),
     });
   };
 

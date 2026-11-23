@@ -14,102 +14,102 @@
  *
  * Closes #1204
  */
-import { render, screen } from "@testing-library/react";
-import { describe, it, expect, vi } from "vitest";
-import FormError, { FieldError } from "@/components/Form/FormError";
+import { render, screen } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
+import FormError, { FieldError } from '@/components/Form/FormError';
 
-vi.mock("lucide-react", () => ({
+vi.mock('lucide-react', () => ({
   AlertCircle: (props: any) => <svg {...props} data-icon="alert-circle" />,
 }));
 
-vi.mock("@/lib/utils", () => ({
-  cn: (...classes: any[]) => classes.filter(Boolean).join(" "),
+vi.mock('@/lib/utils', () => ({
+  cn: (...classes: any[]) => classes.filter(Boolean).join(' '),
 }));
 
-describe("FormError", () => {
+describe('FormError', () => {
   // ── Render-nothing contract ───────────────────────────────────────────────
 
-  it("renders nothing when message is undefined", () => {
+  it('renders nothing when message is undefined', () => {
     const { container } = render(<FormError />);
     expect(container.firstChild).toBeNull();
   });
 
-  it("renders nothing when message is null", () => {
+  it('renders nothing when message is null', () => {
     const { container } = render(<FormError message={null} />);
     expect(container.firstChild).toBeNull();
   });
 
-  it("renders nothing when message is an empty string", () => {
+  it('renders nothing when message is an empty string', () => {
     const { container } = render(<FormError message="" />);
     expect(container.firstChild).toBeNull();
   });
 
   // ── Message content ───────────────────────────────────────────────────────
 
-  it("renders the error message text when provided", () => {
+  it('renders the error message text when provided', () => {
     render(<FormError message="Invalid credentials." />);
-    expect(screen.getByText("Invalid credentials.")).toBeInTheDocument();
+    expect(screen.getByText('Invalid credentials.')).toBeInTheDocument();
   });
 
-  it("renders a different message string", () => {
+  it('renders a different message string', () => {
     render(<FormError message="Email is required." />);
-    expect(screen.getByText("Email is required.")).toBeInTheDocument();
+    expect(screen.getByText('Email is required.')).toBeInTheDocument();
   });
 
   // ── Accessibility ─────────────────────────────────────────────────────────
 
-  it("exposes role=alert so screen readers announce the error immediately", () => {
+  it('exposes role=alert so screen readers announce the error immediately', () => {
     render(<FormError message="Something went wrong." />);
-    expect(screen.getByRole("alert")).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toBeInTheDocument();
   });
 
-  it("does not expose role=alert when message is absent", () => {
+  it('does not expose role=alert when message is absent', () => {
     render(<FormError />);
-    expect(screen.queryByRole("alert")).toBeNull();
+    expect(screen.queryByRole('alert')).toBeNull();
   });
 
-  it("renders the icon with aria-hidden to avoid redundant announcements", () => {
+  it('renders the icon with aria-hidden to avoid redundant announcements', () => {
     const { container } = render(<FormError message="Oops" />);
     const icon = container.querySelector("[data-icon='alert-circle']");
     expect(icon).not.toBeNull();
-    expect(icon?.getAttribute("aria-hidden")).toBe("true");
+    expect(icon?.getAttribute('aria-hidden')).toBe('true');
   });
 
   // ── id prop for aria-describedby linkage ─────────────────────────────────
 
-  it("applies the provided id to the wrapper element", () => {
+  it('applies the provided id to the wrapper element', () => {
     const { container } = render(<FormError message="Error" id="form-error" />);
-    expect(container.querySelector("#form-error")).not.toBeNull();
+    expect(container.querySelector('#form-error')).not.toBeNull();
   });
 
-  it("does not add an id attribute when the prop is omitted", () => {
+  it('does not add an id attribute when the prop is omitted', () => {
     const { container } = render(<FormError message="Error" />);
     const el = container.querySelector("[role='alert']");
-    expect(el?.hasAttribute("id")).toBe(false);
+    expect(el?.hasAttribute('id')).toBe(false);
   });
 
   // ── className merge ───────────────────────────────────────────────────────
 
-  it("merges a custom className onto the wrapper", () => {
+  it('merges a custom className onto the wrapper', () => {
     const { container } = render(<FormError message="Error" className="mt-4" />);
     const el = container.querySelector("[role='alert']");
-    expect(el?.className).toContain("mt-4");
+    expect(el?.className).toContain('mt-4');
   });
 });
 
-describe("FieldError", () => {
-  it("renders nothing when message is falsy", () => {
+describe('FieldError', () => {
+  it('renders nothing when message is falsy', () => {
     const { container } = render(<FieldError message={null} />);
     expect(container).toBeEmptyDOMElement();
   });
 
-  it("renders the field error text with an alert role", () => {
+  it('renders the field error text with an alert role', () => {
     render(<FieldError message="Email is required" />);
-    expect(screen.getByRole("alert")).toHaveTextContent("Email is required");
+    expect(screen.getByRole('alert')).toHaveTextContent('Email is required');
   });
 
-  it("merges a custom className", () => {
+  it('merges a custom className', () => {
     render(<FieldError message="Bad" className="mt-2" />);
-    expect(screen.getByRole("alert").className).toContain("mt-2");
+    expect(screen.getByRole('alert').className).toContain('mt-2');
   });
 });

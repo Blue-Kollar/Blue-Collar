@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import { useEffect, useState, useCallback } from "react";
-import Link from "next/link";
-import { Plus } from "lucide-react";
-import { apiClient } from "@/lib/apiClient";
-import { useAuth } from "@/context/AuthContext";
-import JobsFilters from "@/components/jobs/JobsFilters";
-import JobsList from "@/components/jobs/JobsList";
-import JobsPagination from "@/components/jobs/JobsPagination";
-import ErrorState from "@/components/ErrorState";
-import type { Job, Category, Meta } from "@/types";
+import { useEffect, useState, useCallback } from 'react';
+import Link from 'next/link';
+import { Plus } from 'lucide-react';
+import { apiClient } from '@/lib/apiClient';
+import { useAuth } from '@/context/AuthContext';
+import JobsFilters from '@/components/jobs/JobsFilters';
+import JobsList from '@/components/jobs/JobsList';
+import JobsPagination from '@/components/jobs/JobsPagination';
+import ErrorState from '@/components/ErrorState';
+import type { Job, Category, Meta } from '@/types';
 
 // Sub-components live in @/components/jobs:
 // - JobsFilters: search input, urgency select, category filters
@@ -26,27 +26,36 @@ export default function JobsPage() {
   const [error, setError] = useState<string | null>(null);
 
   // Filters
-  const [search, setSearch] = useState("");
-  const [categoryId, setCategoryId] = useState("");
-  const [urgency, setUrgency] = useState("");
+  const [search, setSearch] = useState('');
+  const [categoryId, setCategoryId] = useState('');
+  const [urgency, setUrgency] = useState('');
   const [page, setPage] = useState(1);
 
   const fetchJobs = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await apiClient.getJobs({ search: search || undefined, categoryId: categoryId || undefined, urgency: urgency || undefined, page, limit: 12 });
+      const res = await apiClient.getJobs({
+        search: search || undefined,
+        categoryId: categoryId || undefined,
+        urgency: urgency || undefined,
+        page,
+        limit: 12,
+      });
       setJobs(res.data ?? []);
       setMeta(res.meta ?? null);
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Failed to load jobs");
+      setError(e instanceof Error ? e.message : 'Failed to load jobs');
     } finally {
       setLoading(false);
     }
   }, [search, categoryId, urgency, page]);
 
   useEffect(() => {
-    apiClient.getCategories().then((r) => setCategories(r.data ?? [])).catch(() => {});
+    apiClient
+      .getCategories()
+      .then((r) => setCategories(r.data ?? []))
+      .catch(() => {});
   }, []);
 
   useEffect(() => {

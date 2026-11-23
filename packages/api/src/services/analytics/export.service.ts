@@ -12,11 +12,11 @@
  *   - exportPlatformAnalyticsCsv — full platform worker list as a CSV
  *   - exportPersonalWorkerAnalyticsCsv — daily series + summary for one worker
  */
-import type { Response } from 'express'
-import { db } from '@/db.js'
-import { type DateRange } from './shared.js'
-import { getWorkerPersonalDashboard } from './worker.service.js'
-import { CsvWriter } from '@/utils/csv-writer.js'
+import type { Response } from 'express';
+import { db } from '@/db.js';
+import { type DateRange } from './shared.js';
+import { getWorkerPersonalDashboard } from './worker.service.js';
+import { CsvWriter } from '@/utils/csv-writer.js';
 
 // ── Curator export ───────────────────────────────────────────────────────────
 
@@ -32,31 +32,44 @@ import { CsvWriter } from '@/utils/csv-writer.js'
  * @param curatorId The curator's user ID
  * @returns Promise resolving to the number of rows written
  */
-export async function exportWorkerAnalyticsCsv(response: Response, curatorId: string): Promise<number> {
-  const writer = new CsvWriter(response, 'worker-analytics.csv')
-  writer.initialize()
+export async function exportWorkerAnalyticsCsv(
+  response: Response,
+  curatorId: string,
+): Promise<number> {
+  const writer = new CsvWriter(response, 'worker-analytics.csv');
+  writer.initialize();
 
-  const headers = ['Worker Name', 'Category', 'Total Views', 'Unique Views', 'Tips (XLM)', 
-                   'Tip Count', 'Bookmarks', 'Contacts', 'Avg Rating', 'Reviews']
-  await writer.writeHeader(headers)
+  const headers = [
+    'Worker Name',
+    'Category',
+    'Total Views',
+    'Unique Views',
+    'Tips (XLM)',
+    'Tip Count',
+    'Bookmarks',
+    'Contacts',
+    'Avg Rating',
+    'Reviews',
+  ];
+  await writer.writeHeader(headers);
 
   // Fetch workers for this curator
   const workers = await db.worker.findMany({
     where: { curatorId },
     include: { category: true },
-  })
+  });
 
   if (workers.length === 0) {
-    await writer.end()
-    return 0
+    await writer.end();
+    return 0;
   }
 
   // Fetch analytics for all workers at once (necessary for aggregation)
-  const workerIds = workers.map((w) => w.id)
+  const workerIds = workers.map((w) => w.id);
   const analyticsRows = await db.workerAnalytics.findMany({
     where: { workerId: { in: workerIds } },
-  })
-  const analyticsMap = new Map(analyticsRows.map((a) => [a.workerId, a]))
+  });
+  const analyticsMap = new Map(analyticsRows.map((a) => [a.workerId, a]));
 
   // Fetch review aggregations for all workers
   const reviewAggs = await Promise.all(
@@ -65,16 +78,16 @@ export async function exportWorkerAnalyticsCsv(response: Response, curatorId: st
         where: { workerId: id, status: 'approved' },
         _avg: { rating: true },
         _count: true,
-      })
-      return { id, avg: agg._avg.rating ?? 0, count: agg._count }
+      });
+      return { id, avg: agg._avg.rating ?? 0, count: agg._count };
     }),
-  )
-  const reviewMap = new Map(reviewAggs.map((r) => [r.id, r]))
+  );
+  const reviewMap = new Map(reviewAggs.map((r) => [r.id, r]));
 
   // Stream rows
   for (const worker of workers) {
-    const analytics = analyticsMap.get(worker.id)
-    const review = reviewMap.get(worker.id)
+    const analytics = analyticsMap.get(worker.id);
+    const review = reviewMap.get(worker.id);
 
     await writer.writeRow([
       worker.name,
@@ -87,11 +100,11 @@ export async function exportWorkerAnalyticsCsv(response: Response, curatorId: st
       analytics?.contactCount ?? 0,
       (review?.avg ?? 0).toFixed(1),
       review?.count ?? 0,
-    ])
+    ]);
   }
 
-  await writer.end()
-  return writer.getRowCount()
+  await writer.end();
+  return writer.getRowCount();
 }
 
 // ── Platform export ──────────────────────────────────────────────────────────
@@ -108,17 +121,26 @@ export async function exportWorkerAnalyticsCsv(response: Response, curatorId: st
  * @returns Promise resolving to the number of rows written
  */
 export async function exportPlatformAnalyticsCsv(response: Response): Promise<number> {
-  const writer = new CsvWriter(response, 'platform-analytics.csv')
-  writer.initialize()
+  const writer = new CsvWriter(response, 'platform-analytics.csv');
+  writer.initialize();
 
-  const headers = ['Worker Name', 'Category', 'Curator', 'Total Views', 'Unique Views',
-                   'Tips (XLM)', 'Tip Count', 'Bookmarks', 'Contacts']
-  await writer.writeHeader(headers)
+  const headers = [
+    'Worker Name',
+    'Category',
+    'Curator',
+    'Total Views',
+    'Unique Views',
+    'Tips (XLM)',
+    'Tip Count',
+    'Bookmarks',
+    'Contacts',
+  ];
+  await writer.writeHeader(headers);
 
   // Fetch all workers with pagination to avoid buffering entire dataset
-  const pageSize = 1000
-  let skip = 0
-  let hasMore = true
+  const pageSize = 1000;
+  let skip = 0;
+  let hasMore = true;
 
   while (hasMore) {
     const workers = await db.worker.findMany({
@@ -129,23 +151,23 @@ export async function exportPlatformAnalyticsCsv(response: Response): Promise<nu
       },
       skip,
       take: pageSize,
-    })
+    });
 
     if (workers.length === 0) {
-      hasMore = false
-      break
+      hasMore = false;
+      break;
     }
 
     // Fetch analytics for this batch
-    const workerIds = workers.map((w) => w.id)
+    const workerIds = workers.map((w) => w.id);
     const analyticsRows = await db.workerAnalytics.findMany({
       where: { workerId: { in: workerIds } },
-    })
-    const analyticsMap = new Map(analyticsRows.map((a) => [a.workerId, a]))
+    });
+    const analyticsMap = new Map(analyticsRows.map((a) => [a.workerId, a]));
 
     // Stream rows for this batch
     for (const worker of workers) {
-      const analytics = analyticsMap.get(worker.id)
+      const analytics = analyticsMap.get(worker.id);
 
       await writer.writeRow([
         worker.name,
@@ -157,18 +179,18 @@ export async function exportPlatformAnalyticsCsv(response: Response): Promise<nu
         analytics?.tipCount ?? 0,
         analytics?.bookmarkCount ?? 0,
         analytics?.contactCount ?? 0,
-      ])
+      ]);
     }
 
     if (workers.length < pageSize) {
-      hasMore = false
+      hasMore = false;
     } else {
-      skip += pageSize
+      skip += pageSize;
     }
   }
 
-  await writer.end()
-  return writer.getRowCount()
+  await writer.end();
+  return writer.getRowCount();
 }
 
 // ── Personal worker export ───────────────────────────────────────────────────
@@ -191,15 +213,23 @@ export async function exportPersonalWorkerAnalyticsCsv(
   workerId: string,
   range: Required<DateRange>,
 ): Promise<number> {
-  const writer = new CsvWriter(response, `worker-${workerId}-analytics.csv`)
-  writer.initialize()
+  const writer = new CsvWriter(response, `worker-${workerId}-analytics.csv`);
+  writer.initialize();
 
-  const dashboard = await getWorkerPersonalDashboard(workerId, range)
+  const dashboard = await getWorkerPersonalDashboard(workerId, range);
 
   // Write time-series header
-  const headers = ['Date', 'Views', 'Unique Views', 'Tips (XLM)', 'Tip Count',
-                   'Average Rating', 'Review Count', 'Earnings (XLM)']
-  await writer.writeHeader(headers)
+  const headers = [
+    'Date',
+    'Views',
+    'Unique Views',
+    'Tips (XLM)',
+    'Tip Count',
+    'Average Rating',
+    'Review Count',
+    'Earnings (XLM)',
+  ];
+  await writer.writeHeader(headers);
 
   // Stream time-series data
   for (const point of dashboard.charts.series) {
@@ -212,11 +242,11 @@ export async function exportPersonalWorkerAnalyticsCsv(
       point.avgRating == null ? '' : point.avgRating.toFixed(2),
       point.reviewCount,
       point.earnings.toFixed(7),
-    ])
+    ]);
   }
 
   // Write summary section (blank line, then key-value pairs)
-  await writer.writeRow(['']) // Blank line separator
+  await writer.writeRow(['']); // Blank line separator
 
   // Use writeRow for summary as well since it's just key-value pairs
   const summaryRows = [
@@ -230,12 +260,12 @@ export async function exportPersonalWorkerAnalyticsCsv(
     ['Average Rating', dashboard.summary.avgRating.toFixed(2)],
     ['Review Count', dashboard.summary.reviewCount],
     ['Earnings (XLM)', dashboard.summary.earnings.toFixed(7)],
-  ]
+  ];
 
   for (const row of summaryRows) {
-    await writer.writeRow(row)
+    await writer.writeRow(row);
   }
 
-  await writer.end()
-  return writer.getRowCount()
+  await writer.end();
+  return writer.getRowCount();
 }

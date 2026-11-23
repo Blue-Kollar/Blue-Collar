@@ -6,7 +6,7 @@
  * here gives the package first-class coverage and proves the shared helpers
  * behave deterministically (issue #1276 / #1278).
  */
-import { defineConfig } from 'vitest/config'
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
@@ -20,4 +20,4 @@ export default defineConfig({
       exclude: ['**/*.test.ts', '**/*.d.ts'],
     },
   },
-})
+});

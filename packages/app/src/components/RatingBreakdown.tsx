@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { Star } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useState } from 'react';
+import { Star } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface DistributionEntry {
   rating: number;
@@ -17,8 +17,13 @@ interface Props {
   onFilterChange?: (rating: number | null) => void;
 }
 
-export default function RatingBreakdown({ averageRating, reviewCount, distribution, onFilterChange }: Props) {
-  const t = useTranslations("componentText");
+export default function RatingBreakdown({
+  averageRating,
+  reviewCount,
+  distribution,
+  onFilterChange,
+}: Props) {
+  const t = useTranslations('componentText');
   const [activeFilter, setActiveFilter] = useState<number | null>(null);
 
   if (reviewCount === 0) return null;
@@ -36,7 +41,10 @@ export default function RatingBreakdown({ averageRating, reviewCount, distributi
           {/* The numeral and the stars say the same thing; expose it once, as one label. */}
           <div
             role="img"
-            aria-label={t("averageRatingDescription", { rating: averageRating?.toFixed(1) ?? 0, count: reviewCount })}
+            aria-label={t('averageRatingDescription', {
+              rating: averageRating?.toFixed(1) ?? 0,
+              count: reviewCount,
+            })}
           >
             <p className="text-4xl font-bold text-gray-900" aria-hidden="true">
               {averageRating?.toFixed(1)}
@@ -46,36 +54,50 @@ export default function RatingBreakdown({ averageRating, reviewCount, distributi
                 <Star
                   key={s}
                   size={14}
-                  className={s <= Math.round(averageRating ?? 0) ? "text-yellow-400" : "text-gray-200"}
-                  fill={s <= Math.round(averageRating ?? 0) ? "currentColor" : "none"}
+                  className={
+                    s <= Math.round(averageRating ?? 0) ? 'text-yellow-400' : 'text-gray-200'
+                  }
+                  fill={s <= Math.round(averageRating ?? 0) ? 'currentColor' : 'none'}
                 />
               ))}
             </div>
             <p className="text-xs text-gray-500 mt-1" aria-hidden="true">
-              {t("reviewsCount", { count: reviewCount })}
+              {t('reviewsCount', { count: reviewCount })}
             </p>
           </div>
         </div>
 
-        <div className="flex-1 flex flex-col gap-1.5" role="group" aria-label={t("filterReviewsByRating")}>
+        <div
+          className="flex-1 flex flex-col gap-1.5"
+          role="group"
+          aria-label={t('filterReviewsByRating')}
+        >
           {distribution.map(({ rating, count, percentage }) => (
             <button
               key={rating}
               type="button"
               onClick={() => handleFilter(rating)}
               className={`flex items-center gap-2 rounded-md px-2 py-0.5 transition-colors text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
-                activeFilter === rating ? "bg-blue-50 ring-1 ring-blue-300" : "hover:bg-white"
+                activeFilter === rating ? 'bg-blue-50 ring-1 ring-blue-300' : 'hover:bg-white'
               }`}
               aria-pressed={activeFilter === rating}
-              aria-label={t("filterReviewsByRatingOption", { rating, count, percentage })}
+              aria-label={t('filterReviewsByRatingOption', { rating, count, percentage })}
             >
               {/* The button's aria-label already carries the numbers, so the bar,
                   the count and the percentage are decorative for screen readers. */}
               <span className="text-xs text-gray-500 w-3 shrink-0" aria-hidden="true">
                 {rating}
               </span>
-              <Star size={11} className="text-yellow-400 shrink-0" fill="currentColor" aria-hidden="true" />
-              <div className="flex-1 h-2 rounded-full bg-gray-200 overflow-hidden" aria-hidden="true">
+              <Star
+                size={11}
+                className="text-yellow-400 shrink-0"
+                fill="currentColor"
+                aria-hidden="true"
+              />
+              <div
+                className="flex-1 h-2 rounded-full bg-gray-200 overflow-hidden"
+                aria-hidden="true"
+              >
                 <div
                   className="h-full rounded-full bg-yellow-400 transition-all duration-300"
                   style={{ width: `${percentage}%` }}
@@ -95,14 +117,14 @@ export default function RatingBreakdown({ averageRating, reviewCount, distributi
       {activeFilter !== null && (
         <div className="flex items-center justify-between border-t pt-3">
           <p className="text-xs text-gray-500">
-            {t("showingRatingReviews", { rating: activeFilter })}
+            {t('showingRatingReviews', { rating: activeFilter })}
           </p>
           <button
             type="button"
             onClick={() => handleFilter(activeFilter)}
             className="rounded text-xs text-blue-600 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
           >
-            {t("clearFilter")}
+            {t('clearFilter')}
           </button>
         </div>
       )}

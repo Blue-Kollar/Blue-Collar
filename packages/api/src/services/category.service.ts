@@ -1,10 +1,10 @@
-import type { Category } from '@prisma/client'
-import { categoryRepository as defaultCategoryRepository } from '@/repositories/category.repository.js'
-import { db as defaultDb } from '@/db.js'
-import { AppError } from '@/utils/app-error.js'
-import type { CategoryServiceDeps } from '@/container/types.js'
-import type { PrismaClient } from '@prisma/client'
-import { nowUtc, parseUtcDate, addUtcMs, formatUtcIso } from '@/utils/date.js'
+import type { Category } from '@prisma/client';
+import { categoryRepository as defaultCategoryRepository } from '@/repositories/category.repository.js';
+import { db as defaultDb } from '@/db.js';
+import { AppError } from '@/utils/app-error.js';
+import type { CategoryServiceDeps } from '@/container/types.js';
+import type { PrismaClient } from '@prisma/client';
+import { nowUtc, parseUtcDate, addUtcMs, formatUtcIso } from '@/utils/date.js';
 
 // ── Service instance type ─────────────────────────────────────────────────────
 
@@ -13,12 +13,15 @@ import { nowUtc, parseUtcDate, addUtcMs, formatUtcIso } from '@/utils/date.js'
  * All methods are bound to the injected dependencies.
  */
 export interface CategoryServiceInstance {
-  listCategories(): Promise<Category[]>
-  listCategoriesWithPagination(skip: number, take: number): Promise<[Category[], number]>
-  getCategory(id: string): Promise<Category>
-  createCategory(data: { name: string; icon?: string; description?: string }): Promise<Category>
-  updateCategory(id: string, data: { name?: string; icon?: string; description?: string }): Promise<Category>
-  deleteCategory(id: string): Promise<Category>
+  listCategories(): Promise<Category[]>;
+  listCategoriesWithPagination(skip: number, take: number): Promise<[Category[], number]>;
+  getCategory(id: string): Promise<Category>;
+  createCategory(data: { name: string; icon?: string; description?: string }): Promise<Category>;
+  updateCategory(
+    id: string,
+    data: { name?: string; icon?: string; description?: string },
+  ): Promise<Category>;
+  deleteCategory(id: string): Promise<Category>;
 }
 
 // ── Factory ───────────────────────────────────────────────────────────────────
@@ -36,15 +39,17 @@ export interface CategoryServiceInstance {
  * @param deps - Injectable dependencies.
  * @returns A bound service instance.
  */
-export function createCategoryService(deps: CategoryServiceDeps & { db?: PrismaClient }): CategoryServiceInstance {
-  const { categoryRepository: repo, db = defaultDb } = deps
+export function createCategoryService(
+  deps: CategoryServiceDeps & { db?: PrismaClient },
+): CategoryServiceInstance {
+  const { categoryRepository: repo, db = defaultDb } = deps;
 
   return {
     /**
      * Return all categories ordered by name.
      */
     async listCategories() {
-      return repo.findAll()
+      return repo.findAll();
     },
 
     /**
@@ -58,8 +63,8 @@ export function createCategoryService(deps: CategoryServiceDeps & { db?: PrismaC
           orderBy: { name: 'asc' },
         }),
         db.category.count(),
-      ])
-      return [categories, total]
+      ]);
+      return [categories, total];
     },
 
     /**
@@ -67,9 +72,9 @@ export function createCategoryService(deps: CategoryServiceDeps & { db?: PrismaC
      * @throws AppError 404 if not found.
      */
     async getCategory(id: string) {
-      const category = await repo.findById(id)
-      if (!category) throw new AppError('Not found', 404)
-      return category
+      const category = await repo.findById(id);
+      if (!category) throw new AppError('Not found', 404);
+      return category;
     },
 
     /**
@@ -77,9 +82,9 @@ export function createCategoryService(deps: CategoryServiceDeps & { db?: PrismaC
      * @throws AppError 409 if a category with that name already exists.
      */
     async createCategory(data: { name: string; icon?: string; description?: string }) {
-      const existing = await repo.findByName(data.name)
-      if (existing) throw new AppError('Category already exists', 409)
-      return repo.create(data)
+      const existing = await repo.findByName(data.name);
+      if (existing) throw new AppError('Category already exists', 409);
+      return repo.create(data);
     },
 
     /**
@@ -87,9 +92,9 @@ export function createCategoryService(deps: CategoryServiceDeps & { db?: PrismaC
      * @throws AppError 404 if not found.
      */
     async updateCategory(id: string, data: { name?: string; icon?: string; description?: string }) {
-      const category = await repo.findById(id)
-      if (!category) throw new AppError('Category not found', 404)
-      return repo.update(id, data)
+      const category = await repo.findById(id);
+      if (!category) throw new AppError('Category not found', 404);
+      return repo.update(id, data);
     },
 
     /**
@@ -97,11 +102,11 @@ export function createCategoryService(deps: CategoryServiceDeps & { db?: PrismaC
      * @throws AppError 404 if not found.
      */
     async deleteCategory(id: string) {
-      const category = await repo.findById(id)
-      if (!category) throw new AppError('Category not found', 404)
-      return repo.delete(id)
+      const category = await repo.findById(id);
+      if (!category) throw new AppError('Category not found', 404);
+      return repo.delete(id);
     },
-  }
+  };
 }
 
 // ── Default service instance (backward-compatible module-level API) ───────────
@@ -114,20 +119,20 @@ export function createCategoryService(deps: CategoryServiceDeps & { db?: PrismaC
 
 const _defaultService = createCategoryService({
   categoryRepository: defaultCategoryRepository,
-})
+});
 
 /**
  * Return all categories ordered by name.
  */
 export async function listCategories() {
-  return _defaultService.listCategories()
+  return _defaultService.listCategories();
 }
 
 /**
  * Return paginated categories with total count.
  */
 export async function listCategoriesWithPagination(skip: number, take: number) {
-  return _defaultService.listCategoriesWithPagination(skip, take)
+  return _defaultService.listCategoriesWithPagination(skip, take);
 }
 
 /**
@@ -135,7 +140,7 @@ export async function listCategoriesWithPagination(skip: number, take: number) {
  * @throws AppError 404 if not found.
  */
 export async function getCategory(id: string) {
-  return _defaultService.getCategory(id)
+  return _defaultService.getCategory(id);
 }
 
 /**
@@ -143,15 +148,18 @@ export async function getCategory(id: string) {
  * @throws AppError 409 if a category with that name already exists.
  */
 export async function createCategory(data: { name: string; icon?: string; description?: string }) {
-  return _defaultService.createCategory(data)
+  return _defaultService.createCategory(data);
 }
 
 /**
  * Update an existing category by id (admin only).
  * @throws AppError 404 if not found.
  */
-export async function updateCategory(id: string, data: { name?: string; icon?: string; description?: string }) {
-  return _defaultService.updateCategory(id, data)
+export async function updateCategory(
+  id: string,
+  data: { name?: string; icon?: string; description?: string },
+) {
+  return _defaultService.updateCategory(id, data);
 }
 
 /**
@@ -159,5 +167,5 @@ export async function updateCategory(id: string, data: { name?: string; icon?: s
  * @throws AppError 404 if not found.
  */
 export async function deleteCategory(id: string) {
-  return _defaultService.deleteCategory(id)
+  return _defaultService.deleteCategory(id);
 }

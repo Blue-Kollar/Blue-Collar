@@ -1,7 +1,7 @@
-import { faker } from "@faker-js/faker";
-import type { Worker } from "../types";
-import { userFactory } from "./user.factory";
-import { categoryFactory } from "./category.factory";
+import { faker } from '@faker-js/faker';
+import type { Worker } from '../types';
+import { userFactory } from './user.factory';
+import { categoryFactory } from './category.factory';
 
 export const workerFactory = (overrides: Partial<Worker> = {}): Worker => {
   const user = userFactory();

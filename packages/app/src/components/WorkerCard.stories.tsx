@@ -1,6 +1,6 @@
-import type { Meta, StoryObj } from '@storybook/react'
-import WorkerCard from './WorkerCard'
-import { CompareProvider } from '@/context/CompareContext'
+import type { Meta, StoryObj } from '@storybook/react';
+import WorkerCard from './WorkerCard';
+import { CompareProvider } from '@/context/CompareContext';
 
 const meta: Meta<typeof WorkerCard> = {
   title: 'Components/WorkerCard',
@@ -19,10 +19,10 @@ const meta: Meta<typeof WorkerCard> = {
       options: ['standard', 'compact', 'featured'],
     },
   },
-}
+};
 
-export default meta
-type Story = StoryObj<typeof meta>
+export default meta;
+type Story = StoryObj<typeof meta>;
 
 const mockWorker = {
   id: '1',
@@ -35,28 +35,28 @@ const mockWorker = {
   bio: 'Professional plumber with 10+ years of experience',
   location: 'San Francisco, CA',
   isActive: true,
-}
+};
 
 export const Standard: Story = {
   args: {
     worker: mockWorker,
     variant: 'standard',
   },
-}
+};
 
 export const Compact: Story = {
   args: {
     worker: mockWorker,
     variant: 'compact',
   },
-}
+};
 
 export const Featured: Story = {
   args: {
     worker: mockWorker,
     variant: 'featured',
   },
-}
+};
 
 export const WithoutAvatar: Story = {
   args: {
@@ -66,7 +66,7 @@ export const WithoutAvatar: Story = {
     },
     variant: 'standard',
   },
-}
+};
 
 export const WithoutRating: Story = {
   args: {
@@ -77,7 +77,7 @@ export const WithoutRating: Story = {
     },
     variant: 'standard',
   },
-}
+};
 
 export const Unverified: Story = {
   args: {
@@ -87,4 +87,4 @@ export const Unverified: Story = {
     },
     variant: 'standard',
   },
-}
+};

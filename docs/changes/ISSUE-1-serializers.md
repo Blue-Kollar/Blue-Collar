@@ -16,7 +16,7 @@
 - Added `serializers/job.serializer.ts` with `JobSerializer` (full shape) and
   `JobSummarySerializer` (list/search shape). The summary serializer is
   composed on top of the full serializer via `pick()`, so the two never
-  drift on *how* a field is derived — only on *which* fields are kept. This
+  drift on _how_ a field is derived — only on _which_ fields are kept. This
   is the concrete "job vs. job summary" consolidation called out in the
   issue; previously job records were returned to clients unserialized
   (raw Prisma rows) directly from `controllers/jobs.ts`.

@@ -55,11 +55,11 @@ export {
   // admin
   adminLoginRules,
   adminUserRules,
-} from '@bluecollar/types'
+} from '@bluecollar/types';
 
 // ---------------------------------------------------------------------------
 // API-specific schemas (not shared with the frontend)
 // ---------------------------------------------------------------------------
-export * from './worker.js'
-export * from './pushSubscription.js'
-export * from './sanitizedText.js'
+export * from './worker.js';
+export * from './pushSubscription.js';
+export * from './sanitizedText.js';

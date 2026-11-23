@@ -353,7 +353,14 @@ describe('API contract — Auth (POST /auth/login)', () => {
     const broken = {
       status: 'success',
       code: 202,
-      data: { id: 'usr_1', email: 'a@b.com', firstName: 'A', lastName: 'B', role: 'user', verified: true },
+      data: {
+        id: 'usr_1',
+        email: 'a@b.com',
+        firstName: 'A',
+        lastName: 'B',
+        role: 'user',
+        verified: true,
+      },
     };
     expect(AuthLoginResponseSchema.safeParse(broken).success).toBe(false);
   });

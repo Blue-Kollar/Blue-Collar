@@ -1,7 +1,16 @@
-import type { User } from '@prisma/client'
-import { BaseSerializer } from './base.serializer.js'
+import type { User } from '@prisma/client';
+import { BaseSerializer } from './base.serializer.js';
 
-export type SerializedUser = Omit<User, 'password' | 'verificationToken' | 'verificationTokenExpiry' | 'resetToken' | 'resetTokenExpiry' | 'twoFactorSecret' | 'twoFactorBackupCodes'>
+export type SerializedUser = Omit<
+  User,
+  | 'password'
+  | 'verificationToken'
+  | 'verificationTokenExpiry'
+  | 'resetToken'
+  | 'resetTokenExpiry'
+  | 'twoFactorSecret'
+  | 'twoFactorBackupCodes'
+>;
 
 const HTML_ESCAPE_MAP: Record<string, string> = {
   '&': '&amp;',
@@ -9,17 +18,17 @@ const HTML_ESCAPE_MAP: Record<string, string> = {
   '>': '&gt;',
   '"': '&quot;',
   "'": '&#39;',
-}
+};
 
 function escapeHtml(value: string): string {
-  return value.replace(/[&<>"']/g, (char) => HTML_ESCAPE_MAP[char] ?? char)
+  return value.replace(/[&<>"']/g, (char) => HTML_ESCAPE_MAP[char] ?? char);
 }
 
 function sanitizeNullableString(value: string | null | undefined): string | null {
   if (value === null || value === undefined) {
-    return null
+    return null;
   }
-  return escapeHtml(value)
+  return escapeHtml(value);
 }
 
 export class UserSerializer extends BaseSerializer<User, SerializedUser> {
@@ -33,14 +42,14 @@ export class UserSerializer extends BaseSerializer<User, SerializedUser> {
       twoFactorSecret,
       twoFactorBackupCodes,
       ...safe
-    } = user
+    } = user;
     return {
       ...safe,
       firstName: escapeHtml(safe.firstName),
       lastName: escapeHtml(safe.lastName),
       bio: sanitizeNullableString(safe.bio),
-    }
+    };
   }
 }
 
-export const userSerializer = new UserSerializer()
+export const userSerializer = new UserSerializer();

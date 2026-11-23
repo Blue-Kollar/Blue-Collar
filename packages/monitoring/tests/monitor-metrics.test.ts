@@ -23,7 +23,7 @@
  *   pnpm --filter @bluecollar/monitoring test:coverage
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   AlertEvaluator,
   evaluateComparison,
@@ -34,7 +34,7 @@ import {
   type AlertRule,
   type MetricSample,
   type RawAlertGroups,
-} from '../src/alerts'
+} from '../src/alerts';
 
 // ═════════════════════════════════════════════════════════════════════════════
 // SECTION 1 — ContractMonitor metric/event emission
@@ -47,42 +47,42 @@ import {
 describe('ContractMonitor — critical event classification', () => {
   // Inline the event-classification contract from monitor.ts
   function isCriticalEvent(type: string): boolean {
-    const criticalEvents = ['EscCrt', 'ArbReq', 'ArbRes', 'WrkReg']
-    return criticalEvents.includes(type)
+    const criticalEvents = ['EscCrt', 'ArbReq', 'ArbRes', 'WrkReg'];
+    return criticalEvents.includes(type);
   }
 
   it('classifies EscCrt (escrow created) as critical', () => {
-    expect(isCriticalEvent('EscCrt')).toBe(true)
-  })
+    expect(isCriticalEvent('EscCrt')).toBe(true);
+  });
 
   it('classifies ArbReq (arbitration request) as critical', () => {
-    expect(isCriticalEvent('ArbReq')).toBe(true)
-  })
+    expect(isCriticalEvent('ArbReq')).toBe(true);
+  });
 
   it('classifies ArbRes (arbitration resolved) as critical', () => {
-    expect(isCriticalEvent('ArbRes')).toBe(true)
-  })
+    expect(isCriticalEvent('ArbRes')).toBe(true);
+  });
 
   it('classifies WrkReg (worker registration) as critical', () => {
-    expect(isCriticalEvent('WrkReg')).toBe(true)
-  })
+    expect(isCriticalEvent('WrkReg')).toBe(true);
+  });
 
   it('does NOT classify WrkUpd (worker update) as critical', () => {
-    expect(isCriticalEvent('WrkUpd')).toBe(false)
-  })
+    expect(isCriticalEvent('WrkUpd')).toBe(false);
+  });
 
   it('does NOT classify Tip (tip payment) as critical', () => {
-    expect(isCriticalEvent('Tip')).toBe(false)
-  })
+    expect(isCriticalEvent('Tip')).toBe(false);
+  });
 
   it('returns false for an unknown event type', () => {
-    expect(isCriticalEvent('UnknownEvent')).toBe(false)
-  })
+    expect(isCriticalEvent('UnknownEvent')).toBe(false);
+  });
 
   it('returns false for an empty string', () => {
-    expect(isCriticalEvent('')).toBe(false)
-  })
-})
+    expect(isCriticalEvent('')).toBe(false);
+  });
+});
 
 describe('ContractMonitor — alert webhook emission', () => {
   // Replica of the alert dispatch logic in monitor.ts
@@ -95,41 +95,45 @@ describe('ContractMonitor — alert webhook emission', () => {
       title: `Critical Event: ${event.type}`,
       message: `Contract ${event.contractId} emitted ${event.type} at ledger ${event.ledger}`,
       timestamp: new Date(),
-    }
+    };
     await fetcher(webhookUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(alert),
-    })
+    });
   }
 
   it('sends a POST to the webhook URL with correct alert shape', async () => {
-    const mockFetch = vi.fn().mockResolvedValue({ ok: true } as Response)
-    const event = { type: 'EscCrt', contractId: 'CONTRACT_ABC', ledger: 1234 }
+    const mockFetch = vi.fn().mockResolvedValue({ ok: true } as Response);
+    const event = { type: 'EscCrt', contractId: 'CONTRACT_ABC', ledger: 1234 };
 
-    await sendAlert(event, 'https://alert.example.com/hook', mockFetch as any)
+    await sendAlert(event, 'https://alert.example.com/hook', mockFetch as any);
 
-    expect(mockFetch).toHaveBeenCalledTimes(1)
-    const [url, opts] = mockFetch.mock.calls[0] as [string, RequestInit]
-    expect(url).toBe('https://alert.example.com/hook')
-    expect(opts.method).toBe('POST')
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+    const [url, opts] = mockFetch.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe('https://alert.example.com/hook');
+    expect(opts.method).toBe('POST');
 
-    const body = JSON.parse(opts.body as string)
-    expect(body.title).toContain('EscCrt')
-    expect(body.message).toContain('CONTRACT_ABC')
-    expect(body.message).toContain('1234')
-  })
+    const body = JSON.parse(opts.body as string);
+    expect(body.title).toContain('EscCrt');
+    expect(body.message).toContain('CONTRACT_ABC');
+    expect(body.message).toContain('1234');
+  });
 
   it('does NOT call webhook when URL is empty/undefined', async () => {
-    const mockFetch = vi.fn()
+    const mockFetch = vi.fn();
     // Guard: monitor only sends if alertWebhook is set
-    const alertWebhook = ''
+    const alertWebhook = '';
     if (alertWebhook) {
-      await sendAlert({ type: 'EscCrt', contractId: 'C', ledger: 1 }, alertWebhook, mockFetch as any)
+      await sendAlert(
+        { type: 'EscCrt', contractId: 'C', ledger: 1 },
+        alertWebhook,
+        mockFetch as any,
+      );
     }
-    expect(mockFetch).not.toHaveBeenCalled()
-  })
-})
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
+});
 
 describe('ContractMonitor — balance metric emission', () => {
   // Replica of balance-monitoring metric emission logic
@@ -140,47 +144,47 @@ describe('ContractMonitor — balance metric emission', () => {
     return {
       contract_balance_registry: parseFloat(registryBalance),
       contract_balance_market: parseFloat(marketBalance),
-    }
+    };
   }
 
   it('emits registry balance as a numeric metric', () => {
-    const metrics = buildBalanceMetrics('1234.5000000', '0.0000000')
-    expect(metrics.contract_balance_registry).toBe(1234.5)
-  })
+    const metrics = buildBalanceMetrics('1234.5000000', '0.0000000');
+    expect(metrics.contract_balance_registry).toBe(1234.5);
+  });
 
   it('emits market balance as a numeric metric', () => {
-    const metrics = buildBalanceMetrics('0.0000000', '5000.0000000')
-    expect(metrics.contract_balance_market).toBe(5000)
-  })
+    const metrics = buildBalanceMetrics('0.0000000', '5000.0000000');
+    expect(metrics.contract_balance_market).toBe(5000);
+  });
 
   it('emits 0 when balance is "0" (not NaN or undefined)', () => {
-    const metrics = buildBalanceMetrics('0', '0')
-    expect(metrics.contract_balance_registry).toBe(0)
-    expect(Number.isNaN(metrics.contract_balance_registry)).toBe(false)
-  })
+    const metrics = buildBalanceMetrics('0', '0');
+    expect(metrics.contract_balance_registry).toBe(0);
+    expect(Number.isNaN(metrics.contract_balance_registry)).toBe(false);
+  });
 
   it('emits both balance keys in every sample (no missing metrics)', () => {
-    const metrics = buildBalanceMetrics('100.0', '200.0')
-    expect(metrics).toHaveProperty('contract_balance_registry')
-    expect(metrics).toHaveProperty('contract_balance_market')
-  })
-})
+    const metrics = buildBalanceMetrics('100.0', '200.0');
+    expect(metrics).toHaveProperty('contract_balance_registry');
+    expect(metrics).toHaveProperty('contract_balance_market');
+  });
+});
 
 describe('ContractMonitor — error handler', () => {
   it('logs an error without throwing (stream error must not crash)', () => {
-    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
 
     // Inline replica of handleError
     function handleError(error: unknown): void {
-      console.error('Event stream error:', error)
+      console.error('Event stream error:', error);
     }
 
-    expect(() => handleError(new Error('network reset'))).not.toThrow()
-    expect(consoleError).toHaveBeenCalledWith('Event stream error:', expect.any(Error))
+    expect(() => handleError(new Error('network reset'))).not.toThrow();
+    expect(consoleError).toHaveBeenCalledWith('Event stream error:', expect.any(Error));
 
-    consoleError.mockRestore()
-  })
-})
+    consoleError.mockRestore();
+  });
+});
 
 // ═════════════════════════════════════════════════════════════════════════════
 // SECTION 2 — Alert threshold tests: metric emission with correct labels
@@ -191,215 +195,259 @@ describe('ContractMonitor — error handler', () => {
 // ═════════════════════════════════════════════════════════════════════════════
 
 // ── Helper ───────────────────────────────────────────────────────────────────
-function rule(partial: Partial<AlertRule> & Pick<AlertRule, 'id' | 'metric' | 'operator' | 'threshold'>): AlertRule {
-  return { enabled: true, severity: 'warning', ...partial }
+function rule(
+  partial: Partial<AlertRule> & Pick<AlertRule, 'id' | 'metric' | 'operator' | 'threshold'>,
+): AlertRule {
+  return { enabled: true, severity: 'warning', ...partial };
 }
 
 describe('Alert threshold — metric exceeds threshold fires with correct labels', () => {
   it('fires with correct metric name in evaluation result', () => {
     const evaluator = new AlertEvaluator([
       rule({ id: 'high-error', metric: 'http_error_rate', operator: '>', threshold: 0.05 }),
-    ])
-    const [result] = evaluator.evaluate({ http_error_rate: 0.1 })
-    expect(result.firing).toBe(true)
-    expect(result.metric).toBe('http_error_rate')
-  })
+    ]);
+    const [result] = evaluator.evaluate({ http_error_rate: 0.1 });
+    expect(result.firing).toBe(true);
+    expect(result.metric).toBe('http_error_rate');
+  });
 
   it('emits correct operator and threshold in the evaluation result', () => {
     const evaluator = new AlertEvaluator([
       rule({ id: 'low-balance', metric: 'contract_balance', operator: '<', threshold: 1000 }),
-    ])
-    const [result] = evaluator.evaluate({ contract_balance: 500 })
-    expect(result.operator).toBe('<')
-    expect(result.threshold).toBe(1000)
-  })
+    ]);
+    const [result] = evaluator.evaluate({ contract_balance: 500 });
+    expect(result.operator).toBe('<');
+    expect(result.threshold).toBe(1000);
+  });
 
   it('propagates severity: critical from the alert rule', () => {
     const evaluator = new AlertEvaluator([
-      rule({ id: 'critical-err', metric: 'error_rate', operator: '>', threshold: 0.1, severity: 'critical' }),
-    ])
-    const [result] = evaluator.evaluate({ error_rate: 0.5 })
-    expect(result.severity).toBe('critical')
-    expect(result.firing).toBe(true)
-  })
+      rule({
+        id: 'critical-err',
+        metric: 'error_rate',
+        operator: '>',
+        threshold: 0.1,
+        severity: 'critical',
+      }),
+    ]);
+    const [result] = evaluator.evaluate({ error_rate: 0.5 });
+    expect(result.severity).toBe('critical');
+    expect(result.firing).toBe(true);
+  });
 
   it('propagates severity: warning from the alert rule', () => {
     const evaluator = new AlertEvaluator([
-      rule({ id: 'warn-queue', metric: 'queue_depth', operator: '>', threshold: 100, severity: 'warning' }),
-    ])
-    const [result] = evaluator.evaluate({ queue_depth: 150 })
-    expect(result.severity).toBe('warning')
-  })
+      rule({
+        id: 'warn-queue',
+        metric: 'queue_depth',
+        operator: '>',
+        threshold: 100,
+        severity: 'warning',
+      }),
+    ]);
+    const [result] = evaluator.evaluate({ queue_depth: 150 });
+    expect(result.severity).toBe('warning');
+  });
 
   it('propagates severity: info from the alert rule', () => {
     const evaluator = new AlertEvaluator([
-      rule({ id: 'info-check', metric: 'response_time', operator: '>', threshold: 200, severity: 'info' }),
-    ])
-    const [result] = evaluator.evaluate({ response_time: 250 })
-    expect(result.severity).toBe('info')
-  })
+      rule({
+        id: 'info-check',
+        metric: 'response_time',
+        operator: '>',
+        threshold: 200,
+        severity: 'info',
+      }),
+    ]);
+    const [result] = evaluator.evaluate({ response_time: 250 });
+    expect(result.severity).toBe('info');
+  });
 
   it('does NOT fire when metric is exactly at the threshold for ">" operator', () => {
     const evaluator = new AlertEvaluator([
       rule({ id: 'strict-gt', metric: 'error_rate', operator: '>', threshold: 0.05 }),
-    ])
-    const [result] = evaluator.evaluate({ error_rate: 0.05 })
-    expect(result.firing).toBe(false)
-  })
+    ]);
+    const [result] = evaluator.evaluate({ error_rate: 0.05 });
+    expect(result.firing).toBe(false);
+  });
 
   it('fires when metric is exactly at the threshold for ">=" operator', () => {
     const evaluator = new AlertEvaluator([
       rule({ id: 'gte', metric: 'error_rate', operator: '>=', threshold: 0.05 }),
-    ])
-    const [result] = evaluator.evaluate({ error_rate: 0.05 })
-    expect(result.firing).toBe(true)
-  })
-})
+    ]);
+    const [result] = evaluator.evaluate({ error_rate: 0.05 });
+    expect(result.firing).toBe(true);
+  });
+});
 
 describe('Alert threshold — metric does NOT fire when below threshold', () => {
   it('returns status ok when metric is below the threshold', () => {
     const evaluator = new AlertEvaluator([
       rule({ id: 'balance-low', metric: 'contract_balance', operator: '<', threshold: 1000 }),
-    ])
-    const [result] = evaluator.evaluate({ contract_balance: 5000 })
-    expect(result.status).toBe('ok')
-    expect(result.firing).toBe(false)
-  })
+    ]);
+    const [result] = evaluator.evaluate({ contract_balance: 5000 });
+    expect(result.status).toBe('ok');
+    expect(result.firing).toBe(false);
+  });
 
   it('breaching flag is false when metric is healthy', () => {
     const evaluator = new AlertEvaluator([
       rule({ id: 'high-err', metric: 'error_rate', operator: '>', threshold: 0.05 }),
-    ])
-    const [result] = evaluator.evaluate({ error_rate: 0.01 })
-    expect(result.breaching).toBe(false)
-    expect(result.firing).toBe(false)
-  })
-})
+    ]);
+    const [result] = evaluator.evaluate({ error_rate: 0.01 });
+    expect(result.breaching).toBe(false);
+    expect(result.firing).toBe(false);
+  });
+});
 
 describe('Alert threshold — no-data status when metric is missing', () => {
   it('returns status no-data when metric is absent from sample', () => {
     const evaluator = new AlertEvaluator([
       rule({ id: 'missing-metric', metric: 'queue_depth', operator: '>', threshold: 100 }),
-    ])
-    const [result] = evaluator.evaluate({} as MetricSample)
-    expect(result.status).toBe('no-data')
-    expect(result.firing).toBe(false)
-    expect(result.value).toBeNull()
-  })
+    ]);
+    const [result] = evaluator.evaluate({} as MetricSample);
+    expect(result.status).toBe('no-data');
+    expect(result.firing).toBe(false);
+    expect(result.value).toBeNull();
+  });
 
   it('returns no-data when metric value is null', () => {
     const evaluator = new AlertEvaluator([
       rule({ id: 'null-metric', metric: 'queue_depth', operator: '>', threshold: 100 }),
-    ])
-    const [result] = evaluator.evaluate({ queue_depth: null } as MetricSample)
-    expect(result.status).toBe('no-data')
-  })
+    ]);
+    const [result] = evaluator.evaluate({ queue_depth: null } as MetricSample);
+    expect(result.status).toBe('no-data');
+  });
 
   it('returns no-data when metric value is a non-numeric string', () => {
     const evaluator = new AlertEvaluator([
       rule({ id: 'str-metric', metric: 'queue_depth', operator: '>', threshold: 100 }),
-    ])
-    const [result] = evaluator.evaluate({ queue_depth: 'unavailable' } as MetricSample)
-    expect(result.status).toBe('no-data')
-  })
-})
+    ]);
+    const [result] = evaluator.evaluate({ queue_depth: 'unavailable' } as MetricSample);
+    expect(result.status).toBe('no-data');
+  });
+});
 
 describe('Alert threshold — multi-rule evaluation: only breaching rule fires', () => {
   it('fires only the rule whose metric breaches threshold', () => {
     const evaluator = new AlertEvaluator([
       rule({ id: 'error-rate', metric: 'error_rate', operator: '>', threshold: 0.05 }),
       rule({ id: 'balance-low', metric: 'contract_balance', operator: '<', threshold: 1000 }),
-    ])
+    ]);
     // error_rate is fine, but balance is low
-    const results = evaluator.evaluate({ error_rate: 0.01, contract_balance: 500 })
-    const errorResult = results.find((r) => r.ruleId === 'error-rate')!
-    const balanceResult = results.find((r) => r.ruleId === 'balance-low')!
+    const results = evaluator.evaluate({ error_rate: 0.01, contract_balance: 500 });
+    const errorResult = results.find((r) => r.ruleId === 'error-rate')!;
+    const balanceResult = results.find((r) => r.ruleId === 'balance-low')!;
 
-    expect(errorResult.firing).toBe(false)
-    expect(balanceResult.firing).toBe(true)
-  })
+    expect(errorResult.firing).toBe(false);
+    expect(balanceResult.firing).toBe(true);
+  });
 
   it('fires multiple rules simultaneously when both thresholds breach', () => {
     const evaluator = new AlertEvaluator([
       rule({ id: 'r1', metric: 'error_rate', operator: '>', threshold: 0.05 }),
       rule({ id: 'r2', metric: 'queue_depth', operator: '>', threshold: 100 }),
-    ])
-    const results = evaluator.evaluate({ error_rate: 0.1, queue_depth: 200 })
-    expect(results.every((r) => r.firing)).toBe(true)
-  })
+    ]);
+    const results = evaluator.evaluate({ error_rate: 0.1, queue_depth: 200 });
+    expect(results.every((r) => r.firing)).toBe(true);
+  });
 
   it('returns a result entry for every configured rule', () => {
     const evaluator = new AlertEvaluator([
       rule({ id: 'r1', metric: 'a', operator: '>', threshold: 1 }),
       rule({ id: 'r2', metric: 'b', operator: '<', threshold: 10 }),
       rule({ id: 'r3', metric: 'c', operator: '==', threshold: 0 }),
-    ])
-    const results = evaluator.evaluate({ a: 0, b: 20, c: 1 })
-    expect(results).toHaveLength(3)
-    expect(results.map((r) => r.ruleId).sort()).toEqual(['r1', 'r2', 'r3'])
-  })
-})
+    ]);
+    const results = evaluator.evaluate({ a: 0, b: 20, c: 1 });
+    expect(results).toHaveLength(3);
+    expect(results.map((r) => r.ruleId).sort()).toEqual(['r1', 'r2', 'r3']);
+  });
+});
 
 describe('Alert threshold — debounce: ok → pending → firing → ok transitions', () => {
-  const NOW = 1_000_000
+  const NOW = 1_000_000;
 
   it('is pending (not firing) within the forMs window', () => {
     const evaluator = new AlertEvaluator([
-      rule({ id: 'debounced', metric: 'error_rate', operator: '>', threshold: 0.05, forMs: 60_000 }),
-    ])
+      rule({
+        id: 'debounced',
+        metric: 'error_rate',
+        operator: '>',
+        threshold: 0.05,
+        forMs: 60_000,
+      }),
+    ]);
     // First breach — starts the clock, must be pending
-    const results = evaluator.evaluate({ error_rate: 0.1 }, NOW)
-    const r = results.find((x) => x.ruleId === 'debounced')!
-    expect(r.status).toBe('pending')
-    expect(r.firing).toBe(false)
-    expect(r.breaching).toBe(true)
-  })
+    const results = evaluator.evaluate({ error_rate: 0.1 }, NOW);
+    const r = results.find((x) => x.ruleId === 'debounced')!;
+    expect(r.status).toBe('pending');
+    expect(r.firing).toBe(false);
+    expect(r.breaching).toBe(true);
+  });
 
   it('fires after the forMs window has elapsed', () => {
     const evaluator = new AlertEvaluator([
-      rule({ id: 'debounced', metric: 'error_rate', operator: '>', threshold: 0.05, forMs: 60_000 }),
-    ])
+      rule({
+        id: 'debounced',
+        metric: 'error_rate',
+        operator: '>',
+        threshold: 0.05,
+        forMs: 60_000,
+      }),
+    ]);
     // First breach
-    evaluator.evaluate({ error_rate: 0.1 }, NOW)
+    evaluator.evaluate({ error_rate: 0.1 }, NOW);
     // Evaluate again past the debounce window
-    const results = evaluator.evaluate({ error_rate: 0.1 }, NOW + 61_000)
-    const r = results.find((x) => x.ruleId === 'debounced')!
-    expect(r.status).toBe('firing')
-    expect(r.firing).toBe(true)
-  })
+    const results = evaluator.evaluate({ error_rate: 0.1 }, NOW + 61_000);
+    const r = results.find((x) => x.ruleId === 'debounced')!;
+    expect(r.status).toBe('firing');
+    expect(r.firing).toBe(true);
+  });
 
   it('resets to ok when metric recovers during the debounce window', () => {
     const evaluator = new AlertEvaluator([
-      rule({ id: 'debounced', metric: 'error_rate', operator: '>', threshold: 0.05, forMs: 60_000 }),
-    ])
+      rule({
+        id: 'debounced',
+        metric: 'error_rate',
+        operator: '>',
+        threshold: 0.05,
+        forMs: 60_000,
+      }),
+    ]);
     // Breach, then recover before forMs
-    evaluator.evaluate({ error_rate: 0.1 }, NOW)
-    const results = evaluator.evaluate({ error_rate: 0.01 }, NOW + 30_000)
-    const r = results.find((x) => x.ruleId === 'debounced')!
-    expect(r.status).toBe('ok')
-    expect(r.firing).toBe(false)
-  })
+    evaluator.evaluate({ error_rate: 0.1 }, NOW);
+    const results = evaluator.evaluate({ error_rate: 0.01 }, NOW + 30_000);
+    const r = results.find((x) => x.ruleId === 'debounced')!;
+    expect(r.status).toBe('ok');
+    expect(r.firing).toBe(false);
+  });
 
   it('fires immediately (no debounce) when forMs is 0', () => {
     const evaluator = new AlertEvaluator([
       rule({ id: 'instant', metric: 'error_rate', operator: '>', threshold: 0.05, forMs: 0 }),
-    ])
-    const [r] = evaluator.evaluate({ error_rate: 0.1 }, NOW)
-    expect(r.status).toBe('firing')
-    expect(r.firing).toBe(true)
-  })
-})
+    ]);
+    const [r] = evaluator.evaluate({ error_rate: 0.1 }, NOW);
+    expect(r.status).toBe('firing');
+    expect(r.firing).toBe(true);
+  });
+});
 
 describe('Alert threshold — disabled rules are skipped', () => {
   it('returns disabled status for a rule with enabled: false', () => {
     const evaluator = new AlertEvaluator([
-      rule({ id: 'disabled', metric: 'error_rate', operator: '>', threshold: 0.01, enabled: false }),
-    ])
-    const [r] = evaluator.evaluate({ error_rate: 1.0 })
-    expect(r.status).toBe('disabled')
-    expect(r.firing).toBe(false)
-  })
-})
+      rule({
+        id: 'disabled',
+        metric: 'error_rate',
+        operator: '>',
+        threshold: 0.01,
+        enabled: false,
+      }),
+    ]);
+    const [r] = evaluator.evaluate({ error_rate: 1.0 });
+    expect(r.status).toBe('disabled');
+    expect(r.firing).toBe(false);
+  });
+});
 
 // ═════════════════════════════════════════════════════════════════════════════
 // SECTION 3 — Alert group loading from YAML-like structures
@@ -427,45 +475,45 @@ describe('Alert group loading → evaluation pipeline', () => {
         ],
       },
     ],
-  }
+  };
 
   it('loaded rules fire when their thresholds are exceeded', () => {
-    const rules = loadAlertGroups(CONTRACT_ALERT_GROUPS)
+    const rules = loadAlertGroups(CONTRACT_ALERT_GROUPS);
     const { evaluations } = evaluateRules(rules, {
       contract_balance: 500,
       contract_transactions_failed: 0.2,
-    })
+    });
 
-    const balanceEval = evaluations.find((e) => e.ruleId === 'ContractBalanceLow')!
-    const errorEval = evaluations.find((e) => e.ruleId === 'ContractErrorRateHigh')!
+    const balanceEval = evaluations.find((e) => e.ruleId === 'ContractBalanceLow')!;
+    const errorEval = evaluations.find((e) => e.ruleId === 'ContractErrorRateHigh')!;
 
-    expect(balanceEval.breaching).toBe(true)
-    expect(errorEval.firing).toBe(true) // forMs=0 fires immediately
-    expect(errorEval.severity).toBe('critical')
-  })
+    expect(balanceEval.breaching).toBe(true);
+    expect(errorEval.firing).toBe(true); // forMs=0 fires immediately
+    expect(errorEval.severity).toBe('critical');
+  });
 
   it('loaded rules do NOT fire when metrics are healthy', () => {
-    const rules = loadAlertGroups(CONTRACT_ALERT_GROUPS)
+    const rules = loadAlertGroups(CONTRACT_ALERT_GROUPS);
     const { evaluations } = evaluateRules(rules, {
       contract_balance: 5000,
       contract_transactions_failed: 0.01,
-    })
+    });
 
-    expect(evaluations.every((e) => !e.firing)).toBe(true)
-  })
+    expect(evaluations.every((e) => !e.firing)).toBe(true);
+  });
 
   it('evaluateRules threads state across calls for debounce', () => {
-    const rules = loadAlertGroups(CONTRACT_ALERT_GROUPS)
-    const NOW = Date.now()
+    const rules = loadAlertGroups(CONTRACT_ALERT_GROUPS);
+    const NOW = Date.now();
 
-    const { state } = evaluateRules(rules, { contract_balance: 500 }, {}, NOW)
+    const { state } = evaluateRules(rules, { contract_balance: 500 }, {}, NOW);
     // Balance rule has forMs=300_000 — should be pending, not firing after 1st call
-    const { evaluations } = evaluateRules(rules, { contract_balance: 500 }, state, NOW + 301_000)
+    const { evaluations } = evaluateRules(rules, { contract_balance: 500 }, state, NOW + 301_000);
 
-    const balanceEval = evaluations.find((e) => e.ruleId === 'ContractBalanceLow')!
-    expect(balanceEval.firing).toBe(true)
-  })
-})
+    const balanceEval = evaluations.find((e) => e.ruleId === 'ContractBalanceLow')!;
+    expect(balanceEval.firing).toBe(true);
+  });
+});
 
 // ═════════════════════════════════════════════════════════════════════════════
 // SECTION 4 — parseDuration and evaluateComparison edge cases
@@ -474,85 +522,89 @@ describe('Alert group loading → evaluation pipeline', () => {
 
 describe('parseDuration — additional edge cases', () => {
   it('parses "0s" to 0 ms', () => {
-    expect(parseDuration('0s')).toBe(0)
-  })
+    expect(parseDuration('0s')).toBe(0);
+  });
 
   it('parses "1h" to 3 600 000 ms', () => {
-    expect(parseDuration('1h')).toBe(3_600_000)
-  })
+    expect(parseDuration('1h')).toBe(3_600_000);
+  });
 
   it('parses "100ms" to 100 ms', () => {
-    expect(parseDuration('100ms')).toBe(100)
-  })
+    expect(parseDuration('100ms')).toBe(100);
+  });
 
   it('returns 0 for undefined', () => {
-    expect(parseDuration(undefined)).toBe(0)
-  })
+    expect(parseDuration(undefined)).toBe(0);
+  });
 
   it('returns 0 for an empty string', () => {
-    expect(parseDuration('')).toBe(0)
-  })
-})
+    expect(parseDuration('')).toBe(0);
+  });
+});
 
 describe('evaluateComparison — numeric edge cases', () => {
   it('handles very small floating-point values correctly', () => {
-    expect(evaluateComparison(0.000001, '>', 0)).toBe(true)
-    expect(evaluateComparison(0, '>', 0.000001)).toBe(false)
-  })
+    expect(evaluateComparison(0.000001, '>', 0)).toBe(true);
+    expect(evaluateComparison(0, '>', 0.000001)).toBe(false);
+  });
 
   it('handles large integers correctly', () => {
-    expect(evaluateComparison(1_000_000, '>', 999_999)).toBe(true)
-    expect(evaluateComparison(999_999, '>', 1_000_000)).toBe(false)
-  })
+    expect(evaluateComparison(1_000_000, '>', 999_999)).toBe(true);
+    expect(evaluateComparison(999_999, '>', 1_000_000)).toBe(false);
+  });
 
   it('handles negative values', () => {
-    expect(evaluateComparison(-1, '<', 0)).toBe(true)
-    expect(evaluateComparison(-1, '>', 0)).toBe(false)
-  })
-})
+    expect(evaluateComparison(-1, '<', 0)).toBe(true);
+    expect(evaluateComparison(-1, '>', 0)).toBe(false);
+  });
+});
 
 describe('AlertEvaluator — state management', () => {
   it('hydrate() restores breachingSince state across evaluation cycles', () => {
-    const rules = [rule({ id: 'r1', metric: 'error_rate', operator: '>', threshold: 0.05, forMs: 60_000 })]
-    const evaluator = new AlertEvaluator(rules)
-    const NOW = 1_000_000
+    const rules = [
+      rule({ id: 'r1', metric: 'error_rate', operator: '>', threshold: 0.05, forMs: 60_000 }),
+    ];
+    const evaluator = new AlertEvaluator(rules);
+    const NOW = 1_000_000;
 
-    evaluator.evaluate({ error_rate: 0.1 }, NOW)
-    const state = evaluator.getState()
+    evaluator.evaluate({ error_rate: 0.1 }, NOW);
+    const state = evaluator.getState();
 
     // Simulate restoring persisted state in a fresh evaluator
-    const freshEvaluator = new AlertEvaluator(rules)
-    freshEvaluator.hydrate(state)
+    const freshEvaluator = new AlertEvaluator(rules);
+    freshEvaluator.hydrate(state);
 
-    const results = freshEvaluator.evaluate({ error_rate: 0.1 }, NOW + 61_000)
-    expect(results[0].firing).toBe(true)
-  })
+    const results = freshEvaluator.evaluate({ error_rate: 0.1 }, NOW + 61_000);
+    expect(results[0].firing).toBe(true);
+  });
 
   it('reset() clears all breachingSince state', () => {
-    const rules = [rule({ id: 'r1', metric: 'error_rate', operator: '>', threshold: 0.05, forMs: 60_000 })]
-    const evaluator = new AlertEvaluator(rules)
-    const NOW = 1_000_000
+    const rules = [
+      rule({ id: 'r1', metric: 'error_rate', operator: '>', threshold: 0.05, forMs: 60_000 }),
+    ];
+    const evaluator = new AlertEvaluator(rules);
+    const NOW = 1_000_000;
 
-    evaluator.evaluate({ error_rate: 0.1 }, NOW)
-    evaluator.reset()
+    evaluator.evaluate({ error_rate: 0.1 }, NOW);
+    evaluator.reset();
 
     // After reset, evaluating again at NOW+70000 should be pending (clock restarted)
-    const results = evaluator.evaluate({ error_rate: 0.1 }, NOW + 70_000)
+    const results = evaluator.evaluate({ error_rate: 0.1 }, NOW + 70_000);
     // The breachingSince was reset to null, so the new breach started at NOW+70000
     // forMs=60000, so NOW+70000 → check: breachingSince=NOW+70000, now=NOW+70000
     // elapsed=0 < 60000 → pending
-    expect(results[0].status).toBe('pending')
-  })
+    expect(results[0].status).toBe('pending');
+  });
 
   it('setRules() adds new rules while preserving existing state', () => {
     const evaluator = new AlertEvaluator([
       rule({ id: 'existing', metric: 'error_rate', operator: '>', threshold: 0.05 }),
-    ])
+    ]);
     evaluator.setRules([
       rule({ id: 'existing', metric: 'error_rate', operator: '>', threshold: 0.05 }),
       rule({ id: 'new-rule', metric: 'queue_depth', operator: '>', threshold: 100 }),
-    ])
-    const results = evaluator.evaluate({ error_rate: 0.1, queue_depth: 200 })
-    expect(results).toHaveLength(2)
-  })
-})
+    ]);
+    const results = evaluator.evaluate({ error_rate: 0.1, queue_depth: 200 });
+    expect(results).toHaveLength(2);
+  });
+});

@@ -1,5 +1,5 @@
-import type { Config } from 'tailwindcss'
-import { tokens } from './design-system/tokens'
+import type { Config } from 'tailwindcss';
+import { tokens } from './design-system/tokens';
 
 /**
  * BlueCollar Tailwind configuration.
@@ -22,10 +22,7 @@ import { tokens } from './design-system/tokens'
 
 const config: Config = {
   darkMode: 'class',
-  content: [
-    './src/**/*.{ts,tsx}',
-    './src/**/*.{md,mdx}',
-  ],
+  content: ['./src/**/*.{ts,tsx}', './src/**/*.{md,mdx}'],
   theme: {
     extend: {
       screens: {
@@ -34,14 +31,14 @@ const config: Config = {
         'contrast-less': { raw: '(prefers-contrast: less)' },
       },
 
-      ringColor:   { a11y: tokens.colors.brand[600] },
+      ringColor: { a11y: tokens.colors.brand[600] },
       outlineColor: { a11y: tokens.colors.brand[600] },
 
       colors: {
         'text-accessible': {
-          primary:   tokens.colors.neutral[900],
+          primary: tokens.colors.neutral[900],
           secondary: tokens.colors.neutral[700],
-          muted:     tokens.colors.neutral[600],
+          muted: tokens.colors.neutral[600],
         },
 
         brand: tokens.colors.brand,
@@ -50,29 +47,29 @@ const config: Config = {
 
         success: tokens.colors.success,
         warning: tokens.colors.warning,
-        error:   tokens.colors.error,
-        info:    tokens.colors.info,
+        error: tokens.colors.error,
+        info: tokens.colors.info,
 
         // shadcn CSS variable aliases
-        background:        'hsl(var(--background))',
-        foreground:        'hsl(var(--foreground))',
-        card:              'hsl(var(--card))',
+        background: 'hsl(var(--background))',
+        foreground: 'hsl(var(--foreground))',
+        card: 'hsl(var(--card))',
         'card-foreground': 'hsl(var(--card-foreground))',
-        popover:           'hsl(var(--popover))',
+        popover: 'hsl(var(--popover))',
         'popover-foreground': 'hsl(var(--popover-foreground))',
-        primary:           'hsl(var(--primary))',
+        primary: 'hsl(var(--primary))',
         'primary-foreground': 'hsl(var(--primary-foreground))',
-        secondary:         'hsl(var(--secondary))',
+        secondary: 'hsl(var(--secondary))',
         'secondary-foreground': 'hsl(var(--secondary-foreground))',
-        muted:             'hsl(var(--muted))',
+        muted: 'hsl(var(--muted))',
         'muted-foreground': 'hsl(var(--muted-foreground))',
-        accent:            'hsl(var(--accent))',
+        accent: 'hsl(var(--accent))',
         'accent-foreground': 'hsl(var(--accent-foreground))',
-        destructive:       'hsl(var(--destructive))',
+        destructive: 'hsl(var(--destructive))',
         'destructive-foreground': 'hsl(var(--destructive-foreground))',
-        border:            'hsl(var(--border))',
-        input:             'hsl(var(--input))',
-        ring:              'hsl(var(--ring))',
+        border: 'hsl(var(--border))',
+        input: 'hsl(var(--input))',
+        ring: 'hsl(var(--ring))',
       },
 
       fontFamily: {
@@ -102,6 +99,6 @@ const config: Config = {
     },
   },
   plugins: [],
-}
+};
 
-export default config
+export default config;

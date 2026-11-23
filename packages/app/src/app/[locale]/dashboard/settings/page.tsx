@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
-import { useAuth } from "@/context/AuthContext";
-import { ProfileSection } from "@/components/dashboard/settings/ProfileSection";
-import { PasswordSection } from "@/components/dashboard/settings/PasswordSection";
-import { NotificationSection } from "@/components/dashboard/settings/NotificationSection";
-import { DangerZoneSection } from "@/components/dashboard/settings/DangerZoneSection";
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Loader2 } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import { ProfileSection } from '@/components/dashboard/settings/ProfileSection';
+import { PasswordSection } from '@/components/dashboard/settings/PasswordSection';
+import { NotificationSection } from '@/components/dashboard/settings/NotificationSection';
+import { DangerZoneSection } from '@/components/dashboard/settings/DangerZoneSection';
 
 // ── Main page ─────────────────────────────────────────────────────────────────
 
@@ -17,7 +17,7 @@ export default function SettingsPage() {
   const [deleteOpen, setDeleteOpen] = useState(false);
 
   useEffect(() => {
-    if (!authLoading && !user) router.replace("/auth/login");
+    if (!authLoading && !user) router.replace('/auth/login');
   }, [user, authLoading, router]);
 
   if (authLoading || !user) {

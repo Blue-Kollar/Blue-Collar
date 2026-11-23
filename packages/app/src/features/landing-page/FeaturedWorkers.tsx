@@ -1,18 +1,18 @@
-import Image from 'next/image'
-import Link from 'next/link'
-import { getTranslations } from 'next-intl/server'
+import Image from 'next/image';
+import Link from 'next/link';
+import { getTranslations } from 'next-intl/server';
 
 interface Worker {
-  id: string
-  name: string
-  avatar: string | null
-  category: { name: string }
+  id: string;
+  name: string;
+  avatar: string | null;
+  category: { name: string };
 }
 
 async function getFeaturedWorkers(): Promise<Worker[]> {
   const base = process.env.NEXT_PUBLIC_API_URL;
   if (!base) return [];
-  const res = await fetch(`${base}/api/workers?limit=6`, { cache: "force-cache" });
+  const res = await fetch(`${base}/api/workers?limit=6`, { cache: 'force-cache' });
   if (!res.ok) return [];
   const json = await res.json();
   return json.data;
@@ -24,7 +24,10 @@ export function FeaturedWorkersSkeleton() {
       <div className="h-8 w-48 animate-pulse rounded-md bg-gray-200 dark:bg-gray-700" />
       <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 flex flex-col gap-4">
+          <div
+            key={i}
+            className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 flex flex-col gap-4"
+          >
             <div className="flex items-center gap-4">
               <div className="w-14 h-14 rounded-full animate-pulse bg-gray-200 dark:bg-gray-700 shrink-0" />
               <div className="flex flex-col gap-2 flex-1">
@@ -41,8 +44,8 @@ export function FeaturedWorkersSkeleton() {
 }
 
 export default async function FeaturedWorkers() {
-  const workers = await getFeaturedWorkers()
-  const t = await getTranslations('featuredWorkers')
+  const workers = await getFeaturedWorkers();
+  const t = await getTranslations('featuredWorkers');
 
   return (
     <section className="px-4 py-16 max-w-6xl mx-auto">
@@ -53,7 +56,10 @@ export default async function FeaturedWorkers() {
       ) : (
         <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {workers.map((worker, index) => (
-            <div key={worker.id} className="rounded-xl border border-gray-200 p-5 flex flex-col gap-4">
+            <div
+              key={worker.id}
+              className="rounded-xl border border-gray-200 p-5 flex flex-col gap-4"
+            >
               <div className="flex items-center gap-4">
                 {worker.avatar ? (
                   <Image
@@ -96,5 +102,5 @@ export default async function FeaturedWorkers() {
         </Link>
       </div>
     </section>
-  )
+  );
 }

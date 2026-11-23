@@ -12,37 +12,37 @@
 // when running under Vitest, or `jest` when running under Jest.
 // We expose thin wrappers that defer to whichever mock runtime is available.
 function _mockFn(): any {
-  const g = globalThis as Record<string, unknown>
-  if (typeof g.vi !== 'undefined') return (g.vi as { fn: () => unknown }).fn()
-  if (typeof g.jest !== 'undefined') return (g.jest as { fn: () => unknown }).fn()
+  const g = globalThis as Record<string, unknown>;
+  if (typeof g.vi !== 'undefined') return (g.vi as { fn: () => unknown }).fn();
+  if (typeof g.jest !== 'undefined') return (g.jest as { fn: () => unknown }).fn();
   // Fallback no-op (shouldn't be reached in a test environment)
-  return () => undefined
+  return () => undefined;
 }
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 export interface MockRequest {
-  body: Record<string, unknown>
-  params: Record<string, string>
-  query: Record<string, string | string[]>
-  headers: Record<string, string>
-  user: MockUser | null
-  [key: string]: unknown
+  body: Record<string, unknown>;
+  params: Record<string, string>;
+  query: Record<string, string | string[]>;
+  headers: Record<string, string>;
+  user: MockUser | null;
+  [key: string]: unknown;
 }
 
 export interface MockUser {
-  id: string
-  role: 'user' | 'curator' | 'admin'
-  email?: string
+  id: string;
+  role: 'user' | 'curator' | 'admin';
+  email?: string;
 }
 
 export interface MockResponse {
-  status: ReturnType<typeof _mockFn>
-  json: ReturnType<typeof _mockFn>
-  send: ReturnType<typeof _mockFn>
-  redirect: ReturnType<typeof _mockFn>
-  setHeader: ReturnType<typeof _mockFn>
-  [key: string]: unknown
+  status: ReturnType<typeof _mockFn>;
+  json: ReturnType<typeof _mockFn>;
+  send: ReturnType<typeof _mockFn>;
+  redirect: ReturnType<typeof _mockFn>;
+  setHeader: ReturnType<typeof _mockFn>;
+  [key: string]: unknown;
 }
 
 // ── Factories ─────────────────────────────────────────────────────────────────
@@ -61,7 +61,7 @@ export function makeRequest(overrides: Partial<MockRequest> = {}): MockRequest {
     headers: {},
     user: null,
     ...overrides,
-  }
+  };
 }
 
 /**
@@ -80,17 +80,17 @@ export function makeResponse(): MockResponse {
     send: _mockFn(),
     redirect: _mockFn(),
     setHeader: _mockFn(),
-  }
+  };
   // Enable res.status(xxx).json(...) chaining
-  ;(res.status as ReturnType<typeof _mockFn>).mockReturnValue(res)
-  return res
+  (res.status as ReturnType<typeof _mockFn>).mockReturnValue(res);
+  return res;
 }
 
 /**
  * Create a mock `next` function (Express NextFunction).
  */
 export function makeNext(): ReturnType<typeof _mockFn> {
-  return _mockFn()
+  return _mockFn();
 }
 
 /**
@@ -107,8 +107,8 @@ export function makeJwt(
   options: { expiresIn?: string } = { expiresIn: '1h' },
 ): string {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const jwt = require('jsonwebtoken')
-  return jwt.sign(payload, secret, options)
+  const jwt = require('jsonwebtoken');
+  return jwt.sign(payload, secret, options);
 }
 
 /**
@@ -118,5 +118,5 @@ export function makeExpiredJwt(
   payload: Record<string, unknown> = {},
   secret = process.env.JWT_SECRET ?? 'test-secret',
 ): string {
-  return makeJwt(payload, secret, { expiresIn: '-1s' })
+  return makeJwt(payload, secret, { expiresIn: '-1s' });
 }

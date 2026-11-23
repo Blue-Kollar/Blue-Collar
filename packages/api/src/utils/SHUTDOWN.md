@@ -54,20 +54,20 @@ SHUTDOWN_TIMEOUT_MS=60000
 Located in `src/utils/shutdown.ts`:
 
 ```typescript
-import { createGracefulShutdownHandler } from '@/utils/shutdown.js'
+import { createGracefulShutdownHandler } from '@/utils/shutdown.js';
 
 // In index.ts
-const shutdownHandler = createGracefulShutdownHandler(server)
-process.on('SIGTERM', shutdownHandler)
-process.on('SIGINT', shutdownHandler)
+const shutdownHandler = createGracefulShutdownHandler(server);
+process.on('SIGTERM', shutdownHandler);
+process.on('SIGINT', shutdownHandler);
 ```
 
 ### Phase 1: Stop Accepting Connections
 
 ```typescript
 httpServer.close(() => {
-  logger.info('Server stopped accepting connections')
-})
+  logger.info('Server stopped accepting connections');
+});
 ```
 
 - Stops listening on the port
@@ -78,7 +78,7 @@ httpServer.close(() => {
 
 ```typescript
 // Wait for all active requests to complete
-const connections = httpServer.connections ?? 0
+const connections = httpServer.connections ?? 0;
 // Poll connection count until 0 or timeout
 ```
 
@@ -90,17 +90,18 @@ const connections = httpServer.connections ?? 0
 ### Phase 3: Stop Background Jobs
 
 ```typescript
-stopAllJobs() // Calls stop functions for all job runners
+stopAllJobs(); // Calls stop functions for all job runners
 ```
 
 Jobs stopped:
+
 - Reminder job (verification reminders)
 - Horizon poller (Stellar network polling)
 
 ### Phase 4: Close Database Connections
 
 ```typescript
-await disconnectDb() // Both primary and read-replica
+await disconnectDb(); // Both primary and read-replica
 ```
 
 - Closes both write and read-replica Prisma client pools
@@ -109,7 +110,7 @@ await disconnectDb() // Both primary and read-replica
 ### Phase 5: Close Redis Connections
 
 ```typescript
-await disconnectRedis()
+await disconnectRedis();
 ```
 
 - Sends QUIT command for graceful close
@@ -119,9 +120,9 @@ await disconnectRedis()
 ### Phase 6: Exit Process
 
 ```typescript
-process.exit(0) // Success
+process.exit(0); // Success
 // or
-process.exit(1) // Error occurred
+process.exit(1); // Error occurred
 ```
 
 ## Error Handling
@@ -187,23 +188,23 @@ apiVersion: v1
 kind: Pod
 spec:
   containers:
-  - name: api
-    image: bluecollar:api
-    lifecycle:
-      preStop:
-        exec:
-          command: ["/bin/sh", "-c", "sleep 10"]  # Grace period
-    terminationGracePeriodSeconds: 40  # Total grace period (must be > DRAIN_TIMEOUT_MS)
+    - name: api
+      image: bluecollar:api
+      lifecycle:
+        preStop:
+          exec:
+            command: ['/bin/sh', '-c', 'sleep 10'] # Grace period
+      terminationGracePeriodSeconds: 40 # Total grace period (must be > DRAIN_TIMEOUT_MS)
 ```
 
 Set environment variables:
 
 ```yaml
 env:
-- name: DRAIN_TIMEOUT_MS
-  value: "10000"  # 10 seconds for requests to drain
-- name: SHUTDOWN_TIMEOUT_MS
-  value: "30000"  # 30 seconds total
+  - name: DRAIN_TIMEOUT_MS
+    value: '10000' # 10 seconds for requests to drain
+  - name: SHUTDOWN_TIMEOUT_MS
+    value: '30000' # 30 seconds total
 ```
 
 ### Docker Compose
@@ -215,7 +216,7 @@ services:
     environment:
       DRAIN_TIMEOUT_MS: 10000
       SHUTDOWN_TIMEOUT_MS: 30000
-    stop_grace_period: 40s  # Must be > SHUTDOWN_TIMEOUT_MS
+    stop_grace_period: 40s # Must be > SHUTDOWN_TIMEOUT_MS
 ```
 
 ## Production Recommendations
@@ -245,6 +246,7 @@ services:
 **Symptom**: Client receives connection reset or timeout errors
 
 **Solution**:
+
 - Increase `DRAIN_TIMEOUT_MS`
 - Check for slow queries using database logs
 - Verify no deadlocks in transactions
@@ -254,6 +256,7 @@ services:
 **Symptom**: Process takes >30 seconds to shutdown
 
 **Solution**:
+
 - Increase `SHUTDOWN_TIMEOUT_MS` if needed
 - Check background job stop methods
 - Verify database connections aren't hanging
@@ -263,6 +266,7 @@ services:
 **Symptom**: Error logs mention Redis during shutdown
 
 **Solution**:
+
 - Normal if Redis was already unavailable
 - Check Redis health logs
 - May indicate network issues

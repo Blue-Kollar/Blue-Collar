@@ -5,41 +5,45 @@
 The following personally identifiable information is collected, stored, and processed:
 
 ### User Model (`User`)
-| Field | Type | Sensitivity | Encryption | Retention |
-|-------|------|-------------|------------|-----------|
-| `email` | String | **High** | AES-256-GCM at column level | Lifetime of account + 90 days after deletion |
-| `password` | String? | **Critical** | Argon2id hash (never stored in plaintext) | Never deleted; account lifecycle |
-| `phone` | String? | **High** | AES-256-GCM at column level | Lifetime of account + 90 days after deletion |
-| `googleId` | String? | Medium | AES-256-GCM at column level | Lifetime of account |
-| `avatar` | String? | Low | Encrypted at rest (RDS) | Lifetime of account |
-| `firstName` | String | Medium | Encrypted at rest (RDS) | Lifetime of account + 90 days |
-| `lastName` | String | Medium | Encrypted at rest (RDS) | Lifetime of account + 90 days |
-| `verificationToken` | String? | **Critical** | Argon2id hash | 24 hours then purged |
-| `resetToken` | String? | **Critical** | Argon2id hash | 1 hour then purged |
-| `twoFactorSecret` | String? | **Critical** | AES-256-GCM at column level | Lifetime of account |
-| `twoFactorBackupCodes` | String[] | **Critical** | AES-256-GCM at column level | Lifetime of account |
+
+| Field                  | Type     | Sensitivity  | Encryption                                | Retention                                    |
+| ---------------------- | -------- | ------------ | ----------------------------------------- | -------------------------------------------- |
+| `email`                | String   | **High**     | AES-256-GCM at column level               | Lifetime of account + 90 days after deletion |
+| `password`             | String?  | **Critical** | Argon2id hash (never stored in plaintext) | Never deleted; account lifecycle             |
+| `phone`                | String?  | **High**     | AES-256-GCM at column level               | Lifetime of account + 90 days after deletion |
+| `googleId`             | String?  | Medium       | AES-256-GCM at column level               | Lifetime of account                          |
+| `avatar`               | String?  | Low          | Encrypted at rest (RDS)                   | Lifetime of account                          |
+| `firstName`            | String   | Medium       | Encrypted at rest (RDS)                   | Lifetime of account + 90 days                |
+| `lastName`             | String   | Medium       | Encrypted at rest (RDS)                   | Lifetime of account + 90 days                |
+| `verificationToken`    | String?  | **Critical** | Argon2id hash                             | 24 hours then purged                         |
+| `resetToken`           | String?  | **Critical** | Argon2id hash                             | 1 hour then purged                           |
+| `twoFactorSecret`      | String?  | **Critical** | AES-256-GCM at column level               | Lifetime of account                          |
+| `twoFactorBackupCodes` | String[] | **Critical** | AES-256-GCM at column level               | Lifetime of account                          |
 
 ### Worker Model (`Worker`)
-| Field | Type | Sensitivity | Encryption | Retention |
-|-------|------|-------------|------------|-----------|
-| `email` | String? | **High** | AES-256-GCM at column level | Lifetime of listing + 90 days |
-| `phone` | String? | **High** | AES-256-GCM at column level | Lifetime of listing + 90 days |
-| `walletAddress` | String? | Medium | Encrypted at rest (RDS) | Lifetime of listing |
+
+| Field           | Type    | Sensitivity | Encryption                  | Retention                     |
+| --------------- | ------- | ----------- | --------------------------- | ----------------------------- |
+| `email`         | String? | **High**    | AES-256-GCM at column level | Lifetime of listing + 90 days |
+| `phone`         | String? | **High**    | AES-256-GCM at column level | Lifetime of listing + 90 days |
+| `walletAddress` | String? | Medium      | Encrypted at rest (RDS)     | Lifetime of listing           |
 
 ### Device Model (`Device`)
-| Field | Type | Sensitivity | Encryption | Retention |
-|-------|------|-------------|------------|-----------|
-| `ipAddress` | String | **High** | AES-256-GCM at column level | 90 days then anonymized |
-| `userAgent` | String? | Low | Encrypted at rest (RDS) | 90 days |
+
+| Field       | Type    | Sensitivity | Encryption                  | Retention               |
+| ----------- | ------- | ----------- | --------------------------- | ----------------------- |
+| `ipAddress` | String  | **High**    | AES-256-GCM at column level | 90 days then anonymized |
+| `userAgent` | String? | Low         | Encrypted at rest (RDS)     | 90 days                 |
 
 ### Other PII-bearing Models
-| Model | PII Fields | Sensitivity | Retention |
-|-------|-----------|-------------|-----------|
-| `ProfileView` | `ip` | Medium | 30 days (aggregated) |
-| `SearchAnalytics` | `ipAddress` | Medium | 30 days (aggregated) |
-| `Message` | `body` | Medium | Lifetime of conversation |
-| `JobMessage` | `body` | Medium | Lifetime of job |
-| `ContactRequest` | `message` | Medium | Lifetime of account |
+
+| Model             | PII Fields  | Sensitivity | Retention                |
+| ----------------- | ----------- | ----------- | ------------------------ |
+| `ProfileView`     | `ip`        | Medium      | 30 days (aggregated)     |
+| `SearchAnalytics` | `ipAddress` | Medium      | 30 days (aggregated)     |
+| `Message`         | `body`      | Medium      | Lifetime of conversation |
+| `JobMessage`      | `body`      | Medium      | Lifetime of job          |
+| `ContactRequest`  | `message`   | Medium      | Lifetime of account      |
 
 ## 2. Encryption-at-Rest Policy
 
@@ -75,6 +79,7 @@ The following personally identifiable information is collected, stored, and proc
 ## 6. Breach Notification
 
 In the event of a data breach involving PII:
+
 1. Engineering team is alerted via PagerDuty within 15 minutes.
 2. Security team investigates and contains within 1 hour.
 3. Affected users are notified within 72 hours via email.
@@ -82,9 +87,9 @@ In the event of a data breach involving PII:
 
 ## 7. Third-Party Data Processors
 
-| Processor | Data Shared | Purpose |
-|-----------|------------|---------|
-| Stellar Horizon (testnet/mainnet) | Wallet address | Transaction processing |
-| Sentry (if enabled) | Error stack traces | Error monitoring |
-| Vercel (hosting) | IP addresses | CDN and request routing |
-| AWS RDS | All data (encrypted) | Database hosting |
+| Processor                         | Data Shared          | Purpose                 |
+| --------------------------------- | -------------------- | ----------------------- |
+| Stellar Horizon (testnet/mainnet) | Wallet address       | Transaction processing  |
+| Sentry (if enabled)               | Error stack traces   | Error monitoring        |
+| Vercel (hosting)                  | IP addresses         | CDN and request routing |
+| AWS RDS                           | All data (encrypted) | Database hosting        |

@@ -41,13 +41,13 @@ Full UI surface for token selection, fee preview, wallet signing, and all post-t
 
 ## Design Principles
 
-| Principle | Rule |
-|---|---|
-| **Transparency** | Always show the fee amount in human-readable form (e.g. "1% fee = 0.10 XLM") before the user signs. |
-| **Progressive disclosure** | Advanced options (multi-sig, custom expiry) are collapsed behind a toggle. |
-| **Irreversibility warnings** | Any action that cannot be undone (release, cancel after expiry) requires a confirmation step. |
-| **Wallet-agnostic framing** | UI copy says "Approve in wallet" not "Approve in Freighter" — other wallets may be added later. |
-| **Accessibility** | All modals trap focus, use `role="dialog"`, and support keyboard dismissal via Escape. |
+| Principle                    | Rule                                                                                                |
+| ---------------------------- | --------------------------------------------------------------------------------------------------- |
+| **Transparency**             | Always show the fee amount in human-readable form (e.g. "1% fee = 0.10 XLM") before the user signs. |
+| **Progressive disclosure**   | Advanced options (multi-sig, custom expiry) are collapsed behind a toggle.                          |
+| **Irreversibility warnings** | Any action that cannot be undone (release, cancel after expiry) requires a confirmation step.       |
+| **Wallet-agnostic framing**  | UI copy says "Approve in wallet" not "Approve in Freighter" — other wallets may be added later.     |
+| **Accessibility**            | All modals trap focus, use `role="dialog"`, and support keyboard dismissal via Escape.              |
 
 ---
 
@@ -74,6 +74,7 @@ Used in both tip and escrow flows to choose the payment token (XLM or any Stella
 **States**: default, open, selected, invalid-address (red border + "Invalid token address" helper text).
 
 **Props driving UI**:
+
 - `token_addr: Address` — the selected Stellar token contract address.
 - Balance shown beneath selector: fetched from Horizon, formatted to 7 dp.
 
@@ -97,18 +98,22 @@ Used in both tip and escrow flows to choose the payment token (XLM or any Stella
 ```
 
 **Fee calculation** (mirrors `tip()` on-chain logic):
+
 ```
 fee_amount  = floor(amount × fee_bps / 10000)
 net_amount  = amount − fee_amount
 ```
+
 `fee_bps` is fetched from `get_config()` on mount (max 500 = 5%).
 
 **Validation rules**:
+
 - Amount > 0
 - Amount ≤ wallet balance
 - Amount must be a valid i128 (7 decimal places for XLM)
 
 **Error states**:
+
 - Empty / zero → "Enter an amount"
 - Exceeds balance → "Insufficient balance"
 - Non-numeric → "Invalid amount"
@@ -438,12 +443,12 @@ After `resolve_arbitration()` is called by the arbitrator:
 
 Outcome label maps to `DisputeOutcome` values:
 
-| Contract value | UI label |
-|---|---|
-| `ReleaseWorker` | "Funds released to worker" |
-| `RefundPayer` | "Funds returned to payer" |
+| Contract value  | UI label                                     |
+| --------------- | -------------------------------------------- |
+| `ReleaseWorker` | "Funds released to worker"                   |
+| `RefundPayer`   | "Funds returned to payer"                    |
 | `PartialRefund` | "Partial refund — see transaction for split" |
-| `Unresolved` | "No decision — funds remain locked" |
+| `Unresolved`    | "No decision — funds remain locked"          |
 
 ---
 
@@ -569,14 +574,14 @@ Design tokens: icon uses `--destructive` (`text-red-600`), card border `border-r
 
 **Common failure messages**:
 
-| Raw error / condition | User-facing message |
-|---|---|
-| `op_underfunded` | "Insufficient balance to cover this payment." |
-| `op_no_trust` | "Your wallet doesn't trust this token. Add a trustline first." |
-| Wallet timeout (60 s) | "Wallet request timed out. Please try again." |
-| User rejected in wallet | "You declined the transaction in your wallet." |
-| `"Contract is paused"` | "Payments are temporarily paused. Try again shortly." |
-| Network/Horizon error | "Network error. Check your connection and try again." |
+| Raw error / condition   | User-facing message                                            |
+| ----------------------- | -------------------------------------------------------------- |
+| `op_underfunded`        | "Insufficient balance to cover this payment."                  |
+| `op_no_trust`           | "Your wallet doesn't trust this token. Add a trustline first." |
+| Wallet timeout (60 s)   | "Wallet request timed out. Please try again."                  |
+| User rejected in wallet | "You declined the transaction in your wallet."                 |
+| `"Contract is paused"`  | "Payments are temporarily paused. Try again shortly."          |
+| Network/Horizon error   | "Network error. Check your connection and try again."          |
 
 ---
 
@@ -612,12 +617,12 @@ Multi-Sig ──[approve fails]────────────────�
 
 ## Accessibility Notes
 
-| Element | Requirement |
-|---|---|
-| All modals / dialogs | `role="dialog"`, `aria-modal="true"`, focus trap, Escape to dismiss |
-| Signing waiting state | `aria-live="polite"` status region; spinner has `aria-label="Waiting for wallet"` |
-| Success / failure icons | `aria-hidden="true"`; result heading is the announced content |
-| Fee preview | `aria-label="Fee breakdown"` on container |
-| Token selector dropdown | `role="listbox"` with `aria-selected` on options |
-| Disabled cancel button (before expiry) | `aria-disabled="true"` + `title` tooltip explaining when it unlocks |
-| Progress bar (multi-sig approvals) | `role="progressbar"`, `aria-valuenow`, `aria-valuemin="0"`, `aria-valuemax` = threshold |
+| Element                                | Requirement                                                                             |
+| -------------------------------------- | --------------------------------------------------------------------------------------- |
+| All modals / dialogs                   | `role="dialog"`, `aria-modal="true"`, focus trap, Escape to dismiss                     |
+| Signing waiting state                  | `aria-live="polite"` status region; spinner has `aria-label="Waiting for wallet"`       |
+| Success / failure icons                | `aria-hidden="true"`; result heading is the announced content                           |
+| Fee preview                            | `aria-label="Fee breakdown"` on container                                               |
+| Token selector dropdown                | `role="listbox"` with `aria-selected` on options                                        |
+| Disabled cancel button (before expiry) | `aria-disabled="true"` + `title` tooltip explaining when it unlocks                     |
+| Progress bar (multi-sig approvals)     | `role="progressbar"`, `aria-valuenow`, `aria-valuemin="0"`, `aria-valuemax` = threshold |

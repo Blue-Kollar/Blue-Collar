@@ -11,7 +11,11 @@ services:
     volumes:
       - db_staging_data:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-bluecollar} -d ${POSTGRES_DB:-bluecollar_staging}']
+      test:
+        [
+          'CMD-SHELL',
+          'pg_isready -U ${POSTGRES_USER:-bluecollar} -d ${POSTGRES_DB:-bluecollar_staging}',
+        ]
       interval: 10s
       timeout: 5s
       retries: 5

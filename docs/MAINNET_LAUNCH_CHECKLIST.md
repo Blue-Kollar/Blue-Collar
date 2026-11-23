@@ -344,15 +344,15 @@ Run the smoke test suite to validate the deployment:
 
 ### Manual Smoke Test Checklist
 
-| Test Case | Command | Expected |
-|---|---|---|
-| Health check | `curl -f https://api.bluecollar.com/health` | `{"status":"ok"}` |
-| Categories list | `curl https://api.bluecollar.com/api/categories` | 200, array of categories |
-| App loads | `curl -f https://app.bluecollar.com/en/workers` | 200, HTML content |
-| Wallet connect | Open app, connect Freighter wallet | Wallet address displayed |
-| Contract read | Invoke `get_worker` via app or CLI | Returns contract data or appropriate error |
-| Login flow | `POST /auth/login` with test credentials | 202, token returned |
-| Register user | `POST /auth/register` | 201, user created |
+| Test Case       | Command                                          | Expected                                   |
+| --------------- | ------------------------------------------------ | ------------------------------------------ |
+| Health check    | `curl -f https://api.bluecollar.com/health`      | `{"status":"ok"}`                          |
+| Categories list | `curl https://api.bluecollar.com/api/categories` | 200, array of categories                   |
+| App loads       | `curl -f https://app.bluecollar.com/en/workers`  | 200, HTML content                          |
+| Wallet connect  | Open app, connect Freighter wallet               | Wallet address displayed                   |
+| Contract read   | Invoke `get_worker` via app or CLI               | Returns contract data or appropriate error |
+| Login flow      | `POST /auth/login` with test credentials         | 202, token returned                        |
+| Register user   | `POST /auth/register`                            | 201, user created                          |
 
 ### Verify Contract Integration
 
@@ -394,14 +394,14 @@ stellar contract invoke \
 
 ### Ongoing
 
-| Task | Frequency | Owner |
-|---|---|---|
-| Backup verification | Daily | Ops |
-| Log review | Daily | On-call |
-| Grafana dashboard review | Weekly | Team |
-| Dependency updates | Weekly | Dev |
-| Secret rotation (JWT, OAuth, SMTP) | Quarterly | Ops |
-| Contract upgrade review | Per release | Dev |
+| Task                               | Frequency   | Owner   |
+| ---------------------------------- | ----------- | ------- |
+| Backup verification                | Daily       | Ops     |
+| Log review                         | Daily       | On-call |
+| Grafana dashboard review           | Weekly      | Team    |
+| Dependency updates                 | Weekly      | Dev     |
+| Secret rotation (JWT, OAuth, SMTP) | Quarterly   | Ops     |
+| Contract upgrade review            | Per release | Dev     |
 
 ---
 
@@ -493,15 +493,15 @@ kubectl scale deployment bluecollar-api -n production --replicas=3
 
 ### Key Inventory
 
-| Key | Purpose | Custodian(s) | Backup Location |
-|---|---|---|---|
+| Key                   | Purpose                    | Custodian(s)     | Backup Location                 |
+| --------------------- | -------------------------- | ---------------- | ------------------------------- |
 | Contract Admin Secret | Deploy & upgrade contracts | 2-of-3 multi-sig | Hardware wallet + encrypted USB |
-| API JWT Secret | Sign user session tokens | Ops lead | Vault + encrypted backup |
-| Database Password | API → PostgreSQL | Ops lead | Vault |
-| Google OAuth Secret | OAuth 2.0 login | Ops lead | Vault |
-| SMTP Password | Email sending | Ops lead | Vault |
-| VAPID Private Key | Web push notifications | Ops lead | Vault |
-| TLS Private Key | HTTPS termination | Ops lead | Vault |
+| API JWT Secret        | Sign user session tokens   | Ops lead         | Vault + encrypted backup        |
+| Database Password     | API → PostgreSQL           | Ops lead         | Vault                           |
+| Google OAuth Secret   | OAuth 2.0 login            | Ops lead         | Vault                           |
+| SMTP Password         | Email sending              | Ops lead         | Vault                           |
+| VAPID Private Key     | Web push notifications     | Ops lead         | Vault                           |
+| TLS Private Key       | HTTPS termination          | Ops lead         | Vault                           |
 
 ### Key Management Principles
 
@@ -525,23 +525,23 @@ The contract admin key is the most sensitive credential. Use a 2-of-3 multi-sig:
 
 ## Emergency Contacts
 
-| Role | Name | Contact |
-|---|---|---|
-| Lead Maintainer | | |
-| DevOps / Infra | | |
-| Smart Contracts | | |
-| Frontend | | |
-| Database Admin | | |
+| Role            | Name | Contact |
+| --------------- | ---- | ------- |
+| Lead Maintainer |      |         |
+| DevOps / Infra  |      |         |
+| Smart Contracts |      |         |
+| Frontend        |      |         |
+| Database Admin  |      |         |
 
-*Fill in contacts before launch. Update the incident runbook (`docs/INCIDENT_RUNBOOK.md`) with the same list.*
+_Fill in contacts before launch. Update the incident runbook (`docs/INCIDENT_RUNBOOK.md`) with the same list._
 
 ---
 
 ## Version History
 
-| Version | Date | Author | Changes |
-|---|---|---|---|
-| 1.0 | TBD | BlueCollar Team | Initial mainnet launch checklist |
+| Version | Date | Author          | Changes                          |
+| ------- | ---- | --------------- | -------------------------------- |
+| 1.0     | TBD  | BlueCollar Team | Initial mainnet launch checklist |
 
 ---
 

@@ -1,20 +1,15 @@
-import { Router, Request, Response } from "express";
-import { db } from "@/db.js";
+import { Router, Request, Response } from 'express';
+import { db } from '@/db.js';
 import { logger } from '@/config/logger.js';
 
 const router = Router();
 
-const ALLOWED_FIELDS = [
-  "newWorkerNearby",
-  "statusChange",
-  "reviewReply",
-  "announcements",
-] as const;
+const ALLOWED_FIELDS = ['newWorkerNearby', 'statusChange', 'reviewReply', 'announcements'] as const;
 
 type AllowedField = (typeof ALLOWED_FIELDS)[number];
 
 // GET /api/users/me/notifications
-router.get("/", async (req: Request, res: Response) => {
+router.get('/', async (req: Request, res: Response) => {
   try {
     const userId = req.user!.id;
     let prefs = await db.notificationPreferences.findUnique({
@@ -34,29 +29,27 @@ router.get("/", async (req: Request, res: Response) => {
     res.json(prefs);
   } catch (err) {
     logger.error({ err }, 'GET notification prefs error');
-    res.status(500).json({ error: "Internal server error." });
+    res.status(500).json({ error: 'Internal server error.' });
   }
 });
 
 // PUT /api/users/me/notifications
-router.put("/", async (req: Request, res: Response) => {
+router.put('/', async (req: Request, res: Response) => {
   try {
     const userId = req.user!.id;
     const updates: Partial<Record<AllowedField, boolean>> = {};
 
     for (const field of ALLOWED_FIELDS) {
       if (field in req.body) {
-        if (typeof req.body[field] !== "boolean") {
-          return res
-            .status(400)
-            .json({ error: `Field '${field}' must be a boolean.` });
+        if (typeof req.body[field] !== 'boolean') {
+          return res.status(400).json({ error: `Field '${field}' must be a boolean.` });
         }
         updates[field] = req.body[field];
       }
     }
 
     if (Object.keys(updates).length === 0) {
-      return res.status(400).json({ error: "No valid fields provided." });
+      return res.status(400).json({ error: 'No valid fields provided.' });
     }
 
     const prefs = await db.notificationPreferences.upsert({
@@ -75,7 +68,7 @@ router.put("/", async (req: Request, res: Response) => {
     res.json(prefs);
   } catch (err) {
     logger.error({ err }, 'PUT notification prefs error');
-    res.status(500).json({ error: "Internal server error." });
+    res.status(500).json({ error: 'Internal server error.' });
   }
 });
 

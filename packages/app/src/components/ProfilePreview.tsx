@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import Image from "next/image";
-import { Eye, EyeOff, Star, MapPin, Phone, Mail, Wallet } from "lucide-react";
-import { cn, formatStellarAddress } from "@/lib/utils";
-import type { PortfolioImage } from "@/components/PortfolioGallery";
-import VerificationBadges from "@/components/VerificationBadges";
-import { useTranslations } from "next-intl";
+import { useState } from 'react';
+import Image from 'next/image';
+import { Eye, EyeOff, Star, MapPin, Phone, Mail, Wallet } from 'lucide-react';
+import { cn, formatStellarAddress } from '@/lib/utils';
+import type { PortfolioImage } from '@/components/PortfolioGallery';
+import VerificationBadges from '@/components/VerificationBadges';
+import { useTranslations } from 'next-intl';
 
 interface Props {
   name: string;
@@ -37,19 +37,19 @@ export default function ProfilePreview({
   portfolioImages,
   className,
 }: Props) {
-  const t = useTranslations("componentText");
+  const t = useTranslations('componentText');
   const [visible, setVisible] = useState(true);
 
   return (
-    <div className={cn("rounded-xl border bg-white shadow-sm", className)}>
+    <div className={cn('rounded-xl border bg-white shadow-sm', className)}>
       <div className="flex items-center justify-between border-b px-4 py-3">
-        <h3 className="text-sm font-semibold text-gray-800">{t("livePreview")}</h3>
+        <h3 className="text-sm font-semibold text-gray-800">{t('livePreview')}</h3>
         <button
           onClick={() => setVisible((v) => !v)}
           className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-700 transition-colors"
         >
           {visible ? <EyeOff size={13} /> : <Eye size={13} />}
-          {visible ? t("hide") : t("show")}
+          {visible ? t('hide') : t('show')}
         </button>
       </div>
 
@@ -62,7 +62,7 @@ export default function ProfilePreview({
                 {avatarUrl ? (
                   <Image
                     src={avatarUrl}
-                    alt={name || t("profileAlt")}
+                    alt={name || t('profileAlt')}
                     width={64}
                     height={64}
                     sizes="64px"
@@ -70,13 +70,13 @@ export default function ProfilePreview({
                   />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center text-xl font-bold text-gray-300">
-                    {(name || "?")[0]?.toUpperCase()}
+                    {(name || '?')[0]?.toUpperCase()}
                   </div>
                 )}
               </div>
               <div className="min-w-0 flex-1">
                 <h4 className="text-base font-bold text-gray-900 truncate">
-                  {name || t("workerNamePlaceholder")}
+                  {name || t('workerNamePlaceholder')}
                 </h4>
                 {categoryName && (
                   <span className="inline-block rounded-full bg-blue-100 px-2 py-0.5 text-[11px] font-medium text-blue-700">
@@ -105,9 +105,7 @@ export default function ProfilePreview({
 
             {/* Bio */}
             {bio && (
-              <p className="mt-3 text-xs text-gray-600 leading-relaxed line-clamp-3">
-                {bio}
-              </p>
+              <p className="mt-3 text-xs text-gray-600 leading-relaxed line-clamp-3">{bio}</p>
             )}
 
             {/* Contact info */}
@@ -136,7 +134,7 @@ export default function ProfilePreview({
             {portfolioImages.length > 0 && (
               <div className="mt-3">
                 <p className="mb-1.5 text-[10px] font-medium text-gray-400 uppercase tracking-wide">
-                  {t("portfolio")}
+                  {t('portfolio')}
                 </p>
                 <div className="flex gap-1.5 overflow-hidden">
                   {portfolioImages.slice(0, 4).map((img) => (
@@ -146,7 +144,7 @@ export default function ProfilePreview({
                     >
                       <Image
                         src={img.url}
-                        alt={img.caption ?? t("portfolioImageFallback")}
+                        alt={img.caption ?? t('portfolioImageFallback')}
                         width={48}
                         height={48}
                         sizes="48px"
@@ -164,9 +162,7 @@ export default function ProfilePreview({
             )}
           </div>
 
-          <p className="mt-2 text-center text-[10px] text-gray-400">
-            {t("clientPreview")}
-          </p>
+          <p className="mt-2 text-center text-[10px] text-gray-400">{t('clientPreview')}</p>
         </div>
       )}
     </div>

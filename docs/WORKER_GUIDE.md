@@ -69,6 +69,7 @@ A Stellar wallet lets you receive tips and payments directly from users — with
 4. Your **public key** (starts with `G`) is your wallet address. Share this with your curator so it can be added to your listing.
 
 **Important:**
+
 - Your public key is safe to share publicly — it is like a bank account number.
 - Your **secret key** (starts with `S`) must never be shared with anyone, including BlueCollar.
 
@@ -94,14 +95,14 @@ You can view your listing on any Stellar explorer using your wallet address.
 
 A complete profile gets significantly more views and contact requests. Make sure your curator has added:
 
-| Field            | Why it matters                                                     |
-| ---------------- | ------------------------------------------------------------------ |
-| **Photo**        | Builds trust — listings with photos get 3× more clicks            |
-| **Bio**          | Describe your experience, specialisations, and service area        |
-| **Phone**        | Primary contact method for most users                             |
-| **Email**        | Secondary contact for less urgent enquiries                        |
-| **Category**     | Determines which search results your listing appears in            |
-| **Wallet Address** | Required for receiving on-chain tips and payments               |
+| Field              | Why it matters                                              |
+| ------------------ | ----------------------------------------------------------- |
+| **Photo**          | Builds trust — listings with photos get 3× more clicks      |
+| **Bio**            | Describe your experience, specialisations, and service area |
+| **Phone**          | Primary contact method for most users                       |
+| **Email**          | Secondary contact for less urgent enquiries                 |
+| **Category**       | Determines which search results your listing appears in     |
+| **Wallet Address** | Required for receiving on-chain tips and payments           |
 
 ---
 
@@ -153,13 +154,13 @@ Your reputation is the single most important factor for getting more work throug
 
 Your reputation score is calculated from multiple signals:
 
-| Signal               | Weight |
-| -------------------- | ------ |
+| Signal                | Weight |
+| --------------------- | ------ |
 | Average review rating | High   |
-| Number of reviews    | Medium |
-| Review recency       | Medium |
-| Response time        | Medium |
-| Verification status  | High   |
+| Number of reviews     | Medium |
+| Review recency        | Medium |
+| Response time         | Medium |
+| Verification status   | High   |
 | On-chain registration | Medium |
 
 Check your current score via the API:

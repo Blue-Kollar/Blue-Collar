@@ -8,12 +8,12 @@ BlueCollar commits to meeting WCAG 2.1 Level AA across all user-facing surfaces.
 
 ### Minimum contrast ratios (AA)
 
-| Element | Ratio |
-|---|---|
-| Normal text (< 18 px / 14 px bold) | ≥ 4.5 : 1 |
-| Large text (≥ 18 px / 14 px bold) | ≥ 3 : 1 |
-| UI components & graphical objects | ≥ 3 : 1 |
-| Focus indicators against adjacent colour | ≥ 3 : 1 |
+| Element                                  | Ratio     |
+| ---------------------------------------- | --------- |
+| Normal text (< 18 px / 14 px bold)       | ≥ 4.5 : 1 |
+| Large text (≥ 18 px / 14 px bold)        | ≥ 3 : 1   |
+| UI components & graphical objects        | ≥ 3 : 1   |
+| Focus indicators against adjacent colour | ≥ 3 : 1   |
 
 ### Rules
 
@@ -53,14 +53,14 @@ Tailwind utility: `focus-visible:outline-2 focus-visible:outline-offset-2 focus-
 
 All functionality available by mouse must be operable with keyboard alone.
 
-| Pattern | Keys |
-|---|---|
-| Buttons, links | `Enter` / `Space` to activate |
-| Menus, dropdowns | `Arrow Up` / `Arrow Down` to navigate, `Enter` to select, `Escape` to close |
-| Tabs | `Arrow Left` / `Arrow Right` to switch, content updates on activation |
-| Modal dialogs | `Escape` to close, focus trap active |
-| Radio groups | `Arrow` keys to move selection |
-| Checkboxes | `Space` to toggle |
+| Pattern                 | Keys                                                                                |
+| ----------------------- | ----------------------------------------------------------------------------------- |
+| Buttons, links          | `Enter` / `Space` to activate                                                       |
+| Menus, dropdowns        | `Arrow Up` / `Arrow Down` to navigate, `Enter` to select, `Escape` to close         |
+| Tabs                    | `Arrow Left` / `Arrow Right` to switch, content updates on activation               |
+| Modal dialogs           | `Escape` to close, focus trap active                                                |
+| Radio groups            | `Arrow` keys to move selection                                                      |
+| Checkboxes              | `Space` to toggle                                                                   |
 | Combobox / autocomplete | `Arrow Down` to open list, arrows to navigate, `Enter` to select, `Escape` to close |
 
 - Skip links: A "Skip to main content" link must be the first focusable element on every page.
@@ -99,7 +99,9 @@ All functionality available by mouse must be operable with keyboard alone.
 
 ```css
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
@@ -122,12 +124,12 @@ All functionality available by mouse must be operable with keyboard alone.
 
 Every page must include these ARIA landmarks (via semantic HTML where possible):
 
-| Landmark | Element |
-|---|---|
-| `banner` | `<header>` (site header / nav) |
-| `navigation` | `<nav>` |
-| `main` | `<main>` |
-| `contentinfo` | `<footer>` |
+| Landmark      | Element                        |
+| ------------- | ------------------------------ |
+| `banner`      | `<header>` (site header / nav) |
+| `navigation`  | `<nav>`                        |
+| `main`        | `<main>`                       |
+| `contentinfo` | `<footer>`                     |
 
 ### Images
 
@@ -167,27 +169,32 @@ Every page must include these ARIA landmarks (via semantic HTML where possible):
 Use this checklist when reviewing designs before handoff or during design QA:
 
 ### Contrast & colour
+
 - [ ] All text meets minimum contrast ratios (4.5 : 1 normal, 3 : 1 large)
 - [ ] Interactive component boundaries meet 3 : 1 contrast
 - [ ] No information conveyed by colour alone
 
 ### Focus & keyboard
+
 - [ ] All interactive elements have a visible focus-visible ring
 - [ ] Focus order matches visual reading order
 - [ ] Modals trap focus and return it on close
 - [ ] Page has a "Skip to main content" link
 
 ### Forms
+
 - [ ] Every field has a visible label (or aria-label)
 - [ ] Error messages appear adjacent to the field with proper colour contrast
 - [ ] Required fields are visually and programmatically marked
 - [ ] `aria-invalid` and `aria-describedby` are used for error states
 
 ### Motion
+
 - [ ] Animations are gated behind `motion-safe` / `prefers-reduced-motion`
 - [ ] No auto-playing motion lasts longer than 5 seconds without a stop mechanism
 
 ### Screen reader
+
 - [ ] Page has correct landmark structure (header, nav, main, footer)
 - [ ] Heading hierarchy is logical and complete (h1 → h2 → h3, no skips)
 - [ ] Icon-only buttons have `aria-label`
@@ -195,5 +202,6 @@ Use this checklist when reviewing designs before handoff or during design QA:
 - [ ] Dynamic content uses appropriate live regions
 
 ### Touch targets
+
 - [ ] All tap targets are ≥ 48 × 48 px
 - [ ] Adjacent targets have ≥ 8 px spacing

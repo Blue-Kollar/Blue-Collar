@@ -1,5 +1,5 @@
-import { faker } from "@faker-js/faker";
-import type { User } from "../types";
+import { faker } from '@faker-js/faker';
+import type { User } from '../types';
 
 export const userFactory = (overrides: Partial<User> = {}): User => {
   const firstName = faker.person.firstName();
@@ -10,7 +10,7 @@ export const userFactory = (overrides: Partial<User> = {}): User => {
     email: faker.internet.email({ firstName, lastName }),
     firstName,
     lastName,
-    role: "user",
+    role: 'user',
     createdAt: new Date(),
     updatedAt: new Date(),
     ...overrides,

@@ -1,7 +1,7 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { updateProfile } from './user.service.js'
-import { db } from '../db.js'
-import { sendVerificationEmail } from '../mailer/index.js'
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { updateProfile } from './user.service.js';
+import { db } from '../db.js';
+import { sendVerificationEmail } from '../mailer/index.js';
 
 vi.mock('../db.js', () => ({
   db: {
@@ -10,17 +10,17 @@ vi.mock('../db.js', () => ({
       update: vi.fn(),
     },
   },
-}))
+}));
 
 vi.mock('../mailer/index.js', () => ({
   sendVerificationEmail: vi.fn(),
-}))
+}));
 
 vi.mock('jsonwebtoken', () => ({
   default: {
     sign: vi.fn(() => 'verification-token'),
   },
-}))
+}));
 
 vi.mock('../utils/logger.js', () => ({
   createServiceLogger: () => ({
@@ -29,7 +29,7 @@ vi.mock('../utils/logger.js', () => ({
     error: vi.fn(),
     debug: vi.fn(),
   }),
-}))
+}));
 
 const currentUser = {
   id: '1',
@@ -55,31 +55,34 @@ const currentUser = {
   locationId: null,
   createdAt: new Date(),
   updatedAt: new Date(),
-}
+};
 
 describe('updateProfile', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
-    process.env.JWT_SECRET = 'test-secret'
-    vi.mocked(db.user.findUnique).mockResolvedValue(currentUser as any)
-    vi.mocked(db.user.update).mockImplementation(async ({ data }: any) => ({ ...currentUser, ...data }))
-  })
+    vi.clearAllMocks();
+    process.env.JWT_SECRET = 'test-secret';
+    vi.mocked(db.user.findUnique).mockResolvedValue(currentUser as any);
+    vi.mocked(db.user.update).mockImplementation(async ({ data }: any) => ({
+      ...currentUser,
+      ...data,
+    }));
+  });
 
   it('returns updated user without password hash', async () => {
-    const result = await updateProfile('1', { firstName: 'New', lastName: 'Name' })
+    const result = await updateProfile('1', { firstName: 'New', lastName: 'Name' });
 
-    expect(result).not.toHaveProperty('password')
-    expect(result.firstName).toBe('New')
-  })
+    expect(result).not.toHaveProperty('password');
+    expect(result.firstName).toBe('New');
+  });
 
   it('throws a ZodError on invalid email', async () => {
-    await expect(updateProfile('1', { email: 'not-an-email' })).rejects.toThrow()
-  })
+    await expect(updateProfile('1', { email: 'not-an-email' })).rejects.toThrow();
+  });
 
   it('marks verified false and sends verification when email changes', async () => {
-    const result = await updateProfile('1', { email: 'new@x.com' })
+    const result = await updateProfile('1', { email: 'new@x.com' });
 
-    expect(result.verified).toBe(false)
+    expect(result.verified).toBe(false);
     expect(db.user.update).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
@@ -89,7 +92,7 @@ describe('updateProfile', () => {
           verificationTokenExpiry: expect.any(Date),
         }),
       }),
-    )
-    expect(sendVerificationEmail).toHaveBeenCalledWith('new@x.com', 'Old', 'verification-token')
-  })
-})
+    );
+    expect(sendVerificationEmail).toHaveBeenCalledWith('new@x.com', 'Old', 'verification-token');
+  });
+});

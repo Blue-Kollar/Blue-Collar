@@ -1,9 +1,9 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import argon2 from 'argon2'
-import jwt from 'jsonwebtoken'
-import crypto from 'node:crypto'
-import { AppError } from '../utils/app-error.js'
-import * as authService from './auth.service.js'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import argon2 from 'argon2';
+import jwt from 'jsonwebtoken';
+import crypto from 'node:crypto';
+import { AppError } from '../utils/app-error.js';
+import * as authService from './auth.service.js';
 
 // Mock dependencies
 vi.mock('../db.js', () => ({
@@ -25,7 +25,7 @@ vi.mock('../db.js', () => ({
       updateMany: vi.fn(),
     },
   },
-}))
+}));
 
 vi.mock('../repositories/user.repository.js', () => ({
   userRepository: {
@@ -36,33 +36,40 @@ vi.mock('../repositories/user.repository.js', () => ({
     update: vi.fn(),
     delete: vi.fn(),
   },
-}))
+}));
 
 vi.mock('argon2', () => ({
   default: {
     hash: vi.fn(),
     verify: vi.fn(),
   },
-}))
+}));
 
 vi.mock('jsonwebtoken', () => ({
   default: {
     sign: vi.fn(),
     verify: vi.fn(),
   },
-}))
+}));
 
 vi.mock('../mailer/index.js', () => ({
   sendVerificationEmail: vi.fn(),
   sendPasswordResetEmail: vi.fn(),
-}))
+}));
 
 vi.mock('../models/user.model.js', () => ({
   sanitizeUser: (user: any) => {
-    const { password, resetToken, resetTokenExpiry, verificationToken, verificationTokenExpiry, ...safe } = user
-    return safe
+    const {
+      password,
+      resetToken,
+      resetTokenExpiry,
+      verificationToken,
+      verificationTokenExpiry,
+      ...safe
+    } = user;
+    return safe;
   },
-}))
+}));
 
 vi.mock('../utils/logger.js', () => ({
   createServiceLogger: () => ({
@@ -71,26 +78,26 @@ vi.mock('../utils/logger.js', () => ({
     error: vi.fn(),
     debug: vi.fn(),
   }),
-}))
+}));
 
 vi.mock('../config/logger.js', () => ({
   logger: {
     error: vi.fn(),
   },
-}))
+}));
 
-import { db } from '../db.js'
-import { userRepository } from '../repositories/user.repository.js'
-import { sendVerificationEmail, sendPasswordResetEmail } from '../mailer/index.js'
+import { db } from '../db.js';
+import { userRepository } from '../repositories/user.repository.js';
+import { sendVerificationEmail, sendPasswordResetEmail } from '../mailer/index.js';
 
-const mockDb = db as any
-const mockUserRepo = userRepository as any
-const mockArgon2 = argon2 as any
-const mockJwt = jwt as any
+const mockDb = db as any;
+const mockUserRepo = userRepository as any;
+const mockArgon2 = argon2 as any;
+const mockJwt = jwt as any;
 const mockMailer = {
   sendVerificationEmail: sendVerificationEmail as any,
   sendPasswordResetEmail: sendPasswordResetEmail as any,
-}
+};
 
 // Helper to create mock user data
 function createMockUser(overrides = {}) {
@@ -109,139 +116,145 @@ function createMockUser(overrides = {}) {
     createdAt: new Date('2024-01-01'),
     updatedAt: new Date('2024-01-01'),
     ...overrides,
-  }
+  };
 }
 
 beforeEach(() => {
-  vi.resetAllMocks()
-  process.env.JWT_SECRET = 'test-secret'
-  mockDb.refreshToken.create.mockResolvedValue({ id: 'rt-1' })
-  mockDb.refreshToken.updateMany.mockResolvedValue({ count: 0 })
-  mockDb.device.updateMany.mockResolvedValue({ count: 0 })
-  mockMailer.sendVerificationEmail.mockResolvedValue(undefined)
-  mockMailer.sendPasswordResetEmail.mockResolvedValue(undefined)
-})
+  vi.resetAllMocks();
+  process.env.JWT_SECRET = 'test-secret';
+  mockDb.refreshToken.create.mockResolvedValue({ id: 'rt-1' });
+  mockDb.refreshToken.updateMany.mockResolvedValue({ count: 0 });
+  mockDb.device.updateMany.mockResolvedValue({ count: 0 });
+  mockMailer.sendVerificationEmail.mockResolvedValue(undefined);
+  mockMailer.sendPasswordResetEmail.mockResolvedValue(undefined);
+});
 
 afterEach(() => {
-  vi.resetAllMocks()
-})
+  vi.resetAllMocks();
+});
 
 // ── loginUser ────────────────────────────────────────────────────────────────
 
 describe('loginUser', () => {
   it('returns user and token on successful login', async () => {
-    const mockUser = createMockUser()
-    mockUserRepo.findByEmail.mockResolvedValue(mockUser)
-    mockArgon2.verify.mockResolvedValue(true)
-    mockJwt.sign.mockReturnValue('jwt-token')
+    const mockUser = createMockUser();
+    mockUserRepo.findByEmail.mockResolvedValue(mockUser);
+    mockArgon2.verify.mockResolvedValue(true);
+    mockJwt.sign.mockReturnValue('jwt-token');
 
-    const result = await authService.loginUser({ email: 'user@example.com', password: 'password' })
+    const result = await authService.loginUser({ email: 'user@example.com', password: 'password' });
 
-    expect(result.token).toBe('jwt-token')
-    expect(result.data).toEqual(expect.objectContaining({ email: 'user@example.com' }))
-    expect(mockUserRepo.findByEmail).toHaveBeenCalledWith('user@example.com')
-    expect(mockArgon2.verify).toHaveBeenCalledWith('hashed-password', 'password')
-  })
+    expect(result.token).toBe('jwt-token');
+    expect(result.data).toEqual(expect.objectContaining({ email: 'user@example.com' }));
+    expect(mockUserRepo.findByEmail).toHaveBeenCalledWith('user@example.com');
+    expect(mockArgon2.verify).toHaveBeenCalledWith('hashed-password', 'password');
+  });
 
   it('throws 401 when user not found', async () => {
-    mockUserRepo.findByEmail.mockResolvedValue(null)
+    mockUserRepo.findByEmail.mockResolvedValue(null);
 
-    await expect(authService.loginUser({ email: 'nonexistent@example.com', password: 'password' })).rejects.toThrow(
-      AppError,
-    )
-    await expect(authService.loginUser({ email: 'nonexistent@example.com', password: 'password' })).rejects.toMatchObject(
-      {
-        message: 'Invalid credentials',
-        statusCode: 401,
-      },
-    )
-  })
-
-  it('throws 401 when password is incorrect', async () => {
-    const mockUser = createMockUser()
-    mockUserRepo.findByEmail.mockResolvedValue(mockUser)
-    mockArgon2.verify.mockResolvedValue(false)
-
-    await expect(authService.loginUser({ email: 'user@example.com', password: 'wrong-password' })).rejects.toThrow(
-      AppError,
-    )
-    await expect(authService.loginUser({ email: 'user@example.com', password: 'wrong-password' })).rejects.toMatchObject(
-      {
-        message: 'Invalid credentials',
-        statusCode: 401,
-      },
-    )
-  })
-
-  it('throws 401 when user has no password', async () => {
-    const mockUser = createMockUser({ password: null })
-    mockUserRepo.findByEmail.mockResolvedValue(mockUser)
-
-    await expect(authService.loginUser({ email: 'user@example.com', password: 'password' })).rejects.toThrow(AppError)
-    await expect(authService.loginUser({ email: 'user@example.com', password: 'password' })).rejects.toMatchObject({
+    await expect(
+      authService.loginUser({ email: 'nonexistent@example.com', password: 'password' }),
+    ).rejects.toThrow(AppError);
+    await expect(
+      authService.loginUser({ email: 'nonexistent@example.com', password: 'password' }),
+    ).rejects.toMatchObject({
       message: 'Invalid credentials',
       statusCode: 401,
-    })
-  })
+    });
+  });
+
+  it('throws 401 when password is incorrect', async () => {
+    const mockUser = createMockUser();
+    mockUserRepo.findByEmail.mockResolvedValue(mockUser);
+    mockArgon2.verify.mockResolvedValue(false);
+
+    await expect(
+      authService.loginUser({ email: 'user@example.com', password: 'wrong-password' }),
+    ).rejects.toThrow(AppError);
+    await expect(
+      authService.loginUser({ email: 'user@example.com', password: 'wrong-password' }),
+    ).rejects.toMatchObject({
+      message: 'Invalid credentials',
+      statusCode: 401,
+    });
+  });
+
+  it('throws 401 when user has no password', async () => {
+    const mockUser = createMockUser({ password: null });
+    mockUserRepo.findByEmail.mockResolvedValue(mockUser);
+
+    await expect(
+      authService.loginUser({ email: 'user@example.com', password: 'password' }),
+    ).rejects.toThrow(AppError);
+    await expect(
+      authService.loginUser({ email: 'user@example.com', password: 'password' }),
+    ).rejects.toMatchObject({
+      message: 'Invalid credentials',
+      statusCode: 401,
+    });
+  });
 
   it('throws 403 when email is not verified', async () => {
-    const mockUser = createMockUser({ verified: false })
-    mockUserRepo.findByEmail.mockResolvedValue(mockUser)
-    mockArgon2.verify.mockResolvedValue(true)
+    const mockUser = createMockUser({ verified: false });
+    mockUserRepo.findByEmail.mockResolvedValue(mockUser);
+    mockArgon2.verify.mockResolvedValue(true);
 
-    await expect(authService.loginUser({ email: 'user@example.com', password: 'password' })).rejects.toThrow(AppError)
-    await expect(authService.loginUser({ email: 'user@example.com', password: 'password' })).rejects.toMatchObject({
+    await expect(
+      authService.loginUser({ email: 'user@example.com', password: 'password' }),
+    ).rejects.toThrow(AppError);
+    await expect(
+      authService.loginUser({ email: 'user@example.com', password: 'password' }),
+    ).rejects.toMatchObject({
       statusCode: 403,
-    })
-  })
+    });
+  });
 
   it('generates JWT token with correct payload', async () => {
-    const mockUser = createMockUser()
-    mockUserRepo.findByEmail.mockResolvedValue(mockUser)
-    mockArgon2.verify.mockResolvedValue(true)
-    mockJwt.sign.mockReturnValue('jwt-token')
+    const mockUser = createMockUser();
+    mockUserRepo.findByEmail.mockResolvedValue(mockUser);
+    mockArgon2.verify.mockResolvedValue(true);
+    mockJwt.sign.mockReturnValue('jwt-token');
 
-    await authService.loginUser({ email: 'user@example.com', password: 'password' })
+    await authService.loginUser({ email: 'user@example.com', password: 'password' });
 
-    expect(mockJwt.sign).toHaveBeenCalledWith(
-      { id: 'user-1', role: 'user' },
-      'test-secret',
-      { expiresIn: '15m' },
-    )
-  })
-})
+    expect(mockJwt.sign).toHaveBeenCalledWith({ id: 'user-1', role: 'user' }, 'test-secret', {
+      expiresIn: '15m',
+    });
+  });
+});
 
 // ── registerUser ─────────────────────────────────────────────────────────────
 
 describe('registerUser', () => {
   it('creates a new user and sends verification email', async () => {
-    const mockUser = createMockUser({ verified: false, email: 'newuser@example.com' })
-    mockUserRepo.create.mockResolvedValue(mockUser)
-    mockUserRepo.update.mockResolvedValue(mockUser)
-    mockArgon2.hash.mockResolvedValue('hashed-password')
-    mockJwt.sign.mockReturnValue('verification-token')
-    mockMailer.sendVerificationEmail.mockResolvedValue(undefined)
+    const mockUser = createMockUser({ verified: false, email: 'newuser@example.com' });
+    mockUserRepo.create.mockResolvedValue(mockUser);
+    mockUserRepo.update.mockResolvedValue(mockUser);
+    mockArgon2.hash.mockResolvedValue('hashed-password');
+    mockJwt.sign.mockReturnValue('verification-token');
+    mockMailer.sendVerificationEmail.mockResolvedValue(undefined);
 
     const result = await authService.registerUser({
       email: 'newuser@example.com',
       password: 'password123',
       firstName: 'John',
       lastName: 'Doe',
-    })
+    });
 
-    expect(result).toEqual(expect.objectContaining({ email: 'newuser@example.com' }))
+    expect(result).toEqual(expect.objectContaining({ email: 'newuser@example.com' }));
     expect(mockUserRepo.create).toHaveBeenCalledWith({
-        email: 'newuser@example.com',
-        password: 'hashed-password',
-        firstName: 'John',
-        lastName: 'Doe',
-      })
-    expect(mockMailer.sendVerificationEmail).toHaveBeenCalled()
-  })
+      email: 'newuser@example.com',
+      password: 'hashed-password',
+      firstName: 'John',
+      lastName: 'Doe',
+    });
+    expect(mockMailer.sendVerificationEmail).toHaveBeenCalled();
+  });
 
   it('throws 409 when email already exists', async () => {
-    const mockUser = createMockUser()
-    mockUserRepo.findByEmail.mockResolvedValue(mockUser)
+    const mockUser = createMockUser();
+    mockUserRepo.findByEmail.mockResolvedValue(mockUser);
 
     await expect(
       authService.registerUser({
@@ -250,7 +263,7 @@ describe('registerUser', () => {
         firstName: 'John',
         lastName: 'Doe',
       }),
-    ).rejects.toThrow(AppError)
+    ).rejects.toThrow(AppError);
     await expect(
       authService.registerUser({
         email: 'user@example.com',
@@ -261,288 +274,295 @@ describe('registerUser', () => {
     ).rejects.toMatchObject({
       message: 'Email already in use',
       statusCode: 409,
-    })
-  })
+    });
+  });
 
   it('hashes password before storing', async () => {
-    const mockUser = createMockUser()
-    mockUserRepo.findByEmail.mockResolvedValue(null)
-    mockUserRepo.create.mockResolvedValue(mockUser)
-    mockUserRepo.update.mockResolvedValue(mockUser)
-    mockArgon2.hash.mockResolvedValue('hashed-password')
-    mockJwt.sign.mockReturnValue('verification-token')
+    const mockUser = createMockUser();
+    mockUserRepo.findByEmail.mockResolvedValue(null);
+    mockUserRepo.create.mockResolvedValue(mockUser);
+    mockUserRepo.update.mockResolvedValue(mockUser);
+    mockArgon2.hash.mockResolvedValue('hashed-password');
+    mockJwt.sign.mockReturnValue('verification-token');
 
     await authService.registerUser({
       email: 'newuser@example.com',
       password: 'password123',
       firstName: 'John',
       lastName: 'Doe',
-    })
+    });
 
-    expect(mockArgon2.hash).toHaveBeenCalledWith('password123')
-  })
+    expect(mockArgon2.hash).toHaveBeenCalledWith('password123');
+  });
 
   it('stores verification token and expiry', async () => {
-    const mockUser = createMockUser()
-    mockUserRepo.findByEmail.mockResolvedValue(null)
-    mockUserRepo.create.mockResolvedValue(mockUser)
-    mockUserRepo.update.mockResolvedValue(mockUser)
-    mockArgon2.hash.mockResolvedValue('hashed-password')
-    mockJwt.sign.mockReturnValue('verification-token')
+    const mockUser = createMockUser();
+    mockUserRepo.findByEmail.mockResolvedValue(null);
+    mockUserRepo.create.mockResolvedValue(mockUser);
+    mockUserRepo.update.mockResolvedValue(mockUser);
+    mockArgon2.hash.mockResolvedValue('hashed-password');
+    mockJwt.sign.mockReturnValue('verification-token');
 
     await authService.registerUser({
       email: 'newuser@example.com',
       password: 'password123',
       firstName: 'John',
       lastName: 'Doe',
-    })
+    });
 
     expect(mockUserRepo.update).toHaveBeenCalledWith(
       'user-1',
       expect.objectContaining({
         verificationToken: expect.any(String),
         verificationTokenExpiry: expect.any(Date),
-      })
-    )
-  })
-})
+      }),
+    );
+  });
+});
 
 // ── verifyAccount ────────────────────────────────────────────────────────────
 
 describe('verifyAccount', () => {
   it('verifies account with valid token', async () => {
-    const mockUser = createMockUser({ verified: false })
-    const token = 'valid-token'
-    const hash = crypto.createHash('sha256').update(token).digest('hex')
+    const mockUser = createMockUser({ verified: false });
+    const token = 'valid-token';
+    const hash = crypto.createHash('sha256').update(token).digest('hex');
 
-    mockJwt.verify.mockReturnValue({ id: 'user-1', purpose: 'email-verify' })
+    mockJwt.verify.mockReturnValue({ id: 'user-1', purpose: 'email-verify' });
     mockUserRepo.findById.mockResolvedValue({
       ...mockUser,
       verificationToken: hash,
       verificationTokenExpiry: new Date(Date.now() + 1000),
-    })
-    mockUserRepo.update.mockResolvedValue({ ...mockUser, verified: true })
+    });
+    mockUserRepo.update.mockResolvedValue({ ...mockUser, verified: true });
 
-    const result = await authService.verifyAccount(token)
+    const result = await authService.verifyAccount(token);
 
-    expect(result).toBe(true)
-    expect(mockUserRepo.update).toHaveBeenCalledWith(
-      'user-1',
-      {
-        verified: true,
-        verificationToken: null,
-        verificationTokenExpiry: null,
-      }
-    )
-  })
+    expect(result).toBe(true);
+    expect(mockUserRepo.update).toHaveBeenCalledWith('user-1', {
+      verified: true,
+      verificationToken: null,
+      verificationTokenExpiry: null,
+    });
+  });
 
   it('throws 400 when token is invalid', async () => {
     mockJwt.verify.mockImplementation(() => {
-      throw new Error('Invalid token')
-    })
+      throw new Error('Invalid token');
+    });
 
-    await expect(authService.verifyAccount('invalid-token')).rejects.toThrow(AppError)
+    await expect(authService.verifyAccount('invalid-token')).rejects.toThrow(AppError);
     await expect(authService.verifyAccount('invalid-token')).rejects.toMatchObject({
       message: 'Token is invalid or has expired',
       statusCode: 400,
-    })
-  })
+    });
+  });
 
   it('throws 400 when token purpose is not email-verify', async () => {
-    mockJwt.verify.mockReturnValue({ id: 'user-1', purpose: 'wrong-purpose' })
+    mockJwt.verify.mockReturnValue({ id: 'user-1', purpose: 'wrong-purpose' });
 
-    await expect(authService.verifyAccount('token')).rejects.toThrow(AppError)
+    await expect(authService.verifyAccount('token')).rejects.toThrow(AppError);
     await expect(authService.verifyAccount('token')).rejects.toMatchObject({
       message: 'Invalid verification token',
       statusCode: 400,
-    })
-  })
+    });
+  });
 
   it('throws 404 when user not found', async () => {
-    mockJwt.verify.mockReturnValue({ id: 'nonexistent', purpose: 'email-verify' })
-    mockUserRepo.findById.mockResolvedValue(null)
+    mockJwt.verify.mockReturnValue({ id: 'nonexistent', purpose: 'email-verify' });
+    mockUserRepo.findById.mockResolvedValue(null);
 
-    await expect(authService.verifyAccount('token')).rejects.toThrow(AppError)
+    await expect(authService.verifyAccount('token')).rejects.toThrow(AppError);
     await expect(authService.verifyAccount('token')).rejects.toMatchObject({
       message: 'User not found',
       statusCode: 404,
-    })
-  })
+    });
+  });
 
   it('returns false when user already verified', async () => {
-    const mockUser = createMockUser({ verified: true })
-    mockJwt.verify.mockReturnValue({ id: 'user-1', purpose: 'email-verify' })
-    mockUserRepo.findById.mockResolvedValue(mockUser)
+    const mockUser = createMockUser({ verified: true });
+    mockJwt.verify.mockReturnValue({ id: 'user-1', purpose: 'email-verify' });
+    mockUserRepo.findById.mockResolvedValue(mockUser);
 
-    const result = await authService.verifyAccount('token')
+    const result = await authService.verifyAccount('token');
 
-    expect(result).toBe(false)
-    expect(mockUserRepo.update).not.toHaveBeenCalled()
-  })
+    expect(result).toBe(false);
+    expect(mockUserRepo.update).not.toHaveBeenCalled();
+  });
 
   it('throws 400 when token hash does not match', async () => {
-    const mockUser = createMockUser({ verified: false, verificationToken: 'different-hash' })
-    mockJwt.verify.mockReturnValue({ id: 'user-1', purpose: 'email-verify' })
-    mockUserRepo.findById.mockResolvedValue(mockUser)
+    const mockUser = createMockUser({ verified: false, verificationToken: 'different-hash' });
+    mockJwt.verify.mockReturnValue({ id: 'user-1', purpose: 'email-verify' });
+    mockUserRepo.findById.mockResolvedValue(mockUser);
 
-    await expect(authService.verifyAccount('token')).rejects.toThrow(AppError)
+    await expect(authService.verifyAccount('token')).rejects.toThrow(AppError);
     await expect(authService.verifyAccount('token')).rejects.toMatchObject({
       message: 'Token is invalid or has expired',
       statusCode: 400,
-    })
-  })
+    });
+  });
 
   it('throws 400 when token has expired', async () => {
-    const token = 'valid-token'
-    const hash = crypto.createHash('sha256').update(token).digest('hex')
+    const token = 'valid-token';
+    const hash = crypto.createHash('sha256').update(token).digest('hex');
     const mockUser = createMockUser({
       verified: false,
       verificationToken: hash,
       verificationTokenExpiry: new Date(Date.now() - 1000), // Expired
-    })
+    });
 
-    mockJwt.verify.mockReturnValue({ id: 'user-1', purpose: 'email-verify' })
-    mockUserRepo.findById.mockResolvedValue(mockUser)
+    mockJwt.verify.mockReturnValue({ id: 'user-1', purpose: 'email-verify' });
+    mockUserRepo.findById.mockResolvedValue(mockUser);
 
-    await expect(authService.verifyAccount(token)).rejects.toThrow(AppError)
+    await expect(authService.verifyAccount(token)).rejects.toThrow(AppError);
     await expect(authService.verifyAccount(token)).rejects.toMatchObject({
       message: 'Token is invalid or has expired',
       statusCode: 400,
-    })
-  })
-})
+    });
+  });
+});
 
 // ── requestPasswordReset ─────────────────────────────────────────────────────
 
 describe('requestPasswordReset', () => {
   it('sends password reset email when user exists', async () => {
-    const mockUser = createMockUser()
-    mockUserRepo.findByEmail.mockResolvedValue(mockUser)
-    mockUserRepo.update.mockResolvedValue(mockUser)
-    mockMailer.sendPasswordResetEmail.mockResolvedValue(undefined)
+    const mockUser = createMockUser();
+    mockUserRepo.findByEmail.mockResolvedValue(mockUser);
+    mockUserRepo.update.mockResolvedValue(mockUser);
+    mockMailer.sendPasswordResetEmail.mockResolvedValue(undefined);
 
-    await authService.requestPasswordReset('user@example.com')
+    await authService.requestPasswordReset('user@example.com');
 
     expect(mockUserRepo.update).toHaveBeenCalledWith(
       'user-1',
       expect.objectContaining({
         resetToken: expect.any(String),
         resetTokenExpiry: expect.any(Date),
-      })
-    )
-    expect(mockMailer.sendPasswordResetEmail).toHaveBeenCalled()
-  })
+      }),
+    );
+    expect(mockMailer.sendPasswordResetEmail).toHaveBeenCalled();
+  });
 
   it('does not throw when user does not exist', async () => {
-    mockUserRepo.findByEmail.mockResolvedValue(null)
+    mockUserRepo.findByEmail.mockResolvedValue(null);
 
-    await expect(authService.requestPasswordReset('nonexistent@example.com')).resolves.not.toThrow()
-  })
+    await expect(
+      authService.requestPasswordReset('nonexistent@example.com'),
+    ).resolves.not.toThrow();
+  });
 
   it('does not send email when user does not exist', async () => {
-    mockUserRepo.findByEmail.mockResolvedValue(null)
+    mockUserRepo.findByEmail.mockResolvedValue(null);
 
-    await authService.requestPasswordReset('nonexistent@example.com')
+    await authService.requestPasswordReset('nonexistent@example.com');
 
-    expect(mockMailer.sendPasswordResetEmail).not.toHaveBeenCalled()
-  })
+    expect(mockMailer.sendPasswordResetEmail).not.toHaveBeenCalled();
+  });
 
   it('stores reset token with 1 hour expiry', async () => {
-    const mockUser = createMockUser()
-    mockUserRepo.findByEmail.mockResolvedValue(mockUser)
-    mockUserRepo.update.mockResolvedValue(mockUser)
+    const mockUser = createMockUser();
+    mockUserRepo.findByEmail.mockResolvedValue(mockUser);
+    mockUserRepo.update.mockResolvedValue(mockUser);
 
-    const beforeTime = Date.now()
-    await authService.requestPasswordReset('user@example.com')
-    const afterTime = Date.now()
+    const beforeTime = Date.now();
+    await authService.requestPasswordReset('user@example.com');
+    const afterTime = Date.now();
 
-    const updateCall = mockUserRepo.update.mock.calls[0][1]
-    const expiryTime = updateCall.resetTokenExpiry.getTime()
+    const updateCall = mockUserRepo.update.mock.calls[0][1];
+    const expiryTime = updateCall.resetTokenExpiry.getTime();
 
-    expect(expiryTime).toBeGreaterThanOrEqual(beforeTime + 60 * 60 * 1000 - 100)
-    expect(expiryTime).toBeLessThanOrEqual(afterTime + 60 * 60 * 1000 + 100)
-  })
-})
+    expect(expiryTime).toBeGreaterThanOrEqual(beforeTime + 60 * 60 * 1000 - 100);
+    expect(expiryTime).toBeLessThanOrEqual(afterTime + 60 * 60 * 1000 + 100);
+  });
+});
 
 // ── resetPassword ────────────────────────────────────────────────────────────
 
 describe('resetPassword', () => {
   it('resets password with valid token', async () => {
-    const token = 'reset-token'
-    const hash = crypto.createHash('sha256').update(token).digest('hex')
-    const mockUser = createMockUser({ resetToken: hash, resetTokenExpiry: new Date(Date.now() + 1000) })
+    const token = 'reset-token';
+    const hash = crypto.createHash('sha256').update(token).digest('hex');
+    const mockUser = createMockUser({
+      resetToken: hash,
+      resetTokenExpiry: new Date(Date.now() + 1000),
+    });
 
-    mockUserRepo.findByResetToken.mockResolvedValue(mockUser)
-    mockArgon2.hash.mockResolvedValue('new-hashed-password')
-    mockUserRepo.update.mockResolvedValue(mockUser)
+    mockUserRepo.findByResetToken.mockResolvedValue(mockUser);
+    mockArgon2.hash.mockResolvedValue('new-hashed-password');
+    mockUserRepo.update.mockResolvedValue(mockUser);
 
-    await authService.resetPassword(token, 'new-password')
+    await authService.resetPassword(token, 'new-password');
 
-    expect(mockArgon2.hash).toHaveBeenCalledWith('new-password')
-    expect(mockUserRepo.update).toHaveBeenCalledWith(
-      'user-1',
-      {
-        password: 'new-hashed-password',
-        resetToken: null,
-        resetTokenExpiry: null,
-      }
-    )
-  })
+    expect(mockArgon2.hash).toHaveBeenCalledWith('new-password');
+    expect(mockUserRepo.update).toHaveBeenCalledWith('user-1', {
+      password: 'new-hashed-password',
+      resetToken: null,
+      resetTokenExpiry: null,
+    });
+  });
 
   it('throws 400 when token is invalid', async () => {
-    mockUserRepo.findByResetToken.mockResolvedValue(null)
+    mockUserRepo.findByResetToken.mockResolvedValue(null);
 
-    await expect(authService.resetPassword('invalid-token', 'new-password')).rejects.toThrow(AppError)
+    await expect(authService.resetPassword('invalid-token', 'new-password')).rejects.toThrow(
+      AppError,
+    );
     await expect(authService.resetPassword('invalid-token', 'new-password')).rejects.toMatchObject({
       message: 'Token is invalid or has expired',
       statusCode: 400,
-    })
-  })
+    });
+  });
 
   it('throws 400 when token has expired', async () => {
-    const token = 'expired-token'
-    const hash = crypto.createHash('sha256').update(token).digest('hex')
+    const token = 'expired-token';
+    const hash = crypto.createHash('sha256').update(token).digest('hex');
 
-    mockUserRepo.findByResetToken.mockResolvedValue(null) // No user with valid token
+    mockUserRepo.findByResetToken.mockResolvedValue(null); // No user with valid token
 
-    await expect(authService.resetPassword(token, 'new-password')).rejects.toThrow(AppError)
+    await expect(authService.resetPassword(token, 'new-password')).rejects.toThrow(AppError);
     await expect(authService.resetPassword(token, 'new-password')).rejects.toMatchObject({
       message: 'Token is invalid or has expired',
       statusCode: 400,
-    })
-  })
+    });
+  });
 
   it('hashes new password before storing', async () => {
-    const token = 'reset-token'
-    const hash = crypto.createHash('sha256').update(token).digest('hex')
-    const mockUser = createMockUser({ resetToken: hash, resetTokenExpiry: new Date(Date.now() + 1000) })
+    const token = 'reset-token';
+    const hash = crypto.createHash('sha256').update(token).digest('hex');
+    const mockUser = createMockUser({
+      resetToken: hash,
+      resetTokenExpiry: new Date(Date.now() + 1000),
+    });
 
-    mockUserRepo.findByResetToken.mockResolvedValue(mockUser)
-    mockArgon2.hash.mockResolvedValue('new-hashed-password')
-    mockUserRepo.update.mockResolvedValue(mockUser)
+    mockUserRepo.findByResetToken.mockResolvedValue(mockUser);
+    mockArgon2.hash.mockResolvedValue('new-hashed-password');
+    mockUserRepo.update.mockResolvedValue(mockUser);
 
-    await authService.resetPassword(token, 'new-password')
+    await authService.resetPassword(token, 'new-password');
 
-    expect(mockArgon2.hash).toHaveBeenCalledWith('new-password')
-  })
+    expect(mockArgon2.hash).toHaveBeenCalledWith('new-password');
+  });
 
   it('clears reset token after successful reset', async () => {
-    const token = 'reset-token'
-    const hash = crypto.createHash('sha256').update(token).digest('hex')
-    const mockUser = createMockUser({ resetToken: hash, resetTokenExpiry: new Date(Date.now() + 1000) })
+    const token = 'reset-token';
+    const hash = crypto.createHash('sha256').update(token).digest('hex');
+    const mockUser = createMockUser({
+      resetToken: hash,
+      resetTokenExpiry: new Date(Date.now() + 1000),
+    });
 
-    mockUserRepo.findByResetToken.mockResolvedValue(mockUser)
-    mockArgon2.hash.mockResolvedValue('new-hashed-password')
-    mockUserRepo.update.mockResolvedValue(mockUser)
+    mockUserRepo.findByResetToken.mockResolvedValue(mockUser);
+    mockArgon2.hash.mockResolvedValue('new-hashed-password');
+    mockUserRepo.update.mockResolvedValue(mockUser);
 
-    await authService.resetPassword(token, 'new-password')
+    await authService.resetPassword(token, 'new-password');
 
     expect(mockUserRepo.update).toHaveBeenCalledWith(
       'user-1',
       expect.objectContaining({
         resetToken: null,
         resetTokenExpiry: null,
-      })
-    )
-  })
-})
+      }),
+    );
+  });
+});

@@ -1,24 +1,24 @@
-import crypto from 'node:crypto'
-import jwt from 'jsonwebtoken'
-import argon2 from 'argon2'
-import { z } from 'zod'
-import { sendVerificationEmail } from '@/mailer/index.js'
-import { sanitizeUser } from '@/models/user.model.js'
-import { AppError, ErrorCode } from '@/utils/app-error.js'
-import { nowUtc, addUtcMs } from '@/utils/date.js'
-import { createServiceLogger } from '@/utils/logger.js'
-import { config } from '@/config/config.js'
-import { userRepository as defaultUserRepository } from '@/repositories/user.repository.js'
-import type { UserServiceDeps } from '@/container/types.js'
+import crypto from 'node:crypto';
+import jwt from 'jsonwebtoken';
+import argon2 from 'argon2';
+import { z } from 'zod';
+import { sendVerificationEmail } from '@/mailer/index.js';
+import { sanitizeUser } from '@/models/user.model.js';
+import { AppError, ErrorCode } from '@/utils/app-error.js';
+import { nowUtc, addUtcMs } from '@/utils/date.js';
+import { createServiceLogger } from '@/utils/logger.js';
+import { config } from '@/config/config.js';
+import { userRepository as defaultUserRepository } from '@/repositories/user.repository.js';
+import type { UserServiceDeps } from '@/container/types.js';
 
-const logger = createServiceLogger('UserService')
+const logger = createServiceLogger('UserService');
 
 const updateProfileSchema = z.object({
   firstName: z.string().min(1).max(50).optional(),
   lastName: z.string().min(1).max(50).optional(),
   bio: z.string().max(2000).optional(),
   email: z.string().email().optional(),
-})
+});
 
 /**
  * Strip HTML tags and escape remaining angle brackets so free-text fields
@@ -29,19 +29,19 @@ function sanitizeFreeText(value: string): string {
     .replace(/<[^>]*>/g, '')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
-    .trim()
+    .trim();
 }
 
 function generateVerificationToken(userId: string) {
   const raw = jwt.sign({ id: userId, purpose: 'email-verify' }, config.auth.jwtSecret, {
     expiresIn: '24h',
-  })
-  const hash = crypto.createHash('sha256').update(raw).digest('hex')
-  const expiry = addUtcMs(nowUtc(), 24 * 60 * 60 * 1000)
-  return { raw, hash, expiry }
+  });
+  const hash = crypto.createHash('sha256').update(raw).digest('hex');
+  const expiry = addUtcMs(nowUtc(), 24 * 60 * 60 * 1000);
+  return { raw, hash, expiry };
 }
 
-export type UpdateProfileInput = z.infer<typeof updateProfileSchema>
+export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
 
 // ── Service factory ──────────────────────────────────────────────────────────
 
@@ -59,27 +59,29 @@ export type UpdateProfileInput = z.infer<typeof updateProfileSchema>
  * ```
  */
 export function createUserService(deps: UserServiceDeps) {
-  const { userRepository: repo, mailer } = deps
+  const { userRepository: repo, mailer } = deps;
 
   return {
     async updateProfile(userId: string, input: UpdateProfileInput) {
-      logger.debug('Updating user profile', { userId })
-      const parsed = updateProfileSchema.parse(input)
-      const current = await repo.findById(userId)
+      logger.debug('Updating user profile', { userId });
+      const parsed = updateProfileSchema.parse(input);
+      const current = await repo.findById(userId);
       if (!current) {
-        logger.warn('Profile update failed: user not found', { userId })
-        throw new AppError('User not found', 404, true, ErrorCode.NOT_FOUND)
+        logger.warn('Profile update failed: user not found', { userId });
+        throw new AppError('User not found', 404, true, ErrorCode.NOT_FOUND);
       }
 
-      const emailChanged = parsed.email !== undefined && parsed.email !== current.email
-      const verification = emailChanged ? generateVerificationToken(userId) : null
+      const emailChanged = parsed.email !== undefined && parsed.email !== current.email;
+      const verification = emailChanged ? generateVerificationToken(userId) : null;
 
       const sanitized = {
         ...parsed,
-        ...(parsed.firstName !== undefined ? { firstName: sanitizeFreeText(parsed.firstName) } : {}),
+        ...(parsed.firstName !== undefined
+          ? { firstName: sanitizeFreeText(parsed.firstName) }
+          : {}),
         ...(parsed.lastName !== undefined ? { lastName: sanitizeFreeText(parsed.lastName) } : {}),
         ...(parsed.bio !== undefined ? { bio: sanitizeFreeText(parsed.bio) } : {}),
-      }
+      };
 
       const updated = await repo.update(userId, {
         ...sanitized,
@@ -90,37 +92,54 @@ export function createUserService(deps: UserServiceDeps) {
               verificationTokenExpiry: verification!.expiry,
             }
           : {}),
-      })
+      });
 
       if (emailChanged) {
-        logger.info('Email changed, verification email sent', { userId, newEmail: updated.email })
-        await mailer.sendVerificationEmail(updated.email, updated.firstName, verification!.raw)
+        logger.info('Email changed, verification email sent', { userId, newEmail: updated.email });
+        await mailer.sendVerificationEmail(updated.email, updated.firstName, verification!.raw);
       } else {
-        logger.info('User profile updated successfully', { userId })
+        logger.info('User profile updated successfully', { userId });
       }
 
-      return sanitizeUser(updated)
+      return sanitizeUser(updated);
     },
 
-    async changePassword(userId: string, currentPassword: string, newPassword: string): Promise<void> {
-      if (newPassword.length < 8) throw new AppError('Password must be at least 8 characters', 400, true, ErrorCode.VALIDATION_ERROR)
+    async changePassword(
+      userId: string,
+      currentPassword: string,
+      newPassword: string,
+    ): Promise<void> {
+      if (newPassword.length < 8)
+        throw new AppError(
+          'Password must be at least 8 characters',
+          400,
+          true,
+          ErrorCode.VALIDATION_ERROR,
+        );
 
-      const user = await repo.findById(userId)
-      if (!user || !user.password) throw new AppError('No password set on this account', 400, true, ErrorCode.VALIDATION_ERROR)
+      const user = await repo.findById(userId);
+      if (!user || !user.password)
+        throw new AppError(
+          'No password set on this account',
+          400,
+          true,
+          ErrorCode.VALIDATION_ERROR,
+        );
 
-      const valid = await argon2.verify(user.password, currentPassword)
-      if (!valid) throw new AppError('Current password is incorrect', 400, true, ErrorCode.VALIDATION_ERROR)
+      const valid = await argon2.verify(user.password, currentPassword);
+      if (!valid)
+        throw new AppError('Current password is incorrect', 400, true, ErrorCode.VALIDATION_ERROR);
 
-      const hashed = await argon2.hash(newPassword)
-      await repo.update(userId, { password: hashed })
-      logger.info('Password changed', { userId })
+      const hashed = await argon2.hash(newPassword);
+      await repo.update(userId, { password: hashed });
+      logger.info('Password changed', { userId });
     },
 
     async deleteAccount(userId: string): Promise<void> {
-      await repo.delete(userId)
-      logger.info('Account deleted', { userId })
+      await repo.delete(userId);
+      logger.info('Account deleted', { userId });
     },
-  }
+  };
 }
 
 // ── Default service instance (backward-compatible module-level API) ───────────
@@ -131,10 +150,10 @@ export function createUserService(deps: UserServiceDeps) {
 const _defaultService = createUserService({
   userRepository: defaultUserRepository,
   mailer: { sendVerificationEmail, sendPasswordResetEmail: async () => undefined },
-})
+});
 
 export async function updateProfile(userId: string, input: UpdateProfileInput) {
-  return _defaultService.updateProfile(userId, input)
+  return _defaultService.updateProfile(userId, input);
 }
 
 export async function changePassword(
@@ -142,27 +161,27 @@ export async function changePassword(
   currentPassword: string,
   newPassword: string,
 ): Promise<void> {
-  return _defaultService.changePassword(userId, currentPassword, newPassword)
+  return _defaultService.changePassword(userId, currentPassword, newPassword);
 }
 
 export async function deleteAccount(userId: string): Promise<void> {
-  return _defaultService.deleteAccount(userId)
+  return _defaultService.deleteAccount(userId);
 }
 
 export interface PushSubscriptionInput {
-  endpoint: string
-  keys: { auth: string; p256dh: string }
+  endpoint: string;
+  keys: { auth: string; p256dh: string };
 }
 
 export async function savePushSubscription(userId: string, input: PushSubscriptionInput) {
-  return defaultUserRepository.savePushSubscription(userId, input)
+  return defaultUserRepository.savePushSubscription(userId, input);
 }
 
 export async function deletePushSubscription(userId: string, endpoint: string): Promise<void> {
-  return defaultUserRepository.deletePushSubscription(userId, endpoint)
+  return defaultUserRepository.deletePushSubscription(userId, endpoint);
 }
 
 export async function completeOnboarding(userId: string) {
-  const user = await defaultUserRepository.update(userId, { onboardingCompleted: true })
-  return sanitizeUser(user)
+  const user = await defaultUserRepository.update(userId, { onboardingCompleted: true });
+  return sanitizeUser(user);
 }

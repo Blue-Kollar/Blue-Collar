@@ -32,7 +32,7 @@ const workers = await prisma.worker.findMany({
   take: 20,
   skip: (page - 1) * 20,
   where: { isActive: true },
-  orderBy: { createdAt: "desc" },
+  orderBy: { createdAt: 'desc' },
 });
 ```
 
@@ -107,13 +107,13 @@ Set `Cache-Control` headers on read-heavy, infrequently-changing endpoints.
 
 ```ts
 // categories list — changes rarely
-res.set("Cache-Control", "public, max-age=300, stale-while-revalidate=60");
+res.set('Cache-Control', 'public, max-age=300, stale-while-revalidate=60');
 
 // worker profile — changes occasionally
-res.set("Cache-Control", "public, max-age=60, stale-while-revalidate=30");
+res.set('Cache-Control', 'public, max-age=60, stale-while-revalidate=30');
 
 // authenticated user data — never cache publicly
-res.set("Cache-Control", "private, no-store");
+res.set('Cache-Control', 'private, no-store');
 ```
 
 ### In-memory caching (Node.js)
@@ -121,15 +121,15 @@ res.set("Cache-Control", "private, no-store");
 For data that is expensive to compute and shared across requests (e.g. category list), use a simple TTL cache.
 
 ```ts
-import { LRUCache } from "lru-cache"; // or node-cache
+import { LRUCache } from 'lru-cache'; // or node-cache
 
 const cache = new LRUCache<string, unknown>({ max: 500, ttl: 1000 * 60 * 5 });
 
 export async function getCategories() {
-  const cached = cache.get("categories");
+  const cached = cache.get('categories');
   if (cached) return cached;
   const data = await prisma.category.findMany();
-  cache.set("categories", data);
+  cache.set('categories', data);
   return data;
 }
 ```
@@ -139,7 +139,7 @@ export async function getCategories() {
 Use Redis for shared cache across multiple API instances.
 
 ```ts
-import { createClient } from "redis";
+import { createClient } from 'redis';
 const redis = createClient({ url: process.env.REDIS_URL });
 
 async function getCachedWorker(id: string) {
@@ -180,10 +180,10 @@ BlueCollar's frontend is a **Next.js 14** app with the App Router.
 Next.js automatically splits by route. For large client-side components, use dynamic imports to defer loading.
 
 ```tsx
-import dynamic from "next/dynamic";
+import dynamic from 'next/dynamic';
 
-const TipModal = dynamic(() => import("@/components/TipModal"), { ssr: false });
-const QRCodeModal = dynamic(() => import("@/components/QRCodeModal"), { ssr: false });
+const TipModal = dynamic(() => import('@/components/TipModal'), { ssr: false });
+const QRCodeModal = dynamic(() => import('@/components/QRCodeModal'), { ssr: false });
 ```
 
 ### Analyze bundle size
@@ -196,9 +196,9 @@ ANALYZE=true npm run build
 Install `@next/bundle-analyzer` and configure in `next.config.mjs`:
 
 ```js
-import bundleAnalyzer from "@next/bundle-analyzer";
-const withBundleAnalyzer = bundleAnalyzer({ enabled: process.env.ANALYZE === "true" });
-export default withBundleAnalyzer({ /* your config */ });
+import bundleAnalyzer from '@next/bundle-analyzer';
+const withBundleAnalyzer = bundleAnalyzer({ enabled: process.env.ANALYZE === 'true' });
+export default withBundleAnalyzer({/* your config */});
 ```
 
 ### Tree-shake heavy libraries
@@ -207,10 +207,10 @@ Import only what you use from large packages.
 
 ```ts
 // bad
-import * as StellarSdk from "@stellar/stellar-sdk";
+import * as StellarSdk from '@stellar/stellar-sdk';
 
 // good
-import { TransactionBuilder, Networks } from "@stellar/stellar-sdk";
+import { TransactionBuilder, Networks } from '@stellar/stellar-sdk';
 ```
 
 ### Font optimization
@@ -218,7 +218,7 @@ import { TransactionBuilder, Networks } from "@stellar/stellar-sdk";
 The app already uses `geist` via `next/font`. Ensure fonts are loaded with `display: swap` and subsets are restricted.
 
 ```ts
-import { GeistSans } from "geist/font/sans";
+import { GeistSans } from 'geist/font/sans';
 // GeistSans already handles subsetting — avoid importing unused weights
 ```
 
@@ -251,10 +251,10 @@ Tailwind v4 (used here) purges unused styles by default in production builds. En
 The API uses `sharp` for image processing. Apply these settings when handling uploads:
 
 ```ts
-import sharp from "sharp";
+import sharp from 'sharp';
 
 await sharp(inputBuffer)
-  .resize(800, 800, { fit: "inside", withoutEnlargement: true })
+  .resize(800, 800, { fit: 'inside', withoutEnlargement: true })
   .webp({ quality: 80 })
   .toFile(outputPath);
 ```
@@ -263,7 +263,7 @@ For avatars (smaller, square):
 
 ```ts
 await sharp(inputBuffer)
-  .resize(256, 256, { fit: "cover" })
+  .resize(256, 256, { fit: 'cover' })
   .webp({ quality: 75 })
   .toFile(avatarPath);
 ```
@@ -273,7 +273,7 @@ await sharp(inputBuffer)
 Always use `next/image` instead of `<img>` for automatic format conversion, lazy loading, and responsive sizing.
 
 ```tsx
-import Image from "next/image";
+import Image from 'next/image';
 
 <Image
   src={worker.avatar}
@@ -282,7 +282,7 @@ import Image from "next/image";
   height={256}
   sizes="(max-width: 768px) 100vw, 256px"
   priority={false} // set true only for above-the-fold images
-/>
+/>;
 ```
 
 ### Configure remote image domains
@@ -316,14 +316,15 @@ The API uses **Pino** for structured JSON logging. In production, pipe logs to a
 ```
 
 Key metrics to log:
+
 - Request duration (already provided by `pino-http`)
 - Database query duration (use Prisma's `$on("query", ...)` event)
 - External service call latency (Stellar, mailer)
 
 ```ts
-prisma.$on("query", (e) => {
+prisma.$on('query', (e) => {
   if (e.duration > 100) {
-    logger.warn({ query: e.query, duration: e.duration }, "Slow query detected");
+    logger.warn({ query: e.query, duration: e.duration }, 'Slow query detected');
   }
 });
 ```
@@ -334,7 +335,7 @@ Use the built-in Next.js Speed Insights or Web Vitals reporting:
 
 ```tsx
 // app/layout.tsx
-import { SpeedInsights } from "@vercel/speed-insights/next";
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 export default function RootLayout({ children }) {
   return (
@@ -349,6 +350,7 @@ export default function RootLayout({ children }) {
 ```
 
 Track Core Web Vitals targets:
+
 - LCP (Largest Contentful Paint) < 2.5s
 - FID / INP < 100ms
 - CLS < 0.1
@@ -384,19 +386,19 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "1.0"
+          cpus: '1.0'
           memory: 512M
 ```
 
 ### Recommended tools
 
-| Layer    | Tool                          | Purpose                        |
-| -------- | ----------------------------- | ------------------------------ |
-| API      | Pino + pino-http              | Structured request logging     |
-| API      | Prisma query events           | Slow query detection           |
-| Database | pg_stat_statements            | Aggregate query profiling      |
-| Database | pgAdmin / psql EXPLAIN        | Per-query execution plans      |
-| Frontend | Next.js Speed Insights        | Core Web Vitals tracking       |
-| Frontend | @next/bundle-analyzer         | Bundle size analysis           |
-| Frontend | Chrome DevTools Lighthouse    | Full page performance audit    |
-| Infra    | Docker stats / cAdvisor       | Container resource monitoring  |
+| Layer    | Tool                       | Purpose                       |
+| -------- | -------------------------- | ----------------------------- |
+| API      | Pino + pino-http           | Structured request logging    |
+| API      | Prisma query events        | Slow query detection          |
+| Database | pg_stat_statements         | Aggregate query profiling     |
+| Database | pgAdmin / psql EXPLAIN     | Per-query execution plans     |
+| Frontend | Next.js Speed Insights     | Core Web Vitals tracking      |
+| Frontend | @next/bundle-analyzer      | Bundle size analysis          |
+| Frontend | Chrome DevTools Lighthouse | Full page performance audit   |
+| Infra    | Docker stats / cAdvisor    | Container resource monitoring |

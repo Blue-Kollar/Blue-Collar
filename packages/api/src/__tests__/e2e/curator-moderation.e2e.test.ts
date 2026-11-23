@@ -155,7 +155,9 @@ describe('Curator Moderation E2E', () => {
       });
       expect(entry).toBeDefined();
       expect(entry?.userId).toBe(adminId);
-      expect((entry?.meta as unknown as { reason?: string } | null)?.reason).toBe('Meets listing standards');
+      expect((entry?.meta as unknown as { reason?: string } | null)?.reason).toBe(
+        'Meets listing standards',
+      );
     });
 
     it('shows up in GET /api/admin/audit for the admin', async () => {
@@ -165,7 +167,9 @@ describe('Curator Moderation E2E', () => {
         .set('Authorization', `Bearer ${adminToken}`);
       expect(res.status).toBe(200);
       expect(
-        res.body.data.some((entry: { resourceId: string }) => entry.resourceId === approvedWorkerId),
+        res.body.data.some(
+          (entry: { resourceId: string }) => entry.resourceId === approvedWorkerId,
+        ),
       ).toBe(true);
     });
   });
@@ -173,7 +177,11 @@ describe('Curator Moderation E2E', () => {
   // ── Rejection path ──────────────────────────────────────────────────────────
   describe('PATCH /api/admin/workers/:id/moderate — reject', () => {
     beforeAll(async () => {
-      rejectedWorkerId = await createWorkerAsCurator('Sketchy Duct Cleaners', curatorToken, categoryId);
+      rejectedWorkerId = await createWorkerAsCurator(
+        'Sketchy Duct Cleaners',
+        curatorToken,
+        categoryId,
+      );
     });
 
     it('rejects the listing as admin: isActive and isVerified both become false', async () => {
@@ -202,9 +210,7 @@ describe('Curator Moderation E2E', () => {
     it('a rejected listing no longer appears in public search/browse results', async () => {
       const res = await request(app).get('/api/workers');
       expect(res.status).toBe(200);
-      expect(
-        res.body.data.some((w: { id: string }) => w.id === rejectedWorkerId),
-      ).toBe(false);
+      expect(res.body.data.some((w: { id: string }) => w.id === rejectedWorkerId)).toBe(false);
     });
   });
 });

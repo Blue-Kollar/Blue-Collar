@@ -1,4 +1,8 @@
-interface Props { className?: string; size?: number; filled?: boolean }
+interface Props {
+  className?: string;
+  size?: number;
+  filled?: boolean;
+}
 
 export default function StarIcon({ className, size = 24, filled = false }: Props) {
   return (
@@ -6,7 +10,7 @@ export default function StarIcon({ className, size = 24, filled = false }: Props
       width={size}
       height={size}
       viewBox="0 0 24 24"
-      fill={filled ? "currentColor" : "none"}
+      fill={filled ? 'currentColor' : 'none'}
       xmlns="http://www.w3.org/2000/svg"
       className={className}
     >

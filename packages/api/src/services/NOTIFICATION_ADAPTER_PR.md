@@ -12,29 +12,36 @@ Defines the contract all notification channels must implement:
 
 ```typescript
 interface NotificationChannel {
-  readonly name: string
-  shouldSend(message: NotificationMessage, prefs: Record<string, boolean>): boolean | Promise<boolean>
-  send(message: NotificationMessage): Promise<DeliveryResult>
+  readonly name: string;
+  shouldSend(
+    message: NotificationMessage,
+    prefs: Record<string, boolean>,
+  ): boolean | Promise<boolean>;
+  send(message: NotificationMessage): Promise<DeliveryResult>;
 }
 ```
 
 **Key Types:**
+
 - `NotificationMessage`: Normalized message passed to channels (userId, title, message, type, href, data)
 - `DeliveryResult`: Result of delivery attempt (channel, status, error, sentAt)
 
 ### 2. Channel Implementations
 
 #### EmailChannel (`src/services/channels/EmailChannel.ts`)
+
 - Routes through mailer service
 - Type-based preference gating (system→announcements, review→reviewReply)
 - Handles user email lookup and template rendering
 
 #### PushChannel (`src/services/channels/PushChannel.ts`)
+
 - Routes through push service (VAPID)
 - Review notifications gated on reviewReply preference
 - Handles subscription management
 
 #### InAppChannel (`src/services/channels/InAppChannel.ts`)
+
 - Creates notification records in database
 - Always sends (no preference gating)
 - Core delivery mechanism
@@ -42,6 +49,7 @@ interface NotificationChannel {
 ### 3. Channel Registry (`src/services/channels/ChannelRegistry.ts`)
 
 Manages available notification channels:
+
 - Registers channels at startup
 - Retrieves channels by name
 - Supports dynamic registration for testing
@@ -50,6 +58,7 @@ Manages available notification channels:
 ### 4. Service Refactoring (`src/services/notification.service.ts`)
 
 Updated to route notifications through adapter pattern:
+
 - Gets requested channels from registry
 - For each channel: checks shouldSend(), calls send()
 - Collects delivery results per channel
@@ -58,6 +67,7 @@ Updated to route notifications through adapter pattern:
 ### 5. Test Updates (`src/services/notification.service.test.ts`)
 
 Completely rewritten to use adapter pattern:
+
 - **FakeEmailChannel**: Mock email with error injection
 - **FakePushChannel**: Mock push with error injection
 - **FakeInAppChannel**: Mock database persistence
@@ -71,6 +81,7 @@ Completely rewritten to use adapter pattern:
 ### 6. Documentation (`src/services/NOTIFICATION_ADAPTER_PATTERN.md`)
 
 Complete architecture guide including:
+
 - Design patterns and separation of concerns
 - How to add new notification channels
 - Testing strategy
@@ -80,7 +91,9 @@ Complete architecture guide including:
 ## Design Benefits
 
 ### 1. Separation of Concerns
+
 Each channel encapsulates its own:
+
 - Delivery logic
 - Preference gating
 - Error handling
@@ -89,31 +102,34 @@ Each channel encapsulates its own:
 Changes to one channel don't affect others.
 
 ### 2. Testability
+
 - Channels can be mocked/stubbed independently
 - No need to mock mailer, push service, or DB for each test
 - Unit tests provide fake channel implementations
 - Custom channel test demonstrates extensibility
 
 ### 3. Extensibility
+
 Adding a new notification channel requires no changes to core service:
 
 ```typescript
 class SMSChannel implements NotificationChannel {
-  readonly name = 'sms'
-  
+  readonly name = 'sms';
+
   shouldSend(message, prefs) {
-    return prefs['sms'] ?? true
+    return prefs['sms'] ?? true;
   }
-  
+
   async send(message) {
     // SMS delivery logic
   }
 }
 
-registry.register(new SMSChannel())
+registry.register(new SMSChannel());
 ```
 
 ### 4. Backward Compatibility
+
 - Module-level `dispatchNotification()` export unchanged
 - Existing code continues to work
 - Public API preserved
@@ -122,22 +138,26 @@ registry.register(new SMSChannel())
 ## Acceptance Criteria ✓
 
 ✅ **Adding a channel needs no change to the core service**
+
 - Implement `NotificationChannel` interface
 - Register with `ChannelRegistry`
 - Service automatically routes to new channel
 
 ✅ **Tested (unit with fake channel)**
+
 - Fake channel implementations for testing
 - All scenarios covered without external dependencies
 - Custom channel test demonstrates extensibility
 
 ✅ **Code review ready**
+
 - Clear separation of concerns
 - Type-safe implementations
 - Comprehensive test coverage
 - Backward compatible
 
 ✅ **Related tests passing**
+
 - Unit tests updated for adapter pattern
 - Integration tests unaffected (E2E still works)
 - Regression tests unaffected (module export preserved)
@@ -173,6 +193,7 @@ Channel Adapters:
 ```
 
 Each channel:
+
 - Implements NotificationChannel interface
 - Is tested independently
 - Can be added/removed without service changes
@@ -195,17 +216,20 @@ dispatchNotification(payload)
 ## Testing Strategy
 
 ### Unit Tests
+
 - Mock channels using Fake* implementations
 - Test preference gating logic per channel
 - Test deduplication, error resilience, delivery logs
 - Test custom channel registration
 
 ### Integration Tests
+
 - E2E tests verify preference changes are respected
 - Tests confirm channels are selectively called based on preferences
 - Tests verify delivery logs are properly recorded
 
 ### Verification
+
 - All existing notification tests pass
 - E2E API tests unaffected
 - Regression tests unaffected (module export preserved)
@@ -225,7 +249,7 @@ dispatchNotification(payload)
 ✓ `dispatchNotification()` function unchanged  
 ✓ Error handling maintained  
 ✓ Service class functionality unchanged  
-✓ No breaking changes to existing code  
+✓ No breaking changes to existing code
 
 ## Related Issues
 
@@ -246,8 +270,8 @@ dispatchNotification(payload)
 ## Questions?
 
 See documentation in:
+
 - `packages/api/src/services/NOTIFICATION_ADAPTER_PATTERN.md` - Complete architecture guide
 - `packages/api/src/services/channels/NotificationChannel.ts` - Interface with docs
 - `packages/api/src/services/notification.service.test.ts` - Test examples
 - `packages/api/src/services/channels/*.ts` - Channel implementations
-

@@ -17,23 +17,23 @@
  *   - #1814 multi-step write transaction & rollback tests
  *   - #1815 repository layer integration tests
  */
-import { defineConfig } from 'vitest/config'
+import { defineConfig } from 'vitest/config';
 
 // Ensure the test database env vars are set before any test module loads.
 // Prefer TEST_DATABASE_URL; fall back to DATABASE_URL when only that is provided.
-const testDatabaseUrl = process.env.TEST_DATABASE_URL ?? process.env.DATABASE_URL
+const testDatabaseUrl = process.env.TEST_DATABASE_URL ?? process.env.DATABASE_URL;
 
 if (!testDatabaseUrl) {
   throw new Error(
     'vitest.db-integration.config.ts: TEST_DATABASE_URL or DATABASE_URL must be set ' +
       'to run database integration tests.',
-  )
+  );
 }
 
 // Normalize so downstream code (Prisma client, setup files) reads a consistent value.
-process.env.TEST_DATABASE_URL = testDatabaseUrl
-process.env.DATABASE_URL = testDatabaseUrl
-process.env.NODE_ENV = process.env.NODE_ENV ?? 'test'
+process.env.TEST_DATABASE_URL = testDatabaseUrl;
+process.env.DATABASE_URL = testDatabaseUrl;
+process.env.NODE_ENV = process.env.NODE_ENV ?? 'test';
 
 export default defineConfig({
   test: {
@@ -66,4 +66,4 @@ export default defineConfig({
       NODE_ENV: process.env.NODE_ENV ?? 'test',
     },
   },
-})
+});

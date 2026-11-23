@@ -23,16 +23,16 @@ It covers backend (`packages/api`), web frontend (`packages/app`), smart contrac
 
 Ensure your development environment meets the following requirements:
 
-| Tool | Version | Required By | Installation / Verification |
-|---|---|---|---|
-| **Node.js** | `>= 20.x` | `api`, `app`, `mobile`, `monitoring`, `sdk`, `types` | `node -v` |
-| **pnpm** | `>= 9.x` | Monorepo package manager | `corepack enable && corepack prepare pnpm@latest --activate` |
-| **Rust** | `>= 1.74.0` (stable) | `contracts` (Soroban) | `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \| sh` |
-| **wasm32v1-none** | bundled | Soroban contract compilation | `rustup target add wasm32v1-none` |
-| **Stellar CLI** | `>= 21.x` | Smart contract build, deploy, invoke | `cargo install --locked stellar-cli` |
-| **Docker & Docker Compose** | Latest | Database, Redis, Soroban Quickstart | `docker compose version` |
-| **PostgreSQL** (if native) | `16.x` | `api` persistence | `psql --version` |
-| **Redis** (if native) | `7.x` | `api` caching & rate limiting | `redis-cli --version` |
+| Tool                        | Version              | Required By                                          | Installation / Verification                                       |
+| --------------------------- | -------------------- | ---------------------------------------------------- | ----------------------------------------------------------------- |
+| **Node.js**                 | `>= 20.x`            | `api`, `app`, `mobile`, `monitoring`, `sdk`, `types` | `node -v`                                                         |
+| **pnpm**                    | `>= 9.x`             | Monorepo package manager                             | `corepack enable && corepack prepare pnpm@latest --activate`      |
+| **Rust**                    | `>= 1.74.0` (stable) | `contracts` (Soroban)                                | `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \| sh` |
+| **wasm32v1-none**           | bundled              | Soroban contract compilation                         | `rustup target add wasm32v1-none`                                 |
+| **Stellar CLI**             | `>= 21.x`            | Smart contract build, deploy, invoke                 | `cargo install --locked stellar-cli`                              |
+| **Docker & Docker Compose** | Latest               | Database, Redis, Soroban Quickstart                  | `docker compose version`                                          |
+| **PostgreSQL** (if native)  | `16.x`               | `api` persistence                                    | `psql --version`                                                  |
+| **Redis** (if native)       | `7.x`                | `api` caching & rate limiting                        | `redis-cli --version`                                             |
 
 ---
 
@@ -156,13 +156,13 @@ docker compose ps
 
 Services defined in `docker-compose.yml`:
 
-| Service | Container port | Host port | Purpose |
-|---|---|---|---|
-| `db` | `5432` | `5432` | PostgreSQL 16 (user/password/db: `bluecollar`) |
-| `redis` | `6379` | `6379` | Redis 7 (cache + rate limiting) |
-| `adminer` | `8080` | `8080` | Web DB browser at `http://localhost:8080` |
-| `api` | `3000` | `3000` | Backend API (full-stack profile only) |
-| `app` | `3001` | `3001` | Next.js web frontend (full-stack profile only) |
+| Service   | Container port | Host port | Purpose                                        |
+| --------- | -------------- | --------- | ---------------------------------------------- |
+| `db`      | `5432`         | `5432`    | PostgreSQL 16 (user/password/db: `bluecollar`) |
+| `redis`   | `6379`         | `6379`    | Redis 7 (cache + rate limiting)                |
+| `adminer` | `8080`         | `8080`    | Web DB browser at `http://localhost:8080`      |
+| `api`     | `3000`         | `3000`    | Backend API (full-stack profile only)          |
+| `app`     | `3001`         | `3001`    | Next.js web frontend (full-stack profile only) |
 
 Stop services with `docker compose down` (add `-v` to also drop the database volume).
 
@@ -256,6 +256,7 @@ Export the deployed contract IDs into `packages/app/.env` and `packages/monitori
 ## 6. Running the Applications
 
 ### 6.1 Run All Services Concurrently
+
 From the repository root:
 
 ```bash
@@ -265,6 +266,7 @@ pnpm dev
 ### 6.2 Run Packages Individually
 
 - **API (`packages/api`)**:
+
   ```bash
   pnpm --filter @bluecollar/api dev
   # API runs on http://localhost:3000
@@ -272,12 +274,14 @@ pnpm dev
   ```
 
 - **Web Frontend (`packages/app`)**:
+
   ```bash
   pnpm --filter @bluecollar/app dev
   # Web App runs on http://localhost:3001
   ```
 
 - **Mobile App (`packages/mobile`)**:
+
   ```bash
   pnpm --filter @bluecollar/mobile start
   # Expo DevTools and Metro bundler
@@ -302,14 +306,14 @@ docker compose up --build -d
 docker compose logs -f api
 ```
 
-| Service | Port / URL |
-|---|---|
-| **Web Frontend** | `http://localhost:3001` |
-| **API Server** | `http://localhost:3000` |
-| **Swagger UI** | `http://localhost:3000/api/v1/docs` |
-| **PostgreSQL** | `localhost:5432` |
-| **Redis** | `localhost:6379` |
-| **Adminer (DB UI)** | `http://localhost:8080` |
+| Service             | Port / URL                          |
+| ------------------- | ----------------------------------- |
+| **Web Frontend**    | `http://localhost:3001`             |
+| **API Server**      | `http://localhost:3000`             |
+| **Swagger UI**      | `http://localhost:3000/api/v1/docs` |
+| **PostgreSQL**      | `localhost:5432`                    |
+| **Redis**           | `localhost:6379`                    |
+| **Adminer (DB UI)** | `http://localhost:8080`             |
 
 ---
 
@@ -343,6 +347,7 @@ Setup verification passed.
 If any line is prefixed with `[fail]`, fix the reported item and re-run the script.
 
 ### Manual Verification Checklist
+
 1. `node -v` returns `>= 20.x` and `pnpm -v` returns `>= 9.x`.
 2. `docker compose ps` shows `db` and `redis` in healthy status.
 3. `curl http://localhost:3000/api/vitals` returns `{ "status": "ok" }`.
@@ -355,14 +360,14 @@ If any line is prefixed with `[fail]`, fix the reported item and re-run the scri
 
 ### Common Issues
 
-| Issue | Resolution |
-|---|---|
+| Issue                                                          | Resolution                                                                                                           |
+| -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
 | `PrismaClientInitializationError: Can't reach database server` | Ensure Docker DB is running (`docker compose up -d db`) and `DATABASE_URL` in `packages/api/.env` matches port 5432. |
-| `Friendbot rate limit exceeded` on Testnet | Wait 60 seconds or use an alternative funded test account. |
-| `stellar-cli: command not found` | Run `cargo install --locked stellar-cli` and ensure `~/.cargo/bin` is in `$PATH`. |
-| Port conflicts on 3000 or 5432 | Check for local PostgreSQL or processes running on ports 3000/5432 (`lsof -i :3000`, `lsof -i :5432`). |
-| `ERR_PNPM_UNSUPPORTED_ENGINE` | Your Node version is too old; install Node `>= 20` and re-run `pnpm install`. |
-| API exits with a config validation error | A required key is missing from `packages/api/.env`; compare against [Section 3.1](#31-packagesapienv). |
+| `Friendbot rate limit exceeded` on Testnet                     | Wait 60 seconds or use an alternative funded test account.                                                           |
+| `stellar-cli: command not found`                               | Run `cargo install --locked stellar-cli` and ensure `~/.cargo/bin` is in `$PATH`.                                    |
+| Port conflicts on 3000 or 5432                                 | Check for local PostgreSQL or processes running on ports 3000/5432 (`lsof -i :3000`, `lsof -i :5432`).               |
+| `ERR_PNPM_UNSUPPORTED_ENGINE`                                  | Your Node version is too old; install Node `>= 20` and re-run `pnpm install`.                                        |
+| API exits with a config validation error                       | A required key is missing from `packages/api/.env`; compare against [Section 3.1](#31-packagesapienv).               |
 
 ---
 

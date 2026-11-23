@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import * as React from "react";
-import { cn } from "@/lib/utils";
+import * as React from 'react';
+import { cn } from '@/lib/utils';
 
 export interface RadioOption {
   label: string;
@@ -20,14 +20,27 @@ export interface RadioGroupProps {
   className?: string;
 }
 
-function RadioGroup({ label, name, options, value, onChange, error, hint, className }: RadioGroupProps) {
+function RadioGroup({
+  label,
+  name,
+  options,
+  value,
+  onChange,
+  error,
+  hint,
+  className,
+}: RadioGroupProps) {
   const groupId = React.useId();
   const errorId = `${groupId}-error`;
 
   return (
-    <fieldset className={cn("flex flex-col gap-2", className)}>
+    <fieldset className={cn('flex flex-col gap-2', className)}>
       <legend className="text-sm font-medium text-gray-700 dark:text-gray-300">{label}</legend>
-      <div className="flex flex-col gap-2" role="radiogroup" aria-describedby={error ? errorId : undefined}>
+      <div
+        className="flex flex-col gap-2"
+        role="radiogroup"
+        aria-describedby={error ? errorId : undefined}
+      >
         {options.map((opt) => {
           const optId = `${groupId}-${opt.value}`;
           return (
@@ -41,9 +54,9 @@ function RadioGroup({ label, name, options, value, onChange, error, hint, classN
                 onChange={() => onChange?.(opt.value)}
                 disabled={opt.disabled}
                 className={cn(
-                  "h-4 w-4 accent-brand-600 border-gray-300 dark:border-gray-600",
-                  "focus:ring-2 focus:ring-brand-500/20",
-                  "disabled:cursor-not-allowed disabled:opacity-50"
+                  'h-4 w-4 accent-brand-600 border-gray-300 dark:border-gray-600',
+                  'focus:ring-2 focus:ring-brand-500/20',
+                  'disabled:cursor-not-allowed disabled:opacity-50',
                 )}
               />
               <span className="text-sm text-gray-700 dark:text-gray-300">{opt.label}</span>
@@ -56,9 +69,7 @@ function RadioGroup({ label, name, options, value, onChange, error, hint, classN
           {error}
         </p>
       )}
-      {!error && hint && (
-        <p className="text-xs text-gray-400 dark:text-gray-500">{hint}</p>
-      )}
+      {!error && hint && <p className="text-xs text-gray-400 dark:text-gray-500">{hint}</p>}
     </fieldset>
   );
 }

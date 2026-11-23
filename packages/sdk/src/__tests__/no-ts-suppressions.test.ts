@@ -44,7 +44,10 @@ describe('packages/sdk has no unjustified TypeScript suppressions (#1485)', () =
         }
       });
     }
-    expect(hits, `Use @ts-expect-error with a reason instead of @ts-ignore:\n${hits.join('\n')}`).toEqual([]);
+    expect(
+      hits,
+      `Use @ts-expect-error with a reason instead of @ts-ignore:\n${hits.join('\n')}`,
+    ).toEqual([]);
   });
 
   it('every @ts-expect-error has a non-placeholder reason', () => {
@@ -54,7 +57,7 @@ describe('packages/sdk has no unjustified TypeScript suppressions (#1485)', () =
       lines.forEach((line, i) => {
         const m = line.match(/@ts-expect-error\s*(.*)$/);
         if (!m) return;
-        const reason = m[1].replace(/^[-\s]+/, '').trim();
+        const reason = (m[1] ?? '').replace(/^[-\s]+/, '').trim();
         if (
           reason.length === 0 ||
           /^TODO/i.test(reason) ||

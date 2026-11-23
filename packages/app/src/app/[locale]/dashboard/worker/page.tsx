@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { DashboardTableSkeleton } from "@/components/Skeleton";
-import { WorkerDashboardHeader } from "@/components/dashboard/worker/WorkerDashboardHeader";
-import { WorkerDashboardFilters } from "@/components/dashboard/worker/WorkerDashboardFilters";
-import { WorkerDashboardContent } from "@/components/dashboard/worker/WorkerDashboardContent";
-import { useWorkerAnalytics } from "@/hooks/useWorkerAnalytics";
-import { useWallet } from "@/hooks/useWallet";
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { DashboardTableSkeleton } from '@/components/Skeleton';
+import { WorkerDashboardHeader } from '@/components/dashboard/worker/WorkerDashboardHeader';
+import { WorkerDashboardFilters } from '@/components/dashboard/worker/WorkerDashboardFilters';
+import { WorkerDashboardContent } from '@/components/dashboard/worker/WorkerDashboardContent';
+import { useWorkerAnalytics } from '@/hooks/useWorkerAnalytics';
+import { useWallet } from '@/hooks/useWallet';
 
 export default function WorkerPersonalDashboardPage() {
   const router = useRouter();
@@ -31,8 +31,8 @@ export default function WorkerPersonalDashboardPage() {
   } = useWorkerAnalytics();
 
   useEffect(() => {
-    if (!authLoading && (!user || (user.role !== "curator" && user.role !== "admin"))) {
-      router.replace("/auth/login");
+    if (!authLoading && (!user || (user.role !== 'curator' && user.role !== 'admin'))) {
+      router.replace('/auth/login');
     }
   }, [user, authLoading, router]);
 
@@ -65,16 +65,10 @@ export default function WorkerPersonalDashboardPage() {
       />
 
       {error && (
-        <div className="mb-6 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">
-          {error}
-        </div>
+        <div className="mb-6 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">{error}</div>
       )}
 
-      <WorkerDashboardContent
-        workers={workers}
-        loading={loading}
-        data={data}
-      />
+      <WorkerDashboardContent workers={workers} loading={loading} data={data} />
     </div>
   );
 }

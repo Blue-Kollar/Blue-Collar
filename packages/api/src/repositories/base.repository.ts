@@ -3,12 +3,12 @@
  * All model-specific repositories extend this contract.
  */
 export interface IRepository<T, CreateInput, UpdateInput> {
-  findById(id: string): Promise<T | null>
-  findAll(opts?: { skip?: number; take?: number }): Promise<T[]>
-  create(data: CreateInput): Promise<T>
-  update(id: string, data: UpdateInput): Promise<T>
-  delete(id: string): Promise<T>
-  count(where?: object): Promise<number>
+  findById(id: string): Promise<T | null>;
+  findAll(opts?: { skip?: number; take?: number }): Promise<T[]>;
+  create(data: CreateInput): Promise<T>;
+  update(id: string, data: UpdateInput): Promise<T>;
+  delete(id: string): Promise<T>;
+  count(where?: object): Promise<number>;
 }
 
 /**
@@ -17,18 +17,21 @@ export interface IRepository<T, CreateInput, UpdateInput> {
  * to this shape without any adapter code.
  */
 export interface PrismaDelegate<T, CreateInput, UpdateInput, WhereInput> {
-  findUnique(args: { where: Record<string, unknown> }): Promise<T | null>
-  findFirst(args: { where: Record<string, unknown> }): Promise<T | null>
+  findUnique(args: { where: Record<string, unknown> }): Promise<T | null>;
+  findFirst(args: { where: Record<string, unknown> }): Promise<T | null>;
   findMany(args: {
-    where?: Record<string, unknown>
-    skip?: number
-    take?: number
-    orderBy?: Record<string, unknown>
-  }): Promise<T[]>
-  create(args: { data: CreateInput }): Promise<T>
-  update(args: { where: Record<string, unknown>; data: UpdateInput | Record<string, unknown> }): Promise<T>
-  delete(args: { where: Record<string, unknown> }): Promise<T>
-  count(args?: { where?: WhereInput }): Promise<number>
+    where?: Record<string, unknown>;
+    skip?: number;
+    take?: number;
+    orderBy?: Record<string, unknown>;
+  }): Promise<T[]>;
+  create(args: { data: CreateInput }): Promise<T>;
+  update(args: {
+    where: Record<string, unknown>;
+    data: UpdateInput | Record<string, unknown>;
+  }): Promise<T>;
+  delete(args: { where: Record<string, unknown> }): Promise<T>;
+  count(args?: { where?: WhereInput }): Promise<number>;
 }
 
 export interface BaseRepositoryOptions {
@@ -37,9 +40,9 @@ export interface BaseRepositoryOptions {
    * and `findById`/`findAll` transparently exclude soft-deleted rows.
    * Requires the underlying model to have a nullable `deletedAt` column.
    */
-  softDelete?: boolean
+  softDelete?: boolean;
   /** Field to sort `findAll` results by descending. Defaults to `createdAt`. */
-  defaultSortField?: string
+  defaultSortField?: string;
 }
 
 /**
@@ -48,7 +51,7 @@ export interface BaseRepositoryOptions {
  * model delegates are resolved by the caller via `txFor`.
  */
 export interface PrismaTransactionClient {
-  $transaction<R>(fn: (tx: unknown) => Promise<R>): Promise<R>
+  $transaction<R>(fn: (tx: unknown) => Promise<R>): Promise<R>;
 }
 
 /**
@@ -57,7 +60,7 @@ export interface PrismaTransactionClient {
  */
 export type DelegateResolver<T, CreateInput, UpdateInput, WhereInput> = (
   tx: unknown,
-) => PrismaDelegate<T, CreateInput, UpdateInput, WhereInput>
+) => PrismaDelegate<T, CreateInput, UpdateInput, WhereInput>;
 
 /**
  * Base repository implementing the common find/create/update/delete/count
@@ -71,10 +74,9 @@ export abstract class BaseRepository<
   CreateInput,
   UpdateInput,
   WhereInput extends object = Record<string, unknown>,
-> implements IRepository<T, CreateInput, UpdateInput>
-{
-  protected readonly softDelete: boolean
-  protected readonly defaultSortField: string
+> implements IRepository<T, CreateInput, UpdateInput> {
+  protected readonly softDelete: boolean;
+  protected readonly defaultSortField: string;
 
   constructor(
     protected readonly delegate: PrismaDelegate<T, CreateInput, UpdateInput, WhereInput>,
@@ -86,8 +88,8 @@ export abstract class BaseRepository<
      */
     protected readonly tx?: PrismaTransactionClient,
   ) {
-    this.softDelete = options.softDelete ?? false
-    this.defaultSortField = options.defaultSortField ?? 'createdAt'
+    this.softDelete = options.softDelete ?? false;
+    this.defaultSortField = options.defaultSortField ?? 'createdAt';
   }
 
   /**
@@ -100,13 +102,13 @@ export abstract class BaseRepository<
       delegate: PrismaDelegate<T, CreateInput, UpdateInput, WhereInput>,
       options: BaseRepositoryOptions,
       tx?: PrismaTransactionClient,
-    ) => this
-    return new Ctor(this.delegate, this.options(), tx)
+    ) => this;
+    return new Ctor(this.delegate, this.options(), tx);
   }
 
   /** Snapshot of the options this repository was constructed with. */
   protected options(): BaseRepositoryOptions {
-    return { softDelete: this.softDelete, defaultSortField: this.defaultSortField }
+    return { softDelete: this.softDelete, defaultSortField: this.defaultSortField };
   }
 
   /**
@@ -114,27 +116,27 @@ export abstract class BaseRepository<
    * a transaction-scoped repository (via `withTransaction`) so all writes it
    * performs are atomic: if `fn` throws, Prisma rolls back every write.
    */
-  async withTransactionCallback<R>(
-    fn: (repo: this) => Promise<R>,
-  ): Promise<R> {
+  async withTransactionCallback<R>(fn: (repo: this) => Promise<R>): Promise<R> {
     if (!this.tx) {
       throw new Error(
         'withTransactionCallback requires a PrismaTransactionClient; construct the repository with one or use runInTransaction',
-      )
+      );
     }
-    return this.tx.$transaction(async (tx) => fn(this.withTransaction(tx as PrismaTransactionClient)))
+    return this.tx.$transaction(async (tx) =>
+      fn(this.withTransaction(tx as PrismaTransactionClient)),
+    );
   }
 
   /** Excludes soft-deleted rows when the model supports soft-delete. */
   protected notDeletedFilter(): Record<string, unknown> {
-    return this.softDelete ? { deletedAt: null } : {}
+    return this.softDelete ? { deletedAt: null } : {};
   }
 
   async findById(id: string): Promise<T | null> {
     if (this.softDelete) {
-      return this.delegate.findFirst({ where: { id, ...this.notDeletedFilter() } })
+      return this.delegate.findFirst({ where: { id, ...this.notDeletedFilter() } });
     }
-    return this.delegate.findUnique({ where: { id } })
+    return this.delegate.findUnique({ where: { id } });
   }
 
   async findAll(opts: { skip?: number; take?: number } = {}): Promise<T[]> {
@@ -143,11 +145,11 @@ export abstract class BaseRepository<
       take: opts.take,
       where: this.notDeletedFilter(),
       orderBy: { [this.defaultSortField]: 'desc' },
-    })
+    });
   }
 
   async create(data: CreateInput): Promise<T> {
-    return this.delegate.create({ data })
+    return this.delegate.create({ data });
   }
 
   /**
@@ -159,17 +161,17 @@ export abstract class BaseRepository<
     return this.delegate.update({
       where: { id },
       data: { ...(data as Record<string, unknown>), updatedAt: new Date() },
-    })
+    });
   }
 
   async delete(id: string): Promise<T> {
     if (this.softDelete) {
-      return this.delegate.update({ where: { id }, data: { deletedAt: new Date() } })
+      return this.delegate.update({ where: { id }, data: { deletedAt: new Date() } });
     }
-    return this.delegate.delete({ where: { id } })
+    return this.delegate.delete({ where: { id } });
   }
 
   async count(where?: WhereInput): Promise<number> {
-    return this.delegate.count({ where })
+    return this.delegate.count({ where });
   }
 }

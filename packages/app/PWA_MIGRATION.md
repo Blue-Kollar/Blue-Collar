@@ -9,10 +9,11 @@ BlueCollar is now a Progressive Web App. Here's what changed and what you need t
 ### New Hooks Available
 
 #### `useOfflineActions()`
+
 Queue offline actions instead of failing:
 
 ```typescript
-import { useOfflineActions } from "@/hooks/useOfflineActions";
+import { useOfflineActions } from '@/hooks/useOfflineActions';
 
 export function ContactWorkerButton() {
   const { queueContactRequest } = useOfflineActions();
@@ -29,10 +30,11 @@ export function ContactWorkerButton() {
 ```
 
 #### `usePushNotifications()` (Enhanced)
+
 Now tracks permission status:
 
 ```typescript
-import { usePushNotifications } from "@/hooks/usePushNotifications";
+import { usePushNotifications } from '@/hooks/usePushNotifications';
 
 const { permissionStatus, isSubscribed, subscribe } = usePushNotifications();
 // permissionStatus: "granted" | "denied" | "prompt" | null
@@ -42,18 +44,19 @@ const { permissionStatus, isSubscribed, subscribe } = usePushNotifications();
 
 The service worker now implements **tiered caching**:
 
-| Request | Before | After |
-|---|---|---|
-| Worker profiles | Basic cache | Stale-while-revalidate + size limit |
-| Categories | Network-first | Cache-first (7 day TTL) |
-| Auth | Basic cache | Network-only (always fresh) |
-| Images | Cache | Cache-first with size limit |
+| Request         | Before        | After                               |
+| --------------- | ------------- | ----------------------------------- |
+| Worker profiles | Basic cache   | Stale-while-revalidate + size limit |
+| Categories      | Network-first | Cache-first (7 day TTL)             |
+| Auth            | Basic cache   | Network-only (always fresh)         |
+| Images          | Cache         | Cache-first with size limit         |
 
 **Impact:** Faster subsequent loads, automatic data refresh.
 
 ### New Dependencies
 
 No new npm packages required. Uses browser APIs:
+
 - IndexedDB (offline queue storage)
 - Background Sync API (automatic retry)
 - Service Worker API (cached and offline handling)
@@ -134,7 +137,7 @@ Track PWA effectiveness:
 navigator.serviceWorker?.ready.then((reg) => {
   reg.pushManager.getSubscription().then((sub) => {
     analytics.track('pwa_notification_subscribed', {
-      subscribed: !!sub
+      subscribed: !!sub,
     });
   });
 });
@@ -158,12 +161,12 @@ navigator.serviceWorker?.ready.then((reg) => {
 
 With PWA enabled:
 
-| Metric | Before | After |
-|---|---|---|
-| Repeat visit cold start | ~3s | ~1s |
-| Static assets cached | No | Yes |
-| Offline browsing | No | Yes |
-| Data persistence | 24h | 7 days (categories) |
+| Metric                  | Before | After               |
+| ----------------------- | ------ | ------------------- |
+| Repeat visit cold start | ~3s    | ~1s                 |
+| Static assets cached    | No     | Yes                 |
+| Offline browsing        | No     | Yes                 |
+| Data persistence        | 24h    | 7 days (categories) |
 
 ## Rollback Plan
 
@@ -187,6 +190,7 @@ A: No. Chrome/Edge only. Other browsers fall back to user-initiated sync (reload
 
 **Q: Can I disable PWA features for specific users?**
 A: Yes, wrap components with permission checks:
+
 ```typescript
 if (!Notification.permission || Notification.permission === 'denied') {
   return <NotificationUnavailable />;
@@ -194,7 +198,8 @@ if (!Notification.permission || Notification.permission === 'denied') {
 ```
 
 **Q: How do I clear the offline queue for debugging?**
+
 ```typescript
-import { clearOfflineQueue } from "@/lib/offlineQueue";
+import { clearOfflineQueue } from '@/lib/offlineQueue';
 await clearOfflineQueue();
 ```

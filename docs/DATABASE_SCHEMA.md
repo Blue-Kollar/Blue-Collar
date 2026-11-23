@@ -88,27 +88,27 @@ Comprehensive documentation of the BlueCollar Prisma schema, including model des
 
 Represents a registered platform user. Users can have one of three roles: `user`, `curator`, or `admin`.
 
-| Column | Type | Constraints | Description |
-|---|---|---|---|
-| `id` | `String` | PK, CUID | Auto-generated unique identifier |
-| `email` | `String` | Unique | User's email address |
-| `password` | `String?` | Nullable | Argon2id hash; null for OAuth-only users |
-| `googleId` | `String?` | Unique, Nullable | Google OAuth subject identifier |
-| `firstName` | `String` | Required | Given name |
-| `lastName` | `String` | Required | Family name |
-| `role` | `Role` | Default: `user` | Access level (`user`, `curator`, `admin`) |
-| `walletAddress` | `String?` | Nullable | Stellar public key |
-| `avatar` | `String?` | Nullable | Path to uploaded profile image |
-| `bio` | `String?` | Nullable | Short biography |
-| `phone` | `String?` | Nullable | Contact phone number |
-| `verified` | `Boolean` | Default: `false` | Whether email has been verified |
-| `verificationToken` | `String?` | Nullable | SHA-256 hash of the email verification JWT |
-| `verificationTokenExpiry` | `DateTime?` | Nullable | Expiry of the verification token (24h) |
-| `resetToken` | `String?` | Unique, Nullable | SHA-256 hash of the password reset token |
-| `resetTokenExpiry` | `DateTime?` | Nullable | Expiry of the reset token (1h) |
-| `locationId` | `String?` | FK → Location | Optional location reference |
-| `createdAt` | `DateTime` | Default: now | Record creation timestamp |
-| `updatedAt` | `DateTime` | Auto-updated | Last modification timestamp |
+| Column                    | Type        | Constraints      | Description                                |
+| ------------------------- | ----------- | ---------------- | ------------------------------------------ |
+| `id`                      | `String`    | PK, CUID         | Auto-generated unique identifier           |
+| `email`                   | `String`    | Unique           | User's email address                       |
+| `password`                | `String?`   | Nullable         | Argon2id hash; null for OAuth-only users   |
+| `googleId`                | `String?`   | Unique, Nullable | Google OAuth subject identifier            |
+| `firstName`               | `String`    | Required         | Given name                                 |
+| `lastName`                | `String`    | Required         | Family name                                |
+| `role`                    | `Role`      | Default: `user`  | Access level (`user`, `curator`, `admin`)  |
+| `walletAddress`           | `String?`   | Nullable         | Stellar public key                         |
+| `avatar`                  | `String?`   | Nullable         | Path to uploaded profile image             |
+| `bio`                     | `String?`   | Nullable         | Short biography                            |
+| `phone`                   | `String?`   | Nullable         | Contact phone number                       |
+| `verified`                | `Boolean`   | Default: `false` | Whether email has been verified            |
+| `verificationToken`       | `String?`   | Nullable         | SHA-256 hash of the email verification JWT |
+| `verificationTokenExpiry` | `DateTime?` | Nullable         | Expiry of the verification token (24h)     |
+| `resetToken`              | `String?`   | Unique, Nullable | SHA-256 hash of the password reset token   |
+| `resetTokenExpiry`        | `DateTime?` | Nullable         | Expiry of the reset token (1h)             |
+| `locationId`              | `String?`   | FK → Location    | Optional location reference                |
+| `createdAt`               | `DateTime`  | Default: now     | Record creation timestamp                  |
+| `updatedAt`               | `DateTime`  | Auto-updated     | Last modification timestamp                |
 
 **Relations:** has many `Worker` (as curator), `Bookmark`, `Review`, `ContactRequest`, `PushSubscription`; belongs to one optional `Location`.
 
@@ -118,23 +118,23 @@ Represents a registered platform user. Users can have one of three roles: `user`
 
 Represents a skilled worker listing created by a curator. Workers can optionally be anchored on-chain via the Stellar Registry contract.
 
-| Column | Type | Constraints | Description |
-|---|---|---|---|
-| `id` | `String` | PK, CUID | Auto-generated unique identifier |
-| `name` | `String` | Required | Worker's display name |
-| `bio` | `String?` | Nullable | Short biography |
-| `avatar` | `String?` | Nullable | Path to uploaded profile image |
-| `phone` | `String?` | Nullable | Contact phone number |
-| `email` | `String?` | Nullable | Contact email address |
-| `walletAddress` | `String?` | Nullable | Stellar public key for receiving payments |
-| `isActive` | `Boolean` | Default: `true` | Whether the listing is publicly visible |
-| `isVerified` | `Boolean` | Default: `false` | Whether the worker has been verified |
-| `stellarContractId` | `String?` | Nullable | On-chain Registry contract worker ID |
-| `categoryId` | `String` | FK → Category | The worker's job category |
-| `curatorId` | `String` | FK → User | The curator who created this listing |
-| `locationId` | `String?` | FK → Location | Optional location reference |
-| `createdAt` | `DateTime` | Default: now | Record creation timestamp |
-| `updatedAt` | `DateTime` | Auto-updated | Last modification timestamp |
+| Column              | Type       | Constraints      | Description                               |
+| ------------------- | ---------- | ---------------- | ----------------------------------------- |
+| `id`                | `String`   | PK, CUID         | Auto-generated unique identifier          |
+| `name`              | `String`   | Required         | Worker's display name                     |
+| `bio`               | `String?`  | Nullable         | Short biography                           |
+| `avatar`            | `String?`  | Nullable         | Path to uploaded profile image            |
+| `phone`             | `String?`  | Nullable         | Contact phone number                      |
+| `email`             | `String?`  | Nullable         | Contact email address                     |
+| `walletAddress`     | `String?`  | Nullable         | Stellar public key for receiving payments |
+| `isActive`          | `Boolean`  | Default: `true`  | Whether the listing is publicly visible   |
+| `isVerified`        | `Boolean`  | Default: `false` | Whether the worker has been verified      |
+| `stellarContractId` | `String?`  | Nullable         | On-chain Registry contract worker ID      |
+| `categoryId`        | `String`   | FK → Category    | The worker's job category                 |
+| `curatorId`         | `String`   | FK → User        | The curator who created this listing      |
+| `locationId`        | `String?`  | FK → Location    | Optional location reference               |
+| `createdAt`         | `DateTime` | Default: now     | Record creation timestamp                 |
+| `updatedAt`         | `DateTime` | Auto-updated     | Last modification timestamp               |
 
 **Relations:** belongs to `Category`, `User` (curator), optional `Location`; has many `Bookmark`, `Review`, `Availability`, `ContactRequest`.
 
@@ -144,14 +144,14 @@ Represents a skilled worker listing created by a curator. Workers can optionally
 
 Represents a job category (e.g. Plumbing, Electrical, Carpentry).
 
-| Column | Type | Constraints | Description |
-|---|---|---|---|
-| `id` | `String` | PK, CUID | Auto-generated unique identifier |
-| `name` | `String` | Unique | Category name |
-| `description` | `String?` | Nullable | Optional description |
-| `icon` | `String?` | Nullable | Emoji or icon identifier |
-| `createdAt` | `DateTime` | Default: now | Record creation timestamp |
-| `updatedAt` | `DateTime` | Auto-updated | Last modification timestamp |
+| Column        | Type       | Constraints  | Description                      |
+| ------------- | ---------- | ------------ | -------------------------------- |
+| `id`          | `String`   | PK, CUID     | Auto-generated unique identifier |
+| `name`        | `String`   | Unique       | Category name                    |
+| `description` | `String?`  | Nullable     | Optional description             |
+| `icon`        | `String?`  | Nullable     | Emoji or icon identifier         |
+| `createdAt`   | `DateTime` | Default: now | Record creation timestamp        |
+| `updatedAt`   | `DateTime` | Auto-updated | Last modification timestamp      |
 
 **Relations:** has many `Worker`.
 
@@ -161,14 +161,14 @@ Represents a job category (e.g. Plumbing, Electrical, Carpentry).
 
 Represents a geographic location shared by users and workers.
 
-| Column | Type | Constraints | Description |
-|---|---|---|---|
-| `id` | `String` | PK, CUID | Auto-generated unique identifier |
-| `city` | `String` | Required | City name |
-| `state` | `String?` | Nullable | State or province |
-| `country` | `String` | Required | Country name or ISO code |
-| `lat` | `Float?` | Nullable | Latitude coordinate |
-| `lng` | `Float?` | Nullable | Longitude coordinate |
+| Column    | Type      | Constraints | Description                      |
+| --------- | --------- | ----------- | -------------------------------- |
+| `id`      | `String`  | PK, CUID    | Auto-generated unique identifier |
+| `city`    | `String`  | Required    | City name                        |
+| `state`   | `String?` | Nullable    | State or province                |
+| `country` | `String`  | Required    | Country name or ISO code         |
+| `lat`     | `Float?`  | Nullable    | Latitude coordinate              |
+| `lng`     | `Float?`  | Nullable    | Longitude coordinate             |
 
 **Relations:** has many `User`, has many `Worker`.
 
@@ -178,12 +178,12 @@ Represents a geographic location shared by users and workers.
 
 A user's saved worker listing. Each user can bookmark a given worker at most once.
 
-| Column | Type | Constraints | Description |
-|---|---|---|---|
-| `id` | `String` | PK, CUID | Auto-generated unique identifier |
-| `userId` | `String` | FK → User | The user who bookmarked |
-| `workerId` | `String` | FK → Worker | The bookmarked worker |
-| `createdAt` | `DateTime` | Default: now | When the bookmark was created |
+| Column      | Type       | Constraints  | Description                      |
+| ----------- | ---------- | ------------ | -------------------------------- |
+| `id`        | `String`   | PK, CUID     | Auto-generated unique identifier |
+| `userId`    | `String`   | FK → User    | The user who bookmarked          |
+| `workerId`  | `String`   | FK → Worker  | The bookmarked worker            |
+| `createdAt` | `DateTime` | Default: now | When the bookmark was created    |
 
 **Unique constraint:** `(userId, workerId)` — a user cannot bookmark the same worker twice.
 
@@ -195,14 +195,14 @@ A user's saved worker listing. Each user can bookmark a given worker at most onc
 
 A rating and optional comment left by a user for a worker. Each user can review a given worker at most once.
 
-| Column | Type | Constraints | Description |
-|---|---|---|---|
-| `id` | `String` | PK, CUID | Auto-generated unique identifier |
-| `rating` | `Int` | Required | Numeric rating (application enforces 1–5) |
-| `comment` | `String?` | Nullable | Optional review text |
-| `workerId` | `String` | FK → Worker | The reviewed worker |
-| `authorId` | `String` | FK → User | The user who wrote the review |
-| `createdAt` | `DateTime` | Default: now | When the review was created |
+| Column      | Type       | Constraints  | Description                               |
+| ----------- | ---------- | ------------ | ----------------------------------------- |
+| `id`        | `String`   | PK, CUID     | Auto-generated unique identifier          |
+| `rating`    | `Int`      | Required     | Numeric rating (application enforces 1–5) |
+| `comment`   | `String?`  | Nullable     | Optional review text                      |
+| `workerId`  | `String`   | FK → Worker  | The reviewed worker                       |
+| `authorId`  | `String`   | FK → User    | The user who wrote the review             |
+| `createdAt` | `DateTime` | Default: now | When the review was created               |
 
 **Unique constraint:** `(authorId, workerId)` — one review per user per worker.
 
@@ -214,15 +214,15 @@ A rating and optional comment left by a user for a worker. Each user can review 
 
 A worker's availability schedule. Each worker can have at most one availability entry per day of the week.
 
-| Column | Type | Constraints | Description |
-|---|---|---|---|
-| `id` | `String` | PK, CUID | Auto-generated unique identifier |
-| `workerId` | `String` | FK → Worker | The worker this schedule belongs to |
-| `dayOfWeek` | `Int` | Required | Day index: 0 = Sunday, 6 = Saturday |
-| `startTime` | `String` | Required | Start time in `HH:mm` format (24h) |
-| `endTime` | `String` | Required | End time in `HH:mm` format (24h) |
-| `createdAt` | `DateTime` | Default: now | Record creation timestamp |
-| `updatedAt` | `DateTime` | Auto-updated | Last modification timestamp |
+| Column      | Type       | Constraints  | Description                         |
+| ----------- | ---------- | ------------ | ----------------------------------- |
+| `id`        | `String`   | PK, CUID     | Auto-generated unique identifier    |
+| `workerId`  | `String`   | FK → Worker  | The worker this schedule belongs to |
+| `dayOfWeek` | `Int`      | Required     | Day index: 0 = Sunday, 6 = Saturday |
+| `startTime` | `String`   | Required     | Start time in `HH:mm` format (24h)  |
+| `endTime`   | `String`   | Required     | End time in `HH:mm` format (24h)    |
+| `createdAt` | `DateTime` | Default: now | Record creation timestamp           |
+| `updatedAt` | `DateTime` | Auto-updated | Last modification timestamp         |
 
 **Unique constraint:** `(workerId, dayOfWeek)` — one schedule entry per day per worker.
 
@@ -234,15 +234,15 @@ A worker's availability schedule. Each worker can have at most one availability 
 
 A request from a user to contact a worker. The curator can accept or decline.
 
-| Column | Type | Constraints | Description |
-|---|---|---|---|
-| `id` | `String` | PK, CUID | Auto-generated unique identifier |
-| `workerId` | `String` | FK → Worker | The worker being contacted |
-| `fromUserId` | `String` | FK → User | The user making the request |
-| `message` | `String` | Required | The contact message |
-| `status` | `String` | Default: `pending` | `pending`, `accepted`, or `declined` |
-| `createdAt` | `DateTime` | Default: now | Record creation timestamp |
-| `updatedAt` | `DateTime` | Auto-updated | Last modification timestamp |
+| Column       | Type       | Constraints        | Description                          |
+| ------------ | ---------- | ------------------ | ------------------------------------ |
+| `id`         | `String`   | PK, CUID           | Auto-generated unique identifier     |
+| `workerId`   | `String`   | FK → Worker        | The worker being contacted           |
+| `fromUserId` | `String`   | FK → User          | The user making the request          |
+| `message`    | `String`   | Required           | The contact message                  |
+| `status`     | `String`   | Default: `pending` | `pending`, `accepted`, or `declined` |
+| `createdAt`  | `DateTime` | Default: now       | Record creation timestamp            |
+| `updatedAt`  | `DateTime` | Auto-updated       | Last modification timestamp          |
 
 **Cascade:** deleting a `User` or `Worker` cascades to delete their contact requests.
 
@@ -252,13 +252,13 @@ A request from a user to contact a worker. The curator can accept or decline.
 
 Stores Web Push API subscription data for a user, enabling push notifications.
 
-| Column | Type | Constraints | Description |
-|---|---|---|---|
-| `id` | `String` | PK, CUID | Auto-generated unique identifier |
-| `userId` | `String` | FK → User | The subscribed user |
-| `endpoint` | `String` | Required | Push service endpoint URL |
-| `auth` | `String` | Required | Auth secret for the subscription |
-| `p256dh` | `String` | Required | Public key for message encryption |
+| Column      | Type       | Constraints  | Description                       |
+| ----------- | ---------- | ------------ | --------------------------------- |
+| `id`        | `String`   | PK, CUID     | Auto-generated unique identifier  |
+| `userId`    | `String`   | FK → User    | The subscribed user               |
+| `endpoint`  | `String`   | Required     | Push service endpoint URL         |
+| `auth`      | `String`   | Required     | Auth secret for the subscription  |
+| `p256dh`    | `String`   | Required     | Public key for message encryption |
 | `createdAt` | `DateTime` | Default: now | When the subscription was created |
 
 **Unique constraint:** `(userId, endpoint)` — one subscription per endpoint per user (supports multiple devices).
@@ -273,11 +273,11 @@ Stores Web Push API subscription data for a user, enabling push notifications.
 
 Controls access level throughout the API.
 
-| Value | Description |
-|---|---|
-| `user` | Standard user — can browse workers, leave reviews, bookmark, send contact requests |
-| `curator` | Can create and manage worker listings, view contact requests |
-| `admin` | Full access — all curator permissions plus user management and platform stats |
+| Value     | Description                                                                        |
+| --------- | ---------------------------------------------------------------------------------- |
+| `user`    | Standard user — can browse workers, leave reviews, bookmark, send contact requests |
+| `curator` | Can create and manage worker listings, view contact requests                       |
+| `admin`   | Full access — all curator permissions plus user management and platform stats      |
 
 ---
 
@@ -291,16 +291,16 @@ Prisma automatically creates indexes for:
 
 ### Explicit unique indexes
 
-| Model | Columns | Purpose |
-|---|---|---|
-| `User` | `email` | Prevent duplicate accounts |
-| `User` | `googleId` | Ensure one account per Google identity |
-| `User` | `resetToken` | Fast lookup during password reset |
-| `Category` | `name` | Prevent duplicate category names |
-| `Bookmark` | `(userId, workerId)` | Prevent duplicate bookmarks |
-| `Review` | `(authorId, workerId)` | One review per user per worker |
-| `Availability` | `(workerId, dayOfWeek)` | One schedule entry per day per worker |
-| `PushSubscription` | `(userId, endpoint)` | One subscription per device per user |
+| Model              | Columns                 | Purpose                                |
+| ------------------ | ----------------------- | -------------------------------------- |
+| `User`             | `email`                 | Prevent duplicate accounts             |
+| `User`             | `googleId`              | Ensure one account per Google identity |
+| `User`             | `resetToken`            | Fast lookup during password reset      |
+| `Category`         | `name`                  | Prevent duplicate category names       |
+| `Bookmark`         | `(userId, workerId)`    | Prevent duplicate bookmarks            |
+| `Review`           | `(authorId, workerId)`  | One review per user per worker         |
+| `Availability`     | `(workerId, dayOfWeek)` | One schedule entry per day per worker  |
+| `PushSubscription` | `(userId, endpoint)`    | One subscription per device per user   |
 
 ### Query performance notes
 
@@ -409,10 +409,10 @@ All records are retained indefinitely unless explicitly deleted by a user action
 
 The following records are automatically deleted when their parent is deleted:
 
-| Deleted record | Cascades to |
-|---|---|
-| `User` | `Bookmark`, `Review`, `ContactRequest`, `PushSubscription` |
-| `Worker` | `Bookmark`, `Review`, `Availability`, `ContactRequest` |
+| Deleted record | Cascades to                                                |
+| -------------- | ---------------------------------------------------------- |
+| `User`         | `Bookmark`, `Review`, `ContactRequest`, `PushSubscription` |
+| `Worker`       | `Bookmark`, `Review`, `Availability`, `ContactRequest`     |
 
 `User` deletion does **not** cascade to `Worker` records — workers created by a deleted curator remain in the database. This is intentional to preserve listing history. Orphaned workers should be reassigned or archived via an admin action.
 
@@ -420,10 +420,10 @@ The following records are automatically deleted when their parent is deleted:
 
 Verification and reset tokens have database-level expiry timestamps:
 
-| Token | Expiry |
-|---|---|
+| Token               | Expiry                     |
+| ------------------- | -------------------------- |
 | `verificationToken` | 24 hours from registration |
-| `resetToken` | 1 hour from request |
+| `resetToken`        | 1 hour from request        |
 
 Expired tokens are not automatically deleted from the database — they remain as null-equivalent entries until the user re-requests. A periodic cleanup job (not yet implemented) could prune rows where `verificationTokenExpiry < NOW()` and `verified = false`.
 

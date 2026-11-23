@@ -1,5 +1,1 @@
-export type {
-  User,
-  Category,
-  Worker,
-} from "@bluecollar/types";
+export type { User, Category, Worker } from '@bluecollar/types';

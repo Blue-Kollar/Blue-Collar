@@ -67,6 +67,7 @@ pub fn add_certification(
 ```
 
 **Parameters:**
+
 - `caller`: Must be the worker's owner; `require_auth()` is enforced
 - `worker_id`: The worker's unique identifier
 - `cert_id`: Unique certification identifier
@@ -81,6 +82,7 @@ pub fn add_certification(
 **Events:** Emits `("CertAdd", worker_id, cert_id)` with data `(name, issuer, expires_at)`
 
 **Panics:**
+
 - `"Worker not found"` if worker doesn't exist
 - `"Not authorized"` if caller is not the worker's owner
 - `"Certification already exists"` if cert_id already exists
@@ -100,6 +102,7 @@ pub fn remove_certification(
 ```
 
 **Parameters:**
+
 - `caller`: Must be the worker's owner
 - `worker_id`: The worker's unique identifier
 - `cert_id`: Certification to remove
@@ -109,6 +112,7 @@ pub fn remove_certification(
 **Events:** Emits `("CertRem", worker_id, cert_id)` with data `()`
 
 **Panics:**
+
 - `"Worker not found"` if worker doesn't exist
 - `"Not authorized"` if caller is not the worker's owner
 
@@ -126,6 +130,7 @@ pub fn verify_certification(
 ```
 
 **Parameters:**
+
 - `curator`: Must be an approved curator; `require_auth()` is enforced
 - `worker_id`: The worker's unique identifier
 - `cert_id`: Certification to verify
@@ -135,6 +140,7 @@ pub fn verify_certification(
 **Events:** Emits `("CertVfy", worker_id, cert_id)` with data `(curator, timestamp)`
 
 **Panics:**
+
 - `"Caller is not a curator"` if curator is not approved
 - `"Certification not found"` if cert_id doesn't exist
 - `"Certification expired"` if expires_at is in the past
@@ -182,18 +188,21 @@ pub fn is_certification_valid(env: Env, cert_id: Symbol) -> bool
 ## Events
 
 ### CertAdd (Certification Added)
+
 - **Indexed**: `worker_id` (Symbol), `cert_id` (Symbol)
 - **Data**: `(name: String, issuer: String, expires_at: u64)`
 - **Emitted by**: `add_certification()`
 - **Use case**: Track new certifications
 
 ### CertRem (Certification Removed)
+
 - **Indexed**: `worker_id` (Symbol), `cert_id` (Symbol)
 - **Data**: None
 - **Emitted by**: `remove_certification()`
 - **Use case**: Track certification removal
 
 ### CertVfy (Certification Verified)
+
 - **Indexed**: `worker_id` (Symbol), `cert_id` (Symbol)
 - **Data**: `(curator: Address, timestamp: u64)`
 - **Emitted by**: `verify_certification()`

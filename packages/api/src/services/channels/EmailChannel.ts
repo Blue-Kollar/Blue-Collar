@@ -1,33 +1,34 @@
-import type { NotificationChannel, NotificationMessage, DeliveryResult } from './NotificationChannel.js'
-import { transporter } from '@/mailer/transport.js'
-import { notificationRepository } from '@/repositories/notification.repository.js'
-import { logger } from '@/config/logger.js'
-import { AppError } from '@/utils/app-error.js'
-import { nowUtc } from '@/utils/date.js'
+import type {
+  NotificationChannel,
+  NotificationMessage,
+  DeliveryResult,
+} from './NotificationChannel.js';
+import { transporter } from '@/mailer/transport.js';
+import { notificationRepository } from '@/repositories/notification.repository.js';
+import { logger } from '@/config/logger.js';
+import { AppError } from '@/utils/app-error.js';
+import { nowUtc } from '@/utils/date.js';
 
 /**
  * Email notification channel adapter.
  * Routes email delivery through the mailer service with template rendering.
  */
 export class EmailChannel implements NotificationChannel {
-  readonly name = 'email'
+  readonly name = 'email';
 
   /**
    * Determine if email should be sent based on notification type and user preferences.
    * Maps notification types to preference keys for gating logic.
    */
-  shouldSend(
-    message: NotificationMessage,
-    prefs: Record<string, boolean>
-  ): boolean {
+  shouldSend(message: NotificationMessage, prefs: Record<string, boolean>): boolean {
     const typeMap: Record<string, string> = {
-      'review': 'reviewReply',
-      'system': 'announcements',
-    }
+      review: 'reviewReply',
+      system: 'announcements',
+    };
 
-    const prefKey = typeMap[message.type]
+    const prefKey = typeMap[message.type];
     // If no specific mapping, allow by default
-    return prefKey ? (prefs[prefKey] ?? true) : true
+    return prefKey ? (prefs[prefKey] ?? true) : true;
   }
 
   /**
@@ -39,12 +40,12 @@ export class EmailChannel implements NotificationChannel {
       channel: this.name,
       status: 'failed',
       sentAt: nowUtc(),
-    }
+    };
 
     try {
-      const user = await notificationRepository.findUserEmailAndName(message.userId)
+      const user = await notificationRepository.findUserEmailAndName(message.userId);
       if (!user) {
-        throw new AppError('User not found', 404)
+        throw new AppError('User not found', 404);
       }
 
       await transporter.sendMail({
@@ -54,20 +55,16 @@ export class EmailChannel implements NotificationChannel {
         html: `<p>${message.message}</p>${
           message.href ? `<a href="${message.href}">View</a>` : ''
         }`,
-      })
+      });
 
-      result.status = 'sent'
+      result.status = 'sent';
     } catch (error) {
-      logger.error(
-        { error, userId: message.userId },
-        'Email notification failed'
-      )
-      result.error =
-        error instanceof Error ? error.message : 'Unknown error'
+      logger.error({ error, userId: message.userId }, 'Email notification failed');
+      result.error = error instanceof Error ? error.message : 'Unknown error';
     }
 
-    return result
+    return result;
   }
 }
 
-export const emailChannel = new EmailChannel()
+export const emailChannel = new EmailChannel();

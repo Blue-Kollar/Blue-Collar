@@ -9,7 +9,7 @@
  * The actual Stellar SDK calls are injected via a `walletProvider` prop so
  * unit tests can swap in a deterministic mock.
  */
-import React, { useState } from 'react'
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -18,56 +18,52 @@ import {
   ActivityIndicator,
   Alert,
   ScrollView,
-} from 'react-native'
+} from 'react-native';
 
-export type WalletStatus =
-  | 'disconnected'
-  | 'connecting'
-  | 'connected'
-  | 'error'
+export type WalletStatus = 'disconnected' | 'connecting' | 'connected' | 'error';
 
 export interface WalletProvider {
-  requestAccess(): Promise<{ publicKey: string }>
-  disconnect(): Promise<void>
-  getPublicKey(): Promise<string | null>
+  requestAccess(): Promise<{ publicKey: string }>;
+  disconnect(): Promise<void>;
+  getPublicKey(): Promise<string | null>;
 }
 
 export interface WalletConnectionScreenProps {
-  walletProvider?: WalletProvider
-  onConnected?: (publicKey: string) => void
-  onDisconnected?: () => void
+  walletProvider?: WalletProvider;
+  onConnected?: (publicKey: string) => void;
+  onDisconnected?: () => void;
 }
 
 /** Default no-op provider shown when no real wallet SDK is injected */
 const defaultProvider: WalletProvider = {
   requestAccess: async () => {
-    throw new Error('No wallet provider configured')
+    throw new Error('No wallet provider configured');
   },
   disconnect: async () => {},
   getPublicKey: async () => null,
-}
+};
 
 export default function WalletConnectionScreen({
   walletProvider = defaultProvider,
   onConnected,
   onDisconnected,
 }: WalletConnectionScreenProps) {
-  const [status, setStatus] = useState<WalletStatus>('disconnected')
-  const [publicKey, setPublicKey] = useState<string | null>(null)
-  const [errorMessage, setErrorMessage] = useState('')
+  const [status, setStatus] = useState<WalletStatus>('disconnected');
+  const [publicKey, setPublicKey] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState('');
 
   async function handleConnect() {
-    setStatus('connecting')
-    setErrorMessage('')
+    setStatus('connecting');
+    setErrorMessage('');
     try {
-      const result = await walletProvider.requestAccess()
-      setPublicKey(result.publicKey)
-      setStatus('connected')
-      onConnected?.(result.publicKey)
+      const result = await walletProvider.requestAccess();
+      setPublicKey(result.publicKey);
+      setStatus('connected');
+      onConnected?.(result.publicKey);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Wallet connection failed'
-      setErrorMessage(msg)
-      setStatus('error')
+      const msg = err instanceof Error ? err.message : 'Wallet connection failed';
+      setErrorMessage(msg);
+      setStatus('error');
     }
   }
 
@@ -79,26 +75,24 @@ export default function WalletConnectionScreen({
         style: 'destructive',
         onPress: async () => {
           try {
-            await walletProvider.disconnect()
-            setPublicKey(null)
-            setStatus('disconnected')
-            onDisconnected?.()
+            await walletProvider.disconnect();
+            setPublicKey(null);
+            setStatus('disconnected');
+            onDisconnected?.();
           } catch {
-            setErrorMessage('Failed to disconnect wallet')
+            setErrorMessage('Failed to disconnect wallet');
           }
         },
       },
-    ])
+    ]);
   }
 
   function handleRetry() {
-    setStatus('disconnected')
-    setErrorMessage('')
+    setStatus('disconnected');
+    setErrorMessage('');
   }
 
-  const shortKey = publicKey
-    ? `${publicKey.slice(0, 6)}…${publicKey.slice(-4)}`
-    : null
+  const shortKey = publicKey ? `${publicKey.slice(0, 6)}…${publicKey.slice(-4)}` : null;
 
   return (
     <ScrollView
@@ -161,7 +155,9 @@ export default function WalletConnectionScreen({
       {/* Error view */}
       {status === 'error' && (
         <View style={styles.errorCard} testID="error-card">
-          <Text style={styles.errorText} testID="error-message">{errorMessage}</Text>
+          <Text style={styles.errorText} testID="error-message">
+            {errorMessage}
+          </Text>
           <TouchableOpacity
             style={styles.retryButton}
             onPress={handleRetry}
@@ -174,7 +170,7 @@ export default function WalletConnectionScreen({
       )}
 
       {/* Connect button (shown when disconnected or after error allows retry) */}
-      {(status === 'disconnected') && (
+      {status === 'disconnected' && (
         <TouchableOpacity
           style={styles.connectButton}
           onPress={handleConnect}
@@ -185,7 +181,7 @@ export default function WalletConnectionScreen({
         </TouchableOpacity>
       )}
     </ScrollView>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -253,4 +249,4 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   connectButtonText: { color: '#FFF', fontWeight: '700', fontSize: 16 },
-})
+});

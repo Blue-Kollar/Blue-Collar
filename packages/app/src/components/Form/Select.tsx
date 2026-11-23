@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import * as React from "react";
-import { ChevronDown } from "lucide-react";
-import { cn } from "@/lib/utils";
+import * as React from 'react';
+import { ChevronDown } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export interface SelectOption {
   label: string;
@@ -26,10 +26,7 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
 
     return (
       <div className="flex flex-col gap-1.5">
-        <label
-          htmlFor={selectId}
-          className="text-sm font-medium text-gray-700 dark:text-gray-300"
-        >
+        <label htmlFor={selectId} className="text-sm font-medium text-gray-700 dark:text-gray-300">
           {label}
         </label>
         <div className="relative">
@@ -39,14 +36,14 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
             aria-invalid={!!error}
             aria-describedby={error ? errorId : hint ? hintId : undefined}
             className={cn(
-              "h-10 w-full appearance-none rounded-lg border px-3 py-2 pr-9 text-sm",
-              "bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100",
-              "transition-colors focus:outline-none focus:ring-2",
-              "disabled:cursor-not-allowed disabled:opacity-50",
+              'h-10 w-full appearance-none rounded-lg border px-3 py-2 pr-9 text-sm',
+              'bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100',
+              'transition-colors focus:outline-none focus:ring-2',
+              'disabled:cursor-not-allowed disabled:opacity-50',
               error
-                ? "border-error focus:border-error focus:ring-error/20"
-                : "border-gray-300 dark:border-gray-700 focus:border-brand-500 focus:ring-brand-500/20",
-              className
+                ? 'border-error focus:border-error focus:ring-error/20'
+                : 'border-gray-300 dark:border-gray-700 focus:border-brand-500 focus:ring-brand-500/20',
+              className,
             )}
             {...props}
           >
@@ -78,8 +75,8 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
         )}
       </div>
     );
-  }
+  },
 );
-Select.displayName = "FormSelect";
+Select.displayName = 'FormSelect';
 
 export { Select };

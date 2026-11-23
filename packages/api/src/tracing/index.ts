@@ -31,7 +31,9 @@ const resource = new Resource({
 const sdk = new NodeSDK({
   resource: resource as unknown as NodeSDKConfiguration['resource'],
   traceExporter: exporter as unknown as NodeSDKConfiguration['traceExporter'],
-  spanProcessor: new BatchSpanProcessor(exporter) as unknown as NodeSDKConfiguration['spanProcessor'],
+  spanProcessor: new BatchSpanProcessor(
+    exporter,
+  ) as unknown as NodeSDKConfiguration['spanProcessor'],
   instrumentations: [
     new HttpInstrumentation({
       ignoreIncomingPaths: ['/health', '/metrics', '/favicon.ico'],
@@ -49,7 +51,7 @@ const sdk = new NodeSDK({
         const route = request.route;
         span.setAttribute('express.route', route);
         span.setAttribute('http.route', route);
-        
+
         // Add user ID if available
         const userId = (request.request as { user?: { id: string } }).user?.id;
         if (userId) {
@@ -111,9 +113,9 @@ export const startSpan = (name: string, attributes?: Attributes) => {
  * packages are installed — this avoids `any` without a hard dependency.
  */
 interface EndableSpan {
-  setStatus(status: { code: number; message?: string }): void
-  recordException(error: Error): void
-  end(): void
+  setStatus(status: { code: number; message?: string }): void;
+  recordException(error: Error): void;
+  end(): void;
 }
 
 // Helper to end a span with error handling

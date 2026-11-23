@@ -88,7 +88,7 @@ export interface User {
 }
 
 /** Alias for backward compatibility */
-export type AuthUser = User
+export type AuthUser = User;
 
 // ─── Category ─────────────────────────────────────────────────────────────────
 
@@ -141,7 +141,7 @@ export interface CreateWorkerDTO {
   locationId?: string;
 }
 
-export type UpdateWorkerDTO = Partial<CreateWorkerDTO>
+export type UpdateWorkerDTO = Partial<CreateWorkerDTO>;
 
 // ─── Review ───────────────────────────────────────────────────────────────────
 

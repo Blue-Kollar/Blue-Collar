@@ -1,4 +1,5 @@
 {
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "target": "ES2022",
     "module": "ESNext",
@@ -9,9 +10,6 @@
     "paths": {
       "@/*": ["src/*"]
     },
-    "strict": true,
-    "noUncheckedIndexedAccess": true,
-    "noImplicitOverride": true,
     "esModuleInterop": true,
     "skipLibCheck": true
   },

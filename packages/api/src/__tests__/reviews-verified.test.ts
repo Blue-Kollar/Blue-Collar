@@ -1,12 +1,12 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest'
-import request from 'supertest'
-import { app } from '../app.js'
-import { db } from '../db.js'
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import request from 'supertest';
+import { app } from '../app.js';
+import { db } from '../db.js';
 
 describe('Reviews & Ratings API (Issue #750)', () => {
-  let userToken: string
-  let workerId: string
-  let reviewId: string
+  let userToken: string;
+  let workerId: string;
+  let reviewId: string;
 
   beforeAll(async () => {
     // Create test user
@@ -17,16 +17,19 @@ describe('Reviews & Ratings API (Issue #750)', () => {
         password: 'SecurePassword123!',
         firstName: 'Review',
         lastName: 'Tester',
-      })
+      });
 
     // Verify account
     const user = await db.user.findUnique({
       where: { email: `review-test-${Date.now()}@example.com` },
-    })
+    });
     await db.user.update({
       where: { id: user!.id },
-      data: { verified: true, walletAddress: 'GBU7VFGU2QMYMBPHTYVGNBMVR4X3KBVJX3VMFKJ2J53M6L4PXEQ46WT' },
-    })
+      data: {
+        verified: true,
+        walletAddress: 'GBU7VFGU2QMYMBPHTYVGNBMVR4X3KBVJX3VMFKJ2J53M6L4PXEQ46WT',
+      },
+    });
 
     // Login
     const loginRes = await request(app)
@@ -34,9 +37,9 @@ describe('Reviews & Ratings API (Issue #750)', () => {
       .send({
         email: `review-test-${Date.now()}@example.com`,
         password: 'SecurePassword123!',
-      })
+      });
 
-    userToken = loginRes.body.token
+    userToken = loginRes.body.token;
 
     // Create test worker
     const curatorUser = await db.user.create({
@@ -49,11 +52,11 @@ describe('Reviews & Ratings API (Issue #750)', () => {
         verified: true,
         walletAddress: 'GBU7VFGU2QMYMBPHTYVGNBMVR4X3KBVJX3VMFKJ2J53M6L4PXEQ46WT',
       },
-    })
+    });
 
     const category = await db.category.create({
       data: { name: `Category${Date.now()}`, description: 'Test' },
-    })
+    });
 
     const worker = await db.worker.create({
       data: {
@@ -63,10 +66,10 @@ describe('Reviews & Ratings API (Issue #750)', () => {
         isActive: true,
         walletAddress: 'GBU7VFGU2QMYMBPHTYVGNBMVR4X3KBVJX3VMFKJ2J53M6L4PXEQ46WT',
       },
-    })
+    });
 
-    workerId = worker.id
-  })
+    workerId = worker.id;
+  });
 
   it('should create a review with verification', async () => {
     const res = await request(app)
@@ -76,36 +79,35 @@ describe('Reviews & Ratings API (Issue #750)', () => {
         workerId,
         rating: 5,
         comment: 'Great service!',
-      })
+      });
 
-    expect(res.status).toBe(201)
-    expect(res.body.data).toHaveProperty('id')
-    expect(res.body.data.isVerified).toBe(true)
-    reviewId = res.body.data.id
-  })
+    expect(res.status).toBe(201);
+    expect(res.body.data).toHaveProperty('id');
+    expect(res.body.data.isVerified).toBe(true);
+    reviewId = res.body.data.id;
+  });
 
   it('should list reviews with aggregation', async () => {
-    const res = await request(app)
-      .get(`/api/reviews?workerId=${workerId}`)
+    const res = await request(app).get(`/api/reviews?workerId=${workerId}`);
 
-    expect(res.status).toBe(200)
-    expect(res.body.data).toBeInstanceOf(Array)
-    expect(res.body.stats).toHaveProperty('averageRating')
-    expect(res.body.stats).toHaveProperty('reviewCount')
-    expect(res.body.stats).toHaveProperty('distribution')
-    expect(res.body.stats).toHaveProperty('verified')
-  })
+    expect(res.status).toBe(200);
+    expect(res.body.data).toBeInstanceOf(Array);
+    expect(res.body.stats).toHaveProperty('averageRating');
+    expect(res.body.stats).toHaveProperty('reviewCount');
+    expect(res.body.stats).toHaveProperty('distribution');
+    expect(res.body.stats).toHaveProperty('verified');
+  });
 
   it('should flag a review', async () => {
     const res = await request(app)
       .patch(`/api/reviews/${reviewId}/flag`)
       .set('Authorization', `Bearer ${userToken}`)
-      .send({ reason: 'Inappropriate content' })
+      .send({ reason: 'Inappropriate content' });
 
-    expect(res.status).toBe(200)
-    expect(res.body.data.flagged).toBe(true)
-    expect(res.body.data.flagReason).toBe('Inappropriate content')
-  })
+    expect(res.status).toBe(200);
+    expect(res.body.data.flagged).toBe(true);
+    expect(res.body.data.flagReason).toBe('Inappropriate content');
+  });
 
   it('should prevent duplicate reviews', async () => {
     const res = await request(app)
@@ -115,11 +117,11 @@ describe('Reviews & Ratings API (Issue #750)', () => {
         workerId,
         rating: 4,
         comment: 'Duplicate review',
-      })
+      });
 
-    expect(res.status).toBe(409)
-    expect(res.body.message).toContain('already reviewed')
-  })
+    expect(res.status).toBe(409);
+    expect(res.body.message).toContain('already reviewed');
+  });
 
   it('should show rating distribution', async () => {
     // Create multiple reviews with different ratings
@@ -133,7 +135,7 @@ describe('Reviews & Ratings API (Issue #750)', () => {
           verified: true,
           walletAddress: 'GBU7VFGU2QMYMBPHTYVGNBMVR4X3KBVJX3VMFKJ2J53M6L4PXEQ46WT',
         },
-      })
+      });
 
       await db.review.create({
         data: {
@@ -144,24 +146,23 @@ describe('Reviews & Ratings API (Issue #750)', () => {
           isVerified: true,
           status: 'approved',
         },
-      })
+      });
     }
 
-    const res = await request(app)
-      .get(`/api/reviews?workerId=${workerId}`)
+    const res = await request(app).get(`/api/reviews?workerId=${workerId}`);
 
-    expect(res.body.stats.distribution).toHaveLength(5)
-    expect(res.body.stats.distribution[0]).toHaveProperty('rating')
-    expect(res.body.stats.distribution[0]).toHaveProperty('count')
-    expect(res.body.stats.distribution[0]).toHaveProperty('percentage')
-  })
+    expect(res.body.stats.distribution).toHaveLength(5);
+    expect(res.body.stats.distribution[0]).toHaveProperty('rating');
+    expect(res.body.stats.distribution[0]).toHaveProperty('count');
+    expect(res.body.stats.distribution[0]).toHaveProperty('percentage');
+  });
 
   afterAll(async () => {
     // Cleanup
-    await db.review.deleteMany({ where: { workerId } })
-    await db.worker.deleteMany({ where: { id: workerId } })
-    await db.user.deleteMany({ where: { email: { contains: 'review-test' } } })
-    await db.user.deleteMany({ where: { email: { contains: 'curator-' } } })
-    await db.user.deleteMany({ where: { email: { contains: 'user-' } } })
-  })
-})
+    await db.review.deleteMany({ where: { workerId } });
+    await db.worker.deleteMany({ where: { id: workerId } });
+    await db.user.deleteMany({ where: { email: { contains: 'review-test' } } });
+    await db.user.deleteMany({ where: { email: { contains: 'curator-' } } });
+    await db.user.deleteMany({ where: { email: { contains: 'user-' } } });
+  });
+});

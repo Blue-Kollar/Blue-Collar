@@ -3,6 +3,7 @@
 React Native mobile application for the BlueCollar platform, built with Expo.
 
 ## Features
+
 - Browse and search skilled workers
 - View worker profiles and reviews
 - Send contact requests
@@ -14,6 +15,7 @@ React Native mobile application for the BlueCollar platform, built with Expo.
 - Wallet integration
 
 ## Tech Stack
+
 - **Framework**: React Native (Expo SDK 51+)
 - **Navigation**: Expo Router (file-based)
 - **State Management**: Zustand
@@ -25,6 +27,7 @@ React Native mobile application for the BlueCollar platform, built with Expo.
 - **Testing**: Jest + React Native Testing Library
 
 ## Project Structure
+
 ```
 packages/mobile/
 ├── src/
@@ -43,6 +46,7 @@ packages/mobile/
 ```
 
 ## Getting Started
+
 ```bash
 # Install dependencies
 pnpm install
@@ -61,7 +65,9 @@ pnpm test
 ```
 
 ## Offline Support
+
 The app implements comprehensive offline support (Issue #840):
+
 - **Cached Data**: Worker profiles, bookmarks, categories, user profile
 - **Offline Actions**: Contact requests, bookmarks, reviews, tips, escrow
 - **Stale-While-Revalidate**: Shows cached data immediately, fetches fresh data in background
@@ -69,6 +75,7 @@ The app implements comprehensive offline support (Issue #840):
 - **UI Indicators**: Clear offline/sync status banners
 
 ## Related Issues
+
 - #837: [Mobile] React Native App Foundation
 - #838: [Mobile] Mobile Wallet Integration (Stellar)
 - #839: [Mobile] Push Notifications (FCM/APNs)
@@ -79,4 +86,5 @@ The app implements comprehensive offline support (Issue #840):
 - **[ADR 0001: Monorepo Package Boundaries](../../docs/adr/0001-monorepo-package-boundaries.md)** — defines monorepo package boundaries and import rules.
 
 ## License
+
 MIT

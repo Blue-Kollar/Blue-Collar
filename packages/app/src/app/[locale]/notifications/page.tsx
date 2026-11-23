@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import LoadingState from "@/components/LoadingState";
-import { useEffect, useState } from "react";
-import { Bell, CheckCheck, ArrowLeft } from "lucide-react";
-import Link from "next/link";
-import { useNotifications } from "@/context/NotificationContext";
-import { deleteNotification } from "@/lib/api";
-import { NotificationItem } from "@/components/notifications/NotificationItem";
-import { NotificationEmptyState } from "@/components/notifications/NotificationEmptyState";
+import LoadingState from '@/components/LoadingState';
+import { useEffect, useState } from 'react';
+import { Bell, CheckCheck, ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
+import { useNotifications } from '@/context/NotificationContext';
+import { deleteNotification } from '@/lib/api';
+import { NotificationItem } from '@/components/notifications/NotificationItem';
+import { NotificationEmptyState } from '@/components/notifications/NotificationEmptyState';
 
 export default function NotificationCentrePage() {
   const { notifications, unreadCount, markRead, markAllRead, refresh, loading } =
@@ -44,9 +44,7 @@ export default function NotificationCentrePage() {
           >
             <ArrowLeft size={18} />
           </Link>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-            Notifications
-          </h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Notifications</h1>
           {unreadCount > 0 && (
             <span className="rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-semibold text-red-600 dark:bg-red-900/30 dark:text-red-400">
               {unreadCount} unread

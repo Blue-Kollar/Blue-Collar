@@ -1,36 +1,69 @@
-import type { Request, Response, NextFunction } from 'express'
-import { log } from '@/services/audit.service.js'
+import type { Request, Response, NextFunction } from 'express';
+import { log } from '@/services/audit.service.js';
 
 // Map HTTP method + route pattern to an audit action
 const ACTION_MAP: Array<{ method: string; pattern: RegExp; action: string; resource: string }> = [
-  { method: 'POST',   pattern: /^\/api\/auth\/login$/,           action: 'auth.login',           resource: 'User' },
-  { method: 'POST',   pattern: /^\/api\/auth\/register$/,        action: 'auth.register',         resource: 'User' },
-  { method: 'DELETE', pattern: /^\/api\/auth\/logout$/,          action: 'auth.logout',           resource: 'User' },
-  { method: 'PUT',    pattern: /^\/api\/auth\/reset-password$/,  action: 'auth.password_reset',   resource: 'User' },
-  { method: 'POST',   pattern: /^\/api\/workers$/,               action: 'worker.create',         resource: 'Worker' },
-  { method: 'PUT',    pattern: /^\/api\/workers\/[^/]+$/,        action: 'worker.update',         resource: 'Worker' },
-  { method: 'DELETE', pattern: /^\/api\/workers\/[^/]+$/,        action: 'worker.delete',         resource: 'Worker' },
-  { method: 'PATCH',  pattern: /^\/api\/workers\/[^/]+\/toggle$/, action: 'worker.toggle',        resource: 'Worker' },
-  { method: 'PATCH',  pattern: /^\/api\/verifications\/[^/]+\/review$/, action: 'admin.verification_review', resource: 'VerificationRequest' },
-  { method: 'PATCH',  pattern: /^\/api\/admin\/users\/[^/]+\/role$/, action: 'user.change_role',  resource: 'user' },
-  { method: 'PATCH',  pattern: /^\/api\/admin\/workers\/[^/]+\/moderate$/, action: 'worker.moderate', resource: 'worker' },
-  { method: 'DELETE', pattern: /^\/api\/admin\//,                action: 'admin.action',          resource: 'Admin' },
-  { method: 'PATCH',  pattern: /^\/api\/admin\//,                action: 'admin.action',          resource: 'Admin' },
-]
+  { method: 'POST', pattern: /^\/api\/auth\/login$/, action: 'auth.login', resource: 'User' },
+  { method: 'POST', pattern: /^\/api\/auth\/register$/, action: 'auth.register', resource: 'User' },
+  { method: 'DELETE', pattern: /^\/api\/auth\/logout$/, action: 'auth.logout', resource: 'User' },
+  {
+    method: 'PUT',
+    pattern: /^\/api\/auth\/reset-password$/,
+    action: 'auth.password_reset',
+    resource: 'User',
+  },
+  { method: 'POST', pattern: /^\/api\/workers$/, action: 'worker.create', resource: 'Worker' },
+  {
+    method: 'PUT',
+    pattern: /^\/api\/workers\/[^/]+$/,
+    action: 'worker.update',
+    resource: 'Worker',
+  },
+  {
+    method: 'DELETE',
+    pattern: /^\/api\/workers\/[^/]+$/,
+    action: 'worker.delete',
+    resource: 'Worker',
+  },
+  {
+    method: 'PATCH',
+    pattern: /^\/api\/workers\/[^/]+\/toggle$/,
+    action: 'worker.toggle',
+    resource: 'Worker',
+  },
+  {
+    method: 'PATCH',
+    pattern: /^\/api\/verifications\/[^/]+\/review$/,
+    action: 'admin.verification_review',
+    resource: 'VerificationRequest',
+  },
+  {
+    method: 'PATCH',
+    pattern: /^\/api\/admin\/users\/[^/]+\/role$/,
+    action: 'user.change_role',
+    resource: 'user',
+  },
+  {
+    method: 'PATCH',
+    pattern: /^\/api\/admin\/workers\/[^/]+\/moderate$/,
+    action: 'worker.moderate',
+    resource: 'worker',
+  },
+  { method: 'DELETE', pattern: /^\/api\/admin\//, action: 'admin.action', resource: 'Admin' },
+  { method: 'PATCH', pattern: /^\/api\/admin\//, action: 'admin.action', resource: 'Admin' },
+];
 
 export function auditMiddleware(req: Request, res: Response, next: NextFunction) {
-  const match = ACTION_MAP.find(
-    (m) => m.method === req.method && m.pattern.test(req.path),
-  )
-  if (!match) return next()
+  const match = ACTION_MAP.find((m) => m.method === req.method && m.pattern.test(req.path));
+  if (!match) return next();
 
-  const originalJson = res.json.bind(res)
+  const originalJson = res.json.bind(res);
   res.json = function (body: unknown) {
     // Only log on success (2xx)
     if (res.statusCode >= 200 && res.statusCode < 300) {
-      const payload = body as { data?: { id?: string } } | null | undefined
-      const rawId = req.params?.id ?? payload?.data?.id
-      const resourceId = typeof rawId === 'string' ? rawId : undefined
+      const payload = body as { data?: { id?: string } } | null | undefined;
+      const rawId = req.params?.id ?? payload?.data?.id;
+      const resourceId = typeof rawId === 'string' ? rawId : undefined;
       log({
         userId: req.user?.id,
         action: match.action,
@@ -41,10 +74,10 @@ export function auditMiddleware(req: Request, res: Response, next: NextFunction)
           method: req.method,
           path: req.path,
         },
-      }).catch(() => {})
+      }).catch(() => {});
     }
-    return originalJson(body)
-  }
+    return originalJson(body);
+  };
 
-  next()
+  next();
 }

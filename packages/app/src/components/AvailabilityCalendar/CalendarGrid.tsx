@@ -1,10 +1,20 @@
-import type { Slot } from "@/components/AvailabilityCalendar";
-import { isBeforeDay, isSameDay } from "@/lib/date";
+import type { Slot } from '@/components/AvailabilityCalendar';
+import { isBeforeDay, isSameDay } from '@/lib/date';
 
-const DAY_LABELS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+const DAY_LABELS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 const MONTH_NAMES = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
 ];
 
 interface CalendarGridProps {
@@ -53,22 +63,23 @@ export default function CalendarGrid({
         const isInRange = inRange(date, rangeStart, rangeEnd);
         const isToday = isSameDay(date, today);
 
-        let cls = "mx-auto flex h-8 w-8 items-center justify-center rounded-full text-sm transition-colors ";
+        let cls =
+          'mx-auto flex h-8 w-8 items-center justify-center rounded-full text-sm transition-colors ';
         if (isPast) {
-          cls += "text-gray-300 cursor-not-allowed";
+          cls += 'text-gray-300 cursor-not-allowed';
         } else if (isStart || isEnd) {
-          cls += "bg-blue-600 text-white font-semibold cursor-pointer";
+          cls += 'bg-blue-600 text-white font-semibold cursor-pointer';
         } else if (isInRange && isAvailable) {
-          cls += "bg-blue-100 text-blue-700 cursor-pointer";
+          cls += 'bg-blue-100 text-blue-700 cursor-pointer';
         } else if (isAvailable) {
-          cls += "bg-green-50 text-green-700 hover:bg-green-100 cursor-pointer font-medium";
+          cls += 'bg-green-50 text-green-700 hover:bg-green-100 cursor-pointer font-medium';
         } else {
-          cls += "text-gray-400 cursor-not-allowed";
+          cls += 'text-gray-400 cursor-not-allowed';
         }
-        if (isToday && !isStart && !isEnd) cls += " ring-1 ring-blue-400";
+        if (isToday && !isStart && !isEnd) cls += ' ring-1 ring-blue-400';
 
         return (
-          <div key={i} className={isInRange ? "bg-blue-50 rounded" : ""}>
+          <div key={i} className={isInRange ? 'bg-blue-50 rounded' : ''}>
             <button
               onClick={() => !isPast && onDayClick(date)}
               disabled={isPast || !isAvailable}

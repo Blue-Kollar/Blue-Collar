@@ -17,9 +17,9 @@ import http from 'k6/http';
 import { check, group, sleep } from 'k6';
 import { Rate, Trend } from 'k6/metrics';
 
-const errorRate   = new Rate('error_rate');
-const createP95   = new Trend('create_worker_duration', true);
-const deleteP95   = new Trend('delete_worker_duration', true);
+const errorRate = new Rate('error_rate');
+const createP95 = new Trend('create_worker_duration', true);
+const deleteP95 = new Trend('delete_worker_duration', true);
 
 export const options = {
   scenarios: {
@@ -34,9 +34,9 @@ export const options = {
     },
   },
   thresholds: {
-    http_req_duration:      ['p(95)<1000', 'p(99)<2000'],
-    http_req_failed:        ['rate<0.05'],
-    error_rate:             ['rate<0.05'],
+    http_req_duration: ['p(95)<1000', 'p(99)<2000'],
+    http_req_failed: ['rate<0.05'],
+    error_rate: ['rate<0.05'],
     create_worker_duration: ['p(95)<1000'],
   },
 };
@@ -60,10 +60,10 @@ export default function () {
     const createRes = http.post(
       `${BASE}/workers`,
       JSON.stringify({
-        name:     `LoadTest Worker ${__VU}-${__ITER}`,
+        name: `LoadTest Worker ${__VU}-${__ITER}`,
         category: 'plumber',
         location: 'Test City',
-        bio:      'k6 load test worker – safe to delete',
+        bio: 'k6 load test worker – safe to delete',
       }),
       { headers: auth, tags: { endpoint: 'create_worker' } },
     );
@@ -76,7 +76,9 @@ export default function () {
 
     if (createRes.status === 201) {
       let workerId;
-      try { workerId = createRes.json('data.id') ?? createRes.json('id'); } catch (_) {}
+      try {
+        workerId = createRes.json('data.id') ?? createRes.json('id');
+      } catch (_) {}
 
       if (workerId) {
         sleep(0.5);

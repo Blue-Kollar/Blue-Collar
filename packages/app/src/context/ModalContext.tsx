@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 /**
  * ModalProvider — centralised modal management
@@ -36,10 +36,10 @@ import {
   useRef,
   useState,
   type ReactNode,
-} from "react";
-import * as DialogPrimitive from "@radix-ui/react-dialog";
-import { X } from "lucide-react";
-import { cn } from "@/lib/utils";
+} from 'react';
+import * as DialogPrimitive from '@radix-ui/react-dialog';
+import { X } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -158,12 +158,12 @@ function ManagedModal({ entry, onClose, zIndex }: ManagedModalProps) {
           aria-labelledby={titleId}
           style={{ zIndex: zIndex + 1 }}
           className={cn(
-            "fixed left-1/2 top-1/2 w-full max-w-lg -translate-x-1/2 -translate-y-1/2",
-            "rounded-2xl bg-white dark:bg-gray-900 shadow-2xl",
-            "data-[state=open]:animate-in data-[state=closed]:animate-out",
-            "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
-            "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
-            "focus:outline-none"
+            'fixed left-1/2 top-1/2 w-full max-w-lg -translate-x-1/2 -translate-y-1/2',
+            'rounded-2xl bg-white dark:bg-gray-900 shadow-2xl',
+            'data-[state=open]:animate-in data-[state=closed]:animate-out',
+            'data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
+            'data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95',
+            'focus:outline-none',
           )}
           onOpenAutoFocus={(e) => {
             // Move focus to the close button by default for predictable
@@ -183,10 +183,10 @@ function ManagedModal({ entry, onClose, zIndex }: ManagedModalProps) {
               ref={firstFocusRef}
               aria-label="Close modal"
               className={cn(
-                "absolute right-4 top-4 rounded-lg p-1.5",
-                "text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800",
-                "transition-colors",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                'absolute right-4 top-4 rounded-lg p-1.5',
+                'text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800',
+                'transition-colors',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2',
               )}
             >
               <X size={18} aria-hidden="true" />

@@ -1,7 +1,7 @@
 /**
  * ProfileScreen — authenticated user's profile view and edit form.
  */
-import React, { useState } from 'react'
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -11,46 +11,49 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
-} from 'react-native'
-import { useAuth } from '@/context/AuthContext'
-import { userApi } from '@/lib/api'
+} from 'react-native';
+import { useAuth } from '@/context/AuthContext';
+import { userApi } from '@/lib/api';
 
 export default function ProfileScreen() {
-  const { user, logout } = useAuth()
+  const { user, logout } = useAuth();
 
-  const [editing, setEditing] = useState(false)
-  const [firstName, setFirstName] = useState(user?.firstName ?? '')
-  const [lastName, setLastName] = useState(user?.lastName ?? '')
-  const [saving, setSaving] = useState(false)
-  const [saveError, setSaveError] = useState('')
+  const [editing, setEditing] = useState(false);
+  const [firstName, setFirstName] = useState(user?.firstName ?? '');
+  const [lastName, setLastName] = useState(user?.lastName ?? '');
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
 
   async function handleSave() {
     if (!firstName.trim()) {
-      setSaveError('First name is required')
-      return
+      setSaveError('First name is required');
+      return;
     }
-    setSaving(true)
-    setSaveError('')
+    setSaving(true);
+    setSaveError('');
     try {
-      const res = await userApi.updateProfile({ firstName: firstName.trim(), lastName: lastName.trim() })
+      const res = await userApi.updateProfile({
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+      });
       if (!res.ok) {
-        setSaveError(res.error || 'Failed to update profile')
+        setSaveError(res.error || 'Failed to update profile');
       } else {
-        setEditing(false)
-        Alert.alert('Saved', 'Profile updated successfully')
+        setEditing(false);
+        Alert.alert('Saved', 'Profile updated successfully');
       }
     } catch {
-      setSaveError('An unexpected error occurred')
+      setSaveError('An unexpected error occurred');
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
   }
 
   function handleCancel() {
-    setFirstName(user?.firstName ?? '')
-    setLastName(user?.lastName ?? '')
-    setSaveError('')
-    setEditing(false)
+    setFirstName(user?.firstName ?? '');
+    setLastName(user?.lastName ?? '');
+    setSaveError('');
+    setEditing(false);
   }
 
   async function handleLogout() {
@@ -60,14 +63,18 @@ export default function ProfileScreen() {
         text: 'Logout',
         style: 'destructive',
         onPress: async () => {
-          await logout()
+          await logout();
         },
       },
-    ])
+    ]);
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content} testID="profile-screen">
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.content}
+      testID="profile-screen"
+    >
       <Text style={styles.title}>My Profile</Text>
 
       {/* Avatar placeholder */}
@@ -81,10 +88,14 @@ export default function ProfileScreen() {
       {/* User details */}
       <View style={styles.card}>
         <Text style={styles.label}>Email</Text>
-        <Text style={styles.value} testID="email-value">{user?.email ?? '—'}</Text>
+        <Text style={styles.value} testID="email-value">
+          {user?.email ?? '—'}
+        </Text>
 
         <Text style={styles.label}>Role</Text>
-        <Text style={styles.value} testID="role-value">{user?.role ?? '—'}</Text>
+        <Text style={styles.value} testID="role-value">
+          {user?.role ?? '—'}
+        </Text>
 
         {editing ? (
           <>
@@ -108,7 +119,9 @@ export default function ProfileScreen() {
             />
 
             {saveError ? (
-              <Text style={styles.error} testID="save-error">{saveError}</Text>
+              <Text style={styles.error} testID="save-error">
+                {saveError}
+              </Text>
             ) : null}
 
             <View style={styles.row}>
@@ -164,7 +177,7 @@ export default function ProfileScreen() {
         <Text style={styles.logoutButtonText}>Logout</Text>
       </TouchableOpacity>
     </ScrollView>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -193,7 +206,13 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 2,
   },
-  label: { fontSize: 12, color: '#888', textTransform: 'uppercase', marginTop: 12, marginBottom: 2 },
+  label: {
+    fontSize: 12,
+    color: '#888',
+    textTransform: 'uppercase',
+    marginTop: 12,
+    marginBottom: 2,
+  },
   value: { fontSize: 16, color: '#222' },
   input: {
     borderWidth: 1,
@@ -241,4 +260,4 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   logoutButtonText: { color: '#FF3B30', fontWeight: '600', fontSize: 15 },
-})
+});

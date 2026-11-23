@@ -86,7 +86,9 @@ describe('ErrorBoundary (class wrapper)', () => {
     fireEvent.click(screen.getByRole('button', { name: /try again/i }));
 
     expect(screen.getByText('Recovered child')).toBeInTheDocument();
-    expect(screen.queryByRole('heading', { name: /something went wrong/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('heading', { name: /something went wrong/i }),
+    ).not.toBeInTheDocument();
   });
 
   it('renders a custom fallback when provided', () => {

@@ -23,12 +23,14 @@ deploy/terraform/
 ## First-time setup
 
 1. Bootstrap remote state (run once):
+
    ```bash
    terraform -chdir=deploy/terraform/bootstrap init
    terraform -chdir=deploy/terraform/bootstrap apply
    ```
 
 2. Initialise the root module:
+
    ```bash
    cd deploy/terraform
    terraform init
@@ -48,12 +50,14 @@ deploy/terraform/
 ## CI/CD
 
 The `terraform.yml` workflow runs on every PR and push to `main`:
+
 - PRs: `fmt` → `validate` → `plan` (plan posted as PR comment)
 - Merge to main: `apply` (requires `production` environment approval)
 
 ## Infrastructure tests
 
 Uses [Terratest](https://terratest.gruntwork.io/):
+
 ```bash
 cd deploy/terraform/tests
 go test -v -timeout 30m ./...

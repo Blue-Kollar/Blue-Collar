@@ -1,5 +1,5 @@
-import { AlertCircle } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { AlertCircle } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface FormErrorProps {
   /** The error message to display. When falsy the component renders nothing. */
@@ -26,9 +26,9 @@ export default function FormError({ message, id, className }: FormErrorProps) {
       id={id}
       role="alert"
       className={cn(
-        "flex items-start gap-2.5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600",
-        "dark:border-red-800 dark:bg-red-950/40 dark:text-red-400",
-        className
+        'flex items-start gap-2.5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600',
+        'dark:border-red-800 dark:bg-red-950/40 dark:text-red-400',
+        className,
       )}
     >
       <AlertCircle
@@ -55,7 +55,7 @@ export function FieldError({ message, className }: FieldErrorProps) {
   if (!message) return null;
 
   return (
-    <p className={cn("flex items-center gap-1 text-xs text-red-500", className)} role="alert">
+    <p className={cn('flex items-center gap-1 text-xs text-red-500', className)} role="alert">
       {message}
     </p>
   );

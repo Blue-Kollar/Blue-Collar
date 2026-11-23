@@ -1,14 +1,14 @@
-import type { Meta, StoryObj } from '@storybook/react'
-import { tokens } from '@/design-system/tokens'
+import type { Meta, StoryObj } from '@storybook/react';
+import { tokens } from '@/design-system/tokens';
 
 const meta: Meta = {
   title: 'Design System / Tokens',
   parameters: {
     layout: 'fullscreen',
   },
-}
+};
 
-export default meta
+export default meta;
 
 // ============================================================================
 // Color Palette
@@ -56,7 +56,7 @@ export const ColorPalette: StoryObj = {
       {/* Semantic Colors */}
       <div className="grid grid-cols-4 gap-8">
         {Object.entries(tokens.colors).map(([name, color]) => {
-          if (name === 'brand' || name === 'neutral') return null
+          if (name === 'brand' || name === 'neutral') return null;
           return (
             <div key={name}>
               <h3 className="text-lg font-semibold mb-3 capitalize">{name}</h3>
@@ -76,12 +76,12 @@ export const ColorPalette: StoryObj = {
                   ))}
               </div>
             </div>
-          )
+          );
         })}
       </div>
     </div>
   ),
-}
+};
 
 // ============================================================================
 // Typography
@@ -98,15 +98,11 @@ export const Typography: StoryObj = {
         <div className="space-y-4">
           <div>
             <p className="text-sm text-neutral-600 mb-2">Sans (Default)</p>
-            <p className="font-sans text-lg">
-              The quick brown fox jumps over the lazy dog
-            </p>
+            <p className="font-sans text-lg">The quick brown fox jumps over the lazy dog</p>
           </div>
           <div>
             <p className="text-sm text-neutral-600 mb-2">Mono</p>
-            <p className="font-mono text-lg">
-              const greeting = "Hello, BlueCollar!"
-            </p>
+            <p className="font-mono text-lg">const greeting = "Hello, BlueCollar!"</p>
           </div>
         </div>
       </div>
@@ -152,7 +148,7 @@ export const Typography: StoryObj = {
       </div>
     </div>
   ),
-}
+};
 
 // ============================================================================
 // Spacing
@@ -166,17 +162,14 @@ export const Spacing: StoryObj = {
         {Object.entries(tokens.spacing).map(([key, value]) => (
           <div key={key} className="flex items-center gap-4">
             <span className="w-12 text-sm font-mono font-semibold">{key}</span>
-            <div
-              className="bg-brand-500 rounded"
-              style={{ width: value, height: '2rem' }}
-            />
+            <div className="bg-brand-500 rounded" style={{ width: value, height: '2rem' }} />
             <span className="text-sm text-neutral-600">{value}</span>
           </div>
         ))}
       </div>
     </div>
   ),
-}
+};
 
 // ============================================================================
 // Border Radius
@@ -189,10 +182,7 @@ export const BorderRadius: StoryObj = {
       <div className="grid grid-cols-4 gap-6">
         {Object.entries(tokens.radii).map(([key, value]) => (
           <div key={key} className="flex flex-col items-center">
-            <div
-              className="w-24 h-24 bg-brand-500 mb-3"
-              style={{ borderRadius: value }}
-            />
+            <div className="w-24 h-24 bg-brand-500 mb-3" style={{ borderRadius: value }} />
             <span className="text-sm font-medium">{key}</span>
             <span className="text-xs text-neutral-500">{value}</span>
           </div>
@@ -200,7 +190,7 @@ export const BorderRadius: StoryObj = {
       </div>
     </div>
   ),
-}
+};
 
 // ============================================================================
 // Shadows
@@ -213,10 +203,7 @@ export const Shadows: StoryObj = {
       <div className="grid grid-cols-3 gap-8">
         {Object.entries(tokens.shadows).map(([key, value]) => (
           <div key={key} className="flex flex-col items-center">
-            <div
-              className="w-32 h-32 bg-white rounded-lg mb-3"
-              style={{ boxShadow: value }}
-            />
+            <div className="w-32 h-32 bg-white rounded-lg mb-3" style={{ boxShadow: value }} />
             <span className="text-sm font-medium">{key}</span>
             <span className="text-xs text-neutral-500 text-center">{value}</span>
           </div>
@@ -224,7 +211,7 @@ export const Shadows: StoryObj = {
       </div>
     </div>
   ),
-}
+};
 
 // ============================================================================
 // Transitions
@@ -248,7 +235,7 @@ export const Transitions: StoryObj = {
       </div>
     </div>
   ),
-}
+};
 
 // ============================================================================
 // Z-Index
@@ -268,7 +255,7 @@ export const ZIndex: StoryObj = {
       </div>
     </div>
   ),
-}
+};
 
 // ============================================================================
 // Breakpoints
@@ -288,4 +275,4 @@ export const Breakpoints: StoryObj = {
       </div>
     </div>
   ),
-}
+};

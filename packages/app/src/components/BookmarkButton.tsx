@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { Heart } from "lucide-react";
-import { useTranslations } from "next-intl";
-import { useToggleBookmark } from "@/hooks/queries";
-import { useSubmitGuard } from "@/hooks/useSubmitGuard";
-import { cn } from "@/lib/utils";
+import { useState } from 'react';
+import { Heart } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import { useToggleBookmark } from '@/hooks/queries';
+import { useSubmitGuard } from '@/hooks/useSubmitGuard';
+import { cn } from '@/lib/utils';
 
 interface BookmarkButtonProps {
   workerId: string;
@@ -22,7 +22,7 @@ export default function BookmarkButton({
   initialBookmarked = false,
   className,
 }: BookmarkButtonProps) {
-  const t = useTranslations("workerCard");
+  const t = useTranslations('workerCard');
   const [bookmarked, setBookmarked] = useState(initialBookmarked);
   const toggleBookmark = useToggleBookmark();
   const { isSubmitting, guard } = useSubmitGuard();
@@ -49,18 +49,16 @@ export default function BookmarkButton({
       onClick={handleClick}
       disabled={isSubmitting}
       aria-busy={isSubmitting}
-      aria-label={bookmarked ? t("bookmarkRemove") : t("bookmarkAdd")}
+      aria-label={bookmarked ? t('bookmarkRemove') : t('bookmarkAdd')}
       aria-pressed={bookmarked}
       className={cn(
-        "rounded-full p-1.5 transition-colors",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-500",
-        bookmarked
-          ? "text-red-500 hover:text-red-600"
-          : "text-gray-300 hover:text-red-400",
-        className
+        'rounded-full p-1.5 transition-colors',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-500',
+        bookmarked ? 'text-red-500 hover:text-red-600' : 'text-gray-300 hover:text-red-400',
+        className,
       )}
     >
-      <Heart size={18} fill={bookmarked ? "currentColor" : "none"} />
+      <Heart size={18} fill={bookmarked ? 'currentColor' : 'none'} />
     </button>
   );
 }

@@ -3,11 +3,7 @@ import { TxStatusPending } from './TxStatusPending';
 import { TxStatusConfirmed } from './TxStatusConfirmed';
 import { TxStatusFailed } from './TxStatusFailed';
 
-export type TxStatusValue =
-  | 'idle'
-  | 'pending'
-  | 'confirmed'
-  | 'failed';
+export type TxStatusValue = 'idle' | 'pending' | 'confirmed' | 'failed';
 
 export interface TxStatusProps {
   status: TxStatusValue;

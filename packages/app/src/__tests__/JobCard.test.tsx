@@ -12,13 +12,13 @@
  * Closes #971
  */
 
-import { screen, within } from '@testing-library/react'
-import { renderWithIntl as render } from '@/__tests__/renderWithIntl'
-import userEvent from '@testing-library/user-event'
-import { describe, it, expect, vi, beforeAll } from 'vitest'
-import axe from 'axe-core'
-import JobCard, { URGENCY_LABEL } from '@/components/JobCard'
-import type { Job } from '@/types'
+import { screen, within } from '@testing-library/react';
+import { renderWithIntl as render } from '@/__tests__/renderWithIntl';
+import userEvent from '@testing-library/user-event';
+import { describe, it, expect, vi, beforeAll } from 'vitest';
+import axe from 'axe-core';
+import JobCard, { URGENCY_LABEL } from '@/components/JobCard';
+import type { Job } from '@/types';
 
 vi.mock('next/link', () => ({
   default: ({
@@ -30,29 +30,29 @@ vi.mock('next/link', () => ({
       {children}
     </a>
   ),
-}))
+}));
 
 // Replace every lucide export with a decorative icon, keeping the real export
 // names so vitest can validate the named imports.
 vi.mock('lucide-react', async (importOriginal) => {
-  const actual = await importOriginal<Record<string, unknown>>()
+  const actual = await importOriginal<Record<string, unknown>>();
   const Icon = ({ 'aria-hidden': hidden }: React.AriaAttributes) => (
     <span aria-hidden={hidden ?? true} />
-  )
-  const mock: Record<string, unknown> = {}
+  );
+  const mock: Record<string, unknown> = {};
   for (const key of Object.keys(actual)) {
-    mock[key] = typeof actual[key] === 'function' ? Icon : actual[key]
+    mock[key] = typeof actual[key] === 'function' ? Icon : actual[key];
   }
-  return mock
-})
+  return mock;
+});
 
 vi.mock('@/lib/utils', () => ({
   cn: (...args: unknown[]) => args.filter(Boolean).join(' '),
-}))
+}));
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 
-const IN_TEN_DAYS = new Date(Date.now() + 10 * 86_400_000).toISOString()
+const IN_TEN_DAYS = new Date(Date.now() + 10 * 86_400_000).toISOString();
 
 function makeJob(overrides: Partial<Job> = {}): Job {
   return {
@@ -70,15 +70,16 @@ function makeJob(overrides: Partial<Job> = {}): Job {
     postedBy: { id: 'u1', firstName: 'Ada', lastName: 'Obi' },
     _count: { applications: 3, messages: 0 },
     ...overrides,
-  } as Job
+  } as Job;
 }
 
 // jsdom has no canvas; axe probes it while attempting colour-contrast checks.
 beforeAll(() => {
   if (typeof HTMLCanvasElement !== 'undefined') {
-    HTMLCanvasElement.prototype.getContext = vi.fn() as unknown as typeof HTMLCanvasElement.prototype.getContext
+    HTMLCanvasElement.prototype.getContext =
+      vi.fn() as unknown as typeof HTMLCanvasElement.prototype.getContext;
   }
-})
+});
 
 // ─── axe helpers ──────────────────────────────────────────────────────────────
 
@@ -88,8 +89,8 @@ async function runAxe(container: Element) {
       type: 'tag',
       values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'best-practice'],
     },
-  })
-  return results.violations
+  });
+  return results.violations;
 }
 
 function formatViolations(violations: axe.Result[]): string {
@@ -98,35 +99,37 @@ function formatViolations(violations: axe.Result[]): string {
       (v) =>
         `[${v.impact}] ${v.id}: ${v.description}\n  Nodes: ${v.nodes.map((n) => n.html).join(', ')}`,
     )
-    .join('\n')
+    .join('\n');
 }
 
 async function expectNoViolations(ui: React.ReactElement) {
-  const { container } = render(ui)
-  const violations = await runAxe(container)
-  expect(violations, formatViolations(violations)).toHaveLength(0)
+  const { container } = render(ui);
+  const violations = await runAxe(container);
+  expect(violations, formatViolations(violations)).toHaveLength(0);
 }
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
 describe('JobCard — axe', () => {
   it('has no violations for a fully populated job', async () => {
-    await expectNoViolations(<JobCard job={makeJob()} />)
-  })
+    await expectNoViolations(<JobCard job={makeJob()} />);
+  });
 
   it('has no violations when budget, skills and expiry are absent', async () => {
     await expectNoViolations(
       <JobCard job={makeJob({ budget: null, skills: [], expiresAt: null, _count: undefined })} />,
-    )
-  })
+    );
+  });
 
   it('has no violations when the skill list overflows', async () => {
     await expectNoViolations(
       <JobCard
-        job={makeJob({ skills: ['Plumbing', 'Welding', 'Tiling', 'Painting', 'Roofing', 'Wiring'] })}
+        job={makeJob({
+          skills: ['Plumbing', 'Welding', 'Tiling', 'Painting', 'Roofing', 'Wiring'],
+        })}
       />,
-    )
-  })
+    );
+  });
 
   it('has no violations inside the list wrapper the jobs page renders', async () => {
     await expectNoViolations(
@@ -138,91 +141,95 @@ describe('JobCard — axe', () => {
           <JobCard job={makeJob({ id: 'j2', title: 'Rewire a bedroom', urgency: 'low' })} />
         </li>
       </ul>,
-    )
-  })
-})
+    );
+  });
+});
 
 describe('JobCard — semantics and ARIA', () => {
   it('exposes the card as an article named by its heading', () => {
-    render(<JobCard job={makeJob()} />)
-    const article = screen.getByRole('article', { name: 'Fix a leaking kitchen sink' })
+    render(<JobCard job={makeJob()} />);
+    const article = screen.getByRole('article', { name: 'Fix a leaking kitchen sink' });
     expect(within(article).getByRole('heading', { level: 3 })).toHaveTextContent(
       'Fix a leaking kitchen sink',
-    )
-  })
+    );
+  });
 
   it('links to the job detail page', () => {
-    render(<JobCard job={makeJob()} />)
-    expect(screen.getByRole('link')).toHaveAttribute('href', '/jobs/j1')
-  })
+    render(<JobCard job={makeJob()} />);
+    expect(screen.getByRole('link')).toHaveAttribute('href', '/jobs/j1');
+  });
 
   it('renders the skills as a labelled list', () => {
-    render(<JobCard job={makeJob()} />)
-    const list = screen.getByRole('list', { name: 'Skills required' })
-    expect(within(list).getAllByRole('listitem')).toHaveLength(2)
-  })
+    render(<JobCard job={makeJob()} />);
+    const list = screen.getByRole('list', { name: 'Skills required' });
+    expect(within(list).getAllByRole('listitem')).toHaveLength(2);
+  });
 
   it('announces overflowing skills instead of a bare "+N"', () => {
     render(
       <JobCard
-        job={makeJob({ skills: ['Plumbing', 'Welding', 'Tiling', 'Painting', 'Roofing', 'Wiring'] })}
+        job={makeJob({
+          skills: ['Plumbing', 'Welding', 'Tiling', 'Painting', 'Roofing', 'Wiring'],
+        })}
       />,
-    )
-    const list = screen.getByRole('list', { name: 'Skills required' })
-    expect(within(list).getAllByRole('listitem')).toHaveLength(5)
-    expect(within(list).getByText('and 2 more')).toBeInTheDocument()
-  })
+    );
+    const list = screen.getByRole('list', { name: 'Skills required' });
+    expect(within(list).getAllByRole('listitem')).toHaveLength(5);
+    expect(within(list).getByText('and 2 more')).toBeInTheDocument();
+  });
 
   it('gives the urgency chip and byline screen-reader context', () => {
-    render(<JobCard job={makeJob()} />)
-    const article = screen.getByRole('article')
-    expect(article).toHaveTextContent('Urgency: Urgent')
-    expect(article).toHaveTextContent('Posted by Ada Obi')
-    expect(article).toHaveTextContent('in Plumbing')
-  })
+    render(<JobCard job={makeJob()} />);
+    const article = screen.getByRole('article');
+    expect(article).toHaveTextContent('Urgency: Urgent');
+    expect(article).toHaveTextContent('Posted by Ada Obi');
+    expect(article).toHaveTextContent('in Plumbing');
+  });
 
   it('labels the numeric budget', () => {
-    render(<JobCard job={makeJob()} />)
-    expect(screen.getByRole('article')).toHaveTextContent('Budget: 25,000')
-  })
+    render(<JobCard job={makeJob()} />);
+    expect(screen.getByRole('article')).toHaveTextContent('Budget: 25,000');
+  });
 
   it('pluralises the applicant count', () => {
-    const { unmount } = render(<JobCard job={makeJob({ _count: { applications: 1, messages: 0 } })} />)
-    expect(screen.getByRole('article')).toHaveTextContent('1 applicant')
-    unmount()
+    const { unmount } = render(
+      <JobCard job={makeJob({ _count: { applications: 1, messages: 0 } })} />,
+    );
+    expect(screen.getByRole('article')).toHaveTextContent('1 applicant');
+    unmount();
 
-    render(<JobCard job={makeJob({ _count: undefined })} />)
-    expect(screen.getByRole('article')).toHaveTextContent('0 applicants')
-  })
+    render(<JobCard job={makeJob({ _count: undefined })} />);
+    expect(screen.getByRole('article')).toHaveTextContent('0 applicants');
+  });
 
   it('renders every decorative icon as aria-hidden', () => {
-    const { container } = render(<JobCard job={makeJob()} />)
-    const spans = container.querySelectorAll('span[aria-hidden]')
-    expect(spans.length).toBeGreaterThan(0)
-    for (const span of spans) expect(span).toHaveAttribute('aria-hidden', 'true')
-  })
+    const { container } = render(<JobCard job={makeJob()} />);
+    const spans = container.querySelectorAll('span[aria-hidden]');
+    expect(spans.length).toBeGreaterThan(0);
+    for (const span of spans) expect(span).toHaveAttribute('aria-hidden', 'true');
+  });
 
   it('falls back to the default urgency style for unknown values', () => {
-    render(<JobCard job={makeJob({ urgency: 'whenever' as Job['urgency'] })} />)
-    expect(screen.getByRole('article')).toHaveTextContent('Urgency: Normal')
-    expect(URGENCY_LABEL.normal?.label).toBe('Normal')
-  })
-})
+    render(<JobCard job={makeJob({ urgency: 'whenever' as Job['urgency'] })} />);
+    expect(screen.getByRole('article')).toHaveTextContent('Urgency: Normal');
+    expect(URGENCY_LABEL.normal?.label).toBe('Normal');
+  });
+});
 
 describe('JobCard — keyboard navigation and focus', () => {
   it('reaches the card link with a single Tab and shows a focus ring', async () => {
-    const user = userEvent.setup()
-    render(<JobCard job={makeJob()} />)
+    const user = userEvent.setup();
+    render(<JobCard job={makeJob()} />);
 
-    await user.tab()
+    await user.tab();
 
-    const link = screen.getByRole('link')
-    expect(link).toHaveFocus()
-    expect(link.className).toContain('focus-visible:ring-2')
-  })
+    const link = screen.getByRole('link');
+    expect(link).toHaveFocus();
+    expect(link.className).toContain('focus-visible:ring-2');
+  });
 
   it('exposes exactly one tab stop per card, in DOM order', async () => {
-    const user = userEvent.setup()
+    const user = userEvent.setup();
     render(
       <ul aria-label="Job listings">
         <li>
@@ -232,20 +239,20 @@ describe('JobCard — keyboard navigation and focus', () => {
           <JobCard job={makeJob({ id: 'j2', title: 'Rewire a bedroom' })} />
         </li>
       </ul>,
-    )
+    );
 
-    const [first, second] = screen.getAllByRole('link')
+    const [first, second] = screen.getAllByRole('link');
 
-    await user.tab()
-    expect(first).toHaveFocus()
-    await user.tab()
-    expect(second).toHaveFocus()
-    await user.tab()
-    expect(document.body).toHaveFocus()
-  })
+    await user.tab();
+    expect(first).toHaveFocus();
+    await user.tab();
+    expect(second).toHaveFocus();
+    await user.tab();
+    expect(document.body).toHaveFocus();
+  });
 
   it('does not add non-interactive elements to the tab order', () => {
-    const { container } = render(<JobCard job={makeJob()} />)
-    expect(container.querySelectorAll('[tabindex]')).toHaveLength(0)
-  })
-})
+    const { container } = render(<JobCard job={makeJob()} />);
+    expect(container.querySelectorAll('[tabindex]')).toHaveLength(0);
+  });
+});

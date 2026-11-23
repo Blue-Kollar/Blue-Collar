@@ -1,20 +1,13 @@
-"use client";
+'use client';
 
-import {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  useCallback,
-  type ReactNode,
-} from "react";
+import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import {
   getNotifications,
   getUnreadNotificationCount,
   markNotificationRead,
   markAllNotificationsRead,
-} from "@/lib/api";
-import type { AppNotification } from "@/types";
+} from '@/lib/api';
+import type { AppNotification } from '@/types';
 
 interface NotificationContextValue {
   notifications: AppNotification[];
@@ -55,9 +48,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   const markRead = useCallback(async (id: string) => {
     try {
       await markNotificationRead(id);
-      setNotifications((prev) =>
-        prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-      );
+      setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
       setUnreadCount((c) => Math.max(0, c - 1));
     } catch {
       // silently fail
@@ -98,6 +89,6 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
 
 export function useNotifications() {
   const ctx = useContext(NotificationContext);
-  if (!ctx) throw new Error("useNotifications must be inside NotificationProvider");
+  if (!ctx) throw new Error('useNotifications must be inside NotificationProvider');
   return ctx;
 }

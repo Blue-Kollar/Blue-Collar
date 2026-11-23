@@ -341,3 +341,4 @@ List all categories.
 curl http://localhost:3000/api/cate
 
 /* … truncated 3771 chars — edit only what you need near the top … */
+```

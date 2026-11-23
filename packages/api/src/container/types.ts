@@ -8,26 +8,30 @@
  * See docs/DI_PATTERN.md for the full pattern guide.
  */
 
-import type { IAvailabilityRepository } from '@/repositories/availability.repository.js'
-import type { IBookmarkRepository } from '@/repositories/bookmark.repository.js'
-import type { ICategoryRepository } from '@/repositories/category.repository.js'
-import type { IContactRequestRepository } from '@/repositories/contact-request.repository.js'
-import type { IDisputeRepository } from '@/repositories/dispute.repository.js'
-import type { IEscrowRepository } from '@/repositories/escrow.repository.js'
-import type { IInsuranceRepository } from '@/repositories/insurance.repository.js'
-import type { IMessagingRepository } from '@/repositories/messaging.repository.js'
-import type { INotificationRepository } from '@/repositories/notification.repository.js'
-import type { IPaymentRepository } from '@/repositories/payment.repository.js'
-import type { IReferralRepository } from '@/repositories/referral.repository.js'
-import type { IReviewRepository } from '@/repositories/review.repository.js'
-import type { IVerificationRepository } from '@/repositories/verification.repository.js'
-import type { IWalletRepository } from '@/repositories/wallet.repository.js'
-import type { StellarClient } from '@/clients/stellar.client.js'
+import type { IAvailabilityRepository } from '@/repositories/availability.repository.js';
+import type { IBookmarkRepository } from '@/repositories/bookmark.repository.js';
+import type { ICategoryRepository } from '@/repositories/category.repository.js';
+import type { IContactRequestRepository } from '@/repositories/contact-request.repository.js';
+import type { IDisputeRepository } from '@/repositories/dispute.repository.js';
+import type { IEscrowRepository } from '@/repositories/escrow.repository.js';
+import type { IInsuranceRepository } from '@/repositories/insurance.repository.js';
+import type { IMessagingRepository } from '@/repositories/messaging.repository.js';
+import type { INotificationRepository } from '@/repositories/notification.repository.js';
+import type { IPaymentRepository } from '@/repositories/payment.repository.js';
+import type { IReferralRepository } from '@/repositories/referral.repository.js';
+import type { IReviewRepository } from '@/repositories/review.repository.js';
+import type { IVerificationRepository } from '@/repositories/verification.repository.js';
+import type { IWalletRepository } from '@/repositories/wallet.repository.js';
+import type { StellarClient } from '@/clients/stellar.client.js';
 // Repositories consumed by more than one service (userRepository is shared by
 // auth.service, auth-2fa.service, and user.service) are typed via the
 // centralized interfaces/ module rather than imported directly from their
 // Prisma-backed implementation, so service constructors depend on contracts.
-import type { IUserRepository, IJobRepository, IBookingRepository } from '@/interfaces/repository.interface.js'
+import type {
+  IUserRepository,
+  IJobRepository,
+  IBookingRepository,
+} from '@/interfaces/repository.interface.js';
 
 // ── Service dependency bags ───────────────────────────────────────────────────
 
@@ -46,83 +50,83 @@ import type { IUserRepository, IJobRepository, IBookingRepository } from '@/inte
  * ```
  */
 export interface CategoryServiceDeps {
-  categoryRepository: ICategoryRepository
+  categoryRepository: ICategoryRepository;
 }
 
 /**
  * Dependencies injected into the user service factory.
  */
 export interface UserServiceDeps {
-  userRepository: IUserRepository
-  mailer: IMailer
+  userRepository: IUserRepository;
+  mailer: IMailer;
 }
 
 /**
  * Dependencies injected into the auth service factory.
  */
 export interface AuthServiceDeps {
-  userRepository: IUserRepository
-  mailer: IMailer
-  db: IDbClient
+  userRepository: IUserRepository;
+  mailer: IMailer;
+  db: IDbClient;
 }
 
 // ── New domain service deps ───────────────────────────────────────────────────
 
 export interface JobServiceDeps {
-  jobRepository: IJobRepository
+  jobRepository: IJobRepository;
 }
 
 export interface BookingServiceDeps {
-  bookingRepository: IBookingRepository
+  bookingRepository: IBookingRepository;
 }
 
 export interface DisputeServiceDeps {
-  disputeRepository: IDisputeRepository
+  disputeRepository: IDisputeRepository;
 }
 
 export interface ReviewServiceDeps {
-  reviewRepository: IReviewRepository
+  reviewRepository: IReviewRepository;
 }
 
 export interface MessagingServiceDeps {
-  messagingRepository: IMessagingRepository
+  messagingRepository: IMessagingRepository;
 }
 
 export interface NotificationServiceDeps {
-  notificationRepository: INotificationRepository
+  notificationRepository: INotificationRepository;
 }
 
 export interface EscrowServiceDeps {
-  escrowRepository: IEscrowRepository
+  escrowRepository: IEscrowRepository;
 }
 
 export interface WalletServiceDeps {
-  walletRepository?: IWalletRepository
-  stellarClient?: StellarClient
+  walletRepository?: IWalletRepository;
+  stellarClient?: StellarClient;
 }
 
 export interface BookmarkServiceDeps {
-  bookmarkRepository: IBookmarkRepository
+  bookmarkRepository: IBookmarkRepository;
 }
 
 export interface InsuranceServiceDeps {
-  insuranceRepository: IInsuranceRepository
+  insuranceRepository: IInsuranceRepository;
 }
 
 export interface ReferralServiceDeps {
-  referralRepository: IReferralRepository
+  referralRepository: IReferralRepository;
 }
 
 export interface VerificationServiceDeps {
-  verificationRepository: IVerificationRepository
+  verificationRepository: IVerificationRepository;
 }
 
 export interface ContactRequestServiceDeps {
-  contactRequestRepository: IContactRequestRepository
+  contactRequestRepository: IContactRequestRepository;
 }
 
 export interface AvailabilityServiceDeps {
-  availabilityRepository: IAvailabilityRepository
+  availabilityRepository: IAvailabilityRepository;
 }
 
 /**
@@ -133,17 +137,17 @@ export interface AvailabilityServiceDeps {
  * the escrow repository to coordinate funds held in escrow.
  */
 export interface PaymentServiceDeps {
-  paymentRepository: IPaymentRepository
-  escrowRepository?: IEscrowRepository
+  paymentRepository: IPaymentRepository;
+  escrowRepository?: IEscrowRepository;
 }
 
 // ── Mailer interface ──────────────────────────────────────────────────────────
 
 /** Minimal mailer interface used by auth and user services. */
 export interface IMailer {
-  sendVerificationEmail(to: string, name: string, token: string): Promise<void>
-  sendPasswordResetEmail(to: string, name: string, token: string): Promise<void>
-  sendWelcomeEmail?(to: string, name: string): Promise<void>
+  sendVerificationEmail(to: string, name: string, token: string): Promise<void>;
+  sendPasswordResetEmail(to: string, name: string, token: string): Promise<void>;
+  sendWelcomeEmail?(to: string, name: string): Promise<void>;
 }
 
 // ── Database client interface ─────────────────────────────────────────────────
@@ -156,18 +160,18 @@ export interface IMailer {
 export interface IDbClient {
   refreshToken: {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    create(args: any): Promise<any>
+    create(args: any): Promise<any>;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    findUnique(args: any): Promise<any>
+    findUnique(args: any): Promise<any>;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    update(args: any): Promise<any>
+    update(args: any): Promise<any>;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    updateMany(args: any): Promise<any>
-  }
+    updateMany(args: any): Promise<any>;
+  };
   device: {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    create(args: any): Promise<any>
+    create(args: any): Promise<any>;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    updateMany(args: any): Promise<any>
-  }
+    updateMany(args: any): Promise<any>;
+  };
 }

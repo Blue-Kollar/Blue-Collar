@@ -1,38 +1,38 @@
-import React, { useEffect, useState } from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native'
-import { BiometricAuth } from '@/auth/biometric-auth'
-import { SecureStorage } from '@/auth/secure-storage'
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { BiometricAuth } from '@/auth/biometric-auth';
+import { SecureStorage } from '@/auth/secure-storage';
 
 interface AppLockScreenProps {
-  onUnlock: () => void
-  onLogout: () => void
+  onUnlock: () => void;
+  onLogout: () => void;
 }
 
 export function AppLockScreen({ onUnlock, onLogout }: AppLockScreenProps) {
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    attemptBiometricUnlock()
-  }, [])
+    attemptBiometricUnlock();
+  }, []);
 
   async function attemptBiometricUnlock() {
-    setLoading(true)
-    setError('')
+    setLoading(true);
+    setError('');
 
-    const result = await BiometricAuth.authenticate('Unlock BlueCollar')
+    const result = await BiometricAuth.authenticate('Unlock BlueCollar');
 
     if (result.success) {
-      onUnlock()
+      onUnlock();
     } else {
-      setError(result.error || 'Authentication failed')
-      setLoading(false)
+      setError(result.error || 'Authentication failed');
+      setLoading(false);
     }
   }
 
   async function handleLogout() {
-    await SecureStorage.clear()
-    onLogout()
+    await SecureStorage.clear();
+    onLogout();
   }
 
   return (
@@ -66,7 +66,7 @@ export function AppLockScreen({ onUnlock, onLogout }: AppLockScreenProps) {
         )}
       </View>
     </View>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -124,4 +124,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-})
+});

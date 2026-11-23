@@ -3,4 +3,4 @@ export type {
   RegisterBody,
   ForgotPasswordBody,
   ResetPasswordBody,
-} from '@bluecollar/types'
+} from '@bluecollar/types';

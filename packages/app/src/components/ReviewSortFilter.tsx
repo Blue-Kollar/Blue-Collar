@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { useId } from "react";
-import { ArrowUpDown } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useId } from 'react';
+import { ArrowUpDown } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
-export type SortOption = "newest" | "oldest" | "highest" | "lowest";
+export type SortOption = 'newest' | 'oldest' | 'highest' | 'lowest';
 
 interface Props {
   sort: SortOption;
@@ -12,13 +12,13 @@ interface Props {
 }
 
 export default function ReviewSortFilter({ sort, onSortChange }: Props) {
-  const t = useTranslations("componentText");
+  const t = useTranslations('componentText');
   const selectId = useId();
   const options = [
-    { value: "newest" as const, label: t("newest") },
-    { value: "oldest" as const, label: t("oldest") },
-    { value: "highest" as const, label: t("highestRated") },
-    { value: "lowest" as const, label: t("lowestRated") },
+    { value: 'newest' as const, label: t('newest') },
+    { value: 'oldest' as const, label: t('oldest') },
+    { value: 'highest' as const, label: t('highestRated') },
+    { value: 'lowest' as const, label: t('lowestRated') },
   ];
 
   return (
@@ -26,7 +26,7 @@ export default function ReviewSortFilter({ sort, onSortChange }: Props) {
       <ArrowUpDown size={14} className="text-gray-400" aria-hidden="true" />
       {/* The icon gives the select no accessible name, so label it explicitly. */}
       <label htmlFor={selectId} className="sr-only">
-        {t("sortReviews")}
+        {t('sortReviews')}
       </label>
       <select
         id={selectId}

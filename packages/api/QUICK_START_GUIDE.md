@@ -31,18 +31,18 @@ cp packages/api/.env.example packages/api/.env
 
 Open `packages/api/.env` and fill in the required values:
 
-| Variable | Example | Required? |
-|---|---|---|
-| `DATABASE_URL` | `postgresql://user:pass@localhost:5432/bluecollar` | Yes |
-| `TEST_DATABASE_URL` | `postgresql://user:pass@localhost:5432/bluecollar_test` | For tests |
-| `JWT_SECRET` | `openssl rand -hex 32` output | Yes |
-| `APP_URL` | `http://localhost:3001` | Yes |
-| `ALLOWED_ORIGINS` | `http://localhost:3001` | Yes |
-| `GOOGLE_CLIENT_ID` | `placeholder` | Yes (must be non-empty) |
-| `GOOGLE_CLIENT_SECRET` | `placeholder` | Yes (must be non-empty) |
-| `MAIL_HOST` | `localhost` | Yes (must be non-empty) |
-| `MAIL_USER` | `dev@localhost` | Yes (must be non-empty) |
-| `MAIL_PASS` | `dev` | Yes (must be non-empty) |
+| Variable               | Example                                                 | Required?               |
+| ---------------------- | ------------------------------------------------------- | ----------------------- |
+| `DATABASE_URL`         | `postgresql://user:pass@localhost:5432/bluecollar`      | Yes                     |
+| `TEST_DATABASE_URL`    | `postgresql://user:pass@localhost:5432/bluecollar_test` | For tests               |
+| `JWT_SECRET`           | `openssl rand -hex 32` output                           | Yes                     |
+| `APP_URL`              | `http://localhost:3001`                                 | Yes                     |
+| `ALLOWED_ORIGINS`      | `http://localhost:3001`                                 | Yes                     |
+| `GOOGLE_CLIENT_ID`     | `placeholder`                                           | Yes (must be non-empty) |
+| `GOOGLE_CLIENT_SECRET` | `placeholder`                                           | Yes (must be non-empty) |
+| `MAIL_HOST`            | `localhost`                                             | Yes (must be non-empty) |
+| `MAIL_USER`            | `dev@localhost`                                         | Yes (must be non-empty) |
+| `MAIL_PASS`            | `dev`                                                   | Yes (must be non-empty) |
 
 The config module validates these at startup. Set Google OAuth and SMTP vars to placeholder values for local development — features that depend on real credentials will gracefully no-op.
 
@@ -115,24 +115,30 @@ pnpm admin:create --email admin@example.com --password secret123 --firstName Jan
 ## Troubleshooting
 
 **PostgreSQL connection error (`P1001: Can't reach database server`)**
+
 - Ensure PostgreSQL is running: `pg_isready` or `sudo service postgresql start`
 - Double-check `DATABASE_URL` in your `.env` — username, password, host, port, and database name must all be correct
 - Make sure the database exists: `createdb bluecollar`
 
 **`prisma migrate dev` fails with "database does not exist"**
+
 - Create the database first: `createdb bluecollar`
 
 **Config validation errors on startup**
+
 - Ensure **all** required vars in the table above are set — the config module will crash on missing `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `MAIL_HOST`, `MAIL_USER`, `MAIL_PASS`, `APP_URL`, `DATABASE_URL`, or `JWT_SECRET`
 
 **`pnpm: command not found`**
+
 - Install pnpm globally: `npm i -g pnpm@9`
 
 **Port 3000 already in use**
+
 - Set a different port in `.env`: `PORT=3001`
 - Or kill the process using the port: `lsof -ti:3000 | xargs kill`
 
 **Redis not available (non-fatal)**
+
 - The API logs a warning and disables caching / per-user rate limiting. Everything else works.
 
 ---

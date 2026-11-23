@@ -1,22 +1,22 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { ArrowLeft, Loader2 } from 'lucide-react';
 import WorkerForm, {
   type WorkerFormInput,
   useProfileCompletion,
   ProfileCompletionBar,
-} from "@/components/WorkerForm";
-import PortfolioGallery, { type PortfolioImage } from "@/components/PortfolioGallery";
-import AvailabilityCalendar, { type Slot } from "@/components/AvailabilityCalendar";
-import VerificationBadges from "@/components/VerificationBadges";
-import PerformanceAnalytics from "@/components/PerformanceAnalytics";
-import ProfilePreview from "@/components/ProfilePreview";
-import { useToast } from "@/hooks/useToast";
-import { getWorker, updateWorker, getCategories } from "@/lib/api";
-import type { Worker, Category } from "@/types";
+} from '@/components/WorkerForm';
+import PortfolioGallery, { type PortfolioImage } from '@/components/PortfolioGallery';
+import AvailabilityCalendar, { type Slot } from '@/components/AvailabilityCalendar';
+import VerificationBadges from '@/components/VerificationBadges';
+import PerformanceAnalytics from '@/components/PerformanceAnalytics';
+import ProfilePreview from '@/components/ProfilePreview';
+import { useToast } from '@/hooks/useToast';
+import { getWorker, updateWorker, getCategories } from '@/lib/api';
+import type { Worker, Category } from '@/types';
 
 export default function EditWorkerPage({ params }: { params: { id: string } }) {
   const router = useRouter();
@@ -27,9 +27,7 @@ export default function EditWorkerPage({ params }: { params: { id: string } }) {
   const [portfolioImages, setPortfolioImages] = useState<PortfolioImage[]>([]);
   const [availability, setAvailability] = useState<Slot[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [activeTab, setActiveTab] = useState<"profile" | "portfolio" | "availability">(
-    "profile"
-  );
+  const [activeTab, setActiveTab] = useState<'profile' | 'portfolio' | 'availability'>('profile');
 
   // Real-time preview state
   const [previewValues, setPreviewValues] = useState<Partial<WorkerFormInput>>({});
@@ -39,7 +37,7 @@ export default function EditWorkerPage({ params }: { params: { id: string } }) {
       .then(([workerRes, catRes]) => {
         const w = workerRes.data;
         if (!w) {
-          toast("Worker not found", "error");
+          toast('Worker not found', 'error');
           return;
         }
         setWorker(w);
@@ -49,18 +47,18 @@ export default function EditWorkerPage({ params }: { params: { id: string } }) {
             id: img.id,
             url: img.url,
             caption: img.caption ?? undefined,
-          }))
+          })),
         );
         setPreviewValues({
           name: w.name,
-          bio: w.bio ?? "",
+          bio: w.bio ?? '',
           categoryId: w.category.id,
-          phone: w.phone ?? "",
-          email: w.email ?? "",
-          walletAddress: w.walletAddress ?? "",
+          phone: w.phone ?? '',
+          email: w.email ?? '',
+          walletAddress: w.walletAddress ?? '',
         });
       })
-      .catch(() => toast("Failed to load worker", "error"))
+      .catch(() => toast('Failed to load worker', 'error'))
       .finally(() => setLoading(false));
   }, [params.id]);
 
@@ -73,15 +71,15 @@ export default function EditWorkerPage({ params }: { params: { id: string } }) {
     try {
       const form = new FormData();
       Object.entries(data).forEach(([k, v]) => {
-        if (v !== undefined && v !== "") form.append(k, v as string);
+        if (v !== undefined && v !== '') form.append(k, v as string);
       });
-      if (imgFile) form.append("avatar", imgFile);
+      if (imgFile) form.append('avatar', imgFile);
 
       await updateWorker(params.id, form);
-      toast("Worker updated successfully");
-      router.push("/dashboard");
+      toast('Worker updated successfully');
+      router.push('/dashboard');
     } catch (err: unknown) {
-      toast(err instanceof Error ? err.message : "Failed to update worker", "error");
+      toast(err instanceof Error ? err.message : 'Failed to update worker', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -92,10 +90,10 @@ export default function EditWorkerPage({ params }: { params: { id: string } }) {
     const newImages: PortfolioImage[] = files.map((file) => ({
       id: crypto.randomUUID(),
       url: URL.createObjectURL(file),
-      caption: "",
+      caption: '',
     }));
     setPortfolioImages((prev) => [...prev, ...newImages]);
-    toast(`${files.length} image${files.length > 1 ? "s" : ""} added`);
+    toast(`${files.length} image${files.length > 1 ? 's' : ''} added`);
   };
 
   const handleRemovePortfolioImage = (id: string) => {
@@ -107,9 +105,7 @@ export default function EditWorkerPage({ params }: { params: { id: string } }) {
   };
 
   const handleCaptionChange = (id: string, caption: string) => {
-    setPortfolioImages((prev) =>
-      prev.map((img) => (img.id === id ? { ...img, caption } : img))
-    );
+    setPortfolioImages((prev) => prev.map((img) => (img.id === id ? { ...img, caption } : img)));
   };
 
   // Availability handlers
@@ -124,14 +120,17 @@ export default function EditWorkerPage({ params }: { params: { id: string } }) {
     setAvailability((prev) => prev.filter((s) => s.dayOfWeek !== dayOfWeek));
   }, []);
 
-  const handleBulkSet = useCallback((slots: Slot[]) => {
-    setAvailability((prev) => {
-      const daySet = new Set(slots.map((s) => s.dayOfWeek));
-      const kept = prev.filter((s) => !daySet.has(s.dayOfWeek));
-      return [...kept, ...slots].sort((a, b) => a.dayOfWeek - b.dayOfWeek);
-    });
-    toast(`Availability set for ${slots.length} day${slots.length > 1 ? "s" : ""}`);
-  }, [toast]);
+  const handleBulkSet = useCallback(
+    (slots: Slot[]) => {
+      setAvailability((prev) => {
+        const daySet = new Set(slots.map((s) => s.dayOfWeek));
+        const kept = prev.filter((s) => !daySet.has(s.dayOfWeek));
+        return [...kept, ...slots].sort((a, b) => a.dayOfWeek - b.dayOfWeek);
+      });
+      toast(`Availability set for ${slots.length} day${slots.length > 1 ? 's' : ''}`);
+    },
+    [toast],
+  );
 
   // Profile completion
   const hasAvatar = !!worker?.avatar;
@@ -140,13 +139,13 @@ export default function EditWorkerPage({ params }: { params: { id: string } }) {
     previewValues,
     hasAvatar,
     portfolioImages.length,
-    availability.length > 0
+    availability.length > 0,
   );
 
   const tabs = [
-    { key: "profile" as const, label: "Profile" },
-    { key: "portfolio" as const, label: `Portfolio (${portfolioImages.length})` },
-    { key: "availability" as const, label: "Availability" },
+    { key: 'profile' as const, label: 'Profile' },
+    { key: 'portfolio' as const, label: `Portfolio (${portfolioImages.length})` },
+    { key: 'availability' as const, label: 'Availability' },
   ];
 
   return (
@@ -193,8 +192,8 @@ export default function EditWorkerPage({ params }: { params: { id: string } }) {
                   onClick={() => setActiveTab(tab.key)}
                   className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                     activeTab === tab.key
-                      ? "bg-white text-gray-900 shadow-sm"
-                      : "text-gray-500 hover:text-gray-700"
+                      ? 'bg-white text-gray-900 shadow-sm'
+                      : 'text-gray-500 hover:text-gray-700'
                   }`}
                 >
                   {tab.label}
@@ -204,15 +203,15 @@ export default function EditWorkerPage({ params }: { params: { id: string } }) {
 
             {/* Tab content */}
             <div className="rounded-2xl border bg-white p-6 shadow-sm">
-              {activeTab === "profile" && (
+              {activeTab === 'profile' && (
                 <WorkerForm
                   defaultValues={{
                     name: worker.name,
-                    bio: worker.bio ?? "",
+                    bio: worker.bio ?? '',
                     categoryId: worker.category.id,
-                    phone: worker.phone ?? "",
-                    email: worker.email ?? "",
-                    walletAddress: worker.walletAddress ?? "",
+                    phone: worker.phone ?? '',
+                    email: worker.email ?? '',
+                    walletAddress: worker.walletAddress ?? '',
                   }}
                   existingAvatar={worker.avatar}
                   onSubmit={handleSubmit}
@@ -222,14 +221,12 @@ export default function EditWorkerPage({ params }: { params: { id: string } }) {
                 />
               )}
 
-              {activeTab === "portfolio" && (
+              {activeTab === 'portfolio' && (
                 <div>
-                  <h2 className="mb-1 text-sm font-semibold text-gray-900">
-                    Portfolio Gallery
-                  </h2>
+                  <h2 className="mb-1 text-sm font-semibold text-gray-900">Portfolio Gallery</h2>
                   <p className="mb-4 text-xs text-gray-500">
-                    Showcase your work. Drag to reorder, click a photo to view full
-                    size. You can also drag and drop files directly.
+                    Showcase your work. Drag to reorder, click a photo to view full size. You can
+                    also drag and drop files directly.
                   </p>
                   <PortfolioGallery
                     images={portfolioImages}
@@ -242,14 +239,14 @@ export default function EditWorkerPage({ params }: { params: { id: string } }) {
                 </div>
               )}
 
-              {activeTab === "availability" && (
+              {activeTab === 'availability' && (
                 <div>
                   <h2 className="mb-1 text-sm font-semibold text-gray-900">
                     Availability Schedule
                   </h2>
                   <p className="mb-4 text-xs text-gray-500">
-                    Set your weekly availability so clients know when to reach you.
-                    Use bulk set to quickly configure multiple days at once.
+                    Set your weekly availability so clients know when to reach you. Use bulk set to
+                    quickly configure multiple days at once.
                   </p>
                   <AvailabilityCalendar
                     availability={availability}

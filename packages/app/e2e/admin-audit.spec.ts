@@ -127,7 +127,9 @@ test.describe('Admin audit log page — listing and filtering', () => {
     await expect(page.getByText('No audit log entries found')).toBeVisible();
   });
 
-  test('filtering by action sends the filter as a query param and narrows the results', async ({ page }) => {
+  test('filtering by action sends the filter as a query param and narrows the results', async ({
+    page,
+  }) => {
     await loginAs(page, ADMIN_USER);
     await mockAuditLogs(page, makeLogs());
 
@@ -135,7 +137,9 @@ test.describe('Admin audit log page — listing and filtering', () => {
     await expect(page.getByText('user.suspend')).toBeVisible();
     await expect(page.getByText('dispute.resolve')).toBeVisible();
 
-    const request = page.waitForRequest((req) => req.url().includes('/v1/audit') && req.url().includes('action=dispute'));
+    const request = page.waitForRequest(
+      (req) => req.url().includes('/v1/audit') && req.url().includes('action=dispute'),
+    );
     await page.getByPlaceholder('Filter by action...').fill('dispute');
     await request;
 
@@ -153,7 +157,10 @@ test.describe('Admin audit log page — listing and filtering', () => {
       return route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ data: pageEntries, meta: { total: 2, page: requestedPage, limit: 1, pages: 2 } }),
+        body: JSON.stringify({
+          data: pageEntries,
+          meta: { total: 2, page: requestedPage, limit: 1, pages: 2 },
+        }),
       });
     });
 
@@ -197,7 +204,10 @@ test.describe('Admin audit log page — cross-validation with dispute resolution
         return route.fulfill({
           status: 200,
           contentType: 'application/json',
-          body: JSON.stringify({ data: [dispute], meta: { total: 1, page: 1, limit: 20, pages: 1 } }),
+          body: JSON.stringify({
+            data: [dispute],
+            meta: { total: 1, page: 1, limit: 20, pages: 1 },
+          }),
         });
       }
       return route.fallback();
@@ -216,7 +226,11 @@ test.describe('Admin audit log page — cross-validation with dispute resolution
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify({
-          data: { ...OPEN_DISPUTE, status: 'resolved', resolution: 'Resolved by admin as resolved' },
+          data: {
+            ...OPEN_DISPUTE,
+            status: 'resolved',
+            resolution: 'Resolved by admin as resolved',
+          },
         }),
       });
     });
@@ -224,7 +238,10 @@ test.describe('Admin audit log page — cross-validation with dispute resolution
       route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ data: auditEntries, meta: { total: auditEntries.length, page: 1, limit: 50, pages: 1 } }),
+        body: JSON.stringify({
+          data: auditEntries,
+          meta: { total: auditEntries.length, page: 1, limit: 50, pages: 1 },
+        }),
       }),
     );
 

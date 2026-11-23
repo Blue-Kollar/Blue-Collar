@@ -1,5 +1,5 @@
-import type { NextFunction, Response } from 'express'
-import { AppError } from '@/utils/app-error.js'
+import type { NextFunction, Response } from 'express';
+import { AppError } from '@/utils/app-error.js';
 
 /**
  * Delegates a caught error to the central error-handling middleware.
@@ -28,9 +28,9 @@ import { AppError } from '@/utils/app-error.js'
 // errors return a generic message. Full details are logged server-side only.
 export function handleError(next: NextFunction, err: unknown) {
   if (err instanceof AppError) {
-    return next(err)
+    return next(err);
   }
-  return next(err)
+  return next(err);
 }
 
 /**
@@ -48,6 +48,6 @@ export function handleError(next: NextFunction, err: unknown) {
  * @returns The result of calling `next(err)`.
  */
 export function handleErrorWithResponse(res: Response, err: unknown, next: NextFunction) {
-  void res
-  return handleError(next, err)
+  void res;
+  return handleError(next, err);
 }

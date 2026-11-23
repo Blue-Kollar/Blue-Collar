@@ -162,7 +162,9 @@ describe('SDK ↔ API contract: Category', () => {
       id: expect.any(String),
       name: expect.any(String),
     });
-    expect(typeof serialized.description === 'string' || serialized.description === null).toBe(true);
+    expect(typeof serialized.description === 'string' || serialized.description === null).toBe(
+      true,
+    );
     expect(typeof serialized.icon === 'string' || serialized.icon === null).toBe(true);
   });
 

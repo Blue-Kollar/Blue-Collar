@@ -1,25 +1,29 @@
-import type { Meta, StoryObj } from "@storybook/react";
-import { Input } from "./Input";
-import { Select } from "./Select";
-import { Checkbox } from "./Checkbox";
-import { RadioGroup } from "./Radio";
-import { DatePicker } from "./DatePicker";
-import { FileUpload } from "./FileUpload";
+import type { Meta, StoryObj } from '@storybook/react';
+import { Input } from './Input';
+import { Select } from './Select';
+import { Checkbox } from './Checkbox';
+import { RadioGroup } from './Radio';
+import { DatePicker } from './DatePicker';
+import { FileUpload } from './FileUpload';
 
 // ─── Input ────────────────────────────────────────────────────────────────────
 
 const inputMeta: Meta<typeof Input> = {
-  title: "Form/Input",
+  title: 'Form/Input',
   component: Input,
-  tags: ["autodocs"],
+  tags: ['autodocs'],
 };
 export default inputMeta;
 type InputStory = StoryObj<typeof Input>;
 
-export const Default: InputStory = { args: { label: "Name", placeholder: "John Doe" } };
-export const WithHint: InputStory = { args: { label: "Email", type: "email", hint: "We'll never share your email." } };
-export const WithError: InputStory = { args: { label: "Email", type: "email", value: "bad", error: "Invalid email address." } };
-export const Disabled: InputStory = { args: { label: "Username", value: "jdoe", disabled: true } };
+export const Default: InputStory = { args: { label: 'Name', placeholder: 'John Doe' } };
+export const WithHint: InputStory = {
+  args: { label: 'Email', type: 'email', hint: "We'll never share your email." },
+};
+export const WithError: InputStory = {
+  args: { label: 'Email', type: 'email', value: 'bad', error: 'Invalid email address.' },
+};
+export const Disabled: InputStory = { args: { label: 'Username', value: 'jdoe', disabled: true } };
 
 // ─── Select ───────────────────────────────────────────────────────────────────
 
@@ -29,8 +33,8 @@ export const SelectDefault: StoryObj<typeof Select> = {
       label="Category"
       placeholder="Pick a category"
       options={[
-        { label: "Plumber", value: "plumber" },
-        { label: "Electrician", value: "electrician" },
+        { label: 'Plumber', value: 'plumber' },
+        { label: 'Electrician', value: 'electrician' },
       ]}
     />
   ),
@@ -41,7 +45,7 @@ export const SelectError: StoryObj<typeof Select> = {
     <Select
       label="Category"
       placeholder="Pick a category"
-      options={[{ label: "Plumber", value: "plumber" }]}
+      options={[{ label: 'Plumber', value: 'plumber' }]}
       error="Please select a category."
     />
   ),
@@ -67,8 +71,8 @@ export const RadioDefault: StoryObj<typeof RadioGroup> = {
       label="Role"
       name="role"
       options={[
-        { label: "User", value: "user" },
-        { label: "Curator", value: "curator" },
+        { label: 'User', value: 'user' },
+        { label: 'Curator', value: 'curator' },
       ]}
     />
   ),

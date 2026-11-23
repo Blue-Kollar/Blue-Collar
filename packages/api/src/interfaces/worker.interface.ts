@@ -1,5 +1,1 @@
-export type {
-  CreateWorkerBody,
-  UpdateWorkerBody,
-  WorkerQuery,
-} from '@bluecollar/types'
+export type { CreateWorkerBody, UpdateWorkerBody, WorkerQuery } from '@bluecollar/types';

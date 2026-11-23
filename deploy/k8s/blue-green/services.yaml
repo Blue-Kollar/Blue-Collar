@@ -67,7 +67,7 @@ metadata:
     app.kubernetes.io/part-of: bluecollar
   annotations:
     # Populated by deploy script so the current slot is always visible
-    bluecollar.io/active-slot: "blue"
+    bluecollar.io/active-slot: 'blue'
 spec:
   type: ClusterIP
   # This selector is patched by switch-traffic.sh to target either slot

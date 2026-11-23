@@ -1,6 +1,6 @@
-import Link from "next/link";
-import { getTranslations } from "next-intl/server";
-import { routes } from "@/lib/routes";
+import Link from 'next/link';
+import { getTranslations } from 'next-intl/server';
+import { routes } from '@/lib/routes';
 
 function GithubIcon() {
   return (
@@ -19,7 +19,7 @@ function TelegramIcon() {
 }
 
 export default async function Footer() {
-  const t = await getTranslations("footer");
+  const t = await getTranslations('footer');
 
   return (
     <footer className="border-t bg-gray-50 dark:bg-gray-900 dark:border-gray-800 mt-auto">
@@ -28,35 +28,76 @@ export default async function Footer() {
           <div className="flex flex-col gap-3">
             <span className="text-lg font-bold text-blue-600">BlueCollar</span>
             <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
-              {t("description")}
+              {t('description')}
             </p>
           </div>
 
           <div>
-            <h3 className="mb-3 text-sm font-semibold text-gray-700 dark:text-gray-300">{t("quickLinks")}</h3>
+            <h3 className="mb-3 text-sm font-semibold text-gray-700 dark:text-gray-300">
+              {t('quickLinks')}
+            </h3>
             <ul className="flex flex-col gap-2">
-              <li><Link href={routes.workers} className="text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 transition-colors">{t("workers")}</Link></li>
-              <li><Link href={routes.categories} className="text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 transition-colors">{t("categories")}</Link></li>
-              <li><Link href={routes.howItWorks} className="text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 transition-colors">{t("howItWorks")}</Link></li>
+              <li>
+                <Link
+                  href={routes.workers}
+                  className="text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 transition-colors"
+                >
+                  {t('workers')}
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href={routes.categories}
+                  className="text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 transition-colors"
+                >
+                  {t('categories')}
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href={routes.howItWorks}
+                  className="text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 transition-colors"
+                >
+                  {t('howItWorks')}
+                </Link>
+              </li>
             </ul>
           </div>
 
           <div>
-            <h3 className="mb-3 text-sm font-semibold text-gray-700 dark:text-gray-300">{t("legal")}</h3>
+            <h3 className="mb-3 text-sm font-semibold text-gray-700 dark:text-gray-300">
+              {t('legal')}
+            </h3>
             <ul className="flex flex-col gap-2">
-              <li><Link href={routes.privacy} className="text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 transition-colors">{t("privacyPolicy")}</Link></li>
-              <li><Link href={routes.terms} className="text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 transition-colors">{t("termsOfService")}</Link></li>
+              <li>
+                <Link
+                  href={routes.privacy}
+                  className="text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 transition-colors"
+                >
+                  {t('privacyPolicy')}
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href={routes.terms}
+                  className="text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 transition-colors"
+                >
+                  {t('termsOfService')}
+                </Link>
+              </li>
             </ul>
           </div>
 
           <div>
-            <h3 className="mb-3 text-sm font-semibold text-gray-700 dark:text-gray-300">{t("community")}</h3>
+            <h3 className="mb-3 text-sm font-semibold text-gray-700 dark:text-gray-300">
+              {t('community')}
+            </h3>
             <div className="flex gap-4">
               <a
                 href="https://t.me/bluecollar"
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label={t("telegram")}
+                aria-label={t('telegram')}
                 className="text-gray-400 hover:text-blue-500 transition-colors"
               >
                 <TelegramIcon />
@@ -65,7 +106,7 @@ export default async function Footer() {
                 href="https://github.com/summer-0ma/Blue-Collar"
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label={t("github")}
+                aria-label={t('github')}
                 className="text-gray-400 dark:hover:text-gray-200 hover:text-gray-800 transition-colors"
               >
                 <GithubIcon />
@@ -75,7 +116,7 @@ export default async function Footer() {
         </div>
 
         <div className="mt-10 border-t dark:border-gray-800 pt-6 text-center text-xs text-gray-400">
-          {t("copyright", { year: new Date().getFullYear() })}
+          {t('copyright', { year: new Date().getFullYear() })}
         </div>
       </div>
     </footer>

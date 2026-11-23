@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useCallback } from "react";
-import { useAuth } from "@/hooks/useAuth";
-import { useToast } from "@/hooks/useToast";
-import { useWallet } from "@/hooks/useWallet";
-import ConversationList from "@/components/messages/ConversationList";
-import MessageThread from "@/components/messages/MessageThread";
-import { apiClient, ApiError } from "@/lib/apiClient";
-import type { Conversation, Message } from "@/types";
+import { useState, useEffect, useCallback } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/useToast';
+import { useWallet } from '@/hooks/useWallet';
+import ConversationList from '@/components/messages/ConversationList';
+import MessageThread from '@/components/messages/MessageThread';
+import { apiClient, ApiError } from '@/lib/apiClient';
+import type { Conversation, Message } from '@/types';
 
 export default function MessagesPage() {
   const { user } = useAuth();
@@ -23,9 +23,8 @@ export default function MessagesPage() {
       const res = await apiClient.getConversations({ limit: 50 });
       setConversations(res.data ?? []);
     } catch (err) {
-      const message =
-        err instanceof ApiError ? err.message : "Failed to load conversations";
-      toast(message, "error");
+      const message = err instanceof ApiError ? err.message : 'Failed to load conversations';
+      toast(message, 'error');
     } finally {
       setLoading(false);
     }
@@ -42,12 +41,11 @@ export default function MessagesPage() {
         const res = await apiClient.getConversationMessages(id, { limit: 100 });
         setMessages(res.data ?? []);
       } catch (err) {
-        const message =
-          err instanceof ApiError ? err.message : "Failed to load messages";
-        toast(message, "error");
+        const message = err instanceof ApiError ? err.message : 'Failed to load messages';
+        toast(message, 'error');
       }
     },
-    [toast]
+    [toast],
   );
 
   const handleSendMessage = useCallback(
@@ -58,12 +56,11 @@ export default function MessagesPage() {
         setMessages((prev) => (res.data ? [...prev, res.data] : prev));
         fetchConversations();
       } catch (err) {
-        const message =
-          err instanceof ApiError ? err.message : "Failed to send message";
-        toast(message, "error");
+        const message = err instanceof ApiError ? err.message : 'Failed to send message';
+        toast(message, 'error');
       }
     },
-    [activeConversation, toast, fetchConversations]
+    [activeConversation, toast, fetchConversations],
   );
 
   if (!user) return null;

@@ -1,6 +1,6 @@
-import 'dotenv/config'
-import path from 'node:path'
-import { defineConfig } from 'prisma/config'
+import 'dotenv/config';
+import path from 'node:path';
+import { defineConfig } from 'prisma/config';
 
 export default defineConfig({
   schema: path.join(import.meta.dirname, 'prisma/schema.prisma'),
@@ -10,4 +10,4 @@ export default defineConfig({
     // which replays the migration history into a throwaway database.
     shadowDatabaseUrl: process.env.SHADOW_DATABASE_URL,
   },
-})
+});

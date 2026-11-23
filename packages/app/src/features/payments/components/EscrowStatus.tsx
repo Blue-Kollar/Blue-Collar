@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useEffect, useId, useRef } from "react";
-import { Clock, CheckCircle2, AlertCircle, XCircle, Loader2 } from "lucide-react";
-import { EXPLORER_TX_BASE } from "@/config/stellar";
+import { useEffect, useId, useRef } from 'react';
+import { Clock, CheckCircle2, AlertCircle, XCircle, Loader2 } from 'lucide-react';
+import { EXPLORER_TX_BASE } from '@/config/stellar';
 
 export interface Escrow {
   id: string;
@@ -10,7 +10,7 @@ export interface Escrow {
   token: string;
   counterparty: string;
   terms: string;
-  status: "pending" | "funded" | "released" | "disputed" | "cancelled";
+  status: 'pending' | 'funded' | 'released' | 'disputed' | 'cancelled';
   createdAt: string;
   expiresAt?: string | null;
   txHash?: string | null;
@@ -23,20 +23,28 @@ interface EscrowStatusProps {
   isLoading?: boolean;
 }
 
-const STATUS_STEPS = ["pending", "funded", "released"] as const;
+const STATUS_STEPS = ['pending', 'funded', 'released'] as const;
 
-const STATUS_META: Record<Escrow["status"], { label: string; color: string; Icon: React.ElementType }> = {
-  pending:   { label: "Pending",   color: "text-yellow-500", Icon: Clock },
-  funded:    { label: "Funded",    color: "text-blue-500",   Icon: CheckCircle2 },
-  released:  { label: "Released",  color: "text-green-600",  Icon: CheckCircle2 },
-  disputed:  { label: "Disputed",  color: "text-orange-500", Icon: AlertCircle },
-  cancelled: { label: "Cancelled", color: "text-gray-400",   Icon: XCircle },
+const STATUS_META: Record<
+  Escrow['status'],
+  { label: string; color: string; Icon: React.ElementType }
+> = {
+  pending: { label: 'Pending', color: 'text-yellow-500', Icon: Clock },
+  funded: { label: 'Funded', color: 'text-blue-500', Icon: CheckCircle2 },
+  released: { label: 'Released', color: 'text-green-600', Icon: CheckCircle2 },
+  disputed: { label: 'Disputed', color: 'text-orange-500', Icon: AlertCircle },
+  cancelled: { label: 'Cancelled', color: 'text-gray-400', Icon: XCircle },
 };
 
 const FOCUS_RING =
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500";
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500';
 
-export default function EscrowStatus({ escrow, onRelease, onDispute, isLoading }: EscrowStatusProps) {
+export default function EscrowStatus({
+  escrow,
+  onRelease,
+  onDispute,
+  isLoading,
+}: EscrowStatusProps) {
   const { label, color, Icon } = STATUS_META[escrow.status];
   const headingId = useId();
   const statusRef = useRef<HTMLParagraphElement>(null);
@@ -47,7 +55,7 @@ export default function EscrowStatus({ escrow, onRelease, onDispute, isLoading }
   const restoreFocus = useRef(false);
 
   useEffect(() => {
-    if (restoreFocus.current && escrow.status !== "funded") {
+    if (restoreFocus.current && escrow.status !== 'funded') {
       restoreFocus.current = false;
       statusRef.current?.focus();
     }
@@ -73,10 +81,7 @@ export default function EscrowStatus({ escrow, onRelease, onDispute, isLoading }
       className="rounded-lg border border-gray-200 p-4 space-y-3"
     >
       <div className="flex items-center justify-between">
-        <span
-          className="text-sm font-mono text-gray-500 truncate max-w-[160px]"
-          title={escrow.id}
-        >
+        <span className="text-sm font-mono text-gray-500 truncate max-w-[160px]" title={escrow.id}>
           <span className="sr-only">Escrow ID: </span>
           {escrow.id}
         </span>
@@ -121,14 +126,18 @@ export default function EscrowStatus({ escrow, onRelease, onDispute, isLoading }
               <li
                 key={step}
                 className="flex items-center"
-                aria-current={isCurrent ? "step" : undefined}
+                aria-current={isCurrent ? 'step' : undefined}
               >
-                <StepIcon size={16} className={active ? stepColor : "text-gray-300"} aria-hidden="true" />
-                <span className={`text-xs mx-1 ${active ? "text-gray-700" : "text-gray-300"}`}>
+                <StepIcon
+                  size={16}
+                  className={active ? stepColor : 'text-gray-300'}
+                  aria-hidden="true"
+                />
+                <span className={`text-xs mx-1 ${active ? 'text-gray-700' : 'text-gray-300'}`}>
                   {STATUS_META[step].label}
                 </span>
                 <span className="sr-only">
-                  {isCurrent ? " (current step)" : active ? " (completed)" : " (not started)"}
+                  {isCurrent ? ' (current step)' : active ? ' (completed)' : ' (not started)'}
                 </span>
                 {i < STATUS_STEPS.length - 1 && (
                   <span aria-hidden="true" className="w-6 h-px bg-gray-200 mx-1" />
@@ -162,7 +171,7 @@ export default function EscrowStatus({ escrow, onRelease, onDispute, isLoading }
       )}
 
       {/* Actions */}
-      {escrow.status === "funded" && (
+      {escrow.status === 'funded' && (
         <div className="flex gap-2 pt-1">
           <button
             type="button"

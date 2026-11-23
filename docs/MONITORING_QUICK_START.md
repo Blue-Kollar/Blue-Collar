@@ -67,12 +67,12 @@ kubectl get pods -n bluecollar-monitoring
 
 ### Local Development
 
-| Service      | URL                           | Credentials           |
-|--------------|-------------------------------|-----------------------|
-| Prometheus   | http://localhost:9090         | No auth               |
-| AlertManager | http://localhost:9093         | No auth               |
-| Grafana      | http://localhost:3001         | admin / admin         |
-| Jaeger       | http://localhost:16686        | No auth               |
+| Service      | URL                    | Credentials   |
+| ------------ | ---------------------- | ------------- |
+| Prometheus   | http://localhost:9090  | No auth       |
+| AlertManager | http://localhost:9093  | No auth       |
+| Grafana      | http://localhost:3001  | admin / admin |
+| Jaeger       | http://localhost:16686 | No auth       |
 
 ### Production (Kubernetes)
 
@@ -85,6 +85,7 @@ kubectl port-forward -n bluecollar-monitoring svc/jaeger 16686:16686
 ```
 
 Or set up Ingress:
+
 ```bash
 kubectl apply -f ../k8s/ingress-monitoring.yaml
 # Access at https://prometheus.your-domain.com, etc.
@@ -101,6 +102,7 @@ kubectl apply -f ../k8s/ingress-monitoring.yaml
 ### Auto-provisioned Dashboards
 
 Dashboards are auto-loaded from `deploy/grafana/dashboards/`:
+
 - System Overview
 - API Performance
 - Business Metrics
@@ -180,16 +182,16 @@ curl http://localhost:3000/metrics | head -20
 In your service code:
 
 ```typescript
-import { metricsRecorder } from './monitoring/business-metrics.js'
+import { metricsRecorder } from './monitoring/business-metrics.js';
 
 // Worker created
-metricsRecorder.recordWorkerCreated('plumber')
+metricsRecorder.recordWorkerCreated('plumber');
 
 // Payment processed
-metricsRecorder.recordPayment(50, 'XLM', 12.50)
+metricsRecorder.recordPayment(50, 'XLM', 12.5);
 
 // Contract interaction
-metricsRecorder.recordContractTx('register', true, 145000)
+metricsRecorder.recordContractTx('register', true, 145000);
 ```
 
 ## 7. Troubleshooting
@@ -204,6 +206,7 @@ curl http://localhost:9090/api/v1/targets
 ```
 
 **Fix:**
+
 - Verify API is running: `curl http://localhost:3000/health`
 - Check network: `docker network ls` & `docker network inspect bluecollar-network`
 - View Prometheus logs: `docker logs bluecollar-prometheus`
@@ -219,6 +222,7 @@ curl http://localhost:9093/api/v2/status
 ```
 
 **Fix:**
+
 - Verify metrics exist: `curl http://localhost:9090/api/v1/query?query=up`
 - Review alert thresholds (e.g., high error rate > 0.05)
 - Test notification channels: AlertManager UI → Test Notification
@@ -236,6 +240,7 @@ echo $OTEL_EXPORTER_OTLP_ENDPOINT
 ```
 
 **Fix:**
+
 - Restart API: `docker restart bluecollar-api`
 - Check OTEL collector logs: `docker logs bluecollar-otel-collector`
 - Increase trace sampling: `OTEL_TRACES_SAMPLER_ARG=1.0`

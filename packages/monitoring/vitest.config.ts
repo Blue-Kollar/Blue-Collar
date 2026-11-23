@@ -8,7 +8,7 @@
  * are enforced at 85%+ across lines, functions, branches and statements to
  * match the repository-wide standard (issue #1055).
  */
-import { defineConfig } from 'vitest/config'
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
@@ -28,4 +28,4 @@ export default defineConfig({
       },
     },
   },
-})
+});

@@ -23,10 +23,10 @@ BlueCollar uses [next-intl](https://next-intl-docs.vercel.app) for all i18n func
 `packages/app/next.config.mjs` wraps the Next.js config with the `next-intl` plugin:
 
 ```javascript
-import createNextIntlPlugin from 'next-intl/plugin'
+import createNextIntlPlugin from 'next-intl/plugin';
 
-const withNextIntl = createNextIntlPlugin()
-export default withNextIntl(nextConfig)
+const withNextIntl = createNextIntlPlugin();
+export default withNextIntl(nextConfig);
 ```
 
 The plugin automatically picks up `packages/app/src/i18n.ts` as the request config entry point.
@@ -36,11 +36,11 @@ The plugin automatically picks up `packages/app/src/i18n.ts` as the request conf
 `packages/app/src/i18n.ts` loads the correct message file for each request based on the active locale:
 
 ```typescript
-import { getRequestConfig } from 'next-intl/server'
+import { getRequestConfig } from 'next-intl/server';
 
 export default getRequestConfig(async ({ locale }) => ({
-  messages: (await import(`./messages/${locale}.json`)).default
-}))
+  messages: (await import(`./messages/${locale}.json`)).default,
+}));
 ```
 
 ### Middleware
@@ -48,13 +48,13 @@ export default getRequestConfig(async ({ locale }) => ({
 `packages/app/src/middleware.ts` handles locale detection and URL prefixing:
 
 ```typescript
-import createMiddleware from 'next-intl/middleware'
+import createMiddleware from 'next-intl/middleware';
 
 const intlMiddleware = createMiddleware({
   locales: ['en', 'fr', 'es'],
   defaultLocale: 'en',
   localePrefix: 'always',
-})
+});
 ```
 
 The `localePrefix: 'always'` strategy means every URL includes the locale segment. A request to `/workers` will redirect to `/en/workers`.
@@ -107,12 +107,12 @@ Each file is a flat or nested JSON object. BlueCollar uses a two-level namespace
 
 ### Current Namespaces
 
-| Namespace   | Purpose                                      |
-|-------------|----------------------------------------------|
-| `common`    | Shared UI labels (nav, buttons, status words)|
-| `workers`   | Workers listing and profile page strings     |
-| `auth`      | Authentication forms and labels              |
-| `dashboard` | Dashboard page strings                       |
+| Namespace   | Purpose                                       |
+| ----------- | --------------------------------------------- |
+| `common`    | Shared UI labels (nav, buttons, status words) |
+| `workers`   | Workers listing and profile page strings      |
+| `auth`      | Authentication forms and labels               |
+| `dashboard` | Dashboard page strings                        |
 
 ### Using Translations in Components
 
@@ -173,10 +173,10 @@ Add the new locale code to the `locales` array in `packages/app/src/middleware.t
 
 ```typescript
 const intlMiddleware = createMiddleware({
-  locales: ['en', 'fr', 'es', 'pt'],  // add 'pt'
+  locales: ['en', 'fr', 'es', 'pt'], // add 'pt'
   defaultLocale: 'en',
   localePrefix: 'always',
-})
+});
 ```
 
 ### 3. Update the LanguageSwitcher component
@@ -189,7 +189,7 @@ const locales = [
   { code: 'fr', label: 'Français' },
   { code: 'es', label: 'Español' },
   { code: 'pt', label: 'Português' },
-]
+];
 ```
 
 ### 4. Verify the route structure
@@ -206,10 +206,10 @@ The project also accepts translated README files alongside the English `README.m
 
 ### Existing Translations
 
-| File            | Language   |
-|-----------------|------------|
-| `README.md`     | English    |
-| `README.pt.md`  | Portuguese |
+| File           | Language   |
+| -------------- | ---------- |
+| `README.md`    | English    |
+| `README.pt.md` | Portuguese |
 
 ### Adding a README Translation
 
@@ -330,7 +330,7 @@ Pass dynamic values as the second argument to `t()`:
 ```
 
 ```typescript
-t('resultsCount', { count: 42 })
+t('resultsCount', { count: 42 });
 // → "Showing 42 workers"
 ```
 
@@ -347,9 +347,9 @@ Use ICU plural syntax to handle singular/plural forms:
 ```
 
 ```typescript
-t('reviewCount', { count: 0 })   // → "No reviews"
-t('reviewCount', { count: 1 })   // → "1 review"
-t('reviewCount', { count: 5 })   // → "5 reviews"
+t('reviewCount', { count: 0 }); // → "No reviews"
+t('reviewCount', { count: 1 }); // → "1 review"
+t('reviewCount', { count: 5 }); // → "5 reviews"
 ```
 
 Each locale file should provide the plural forms appropriate for that language. For example, Russian has more plural categories than English — consult the [CLDR plural rules](https://cldr.unicode.org/index/cldr-spec/plural-rules) for the target language.
@@ -369,7 +369,7 @@ function PriceDisplay({ amount }: { amount: number }) {
 
 ```typescript
 // Date formatting
-format.dateTime(new Date(), { dateStyle: 'medium' })
+format.dateTime(new Date(), { dateStyle: 'medium' });
 // en: "Apr 23, 2026"
 // fr: "23 avr. 2026"
 // es: "23 abr 2026"

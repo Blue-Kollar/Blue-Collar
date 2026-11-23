@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import Link from "next/link";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, ArrowLeft, CheckCircle2 } from "lucide-react";
-import { forgotPasswordSchema, type ForgotPasswordInput, authApi } from "@/lib/auth";
-import FormField from "@/components/Form/FormField";
-import FormError from "@/components/Form/FormError";
-import { cn } from "@/lib/utils";
+import { useState } from 'react';
+import Link from 'next/link';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Loader2, ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { forgotPasswordSchema, type ForgotPasswordInput, authApi } from '@/lib/auth';
+import FormField from '@/components/Form/FormField';
+import FormError from '@/components/Form/FormError';
+import { cn } from '@/lib/utils';
 
 export default function ForgotPasswordPage() {
   const [sent, setSent] = useState(false);
@@ -26,7 +26,7 @@ export default function ForgotPasswordPage() {
       await authApi.forgotPassword(data);
       setSent(true);
     } catch (err: unknown) {
-      setApiError(err instanceof Error ? err.message : "Something went wrong");
+      setApiError(err instanceof Error ? err.message : 'Something went wrong');
     }
   };
 
@@ -48,8 +48,8 @@ export default function ForgotPasswordPage() {
             </div>
             <h1 className="text-xl font-bold text-gray-900">Email sent</h1>
             <p className="mt-2 text-sm text-gray-500 leading-relaxed">
-              If an account exists with that email, you&apos;ll receive a
-              password reset link shortly.
+              If an account exists with that email, you&apos;ll receive a password reset link
+              shortly.
             </p>
           </div>
         ) : (
@@ -62,9 +62,7 @@ export default function ForgotPasswordPage() {
             </div>
 
             <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4" noValidate>
-              {apiError && (
-                <FormError message={apiError} />
-              )}
+              {apiError && <FormError message={apiError} />}
 
               <FormField label="Email" id="email" error={errors.email?.message}>
                 <input
@@ -72,10 +70,10 @@ export default function ForgotPasswordPage() {
                   type="email"
                   autoComplete="email"
                   placeholder="you@example.com"
-                  {...register("email")}
+                  {...register('email')}
                   className={cn(
-                    "rounded-lg border px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500",
-                    errors.email && "border-red-400"
+                    'rounded-lg border px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500',
+                    errors.email && 'border-red-400',
                   )}
                 />
               </FormField>

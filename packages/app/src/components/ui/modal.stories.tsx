@@ -1,15 +1,21 @@
-import type { Meta, StoryObj } from '@storybook/react'
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
+import type { Meta, StoryObj } from '@storybook/react';
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 
 const meta: Meta<typeof Dialog> = {
   title: 'Design System/Modal',
   component: Dialog,
   tags: ['autodocs'],
-}
-export default meta
+};
+export default meta;
 
-type Story = StoryObj<typeof Dialog>
+type Story = StoryObj<typeof Dialog>;
 
 export const Default: Story = {
   render: () => (
@@ -33,7 +39,7 @@ export const Default: Story = {
       </DialogContent>
     </Dialog>
   ),
-}
+};
 
 export const ConfirmDialog: Story = {
   render: () => (
@@ -57,7 +63,7 @@ export const ConfirmDialog: Story = {
       </DialogContent>
     </Dialog>
   ),
-}
+};
 
 export const FormDialog: Story = {
   render: () => (
@@ -72,7 +78,11 @@ export const FormDialog: Story = {
         <div className="py-4 space-y-4">
           <div>
             <label className="text-sm font-medium">Name</label>
-            <input type="text" placeholder="Worker name" className="w-full mt-1 px-3 py-2 border rounded-md" />
+            <input
+              type="text"
+              placeholder="Worker name"
+              className="w-full mt-1 px-3 py-2 border rounded-md"
+            />
           </div>
           <div>
             <label className="text-sm font-medium">Category</label>
@@ -90,4 +100,4 @@ export const FormDialog: Story = {
       </DialogContent>
     </Dialog>
   ),
-}
+};

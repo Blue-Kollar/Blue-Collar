@@ -25,26 +25,26 @@
  *   DB_READ_POOL_SIZE  — max connections for replica  (default: 20)
  */
 
-import { Prisma, PrismaClient } from '@prisma/client'
-import { PrismaPg } from '@prisma/adapter-pg'
-import { config } from './config.js'
+import { Prisma, PrismaClient } from '@prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { config } from './config.js';
 
 // ── Configuration ─────────────────────────────────────────────────────────────
 // All env access is centralized in config.ts (#1816), which validates at boot
 // and fails fast on missing/invalid values.
 
 /** Max connections for the primary (write) pool. */
-const DB_POOL_SIZE = config.DB_POOL_SIZE
+const DB_POOL_SIZE = config.DB_POOL_SIZE;
 
 /** Max connections for the read-replica pool (can be larger for read-heavy workloads). */
-const DB_READ_POOL_SIZE = config.DB_READ_POOL_SIZE
+const DB_READ_POOL_SIZE = config.DB_READ_POOL_SIZE;
 
 // ── Shared Prisma transaction options ─────────────────────────────────────────
 
 const BASE_TRANSACTION_OPTIONS = {
   maxWait: 15_000, // ms to wait for a connection from the pool before failing
-  timeout:  30_000, // ms before a transaction is automatically rolled back
-} as const
+  timeout: 30_000, // ms before a transaction is automatically rolled back
+} as const;
 
 // ── Primary (read-write) client ───────────────────────────────────────────────
 
@@ -61,7 +61,7 @@ export const db = new PrismaClient({
     max: DB_POOL_SIZE,
   }),
   transactionOptions: BASE_TRANSACTION_OPTIONS,
-})
+});
 
 // ── Read-replica client ───────────────────────────────────────────────────────
 
@@ -84,11 +84,11 @@ export const readDb = new PrismaClient({
     max: DB_READ_POOL_SIZE,
   }),
   transactionOptions: BASE_TRANSACTION_OPTIONS,
-})
+});
 
 // ── Convenience accessor ──────────────────────────────────────────────────────
 
-export type DbMode = 'read' | 'write'
+export type DbMode = 'read' | 'write';
 
 /**
  * Returns the appropriate Prisma client for the operation mode.
@@ -103,7 +103,7 @@ export type DbMode = 'read' | 'write'
  * const worker = await getDb('write').worker.create({ data: { ... } })
  */
 export function getDb(mode: DbMode = 'write'): PrismaClient {
-  return mode === 'read' ? readDb : db
+  return mode === 'read' ? readDb : db;
 }
 
 // ── Transaction helper ────────────────────────────────────────────────────────
@@ -132,7 +132,7 @@ export async function runInTransaction<T>(
   return db.$transaction(fn, {
     maxWait: options?.maxWait ?? BASE_TRANSACTION_OPTIONS.maxWait,
     timeout: options?.timeout ?? BASE_TRANSACTION_OPTIONS.timeout,
-  })
+  });
 }
 
 // ── Graceful shutdown ─────────────────────────────────────────────────────────
@@ -142,5 +142,5 @@ export async function runInTransaction<T>(
  * Should be called by the process manager (PM2, Kubernetes lifecycle hook, etc.).
  */
 export async function disconnectDb(): Promise<void> {
-  await Promise.all([db.$disconnect(), readDb.$disconnect()])
+  await Promise.all([db.$disconnect(), readDb.$disconnect()]);
 }

@@ -1,5 +1,5 @@
-import { z, ZodSchema } from 'zod'
-import type { Request, Response, NextFunction } from 'express'
+import { z, ZodSchema } from 'zod';
+import type { Request, Response, NextFunction } from 'express';
 import {
   MAX_FIELD_LENGTH,
   walletAddressSchema as sharedWalletAddressSchema,
@@ -7,7 +7,7 @@ import {
   boundedString as sharedBoundedString,
   sanitizedString as sharedSanitizedString,
   freeText as sharedFreeText,
-} from '@bluecollar/types'
+} from '@bluecollar/types';
 
 /**
  * Zod-based validate middleware factory (#519).
@@ -18,21 +18,19 @@ import {
  */
 export function validate(schema: ZodSchema, target: 'body' | 'query' | 'params' = 'body') {
   return (req: Request, _res: Response, next: NextFunction) => {
-    const result = schema.safeParse(req[target])
+    const result = schema.safeParse(req[target]);
     if (!result.success) {
       const errors = result.error.errors.reduce<Record<string, string[]>>((acc, err) => {
-        const field = err.path.join('.') || '_root'
-        if (!acc[field]) acc[field] = []
-        acc[field].push(err.message)
-        return acc
-      }, {})
-      return next(
-        new AppError('Validation failed', 400, true, ErrorCode.VALIDATION_ERROR, errors),
-      )
+        const field = err.path.join('.') || '_root';
+        if (!acc[field]) acc[field] = [];
+        acc[field].push(err.message);
+        return acc;
+      }, {});
+      return next(new AppError('Validation failed', 400, true, ErrorCode.VALIDATION_ERROR, errors));
     }
-    req[target] = result.data
-    next()
-  }
+    req[target] = result.data;
+    next();
+  };
 }
 
 /**
@@ -40,21 +38,21 @@ export function validate(schema: ZodSchema, target: 'body' | 'query' | 'params' 
  * Re-exported from the shared types package so API and frontend validation
  * stay in sync (#1788).
  */
-export const walletAddressSchema = sharedWalletAddressSchema
+export const walletAddressSchema = sharedWalletAddressSchema;
 
 /**
  * Stellar token amount: positive decimal, max 15 significant digits to prevent
  * overflow / precision attacks on the Market contract.
  * Re-exported from the shared types package (#1788).
  */
-export const stellarAmountSchema = sharedStellarAmountSchema
+export const stellarAmountSchema = sharedStellarAmountSchema;
 
 /**
  * Generic string field guard — rejects values exceeding MAX_FIELD_LENGTH.
  * Compose with .min() / .regex() as needed.
  * Re-exported from the shared types package (#1788).
  */
-export const boundedString = sharedBoundedString
+export const boundedString = sharedBoundedString;
 
 /**
  * Reusable free-text field builder (#1685).
@@ -65,27 +63,27 @@ export const boundedString = sharedBoundedString
  *
  * @param maxLength - Optional per-field maximum length (defaults to MAX_FIELD_LENGTH)
  */
-export const sanitizedString = sharedSanitizedString
+export const sanitizedString = sharedSanitizedString;
 
 /**
  * Alias for {@link sanitizedString} — use for free-text fields such as
  * worker bios and messages.
  */
-export const freeText = sharedFreeText
+export const freeText = sharedFreeText;
 
 /**
  * Middleware: validate that req.body.walletAddress is a well-formed Stellar address.
  * Use on any route that accepts a wallet address to prevent blockchain-specific injection.
  */
 export function validateWalletAddress(req: Request, res: Response, next: NextFunction) {
-  const result = walletAddressSchema.safeParse(req.body?.walletAddress)
+  const result = walletAddressSchema.safeParse(req.body?.walletAddress);
   if (!result.success) {
     return res.status(422).json({
       status: 'error',
       message: 'Invalid wallet address',
       code: 422,
       errors: { walletAddress: result.error.errors.map((e) => e.message) },
-    })
+    });
   }
-  next()
+  next();
 }

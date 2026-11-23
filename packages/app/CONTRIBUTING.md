@@ -44,7 +44,7 @@ The app package standardizes on **React Context + a paired `useX` hook** for any
 
 ## Design
 
-Figma design file: [BlueCollar UI Kit](https://www.figma.com/file/bluecollar-ui) *(request access from a maintainer)*
+Figma design file: [BlueCollar UI Kit](https://www.figma.com/file/bluecollar-ui) _(request access from a maintainer)_
 
 ## Testing
 
@@ -67,6 +67,7 @@ pnpm test:e2e:ui       # run with interactive UI
 Accessibility tests run automatically on every page using [axe-core](https://github.com/dequelabs/axe-core). Tests fail on **critical** or **serious** violations.
 
 **To run locally:**
+
 ```bash
 pnpm dev               # start the app
 pnpm test:e2e          # in another terminal
@@ -75,6 +76,7 @@ pnpm test:e2e          # in another terminal
 **Accessibility reports** are generated in `a11y-reports/` and included as CI artifacts. Review these to understand any violations found.
 
 **Common violations to fix:**
+
 - Missing `alt` text on images
 - Insufficient color contrast
 - Missing form labels
@@ -88,11 +90,13 @@ See [WCAG 2.1 Guidelines](https://www.w3.org/WAI/WCAG21/quickref/) for details.
 Visual tests catch unintended UI changes using Playwright snapshots and Percy.
 
 **To update snapshots after intentional UI changes:**
+
 ```bash
 pnpm test:e2e visual.spec.ts --update-snapshots
 ```
 
 **To run visual tests:**
+
 ```bash
 pnpm test:e2e visual.spec.ts
 ```
@@ -125,12 +129,12 @@ The app uses [next-intl](https://next-intl-docs.vercel.app/) for translations. L
 
 ### Supported locales
 
-| Code | Language   |
-|------|------------|
-| `en` | English    |
-| `fr` | Français   |
-| `es` | Español    |
-| `pt` | Português  |
+| Code | Language  |
+| ---- | --------- |
+| `en` | English   |
+| `fr` | Français  |
+| `es` | Español   |
+| `pt` | Português |
 
 ### Adding a new locale
 

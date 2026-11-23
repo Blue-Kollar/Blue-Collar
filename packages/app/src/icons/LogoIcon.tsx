@@ -1,4 +1,7 @@
-interface Props { className?: string; size?: number }
+interface Props {
+  className?: string;
+  size?: number;
+}
 
 export default function LogoIcon({ className, size = 32 }: Props) {
   return (

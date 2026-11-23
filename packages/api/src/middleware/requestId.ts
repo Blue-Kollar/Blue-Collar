@@ -35,10 +35,10 @@
  * ```
  */
 
-import { randomUUID } from 'node:crypto'
-import type { Request, Response, NextFunction } from 'express'
-import type { Logger } from 'pino'
-import { logger } from '../lib/logger.js'
+import { randomUUID } from 'node:crypto';
+import type { Request, Response, NextFunction } from 'express';
+import type { Logger } from 'pino';
+import { logger } from '../lib/logger.js';
 
 // Extend Express's Request type so `req.id` and `req.log` are typed throughout
 // the codebase.
@@ -46,9 +46,9 @@ declare global {
   namespace Express {
     interface Request {
       /** Unique request ID — set by the requestId middleware. */
-      id: string
+      id: string;
       /** Request-scoped child logger bound with `{ requestId }`. */
-      log: Logger
+      log: Logger;
     }
   }
 }
@@ -61,14 +61,12 @@ declare global {
  * a new UUID v4.
  */
 export function requestId(req: Request, res: Response, next: NextFunction): void {
-  const inbound = req.headers['x-request-id']
+  const inbound = req.headers['x-request-id'];
   const id =
-    typeof inbound === 'string' && inbound.trim().length > 0
-      ? inbound.trim()
-      : randomUUID()
+    typeof inbound === 'string' && inbound.trim().length > 0 ? inbound.trim() : randomUUID();
 
-  req.id = id
-  req.log = logger.child({ requestId: id })
-  res.setHeader('X-Request-ID', id)
-  next()
+  req.id = id;
+  req.log = logger.child({ requestId: id });
+  res.setHeader('X-Request-ID', id);
+  next();
 }

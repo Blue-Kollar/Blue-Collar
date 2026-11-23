@@ -8,7 +8,7 @@
  * Issue #1641: Stream large CSV exports without exhausting memory.
  */
 
-import type { Response } from 'express'
+import type { Response } from 'express';
 
 /**
  * RFC-4180 CSV field escaping.
@@ -19,15 +19,15 @@ import type { Response } from 'express'
  * @returns The escaped field value
  */
 export function escapeCsvField(value: unknown): string {
-  const str = value == null ? '' : String(value)
+  const str = value == null ? '' : String(value);
 
   // No escaping needed if field doesn't contain special characters
   if (!str.includes(',') && !str.includes('"') && !str.includes('\n')) {
-    return str
+    return str;
   }
 
   // Escape internal quotes and wrap in double-quotes
-  return `"${str.replace(/"/g, '""')}"`
+  return `"${str.replace(/"/g, '""')}"`;
 }
 
 /**
@@ -49,14 +49,14 @@ export function escapeCsvField(value: unknown): string {
  * await writer.end()
  */
 export class CsvWriter {
-  private response: Response
-  private filename: string
-  private headerWritten = false
-  private rowCount = 0
+  private response: Response;
+  private filename: string;
+  private headerWritten = false;
+  private rowCount = 0;
 
   constructor(response: Response, filename: string) {
-    this.response = response
-    this.filename = filename
+    this.response = response;
+    this.filename = filename;
   }
 
   /**
@@ -69,11 +69,11 @@ export class CsvWriter {
    * - Cache-Control: no-cache (prevent browser caching of downloads)
    */
   initialize(): void {
-    this.response.setHeader('Content-Type', 'text/csv; charset=utf-8')
-    this.response.setHeader('Content-Disposition', `attachment; filename="${this.filename}"`)
-    this.response.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate')
-    this.response.setHeader('Pragma', 'no-cache')
-    this.response.setHeader('Expires', '0')
+    this.response.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    this.response.setHeader('Content-Disposition', `attachment; filename="${this.filename}"`);
+    this.response.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    this.response.setHeader('Pragma', 'no-cache');
+    this.response.setHeader('Expires', '0');
   }
 
   /**
@@ -86,11 +86,11 @@ export class CsvWriter {
    */
   async writeHeader(headers: string[]): Promise<void> {
     if (this.headerWritten) {
-      throw new Error('Header has already been written')
+      throw new Error('Header has already been written');
     }
 
-    const headerLine = headers.map(escapeCsvField).join(',') + '\n'
-    return this.writeLine(headerLine)
+    const headerLine = headers.map(escapeCsvField).join(',') + '\n';
+    return this.writeLine(headerLine);
   }
 
   /**
@@ -103,12 +103,12 @@ export class CsvWriter {
    */
   async writeRow(fields: unknown[]): Promise<void> {
     if (!this.headerWritten) {
-      throw new Error('Header must be written before data rows')
+      throw new Error('Header must be written before data rows');
     }
 
-    const rowLine = fields.map(escapeCsvField).join(',') + '\n'
-    this.rowCount++
-    return this.writeLine(rowLine)
+    const rowLine = fields.map(escapeCsvField).join(',') + '\n';
+    this.rowCount++;
+    return this.writeLine(rowLine);
   }
 
   /**
@@ -121,15 +121,15 @@ export class CsvWriter {
     return new Promise((resolve) => {
       // If response is already finished, resolve immediately
       if (this.response.writableEnded) {
-        resolve()
-        return
+        resolve();
+        return;
       }
 
       // End the response stream
       this.response.end(() => {
-        resolve()
-      })
-    })
+        resolve();
+      });
+    });
   }
 
   /**
@@ -138,7 +138,7 @@ export class CsvWriter {
    * @returns Number of rows written
    */
   getRowCount(): number {
-    return this.rowCount
+    return this.rowCount;
   }
 
   /**
@@ -152,20 +152,20 @@ export class CsvWriter {
   private writeLine(line: string): Promise<void> {
     return new Promise((resolve, reject) => {
       const canContinue = this.response.write(line, 'utf-8', (err) => {
-        if (err) reject(err)
-      })
+        if (err) reject(err);
+      });
 
       if (!this.headerWritten && line.includes('\n')) {
-        this.headerWritten = true
+        this.headerWritten = true;
       }
 
       if (canContinue) {
-        resolve()
+        resolve();
       } else {
         // Backpressure: wait for drain event before continuing
-        this.response.once('drain', resolve)
+        this.response.once('drain', resolve);
       }
-    })
+    });
   }
 }
 
@@ -197,19 +197,19 @@ export async function streamCsvArray<T>(
   filename: string,
   headers: string[],
   rows: T[],
-  keyMap: (row: T) => unknown[]
+  keyMap: (row: T) => unknown[],
 ): Promise<number> {
-  const writer = new CsvWriter(response, filename)
-  writer.initialize()
+  const writer = new CsvWriter(response, filename);
+  writer.initialize();
 
-  await writer.writeHeader(headers)
+  await writer.writeHeader(headers);
 
   for (const row of rows) {
-    await writer.writeRow(keyMap(row))
+    await writer.writeRow(keyMap(row));
   }
 
-  await writer.end()
-  return writer.getRowCount()
+  await writer.end();
+  return writer.getRowCount();
 }
 
 /**
@@ -239,35 +239,35 @@ export async function streamCsvPaginated<T>(
   headers: string[],
   fetcher: (skip: number) => Promise<T[]>,
   pageSize: number,
-  keyMap: (row: T) => unknown[]
+  keyMap: (row: T) => unknown[],
 ): Promise<number> {
-  const writer = new CsvWriter(response, filename)
-  writer.initialize()
+  const writer = new CsvWriter(response, filename);
+  writer.initialize();
 
-  await writer.writeHeader(headers)
+  await writer.writeHeader(headers);
 
-  let skip = 0
-  let hasMore = true
+  let skip = 0;
+  let hasMore = true;
 
   while (hasMore) {
-    const page = await fetcher(skip)
+    const page = await fetcher(skip);
 
     if (page.length === 0) {
-      hasMore = false
-      break
+      hasMore = false;
+      break;
     }
 
     for (const row of page) {
-      await writer.writeRow(keyMap(row))
+      await writer.writeRow(keyMap(row));
     }
 
     if (page.length < pageSize) {
-      hasMore = false
+      hasMore = false;
     } else {
-      skip += pageSize
+      skip += pageSize;
     }
   }
 
-  await writer.end()
-  return writer.getRowCount()
+  await writer.end();
+  return writer.getRowCount();
 }

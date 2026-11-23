@@ -1,19 +1,19 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { Bell, ArrowLeft } from "lucide-react";
-import Link from "next/link";
-import { useLocale } from "next-intl";
+import { useEffect, useState } from 'react';
+import { Bell, ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
+import { useLocale } from 'next-intl';
 import {
   getNotificationPreferences,
   updateNotificationPreferences,
   type NotificationPreferences,
-} from "@/lib/api";
+} from '@/lib/api';
 import {
   DEFAULT_PREFS,
   NotificationPreferencesList,
-} from "@/components/notifications/preferences/NotificationPreferencesList";
-import { SavePreferencesButton } from "@/components/notifications/preferences/SavePreferencesButton";
+} from '@/components/notifications/preferences/NotificationPreferencesList';
+import { SavePreferencesButton } from '@/components/notifications/preferences/SavePreferencesButton';
 
 export default function NotificationPreferencesPage() {
   const locale = useLocale();

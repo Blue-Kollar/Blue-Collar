@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import type { TipDTO } from "@/types";
-import { TrendingUp, Calendar, DollarSign } from "lucide-react";
-import { formatDate } from "@/lib/utils";
-import { useTranslations } from "next-intl";
-import { getTransactionStatusMeta } from "@/lib/transactionStatus";
+import type { TipDTO } from '@/types';
+import { TrendingUp, Calendar, DollarSign } from 'lucide-react';
+import { formatDate } from '@/lib/utils';
+import { useTranslations } from 'next-intl';
+import { getTransactionStatusMeta } from '@/lib/transactionStatus';
 
 interface ContractSummaryProps {
   tip: TipDTO;
@@ -12,7 +12,7 @@ interface ContractSummaryProps {
 }
 
 export default function ContractSummary({ tip, isLoading = false }: ContractSummaryProps) {
-  const t = useTranslations("componentText");
+  const t = useTranslations('componentText');
   if (isLoading) {
     return (
       <div className="rounded-lg border bg-white p-6 shadow-sm">
@@ -34,21 +34,17 @@ export default function ContractSummary({ tip, isLoading = false }: ContractSumm
         <div className="space-y-4 flex-1">
           <div className="flex items-center gap-2 text-gray-600">
             <DollarSign size={16} />
-            <span className="text-sm font-medium">{t("transactionSummary")}</span>
+            <span className="text-sm font-medium">{t('transactionSummary')}</span>
           </div>
 
           <div className="space-y-2">
-            <p className="text-3xl font-bold text-gray-900">
-              {Number(tip.amount).toFixed(2)} XLM
-            </p>
+            <p className="text-3xl font-bold text-gray-900">{Number(tip.amount).toFixed(2)} XLM</p>
             <div className="flex items-center gap-2 text-sm text-gray-500">
               <Calendar size={14} />
               <span>{date}</span>
             </div>
             {tip.memo && (
-              <p className="text-sm text-gray-600 bg-gray-50 rounded px-3 py-2">
-                {tip.memo}
-              </p>
+              <p className="text-sm text-gray-600 bg-gray-50 rounded px-3 py-2">{tip.memo}</p>
             )}
           </div>
 

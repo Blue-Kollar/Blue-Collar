@@ -85,12 +85,12 @@ env.storage().persistent().set(&key, &worker); // Single write
 
 ## Benchmarking Results
 
-| Operation | Before | After | Savings |
-|-----------|--------|-------|---------|
-| pause() | ~2,500 ops | ~2,250 ops | 10% |
-| grant_role() | ~3,200 ops | ~2,880 ops | 10% |
-| verify_location() | ~4,100 ops | ~3,690 ops | 10% |
-| update_availability() | ~3,800 ops | ~3,420 ops | 10% |
+| Operation             | Before     | After      | Savings |
+| --------------------- | ---------- | ---------- | ------- |
+| pause()               | ~2,500 ops | ~2,250 ops | 10%     |
+| grant_role()          | ~3,200 ops | ~2,880 ops | 10%     |
+| verify_location()     | ~4,100 ops | ~3,690 ops | 10%     |
+| update_availability() | ~3,800 ops | ~3,420 ops | 10%     |
 
 ## Best Practices
 
@@ -115,20 +115,20 @@ reduces that overhead proportionally.
 
 ### Batch operations available
 
-| Contract | Function | Max batch | Notes |
-|----------|----------|-----------|-------|
-| `market` | `batch_release_escrow` | 20 | Release multiple escrows in one tx |
-| `payment` | `batch_release_payment` | 20 | Release multiple locked payments in one tx |
-| `job_registry` | `batch_complete_jobs` | 20 | Complete multiple assigned jobs in one tx |
-| `registry` | `batch_toggle` | 20 | Toggle active status for multiple workers |
-| `registry` | `batch_register` | 20 | Register multiple workers in one tx |
+| Contract       | Function                | Max batch | Notes                                      |
+| -------------- | ----------------------- | --------- | ------------------------------------------ |
+| `market`       | `batch_release_escrow`  | 20        | Release multiple escrows in one tx         |
+| `payment`      | `batch_release_payment` | 20        | Release multiple locked payments in one tx |
+| `job_registry` | `batch_complete_jobs`   | 20        | Complete multiple assigned jobs in one tx  |
+| `registry`     | `batch_toggle`          | 20        | Toggle active status for multiple workers  |
+| `registry`     | `batch_register`        | 20        | Register multiple workers in one tx        |
 
 ### Gas budget guidance
 
 Each batch call must stay within the per-transaction instruction limit
 (currently ~100 million instructions on Mainnet). A batch of 20 token
 transfers costs roughly the same as 20 individual `release_payment` calls'
-*logic* cost but saves ~20× the per-transaction base overhead (auth check,
+_logic_ cost but saves ~20× the per-transaction base overhead (auth check,
 contract invocation frame, XDR parsing/serialization). Start with batches of
 10 and increase until approaching the budget for your token contract.
 

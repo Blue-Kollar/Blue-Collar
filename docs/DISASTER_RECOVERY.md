@@ -2,10 +2,10 @@
 
 ## Objectives
 
-| Metric | Target |
-|---|---|
-| Recovery Time Objective (RTO) | ≤ 4 hours |
-| Recovery Point Objective (RPO) | ≤ 1 hour |
+| Metric                         | Target    |
+| ------------------------------ | --------- |
+| Recovery Time Objective (RTO)  | ≤ 4 hours |
+| Recovery Point Objective (RPO) | ≤ 1 hour  |
 
 ## Architecture overview
 
@@ -24,6 +24,7 @@
 **Symptoms:** API returns 5xx, DB connection errors in logs.
 
 **Steps:**
+
 1. Check RDS console — confirm instance status.
 2. If Multi-AZ failover is in progress, wait up to 2 minutes for automatic promotion.
 3. If primary region is unavailable, promote the DR read replica:
@@ -45,6 +46,7 @@
 **Symptoms:** All services unreachable, AWS console shows region degradation.
 
 **Steps:**
+
 1. Declare incident in Slack `#incidents`.
 2. Switch DNS to DR region (Route 53 health-check failover triggers automatically if configured, otherwise manual):
    ```bash
@@ -70,6 +72,7 @@
 **Symptoms:** Unexpected data in DB, application errors referencing invalid records.
 
 **Steps:**
+
 1. Identify the corruption window from application logs.
 2. Take an immediate manual snapshot:
    ```bash
@@ -92,6 +95,7 @@
 **Symptoms:** Deployments fail with image pull errors.
 
 **Steps:**
+
 1. Switch image pull to DR ECR region by updating `values.yaml`:
    ```yaml
    image:
@@ -104,6 +108,7 @@
 ## Backup infrastructure (DR region)
 
 Managed via Terraform — see `deploy/terraform/modules/dr/`:
+
 - RDS cross-region read replica
 - S3 cross-region replication rule
 - ECR replication configuration
@@ -112,20 +117,20 @@ Managed via Terraform — see `deploy/terraform/modules/dr/`:
 
 ## DR drill schedule
 
-| Drill | Frequency | Owner |
-|---|---|---|
-| Database failover simulation | Quarterly | Platform team |
-| Full region failover tabletop | Semi-annually | Engineering leads |
-| Backup restore verification | Monthly (automated) | CI/CD |
+| Drill                         | Frequency           | Owner             |
+| ----------------------------- | ------------------- | ----------------- |
+| Database failover simulation  | Quarterly           | Platform team     |
+| Full region failover tabletop | Semi-annually       | Engineering leads |
+| Backup restore verification   | Monthly (automated) | CI/CD             |
 
 ---
 
 ## Runbook index
 
-| Scenario | Script / Doc |
-|---|---|
-| Restore database from backup | `deploy/scripts/restore-database.sh` |
-| Verify backup integrity | `deploy/scripts/verify-backup.sh` |
-| Blue/green rollback | `deploy/scripts/rollback.sh` |
-| Rotate secrets | `deploy/scripts/rotate-api-secrets.sh` |
-| Full DR failover | This document §2 |
+| Scenario                     | Script / Doc                           |
+| ---------------------------- | -------------------------------------- |
+| Restore database from backup | `deploy/scripts/restore-database.sh`   |
+| Verify backup integrity      | `deploy/scripts/verify-backup.sh`      |
+| Blue/green rollback          | `deploy/scripts/rollback.sh`           |
+| Rotate secrets               | `deploy/scripts/rotate-api-secrets.sh` |
+| Full DR failover             | This document §2                       |

@@ -1,5 +1,5 @@
-import nodemailer from 'nodemailer'
-import { config } from '@/config/config.js'
+import nodemailer from 'nodemailer';
+import { config } from '@/config/config.js';
 
 export const transporter = nodemailer.createTransport({
   host: config.mail.host,
@@ -8,4 +8,4 @@ export const transporter = nodemailer.createTransport({
     user: config.mail.user,
     pass: config.mail.pass,
   },
-})
+});

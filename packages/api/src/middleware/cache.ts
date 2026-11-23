@@ -6,7 +6,7 @@
  * for all Redis I/O so metrics and error handling are consistent.
  */
 
-import type { Request, Response, NextFunction } from 'express'
+import type { Request, Response, NextFunction } from 'express';
 import {
   cacheGet,
   cacheSet,
@@ -14,9 +14,9 @@ import {
   cacheDel,
   CacheTTL,
   CacheKeys,
-} from '@/services/cache.service.js'
+} from '@/services/cache.service.js';
 
-export { CacheTTL, CacheKeys }
+export { CacheTTL, CacheKeys };
 
 /**
  * Cache middleware for GET endpoints.
@@ -33,43 +33,40 @@ export { CacheTTL, CacheKeys }
  * @example
  * router.get('/workers', cacheMiddleware(CacheTTL.LONG), workersController.list)
  */
-export function cacheMiddleware(
-  ttl: number,
-  keyFn?: (req: Request) => string,
-) {
+export function cacheMiddleware(ttl: number, keyFn?: (req: Request) => string) {
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    if (req.method !== 'GET') return next()
+    if (req.method !== 'GET') return next();
 
-    const key = keyFn ? keyFn(req) : `cache:${req.originalUrl}`
+    const key = keyFn ? keyFn(req) : `cache:${req.originalUrl}`;
 
-    const cached = await cacheGet(key)
+    const cached = await cacheGet(key);
     if (cached !== null) {
-      res.setHeader('X-Cache', 'HIT')
-      res.json(cached)
-      return
+      res.setHeader('X-Cache', 'HIT');
+      res.json(cached);
+      return;
     }
 
-    res.setHeader('X-Cache', 'MISS')
+    res.setHeader('X-Cache', 'MISS');
 
     // Intercept res.json to persist the response
-    const originalJson = res.json.bind(res)
+    const originalJson = res.json.bind(res);
     res.json = (body: unknown) => {
       // Only cache successful responses
       if (res.statusCode >= 200 && res.statusCode < 300) {
-        cacheSet(key, body, ttl).catch(() => {})
+        cacheSet(key, body, ttl).catch(() => {});
       }
-      return originalJson(body)
-    }
+      return originalJson(body);
+    };
 
-    next()
-  }
+    next();
+  };
 }
 
 /**
  * Invalidate one or more exact cache keys.
  * Use after writes to keep the cache consistent.
  */
-export { cacheDel as invalidateCache }
+export { cacheDel as invalidateCache };
 
 /**
  * Invalidate all cache keys matching a glob pattern.
@@ -77,4 +74,4 @@ export { cacheDel as invalidateCache }
  * @example
  * await invalidateCachePattern('cache:/api/workers*')
  */
-export { cacheInvalidatePattern as invalidateCachePattern }
+export { cacheInvalidatePattern as invalidateCachePattern };

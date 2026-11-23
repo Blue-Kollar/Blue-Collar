@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { Clock, Star, MessageSquare, Wallet, Heart } from "lucide-react";
-import { cn, formatDate } from "@/lib/utils";
-import { useTranslations } from "next-intl";
+import { Clock, Star, MessageSquare, Wallet, Heart } from 'lucide-react';
+import { cn, formatDate } from '@/lib/utils';
+import { useTranslations } from 'next-intl';
 
-export type ActivityType = "tip" | "review" | "message" | "bookmark" | "escrow";
+export type ActivityType = 'tip' | 'review' | 'message' | 'bookmark' | 'escrow';
 
 export interface ActivityItem {
   id: string;
@@ -24,19 +24,17 @@ const iconMap: Record<ActivityType, React.ReactNode> = {
 };
 
 const colorMap: Record<ActivityType, string> = {
-  tip: "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400",
-  review: "bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400",
-  message: "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400",
-  bookmark: "bg-pink-100 text-pink-600 dark:bg-pink-900/30 dark:text-pink-400",
-  escrow: "bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400",
+  tip: 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400',
+  review: 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400',
+  message: 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400',
+  bookmark: 'bg-pink-100 text-pink-600 dark:bg-pink-900/30 dark:text-pink-400',
+  escrow: 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400',
 };
 
 export function ActivityTimeline({ items }: { items: ActivityItem[] }) {
-  const t = useTranslations("componentText");
+  const t = useTranslations('componentText');
   if (items.length === 0) {
-    return (
-      <div className="py-10 text-center text-sm text-gray-400">{t("noActivity")}</div>
-    );
+    return <div className="py-10 text-center text-sm text-gray-400">{t('noActivity')}</div>;
   }
 
   return (
@@ -45,8 +43,8 @@ export function ActivityTimeline({ items }: { items: ActivityItem[] }) {
         <li key={item.id} className="relative">
           <span
             className={cn(
-              "absolute -left-[1.65rem] flex h-8 w-8 items-center justify-center rounded-full ring-2 ring-white dark:ring-gray-900",
-              colorMap[item.type]
+              'absolute -left-[1.65rem] flex h-8 w-8 items-center justify-center rounded-full ring-2 ring-white dark:ring-gray-900',
+              colorMap[item.type],
             )}
             aria-hidden
           >

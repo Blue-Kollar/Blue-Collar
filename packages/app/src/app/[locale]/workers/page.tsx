@@ -1,15 +1,14 @@
-import type { Metadata } from "next";
-import { Suspense } from "react";
-import WorkersDiscovery from "@/components/WorkersDiscovery";
-import { WorkersDiscoveryFallback } from "@/components/workers/WorkersDiscoveryFallback";
+import type { Metadata } from 'next';
+import { Suspense } from 'react';
+import WorkersDiscovery from '@/components/WorkersDiscovery';
+import { WorkersDiscoveryFallback } from '@/components/workers/WorkersDiscoveryFallback';
 
 export const metadata: Metadata = {
-  title: "Browse Workers",
-  description:
-    "Find skilled tradespeople near you — plumbers, electricians, carpenters and more.",
+  title: 'Browse Workers',
+  description: 'Find skilled tradespeople near you — plumbers, electricians, carpenters and more.',
   openGraph: {
-    title: "Browse Workers | BlueCollar",
-    description: "Find skilled tradespeople near you.",
+    title: 'Browse Workers | BlueCollar',
+    description: 'Find skilled tradespeople near you.',
   },
 };
 

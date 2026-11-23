@@ -1,41 +1,43 @@
-import { render, screen, waitFor } from "@testing-library/react";
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import DashboardPage from "@/app/[locale]/dashboard/page";
-import * as AuthContext from "@/context/AuthContext";
-import * as WalletHook from "@/hooks/useWallet";
-import type { AuthUser } from "@/types";
+import { render, screen, waitFor } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import DashboardPage from '@/app/[locale]/dashboard/page';
+import * as AuthContext from '@/context/AuthContext';
+import * as WalletHook from '@/hooks/useWallet';
+import type { AuthUser } from '@/types';
 
-vi.mock("@/context/AuthContext", () => ({
+vi.mock('@/context/AuthContext', () => ({
   useAuth: vi.fn(),
 }));
 
-vi.mock("@/hooks/useWallet", () => ({
+vi.mock('@/hooks/useWallet', () => ({
   useWallet: vi.fn(),
 }));
 
-vi.mock("next/navigation", () => ({
+vi.mock('next/navigation', () => ({
   useRouter: vi.fn(() => ({
     replace: vi.fn(),
     push: vi.fn(),
   })),
 }));
 
-vi.mock("next/link", () => ({
+vi.mock('next/link', () => ({
   default: ({ href, children, ...props }: any) => (
-    <a href={href} {...props}>{children}</a>
+    <a href={href} {...props}>
+      {children}
+    </a>
   ),
 }));
 
-vi.mock("next/dynamic", () => ({
+vi.mock('next/dynamic', () => ({
   default: (loader: any) => {
     const Component = vi.fn(() => <div data-testid="dynamic-charts" />);
-    Component.displayName = "DynamicCharts";
+    Component.displayName = 'DynamicCharts';
     return Component;
   },
 }));
 
-vi.mock("@radix-ui/react-dialog", () => ({
+vi.mock('@radix-ui/react-dialog', () => ({
   Root: ({ children }: any) => <div data-testid="dialog-root">{children}</div>,
   Portal: ({ children }: any) => <div data-testid="dialog-portal">{children}</div>,
   Overlay: ({ children }: any) => <div data-testid="dialog-overlay">{children}</div>,
@@ -45,7 +47,7 @@ vi.mock("@radix-ui/react-dialog", () => ({
   Close: ({ children }: any) => <button data-testid="dialog-close">{children}</button>,
 }));
 
-vi.mock("lucide-react", () => ({
+vi.mock('lucide-react', () => ({
   Plus: () => <span data-testid="icon-plus" />,
   Pencil: () => <span data-testid="icon-pencil" />,
   Trash2: () => <span data-testid="icon-trash" />,
@@ -64,11 +66,11 @@ vi.mock("lucide-react", () => ({
   BarChart3: () => <span data-testid="icon-chart" />,
 }));
 
-vi.mock("@/components/FriendbotBanner", () => ({
+vi.mock('@/components/FriendbotBanner', () => ({
   default: () => <div data-testid="friendbot-banner" />,
 }));
 
-vi.mock("@/components/Skeleton", () => ({
+vi.mock('@/components/Skeleton', () => ({
   DashboardTableSkeleton: () => <div data-testid="skeleton-table" />,
 }));
 
@@ -77,7 +79,7 @@ const getCuratorAnalytics = vi.fn();
 const getWorkerViewTrends = vi.fn();
 const toggleWorker = vi.fn();
 const deleteWorker = vi.fn();
-vi.mock("@/lib/api", () => ({
+vi.mock('@/lib/api', () => ({
   getMyWorkers: (...args: unknown[]) => getMyWorkers(...args),
   getCuratorAnalytics: (...args: unknown[]) => getCuratorAnalytics(...args),
   getWorkerViewTrends: (...args: unknown[]) => getWorkerViewTrends(...args),
@@ -86,28 +88,28 @@ vi.mock("@/lib/api", () => ({
 }));
 
 const mockUser: AuthUser = {
-  id: "user1",
-  email: "curator@example.com",
-  firstName: "John",
-  lastName: "Doe",
-  role: "curator",
-  createdAt: "2026-01-01T00:00:00Z",
+  id: 'user1',
+  email: 'curator@example.com',
+  firstName: 'John',
+  lastName: 'Doe',
+  role: 'curator',
+  createdAt: '2026-01-01T00:00:00Z',
 };
 
 const mockWorkers = [
   {
-    id: "w1",
-    name: "Plumber Pro",
+    id: 'w1',
+    name: 'Plumber Pro',
     isActive: true,
-    createdAt: "2026-01-15T00:00:00Z",
-    category: { id: "c1", name: "Plumbing" },
+    createdAt: '2026-01-15T00:00:00Z',
+    category: { id: 'c1', name: 'Plumbing' },
   },
   {
-    id: "w2",
-    name: "Electric Expert",
+    id: 'w2',
+    name: 'Electric Expert',
     isActive: false,
-    createdAt: "2026-02-01T00:00:00Z",
-    category: { id: "c2", name: "Electrical" },
+    createdAt: '2026-02-01T00:00:00Z',
+    category: { id: 'c2', name: 'Electrical' },
   },
 ];
 
@@ -116,9 +118,9 @@ const mockAnalytics = {
   activeWorkers: 1,
   workers: [
     {
-      id: "w1",
-      name: "Plumber Pro",
-      category: "Plumbing",
+      id: 'w1',
+      name: 'Plumber Pro',
+      category: 'Plumbing',
       isActive: true,
       views: 150,
       uniqueViews: 120,
@@ -148,14 +150,14 @@ function renderDashboard() {
   return render(
     <QueryClientProvider client={queryClient}>
       <DashboardPage />
-    </QueryClientProvider>
+    </QueryClientProvider>,
   );
 }
 
 function mockAuthenticatedCurator() {
   vi.mocked(AuthContext.useAuth).mockReturnValue({
     user: mockUser,
-    token: "test-token",
+    token: 'test-token',
     isLoading: false,
     login: vi.fn(),
     logout: vi.fn(),
@@ -174,8 +176,8 @@ beforeEach(() => {
   deleteWorker.mockResolvedValue(undefined);
 });
 
-describe("Dashboard", () => {
-  it("shows loading state when auth is loading", () => {
+describe('Dashboard', () => {
+  it('shows loading state when auth is loading', () => {
     vi.mocked(AuthContext.useAuth).mockReturnValue({
       user: null,
       token: null,
@@ -187,10 +189,10 @@ describe("Dashboard", () => {
     vi.mocked(WalletHook.useWallet).mockReturnValue({ publicKey: null } as any);
 
     renderDashboard();
-    expect(screen.getByTestId("skeleton-table")).toBeInTheDocument();
+    expect(screen.getByTestId('skeleton-table')).toBeInTheDocument();
   });
 
-  it("shows loading skeleton when not authenticated", () => {
+  it('shows loading skeleton when not authenticated', () => {
     vi.mocked(AuthContext.useAuth).mockReturnValue({
       user: null,
       token: null,
@@ -202,103 +204,103 @@ describe("Dashboard", () => {
     vi.mocked(WalletHook.useWallet).mockReturnValue({ publicKey: null } as any);
 
     renderDashboard();
-    expect(screen.getByTestId("skeleton-table")).toBeInTheDocument();
+    expect(screen.getByTestId('skeleton-table')).toBeInTheDocument();
   });
 
-  it("renders main header for authenticated curator", async () => {
+  it('renders main header for authenticated curator', async () => {
     mockAuthenticatedCurator();
 
     renderDashboard();
 
     await waitFor(() => {
-      expect(screen.getByText("My Workers")).toBeInTheDocument();
+      expect(screen.getByText('My Workers')).toBeInTheDocument();
       expect(
-        screen.getByText("Manage your worker listings and track performance")
+        screen.getByText('Manage your worker listings and track performance'),
       ).toBeInTheDocument();
     });
   });
 
-  it("renders worker table with workers data", async () => {
+  it('renders worker table with workers data', async () => {
     mockAuthenticatedCurator();
 
     renderDashboard();
 
     await waitFor(() => {
-      expect(screen.getByText("Plumber Pro")).toBeInTheDocument();
-      expect(screen.getByText("Electric Expert")).toBeInTheDocument();
-      expect(screen.getByText("Plumbing")).toBeInTheDocument();
-      expect(screen.getByText("Electrical")).toBeInTheDocument();
+      expect(screen.getByText('Plumber Pro')).toBeInTheDocument();
+      expect(screen.getByText('Electric Expert')).toBeInTheDocument();
+      expect(screen.getByText('Plumbing')).toBeInTheDocument();
+      expect(screen.getByText('Electrical')).toBeInTheDocument();
     });
   });
 
-  it("shows active/inactive status badges", async () => {
+  it('shows active/inactive status badges', async () => {
     mockAuthenticatedCurator();
 
     renderDashboard();
 
     await waitFor(() => {
-      const activeElements = screen.getAllByText("Active");
+      const activeElements = screen.getAllByText('Active');
       expect(activeElements.length).toBeGreaterThan(0);
-      expect(screen.getByText("Inactive")).toBeInTheDocument();
+      expect(screen.getByText('Inactive')).toBeInTheDocument();
     });
   });
 
-  it("has tabs for workers and analytics", async () => {
+  it('has tabs for workers and analytics', async () => {
     mockAuthenticatedCurator();
 
     renderDashboard();
 
     await waitFor(() => {
-      expect(screen.getByText("Workers")).toBeInTheDocument();
-      expect(screen.getByText("Analytics")).toBeInTheDocument();
+      expect(screen.getByText('Workers')).toBeInTheDocument();
+      expect(screen.getByText('Analytics')).toBeInTheDocument();
     });
   });
 
-  it("displays error message when fetch fails", async () => {
+  it('displays error message when fetch fails', async () => {
     mockAuthenticatedCurator();
-    getMyWorkers.mockRejectedValueOnce(new Error("Network error"));
+    getMyWorkers.mockRejectedValueOnce(new Error('Network error'));
 
     renderDashboard();
 
     await waitFor(() => {
-      expect(screen.getByText("Network error")).toBeInTheDocument();
+      expect(screen.getByText('Network error')).toBeInTheDocument();
     });
   });
 
-  it("shows empty state when no workers exist", async () => {
+  it('shows empty state when no workers exist', async () => {
     mockAuthenticatedCurator();
     getMyWorkers.mockResolvedValueOnce({ data: [] });
 
     renderDashboard();
 
     await waitFor(() => {
-      expect(screen.getByText("No workers yet")).toBeInTheDocument();
+      expect(screen.getByText('No workers yet')).toBeInTheDocument();
       expect(
-        screen.getByText("Create your first worker listing to get started.")
+        screen.getByText('Create your first worker listing to get started.'),
       ).toBeInTheDocument();
     });
   });
 
-  it("has create worker and settings buttons", async () => {
+  it('has create worker and settings buttons', async () => {
     mockAuthenticatedCurator();
 
     renderDashboard();
 
     await waitFor(() => {
-      const createButtons = screen.getAllByText("Create New Worker");
+      const createButtons = screen.getAllByText('Create New Worker');
       expect(createButtons.length).toBeGreaterThan(0);
     });
   });
 
-  it("renders action buttons for each worker", async () => {
+  it('renders action buttons for each worker', async () => {
     mockAuthenticatedCurator();
 
     renderDashboard();
 
     await waitFor(() => {
-      expect(screen.getAllByTestId("icon-trending").length).toBeGreaterThan(0);
-      expect(screen.getAllByTestId("icon-pencil").length).toBeGreaterThan(0);
-      expect(screen.getAllByTestId("icon-trash").length).toBeGreaterThan(0);
+      expect(screen.getAllByTestId('icon-trending').length).toBeGreaterThan(0);
+      expect(screen.getAllByTestId('icon-pencil').length).toBeGreaterThan(0);
+      expect(screen.getAllByTestId('icon-trash').length).toBeGreaterThan(0);
     });
   });
 });

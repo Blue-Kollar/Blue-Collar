@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { useState, useRef, useCallback } from "react";
-import Image from "next/image";
-import { GripVertical, Plus, Trash2, X, ImageIcon, AlertCircle } from "lucide-react";
-import ImageLightbox from "@/components/ImageLightbox";
-import { useTranslations } from "next-intl";
+import { useState, useRef, useCallback } from 'react';
+import Image from 'next/image';
+import { GripVertical, Plus, Trash2, X, ImageIcon, AlertCircle } from 'lucide-react';
+import ImageLightbox from '@/components/ImageLightbox';
+import { useTranslations } from 'next-intl';
 
 export interface PortfolioImage {
   id: string;
@@ -34,7 +34,7 @@ export default function PortfolioGallery({
   onReorder,
   onCaptionChange,
 }: Props) {
-  const t = useTranslations("componentText");
+  const t = useTranslations('componentText');
   const [lightbox, setLightbox] = useState<PortfolioImage | null>(null);
   const [editingCaption, setEditingCaption] = useState<string | null>(null);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
@@ -48,19 +48,19 @@ export default function PortfolioGallery({
 
   const validateAndAdd = (files: File[]) => {
     setUploadError(null);
-    const imageFiles = files.filter((f) => f.type.startsWith("image/"));
+    const imageFiles = files.filter((f) => f.type.startsWith('image/'));
     if (imageFiles.length === 0) {
-      setUploadError(t("imageFilesOnly"));
+      setUploadError(t('imageFilesOnly'));
       return;
     }
     const oversized = imageFiles.filter((f) => f.size > MAX_FILE_SIZE_MB * 1024 * 1024);
     if (oversized.length > 0) {
-      setUploadError(t("oversizedFiles", { count: oversized.length, max: MAX_FILE_SIZE_MB }));
+      setUploadError(t('oversizedFiles', { count: oversized.length, max: MAX_FILE_SIZE_MB }));
       return;
     }
     const allowed = imageFiles.slice(0, remaining);
     if (allowed.length < imageFiles.length) {
-      setUploadError(t("remainingImages", { count: remaining, max: maxImages }));
+      setUploadError(t('remainingImages', { count: remaining, max: maxImages }));
     }
     if (allowed.length > 0) onAdd?.(allowed);
   };
@@ -68,7 +68,7 @@ export default function PortfolioGallery({
   const handleFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []);
     if (files.length) validateAndAdd(files);
-    e.target.value = "";
+    e.target.value = '';
   };
 
   const handleDropZone = (e: React.DragEvent) => {
@@ -100,13 +100,11 @@ export default function PortfolioGallery({
       setDragIndex(null);
       setOverIndex(null);
     },
-    [dragIndex, images, onReorder]
+    [dragIndex, images, onReorder],
   );
 
   if (images.length === 0 && !editable) {
-    return (
-      <p className="text-sm text-gray-400 italic">{t("portfolioEmpty")}</p>
-    );
+    return <p className="text-sm text-gray-400 italic">{t('portfolioEmpty')}</p>;
   }
 
   return (
@@ -116,9 +114,7 @@ export default function PortfolioGallery({
         <div className="mb-3 flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-1.5 text-xs text-gray-500">
             <ImageIcon size={13} />
-            <span>
-              {t("imageCount", { count: images.length, max: maxImages })}
-            </span>
+            <span>{t('imageCount', { count: images.length, max: maxImages })}</span>
           </div>
           {uploadError && (
             <div className="flex items-center gap-1.5 text-xs text-amber-600">
@@ -139,7 +135,7 @@ export default function PortfolioGallery({
         onDragLeave={() => setIsDraggingOver(false)}
         onDrop={handleDropZone}
         className={`grid grid-cols-2 gap-3 sm:grid-cols-3 ${
-          isDraggingOver ? "rounded-xl ring-2 ring-blue-400 ring-offset-2" : ""
+          isDraggingOver ? 'rounded-xl ring-2 ring-blue-400 ring-offset-2' : ''
         }`}
       >
         {images.map((img, i) => (
@@ -149,14 +145,17 @@ export default function PortfolioGallery({
             onDragStart={() => handleDragStart(i)}
             onDragOver={(e) => handleDragOver(e, i)}
             onDrop={(e) => handleDrop(e, i)}
-            onDragEnd={() => { setDragIndex(null); setOverIndex(null); }}
+            onDragEnd={() => {
+              setDragIndex(null);
+              setOverIndex(null);
+            }}
             className={`group relative rounded-xl overflow-hidden border bg-gray-50 aspect-square transition-opacity ${
-              overIndex === i && dragIndex !== i ? "ring-2 ring-blue-500 opacity-70" : ""
+              overIndex === i && dragIndex !== i ? 'ring-2 ring-blue-500 opacity-70' : ''
             }`}
           >
             <Image
               src={img.url}
-              alt={img.caption ?? t("portfolioImage", { number: i + 1 })}
+              alt={img.caption ?? t('portfolioImage', { number: i + 1 })}
               fill
               sizes="(min-width: 1024px) 320px, (min-width: 640px) 33vw, 50vw"
               className="h-full w-full object-cover cursor-pointer"
@@ -179,7 +178,7 @@ export default function PortfolioGallery({
                 <button
                   onClick={() => onRemove?.(img.id)}
                   className="absolute top-1.5 right-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-red-500/80 text-white hover:bg-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
-                  aria-label={t("removeImage")}
+                  aria-label={t('removeImage')}
                 >
                   <X size={12} />
                 </button>
@@ -188,17 +187,17 @@ export default function PortfolioGallery({
                   <div className="absolute bottom-0 left-0 right-0 bg-black/70 p-1.5">
                     <input
                       autoFocus
-                      defaultValue={img.caption ?? ""}
+                      defaultValue={img.caption ?? ''}
                       onBlur={(e) => {
                         onCaptionChange?.(img.id, e.target.value);
                         setEditingCaption(null);
                       }}
                       onKeyDown={(e) => {
-                        if (e.key === "Enter") (e.target as HTMLInputElement).blur();
-                        if (e.key === "Escape") setEditingCaption(null);
+                        if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+                        if (e.key === 'Escape') setEditingCaption(null);
                       }}
                       className="w-full rounded bg-white/20 px-2 py-0.5 text-xs text-white placeholder-white/50 outline-none"
-                      placeholder={t("addCaption")}
+                      placeholder={t('addCaption')}
                     />
                   </div>
                 ) : (
@@ -206,7 +205,7 @@ export default function PortfolioGallery({
                     onClick={() => setEditingCaption(img.id)}
                     className="absolute bottom-0 left-0 right-0 bg-black/40 py-1 text-xs text-white/70 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity text-center"
                   >
-                    {img.caption ? img.caption : t("addCaption")}
+                    {img.caption ? img.caption : t('addCaption')}
                   </button>
                 )}
               </>
@@ -219,11 +218,13 @@ export default function PortfolioGallery({
           <button
             onClick={() => fileInputRef.current?.click()}
             className="flex aspect-square flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-gray-300 text-gray-400 hover:border-blue-400 hover:text-blue-500 transition-colors"
-            aria-label={t("addPhotos")}
+            aria-label={t('addPhotos')}
           >
             <Plus size={24} />
-            <span className="text-xs font-medium">{t("addPhotos")}</span>
-            <span className="text-[10px] text-gray-300">{t("imagesRemaining", { count: remaining })}</span>
+            <span className="text-xs font-medium">{t('addPhotos')}</span>
+            <span className="text-[10px] text-gray-300">
+              {t('imagesRemaining', { count: remaining })}
+            </span>
           </button>
         )}
       </div>
@@ -240,7 +241,7 @@ export default function PortfolioGallery({
       {lightbox && (
         <ImageLightbox
           src={lightbox.url}
-          alt={lightbox.caption ?? t("portfolioImageFallback")}
+          alt={lightbox.caption ?? t('portfolioImageFallback')}
           onClose={() => setLightbox(null)}
         />
       )}

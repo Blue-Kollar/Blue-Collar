@@ -54,6 +54,7 @@ In `registry/src/logic.rs`, replace the local role helpers with calls to
 `bluecollar_access_control`:
 
 **Before (in logic.rs):**
+
 ```rust
 use crate::storage::{get_role_members, ...};
 
@@ -71,6 +72,7 @@ pub(crate) fn require_not_paused(env: &Env) -> Result<(), ContractError> {
 ```
 
 **After (in logic.rs):**
+
 ```rust
 use bluecollar_access_control as ac;
 
@@ -91,6 +93,7 @@ In `registry/src/lib.rs`, the `grant_role` and `revoke_role` entrypoints can
 delegate their member-list manipulation to `ac::grant_role` / `ac::revoke_role`:
 
 **Before:**
+
 ```rust
 pub fn grant_role(env: Env, caller: Address, role: Symbol, account: Address) -> Result<(), ContractError> {
     logic::require_role(&env, &admin_role, &caller)?;
@@ -105,6 +108,7 @@ pub fn grant_role(env: Env, caller: Address, role: Symbol, account: Address) -> 
 ```
 
 **After:**
+
 ```rust
 use bluecollar_access_control as ac;
 
@@ -138,6 +142,7 @@ In `market/src/lib.rs`, replace the local `role_to_id`, `get_role_members`,
 `has_role` implementations with calls to `bluecollar_access_control`:
 
 **Before (local free functions):**
+
 ```rust
 fn role_to_id(env: &Env, role: &Symbol) -> u64 { /* 20 lines */ }
 fn get_role_members(env: &Env, role: &Symbol) -> Vec<Address> { /* ... */ }
@@ -146,6 +151,7 @@ fn require_not_paused(env: &Env) -> Result<(), ContractError> { /* ... */ }
 ```
 
 **After:**
+
 ```rust
 use bluecollar_access_control as ac;
 
@@ -162,7 +168,7 @@ use bluecollar_access_control as ac;
 ## 6. Shared constants
 
 Both contracts currently define their own `ROLE_*_ID` constants with the same
-values.  After migration, import them from `bluecollar_access_control`:
+values. After migration, import them from `bluecollar_access_control`:
 
 ```rust
 use bluecollar_access_control::{
@@ -176,7 +182,7 @@ use bluecollar_access_control::{
 ## Storage compatibility note
 
 `bluecollar_access_control` uses `AccessControlKey::RoleMembers(u64)` as its
-storage key.  The Registry and Market contracts currently use
-`DataKey::RoleMembers(u64)`.  Both resolve to the same on-chain key as long as
-the `u64` values match (which they do â€” the IDs are identical).  No data
+storage key. The Registry and Market contracts currently use
+`DataKey::RoleMembers(u64)`. Both resolve to the same on-chain key as long as
+the `u64` values match (which they do â€” the IDs are identical). No data
 migration is required.

@@ -38,20 +38,20 @@ function MyComponent() {
 `packages/app/src/hooks/useWallet.ts` is a lightweight standalone hook for components that only need the wallet address without the full context:
 
 ```typescript
-import { useWallet } from '@/hooks/useWallet'
+import { useWallet } from '@/hooks/useWallet';
 
-const { address, connecting, connect } = useWallet()
+const { address, connecting, connect } = useWallet();
 ```
 
 ### Freighter API Methods Used
 
-| Method           | Purpose                                              |
-|------------------|------------------------------------------------------|
-| `isConnected()`  | Check if the Freighter extension is installed        |
-| `requestAccess()`| Prompt the user to grant access to their public key  |
-| `getAddress()`   | Retrieve the user's active public key                |
-| `getNetwork()`   | Get the current network (testnet / mainnet)          |
-| `signTransaction(xdr, { networkPassphrase })` | Sign a transaction XDR |
+| Method                                        | Purpose                                             |
+| --------------------------------------------- | --------------------------------------------------- |
+| `isConnected()`                               | Check if the Freighter extension is installed       |
+| `requestAccess()`                             | Prompt the user to grant access to their public key |
+| `getAddress()`                                | Retrieve the user's active public key               |
+| `getNetwork()`                                | Get the current network (testnet / mainnet)         |
+| `signTransaction(xdr, { networkPassphrase })` | Sign a transaction XDR                              |
 
 ### TipModal Transaction Flow
 
@@ -66,38 +66,33 @@ const { address, connecting, connect } = useWallet()
 7. Display the transaction hash with a link to Stellar Expert
 
 ```typescript
-import {
-  isConnected,
-  requestAccess,
-  getAddress,
-  signTransaction,
-} from '@stellar/freighter-api'
+import { isConnected, requestAccess, getAddress, signTransaction } from '@stellar/freighter-api';
 
 // 1. Check extension
-const { isConnected: connected } = await isConnected()
+const { isConnected: connected } = await isConnected();
 if (!connected) {
   // Prompt user to install Freighter
-  window.open('https://www.freighter.app', '_blank')
-  return
+  window.open('https://www.freighter.app', '_blank');
+  return;
 }
 
 // 2–3. Request access and get address
-await requestAccess()
-const { address: senderAddress } = await getAddress()
+await requestAccess();
+const { address: senderAddress } = await getAddress();
 
 // 4. Build transaction XDR (see buildTipTxXdr in TipModal.tsx)
 
 // 5. Sign
 const { signedTxXdr } = await signTransaction(txXdr, {
   networkPassphrase: 'Test SDF Network ; September 2015',
-})
+});
 
 // 6. Submit to Horizon
 const res = await fetch('https://horizon-testnet.stellar.org/transactions', {
   method: 'POST',
   headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
   body: `tx=${encodeURIComponent(signedTxXdr)}`,
-})
+});
 ```
 
 ## Adding Other Stellar Wallets
@@ -113,13 +108,13 @@ Define a common interface that any wallet adapter must satisfy:
 
 export interface WalletAdapter {
   /** Returns true if the wallet extension/app is available */
-  isAvailable(): Promise<boolean>
+  isAvailable(): Promise<boolean>;
   /** Prompt the user to connect and return their public key */
-  connect(): Promise<string>
+  connect(): Promise<string>;
   /** Return the current network name */
-  getNetwork(): Promise<string>
+  getNetwork(): Promise<string>;
   /** Sign a transaction XDR and return the signed XDR */
-  signTransaction(xdr: string, networkPassphrase: string): Promise<string>
+  signTransaction(xdr: string, networkPassphrase: string): Promise<string>;
 }
 ```
 
@@ -132,27 +127,27 @@ import {
   getAddress,
   getNetwork,
   signTransaction,
-} from '@stellar/freighter-api'
+} from '@stellar/freighter-api';
 
 export const freighterAdapter: WalletAdapter = {
   async isAvailable() {
-    const { isConnected: connected } = await isConnected()
-    return connected
+    const { isConnected: connected } = await isConnected();
+    return connected;
   },
   async connect() {
-    await requestAccess()
-    const { address } = await getAddress()
-    return address
+    await requestAccess();
+    const { address } = await getAddress();
+    return address;
   },
   async getNetwork() {
-    const { network } = await getNetwork()
-    return network
+    const { network } = await getNetwork();
+    return network;
   },
   async signTransaction(xdr, networkPassphrase) {
-    const { signedTxXdr } = await signTransaction(xdr, { networkPassphrase })
-    return signedTxXdr
+    const { signedTxXdr } = await signTransaction(xdr, { networkPassphrase });
+    return signedTxXdr;
   },
-}
+};
 ```
 
 ### xBull Wallet Adapter (example)
@@ -161,26 +156,26 @@ export const freighterAdapter: WalletAdapter = {
 
 ```typescript
 // Install: npm install @creit.tech/xbull-wallet-connect
-import { xBullWalletConnect } from '@creit.tech/xbull-wallet-connect'
+import { xBullWalletConnect } from '@creit.tech/xbull-wallet-connect';
 
 export const xBullAdapter: WalletAdapter = {
   async isAvailable() {
-    return typeof window !== 'undefined' && !!window.xBullSDK
+    return typeof window !== 'undefined' && !!window.xBullSDK;
   },
   async connect() {
-    const xbull = new xBullWalletConnect()
-    const { publicKey } = await xbull.connect()
-    return publicKey
+    const xbull = new xBullWalletConnect();
+    const { publicKey } = await xbull.connect();
+    return publicKey;
   },
   async getNetwork() {
-    return 'TESTNET' // xBull exposes network via its SDK
+    return 'TESTNET'; // xBull exposes network via its SDK
   },
   async signTransaction(xdr, networkPassphrase) {
-    const xbull = new xBullWalletConnect()
-    const { signedXDR } = await xbull.sign({ xdr, networkPassphrase })
-    return signedXDR
+    const xbull = new xBullWalletConnect();
+    const { signedXDR } = await xbull.sign({ xdr, networkPassphrase });
+    return signedXDR;
   },
-}
+};
 ```
 
 ### Lobstr Wallet (WalletConnect-based)
@@ -190,26 +185,30 @@ Lobstr supports WalletConnect for mobile wallet connections:
 ```typescript
 // Uses the Stellar WalletConnect kit
 // Install: npm install @creit.tech/stellar-wallets-kit
-import { StellarWalletsKit, WalletNetwork, LOBSTR_ID } from '@creit.tech/stellar-wallets-kit'
+import { StellarWalletsKit, WalletNetwork, LOBSTR_ID } from '@creit.tech/stellar-wallets-kit';
 
 const kit = new StellarWalletsKit({
   network: WalletNetwork.TESTNET,
   selectedWalletId: LOBSTR_ID,
-})
+});
 
 export const lobstrAdapter: WalletAdapter = {
-  async isAvailable() { return true }, // WalletConnect works on any device
+  async isAvailable() {
+    return true;
+  }, // WalletConnect works on any device
   async connect() {
-    await kit.openModal({ onWalletSelected: (option) => kit.setWallet(option.id) })
-    const { address } = await kit.getAddress()
-    return address
+    await kit.openModal({ onWalletSelected: (option) => kit.setWallet(option.id) });
+    const { address } = await kit.getAddress();
+    return address;
   },
-  async getNetwork() { return 'TESTNET' },
+  async getNetwork() {
+    return 'TESTNET';
+  },
   async signTransaction(xdr, networkPassphrase) {
-    const { signedTxXdr } = await kit.signTransaction(xdr, { networkPassphrase })
-    return signedTxXdr
+    const { signedTxXdr } = await kit.signTransaction(xdr, { networkPassphrase });
+    return signedTxXdr;
   },
-}
+};
 ```
 
 ## Transaction Signing Flow
@@ -251,14 +250,14 @@ Display transaction hash + Stellar Expert link
 ### Building a Transaction
 
 ```typescript
-import * as StellarSdk from '@stellar/stellar-sdk'
+import * as StellarSdk from '@stellar/stellar-sdk';
 
-const HORIZON_URL = 'https://horizon-testnet.stellar.org'
-const NETWORK_PASSPHRASE = 'Test SDF Network ; September 2015'
+const HORIZON_URL = 'https://horizon-testnet.stellar.org';
+const NETWORK_PASSPHRASE = 'Test SDF Network ; September 2015';
 
 async function buildPaymentTx(from: string, to: string, amountXlm: number) {
-  const server = new StellarSdk.Horizon.Server(HORIZON_URL)
-  const account = await server.loadAccount(from)
+  const server = new StellarSdk.Horizon.Server(HORIZON_URL);
+  const account = await server.loadAccount(from);
 
   return new StellarSdk.TransactionBuilder(account, {
     fee: StellarSdk.BASE_FEE,
@@ -269,11 +268,11 @@ async function buildPaymentTx(from: string, to: string, amountXlm: number) {
         destination: to,
         asset: StellarSdk.Asset.native(),
         amount: amountXlm.toFixed(7),
-      })
+      }),
     )
     .setTimeout(180)
     .build()
-    .toXDR()
+    .toXDR();
 }
 ```
 
@@ -281,59 +280,60 @@ async function buildPaymentTx(from: string, to: string, amountXlm: number) {
 
 ### Common Errors and How to Handle Them
 
-| Error Scenario | Detection | Recommended Response |
-|---|---|---|
+| Error Scenario          | Detection                                        | Recommended Response                           |
+| ----------------------- | ------------------------------------------------ | ---------------------------------------------- |
 | Freighter not installed | `isConnected()` returns `{ isConnected: false }` | Show install prompt with link to freighter.app |
-| User rejected access | `requestAccess()` throws | Show "Access denied" message, allow retry |
-| User rejected signing | `signTransaction()` throws | Show "Signing cancelled" message |
-| Insufficient balance | Horizon returns `op_underfunded` | Show "Insufficient XLM balance" |
-| Destination not found | Horizon returns `op_no_destination` | Show "Recipient account not found" |
-| Network mismatch | `getNetwork()` returns wrong network | Warn user to switch to the correct network |
+| User rejected access    | `requestAccess()` throws                         | Show "Access denied" message, allow retry      |
+| User rejected signing   | `signTransaction()` throws                       | Show "Signing cancelled" message               |
+| Insufficient balance    | Horizon returns `op_underfunded`                 | Show "Insufficient XLM balance"                |
+| Destination not found   | Horizon returns `op_no_destination`              | Show "Recipient account not found"             |
+| Network mismatch        | `getNetwork()` returns wrong network             | Warn user to switch to the correct network     |
 
 ### Error Handling Pattern
 
 ```typescript
-type TxStatus = 'idle' | 'pending' | 'success' | 'error'
+type TxStatus = 'idle' | 'pending' | 'success' | 'error';
 
 async function sendPayment(to: string, amount: number) {
   try {
-    const { isConnected: connected } = await isConnected()
-    if (!connected) throw new Error('WALLET_NOT_INSTALLED')
+    const { isConnected: connected } = await isConnected();
+    if (!connected) throw new Error('WALLET_NOT_INSTALLED');
 
-    await requestAccess()
-    const { address: from } = await getAddress()
-    const xdr = await buildPaymentTx(from, to, amount)
-    const { signedTxXdr } = await signTransaction(xdr, { networkPassphrase: NETWORK_PASSPHRASE })
+    await requestAccess();
+    const { address: from } = await getAddress();
+    const xdr = await buildPaymentTx(from, to, amount);
+    const { signedTxXdr } = await signTransaction(xdr, { networkPassphrase: NETWORK_PASSPHRASE });
 
     const res = await fetch(`${HORIZON_URL}/transactions`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: `tx=${encodeURIComponent(signedTxXdr)}`,
-    })
+    });
 
-    const json = await res.json()
+    const json = await res.json();
     if (!res.ok) {
-      const code = json.extras?.result_codes?.operations?.[0] ?? json.extras?.result_codes?.transaction
-      throw new Error(code ?? 'SUBMISSION_FAILED')
+      const code =
+        json.extras?.result_codes?.operations?.[0] ?? json.extras?.result_codes?.transaction;
+      throw new Error(code ?? 'SUBMISSION_FAILED');
     }
 
-    return json.hash
+    return json.hash;
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'UNKNOWN_ERROR'
+    const message = err instanceof Error ? err.message : 'UNKNOWN_ERROR';
     switch (message) {
       case 'WALLET_NOT_INSTALLED':
         // Show install prompt
-        break
+        break;
       case 'op_underfunded':
         // Show balance error
-        break
+        break;
       case 'op_no_destination':
         // Show destination error
-        break
+        break;
       default:
-        // Show generic error
+      // Show generic error
     }
-    throw err
+    throw err;
   }
 }
 ```
@@ -356,12 +356,12 @@ The API endpoint `POST /api/workers/:id/register-on-chain` (handled by `packages
 
 The app is currently configured for **Stellar Testnet**:
 
-| Setting | Testnet Value |
-|---|---|
-| Network passphrase | `Test SDF Network ; September 2015` |
-| Horizon URL | `https://horizon-testnet.stellar.org` |
-| Soroban RPC | `https://soroban-testnet.stellar.org` |
-| Explorer | `https://stellar.expert/explorer/testnet/tx` |
+| Setting            | Testnet Value                                |
+| ------------------ | -------------------------------------------- |
+| Network passphrase | `Test SDF Network ; September 2015`          |
+| Horizon URL        | `https://horizon-testnet.stellar.org`        |
+| Soroban RPC        | `https://soroban-testnet.stellar.org`        |
+| Explorer           | `https://stellar.expert/explorer/testnet/tx` |
 
 ### Switching to Mainnet
 
@@ -369,10 +369,10 @@ To target mainnet, update the constants in `TipModal.tsx` and `WalletContext.tsx
 
 ```typescript
 // Mainnet values
-const NETWORK_PASSPHRASE = 'Public Global Stellar Network ; September 2015'
-const HORIZON_URL = 'https://horizon.stellar.org'
-const SOROBAN_RPC = 'https://soroban-rpc.stellar.org'
-const EXPLORER_BASE = 'https://stellar.expert/explorer/public/tx'
+const NETWORK_PASSPHRASE = 'Public Global Stellar Network ; September 2015';
+const HORIZON_URL = 'https://horizon.stellar.org';
+const SOROBAN_RPC = 'https://soroban-rpc.stellar.org';
+const EXPLORER_BASE = 'https://stellar.expert/explorer/public/tx';
 ```
 
 Move these to environment variables so they can be configured per deployment:
@@ -398,13 +398,12 @@ curl "https://friendbot.stellar.org?addr=YOUR_PUBLIC_KEY"
 Always verify the user's wallet is on the expected network before building transactions:
 
 ```typescript
-const { network } = await getNetwork()
-const expectedNetwork = process.env.NEXT_PUBLIC_STELLAR_NETWORK === 'mainnet'
-  ? 'PUBLIC'
-  : 'TESTNET'
+const { network } = await getNetwork();
+const expectedNetwork =
+  process.env.NEXT_PUBLIC_STELLAR_NETWORK === 'mainnet' ? 'PUBLIC' : 'TESTNET';
 
 if (network !== expectedNetwork) {
-  throw new Error(`Please switch your wallet to ${expectedNetwork}`)
+  throw new Error(`Please switch your wallet to ${expectedNetwork}`);
 }
 ```
 
@@ -432,10 +431,10 @@ Every wallet must implement the `WalletAdapter` interface in `packages/app/src/l
 
 ```typescript
 export interface WalletAdapter {
-  isAvailable(): Promise<boolean>
-  connect(): Promise<string>
-  getNetwork(): Promise<string>
-  signTransaction(xdr: string, networkPassphrase: string): Promise<string>
+  isAvailable(): Promise<boolean>;
+  connect(): Promise<string>;
+  getNetwork(): Promise<string>;
+  signTransaction(xdr: string, networkPassphrase: string): Promise<string>;
 }
 ```
 
@@ -450,37 +449,37 @@ Each Stellar wallet exposes a different API. Check their documentation for:
 
 Common wallet SDKs:
 
-| Wallet | Package | Docs |
-|--------|---------|------|
-| Freighter | `@stellar/freighter-api` | [docs.freighter.app](https://docs.freighter.app) |
-| xBull | `@creit.tech/xbull-wallet-connect` | [xbull.app](https://xbull.app) |
-| Lobstr (WalletConnect) | `@creit.tech/stellar-wallets-kit` | [lobstr.co](https://lobstr.co) |
-| Albedo | `@albedo-link/intent` | [albedo.link](https://albedo.link) |
-| Rabet | `@rabeto/wallet-sdk` | [rabet.io](https://rabet.io) |
+| Wallet                 | Package                            | Docs                                             |
+| ---------------------- | ---------------------------------- | ------------------------------------------------ |
+| Freighter              | `@stellar/freighter-api`           | [docs.freighter.app](https://docs.freighter.app) |
+| xBull                  | `@creit.tech/xbull-wallet-connect` | [xbull.app](https://xbull.app)                   |
+| Lobstr (WalletConnect) | `@creit.tech/stellar-wallets-kit`  | [lobstr.co](https://lobstr.co)                   |
+| Albedo                 | `@albedo-link/intent`              | [albedo.link](https://albedo.link)               |
+| Rabet                  | `@rabeto/wallet-sdk`               | [rabet.io](https://rabet.io)                     |
 
 ### 3. Create the Adapter File
 
 Create a new file `packages/app/src/lib/wallets/{walletName}Adapter.ts`:
 
 ```typescript
-import { WalletAdapter } from '../walletAdapter'
+import { WalletAdapter } from '../walletAdapter';
 
 export const albedoAdapter: WalletAdapter = {
   async isAvailable() {
-    return typeof window !== 'undefined' && !!window.albedo
+    return typeof window !== 'undefined' && !!window.albedo;
   },
   async connect() {
-    const res = await window.albedo.publicKey()
-    return res.publicKey
+    const res = await window.albedo.publicKey();
+    return res.publicKey;
   },
   async getNetwork() {
-    return 'TESTNET'
+    return 'TESTNET';
   },
   async signTransaction(xdr: string, networkPassphrase: string) {
-    const res = await window.albedo.tx({ xdr, network: networkPassphrase })
-    return res.signedTxXdr
+    const res = await window.albedo.tx({ xdr, network: networkPassphrase });
+    return res.signedTxXdr;
   },
-}
+};
 ```
 
 ### 4. Register the Adapter
@@ -488,17 +487,17 @@ export const albedoAdapter: WalletAdapter = {
 Add the new adapter to the wallet selector in `packages/app/src/context/WalletContext.tsx`:
 
 ```typescript
-import { freighterAdapter } from '@/lib/wallets/freighterAdapter'
-import { xBullAdapter } from '@/lib/wallets/xBullAdapter'
-import { lobstrAdapter } from '@/lib/wallets/lobstrAdapter'
-import { albedoAdapter } from '@/lib/wallets/albedoAdapter'
+import { freighterAdapter } from '@/lib/wallets/freighterAdapter';
+import { xBullAdapter } from '@/lib/wallets/xBullAdapter';
+import { lobstrAdapter } from '@/lib/wallets/lobstrAdapter';
+import { albedoAdapter } from '@/lib/wallets/albedoAdapter';
 
 const adapters: Record<string, WalletAdapter> = {
   freighter: freighterAdapter,
   xbull: xBullAdapter,
   lobstr: lobstrAdapter,
   albedo: albedoAdapter,
-}
+};
 ```
 
 ### 5. Update the Wallet Selector UI
@@ -511,10 +510,10 @@ If the wallet requires a UI selector (e.g., for WalletConnect-based wallets), up
 
 ```typescript
 // Manual test in browser console
-const adapter = albedoAdapter
-console.log('Available:', await adapter.isAvailable())
-console.log('Address:', await adapter.connect())
-console.log('Network:', await adapter.getNetwork())
+const adapter = albedoAdapter;
+console.log('Available:', await adapter.isAvailable());
+console.log('Address:', await adapter.connect());
+console.log('Network:', await adapter.getNetwork());
 ```
 
 **End-to-end payment flow:**
@@ -530,6 +529,7 @@ console.log('Network:', await adapter.getNetwork())
 Submit a PR with title format: `feat(app): add {walletName} wallet adapter`
 
 Include in the PR description:
+
 - A link to the wallet's documentation
 - Any SDK dependencies added to `package.json`
 - Testnet transaction hash(es) showing the flow works
@@ -555,7 +555,7 @@ Test the adapter in isolation by mocking the wallet SDK:
 
 ```typescript
 // packages/app/src/lib/wallets/__tests__/freighterAdapter.test.ts
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi } from 'vitest';
 
 const mockFreighter = {
   isConnected: vi.fn(),
@@ -563,51 +563,51 @@ const mockFreighter = {
   getAddress: vi.fn(),
   getNetwork: vi.fn(),
   signTransaction: vi.fn(),
-}
+};
 
-vi.mock('@stellar/freighter-api', () => mockFreighter)
+vi.mock('@stellar/freighter-api', () => mockFreighter);
 
 describe('freighterAdapter', () => {
   it('returns true when freighter is installed', async () => {
-    mockFreighter.isConnected.mockResolvedValue({ isConnected: true })
-    const { freighterAdapter } = await import('../freighterAdapter')
-    expect(await freighterAdapter.isAvailable()).toBe(true)
-  })
+    mockFreighter.isConnected.mockResolvedValue({ isConnected: true });
+    const { freighterAdapter } = await import('../freighterAdapter');
+    expect(await freighterAdapter.isAvailable()).toBe(true);
+  });
 
   it('returns the connected address', async () => {
-    mockFreighter.requestAccess.mockResolvedValue(undefined)
-    mockFreighter.getAddress.mockResolvedValue({ address: 'GA...' })
-    const { freighterAdapter } = await import('../freighterAdapter')
-    expect(await freighterAdapter.connect()).toBe('GA...')
-  })
-})
+    mockFreighter.requestAccess.mockResolvedValue(undefined);
+    mockFreighter.getAddress.mockResolvedValue({ address: 'GA...' });
+    const { freighterAdapter } = await import('../freighterAdapter');
+    expect(await freighterAdapter.connect()).toBe('GA...');
+  });
+});
 ```
 
 ### Integration Tests (Manual)
 
 Before opening a PR, run through this checklist manually:
 
-| Test Case | Expected Result |
-|---|---|
-| Wallet not installed | `isAvailable()` returns `false`, UI shows install prompt |
-| User clicks Connect | Wallet popup appears, address returned |
-| User rejects access | Error thrown, UI shows "Access denied" |
-| User signs transaction | Signed XDR returned, transaction submitted |
-| Network mismatch | Error thrown, UI shows "Please switch network" |
-| Insufficient funds | Horizon error, UI shows balance warning |
+| Test Case              | Expected Result                                          |
+| ---------------------- | -------------------------------------------------------- |
+| Wallet not installed   | `isAvailable()` returns `false`, UI shows install prompt |
+| User clicks Connect    | Wallet popup appears, address returned                   |
+| User rejects access    | Error thrown, UI shows "Access denied"                   |
+| User signs transaction | Signed XDR returned, transaction submitted               |
+| Network mismatch       | Error thrown, UI shows "Please switch network"           |
+| Insufficient funds     | Horizon error, UI shows balance warning                  |
 
 ## Environment Variables Reference
 
 All Stellar-related environment variables used across the app:
 
-| Variable | Required | Description |
-|---|---|---|
-| `NEXT_PUBLIC_STELLAR_NETWORK` | Yes | `testnet` or `mainnet` |
-| `NEXT_PUBLIC_HORIZON_URL` | Yes | Horizon RPC endpoint |
-| `NEXT_PUBLIC_SOROBAN_RPC` | Yes | Soroban RPC endpoint |
-| `NEXT_PUBLIC_NETWORK_PASSPHRASE` | Yes | Network passphrase for signing |
-| `NEXT_PUBLIC_MARKET_CONTRACT_ID` | Yes | Deployed Market contract address |
-| `NEXT_PUBLIC_REGISTRY_CONTRACT_ID` | Yes | Deployed Registry contract address |
-| `NEXT_PUBLIC_STELLAR_EXPLORER` | No | Custom explorer URL (defaults to stellar.expert) |
+| Variable                           | Required | Description                                      |
+| ---------------------------------- | -------- | ------------------------------------------------ |
+| `NEXT_PUBLIC_STELLAR_NETWORK`      | Yes      | `testnet` or `mainnet`                           |
+| `NEXT_PUBLIC_HORIZON_URL`          | Yes      | Horizon RPC endpoint                             |
+| `NEXT_PUBLIC_SOROBAN_RPC`          | Yes      | Soroban RPC endpoint                             |
+| `NEXT_PUBLIC_NETWORK_PASSPHRASE`   | Yes      | Network passphrase for signing                   |
+| `NEXT_PUBLIC_MARKET_CONTRACT_ID`   | Yes      | Deployed Market contract address                 |
+| `NEXT_PUBLIC_REGISTRY_CONTRACT_ID` | Yes      | Deployed Registry contract address               |
+| `NEXT_PUBLIC_STELLAR_EXPLORER`     | No       | Custom explorer URL (defaults to stellar.expert) |
 
 Set these in `packages/app/.env` for local development and in your deployment environment for production.

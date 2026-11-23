@@ -38,6 +38,7 @@ cargo build --release --target wasm32v1-none
 ```
 
 Output files:
+
 - `target/wasm32v1-none/release/bluecollar_market.wasm`
 - `target/wasm32v1-none/release/bluecollar_registry.wasm`
 
@@ -137,18 +138,21 @@ Confirm the returned address matches the identity you intend to use as `--source
 Run through this checklist on **testnet** before upgrading mainnet.
 
 ### Code review
+
 - [ ] All changes are reviewed and approved via PR
 - [ ] No breaking changes to existing storage key names or types (or migration is planned)
 - [ ] New functions do not conflict with existing event topic names
 - [ ] `MAX_FEE_BPS` and other constants are unchanged (or intentionally changed)
 
 ### Automated tests
+
 - [ ] `cargo test` passes with zero failures
 - [ ] `cargo clippy -- -D warnings` passes with zero warnings
 - [ ] All existing test cases still pass (no regressions)
 - [ ] New functionality has corresponding test coverage
 
 ### Testnet dry run
+
 - [ ] WASM built successfully (`make build`)
 - [ ] WASM installed on testnet (`stellar contract install`)
 - [ ] `upgrade` invoked successfully on testnet contract
@@ -222,6 +226,7 @@ Neither contract currently has a pause mechanism. If a critical bug is found pos
 ### When is migration needed?
 
 Migration is needed when the new WASM changes:
+
 - A `#[contracttype]` struct by adding, removing, or reordering fields
 - A storage key name or type
 - The encoding of an existing value
@@ -345,12 +350,12 @@ into four pillars.
 
 ### Where the tests live
 
-| Layer | Location | Runs under |
-|-------|----------|-----------|
-| Upgrade framework (registry) | `contracts/registry/src/test.rs` | `cargo test` |
-| Upgrade framework (market) | `contracts/market/src/test.rs` (`mod upgrade_framework`) | `cargo test` |
-| Migration property tests | `contracts/fuzz/tests/upgrade_fuzz.rs` | `cargo test` |
-| Coverage-guided migration fuzzer | `contracts/fuzz/fuzz_targets/fuzz_migrate.rs` | `cargo +nightly fuzz` |
+| Layer                            | Location                                                 | Runs under            |
+| -------------------------------- | -------------------------------------------------------- | --------------------- |
+| Upgrade framework (registry)     | `contracts/registry/src/test.rs`                         | `cargo test`          |
+| Upgrade framework (market)       | `contracts/market/src/test.rs` (`mod upgrade_framework`) | `cargo test`          |
+| Migration property tests         | `contracts/fuzz/tests/upgrade_fuzz.rs`                   | `cargo test`          |
+| Coverage-guided migration fuzzer | `contracts/fuzz/fuzz_targets/fuzz_migrate.rs`            | `cargo +nightly fuzz` |
 
 The framework files are wired into their crates via `#[cfg(test)] mod test;`,
 so they compile and run as part of the normal test suite.
@@ -363,7 +368,7 @@ so they compile and run as part of the normal test suite.
    out-of-order migrations are rejected (`"Wrong schema version"`).
 
 2. **Backward-compatibility verification** — records and role memberships written
-   by the *old* code are read back after a migration to prove storage-key/layout
+   by the _old_ code are read back after a migration to prove storage-key/layout
    compatibility, a fresh deploy reports schema version `1`, and the
    `migrate` / `upgrade` / `propose_upgrade` entry points are pinned to their
    exact argument shapes (a signature change fails the build).
@@ -415,19 +420,19 @@ make coverage
 `.github/workflows/contract-tests.yml` runs on every push/PR that touches
 `packages/contracts/**`:
 
-| Job | Gate | What it does |
-|-----|------|--------------|
-| `test` | blocking | `cargo test --workspace` |
-| `upgrade-safety` | blocking | runs only the upgrade framework + migration property tests |
-| `fuzz` | blocking | property fuzzing with `PROPTEST_CASES=512` |
-| `wasm-build` | blocking | builds + uploads the release WASM (`make build`) |
-| `lint` | non-blocking | `cargo fmt --check`, `cargo clippy` |
-| `coverage` | non-blocking | `cargo llvm-cov` report artifact |
+| Job              | Gate         | What it does                                               |
+| ---------------- | ------------ | ---------------------------------------------------------- |
+| `test`           | blocking     | `cargo test --workspace`                                   |
+| `upgrade-safety` | blocking     | runs only the upgrade framework + migration property tests |
+| `fuzz`           | blocking     | property fuzzing with `PROPTEST_CASES=512`                 |
+| `wasm-build`     | blocking     | builds + uploads the release WASM (`make build`)           |
+| `lint`           | non-blocking | `cargo fmt --check`, `cargo clippy`                        |
+| `coverage`       | non-blocking | `cargo llvm-cov` report artifact                           |
 
 ### Real WASM-swap simulation
 
 The in-process Soroban test host cannot install a WASM blob from a dummy hash, so
-the unit-level tests verify the *data-integrity path* of an upgrade via `migrate`.
+the unit-level tests verify the _data-integrity path_ of an upgrade via `migrate`.
 A full WASM swap (`env.deployer().upload_contract_wasm(...)` followed by
 `upgrade`) is exercised against the actual compiled bytecode by the
 `wasm-build` job's artifact and on testnet during the dry run in the

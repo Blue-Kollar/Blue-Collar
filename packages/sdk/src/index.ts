@@ -41,17 +41,8 @@ export {
 export type * from './types.js';
 
 // Shared cache/queue types and helpers — single source of truth (#1805)
-export {
-  createCacheKey,
-  isCacheEntryExpired,
-  DEFAULT_CACHE_TTL_MS,
-} from './utils/cache.js';
-export type {
-  CacheEntry,
-  CacheOptions,
-  QueueJob,
-  QueueOptions,
-} from './types.js';
+export { createCacheKey, isCacheEntryExpired, DEFAULT_CACHE_TTL_MS } from './utils/cache.js';
+export type { CacheEntry, CacheOptions, QueueJob, QueueOptions } from './types.js';
 
 import { HorizonClient } from './horizon.client.js';
 import { RegistryClient } from './registry.client.js';

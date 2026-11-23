@@ -1,8 +1,8 @@
-import type { Meta, StoryObj } from '@storybook/react'
-import { useState } from 'react'
+import type { Meta, StoryObj } from '@storybook/react';
+import { useState } from 'react';
 
 const Modal = ({ isOpen, onClose, title, children }: any) => {
-  if (!isOpen) return null
+  if (!isOpen) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div className="bg-white rounded-lg shadow-lg max-w-md w-full mx-4">
@@ -19,11 +19,11 @@ const Modal = ({ isOpen, onClose, title, children }: any) => {
         <div className="p-6">{children}</div>
       </div>
     </div>
-  )
-}
+  );
+};
 
 const ModalDemo = (props: any) => {
-  const [isOpen, setIsOpen] = useState(props.isOpen ?? true)
+  const [isOpen, setIsOpen] = useState(props.isOpen ?? true);
   return (
     <>
       <button
@@ -34,24 +34,24 @@ const ModalDemo = (props: any) => {
       </button>
       <Modal {...props} isOpen={isOpen} onClose={() => setIsOpen(false)} />
     </>
-  )
-}
+  );
+};
 
 const meta: Meta<typeof ModalDemo> = {
   title: 'Components/Modal',
   component: ModalDemo,
   tags: ['autodocs'],
-}
+};
 
-export default meta
-type Story = StoryObj<typeof meta>
+export default meta;
+type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   args: {
     title: 'Confirm Action',
     children: 'Are you sure you want to proceed?',
   },
-}
+};
 
 export const WithForm: Story = {
   args: {
@@ -64,4 +64,4 @@ export const WithForm: Story = {
       </form>
     ),
   },
-}
+};

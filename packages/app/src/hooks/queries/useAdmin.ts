@@ -1,9 +1,9 @@
 /**
  * Typed React Query hooks for admin resources: users, audit log, disputes, review moderation.
  */
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import * as api from "@/lib/api";
-import { queryKeys } from "@/lib/queryClient";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import * as api from '@/lib/api';
+import { queryKeys } from '@/lib/queryClient';
 
 // ── Users ──────────────────────────────────────────────────────────────────────
 
@@ -14,12 +14,14 @@ export function useAdminUsers(params?: Record<string, string>) {
   });
 }
 
-function useAdminUsersMutation<TVariables>(mutationFn: (variables: TVariables) => Promise<unknown>) {
+function useAdminUsersMutation<TVariables>(
+  mutationFn: (variables: TVariables) => Promise<unknown>,
+) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn,
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["admin", "users"] });
+      qc.invalidateQueries({ queryKey: ['admin', 'users'] });
     },
   });
 }
@@ -37,8 +39,9 @@ export function useBanUser() {
 }
 
 export function useChangeUserRole() {
-  return useAdminUsersMutation(({ userId, role }: { userId: string; role: "user" | "curator" | "admin" }) =>
-    api.changeUserRole(userId, role)
+  return useAdminUsersMutation(
+    ({ userId, role }: { userId: string; role: 'user' | 'curator' | 'admin' }) =>
+      api.changeUserRole(userId, role),
   );
 }
 
@@ -74,7 +77,7 @@ export function useResolveDispute() {
     mutationFn: ({ id, status, resolution }: { id: string; status: string; resolution?: string }) =>
       api.resolveDispute(id, status, resolution),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["admin", "disputes"] });
+      qc.invalidateQueries({ queryKey: ['admin', 'disputes'] });
     },
   });
 }
@@ -92,13 +95,15 @@ export function useModerationQueue() {
 export function useModerateReview() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ reviewId, action }: { reviewId: string; action: "approve" | "reject" }) =>
+    mutationFn: ({ reviewId, action }: { reviewId: string; action: 'approve' | 'reject' }) =>
       api.moderateReview(reviewId, action),
     onMutate: async ({ reviewId }) => {
       await qc.cancelQueries({ queryKey: queryKeys.admin.moderationQueue() });
-      const previous = qc.getQueryData<{ data: api.ModerationReview[] }>(queryKeys.admin.moderationQueue());
+      const previous = qc.getQueryData<{ data: api.ModerationReview[] }>(
+        queryKeys.admin.moderationQueue(),
+      );
       qc.setQueryData<{ data: api.ModerationReview[] }>(queryKeys.admin.moderationQueue(), (old) =>
-        old ? { ...old, data: old.data.filter((r) => r.id !== reviewId) } : old
+        old ? { ...old, data: old.data.filter((r) => r.id !== reviewId) } : old,
       );
       return { previous };
     },

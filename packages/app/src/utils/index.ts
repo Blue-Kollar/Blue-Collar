@@ -3,6 +3,6 @@ export {
   formatXlmAmount,
   stellarExplorerTxUrl,
   type StellarNetwork,
-} from "./stellar";
+} from './stellar';
 
-export * from "./validation";
+export * from './validation';

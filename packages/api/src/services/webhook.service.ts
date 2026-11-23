@@ -1,35 +1,35 @@
-import crypto from 'node:crypto'
-import { db as defaultDb } from '@/db.js'
-import { logger } from '@/config/logger.js'
-import { getErrorMessage } from '@/utils/getErrorMessage.js'
-import { nowUtc } from '@/utils/date.js'
-import type { PrismaClient } from '@prisma/client'
+import crypto from 'node:crypto';
+import { db as defaultDb } from '@/db.js';
+import { logger } from '@/config/logger.js';
+import { getErrorMessage } from '@/utils/getErrorMessage.js';
+import { nowUtc } from '@/utils/date.js';
+import type { PrismaClient } from '@prisma/client';
 
 interface WebhookServiceDeps {
-  db?: PrismaClient
+  db?: PrismaClient;
   /** Max allowed age (or clock skew) of a signed webhook timestamp, in seconds. */
-  toleranceSeconds?: number
+  toleranceSeconds?: number;
 }
 
-export type WebhookVerificationResult = 'valid' | 'invalid_signature' | 'stale_timestamp'
+export type WebhookVerificationResult = 'valid' | 'invalid_signature' | 'stale_timestamp';
 
-const MAX_ATTEMPTS = 3
-const RETRY_DELAYS = [5_000, 30_000, 120_000] // 5s, 30s, 2min
-const DEFAULT_TOLERANCE_SECONDS = 300 // 5 minutes
+const MAX_ATTEMPTS = 3;
+const RETRY_DELAYS = [5_000, 30_000, 120_000]; // 5s, 30s, 2min
+const DEFAULT_TOLERANCE_SECONDS = 300; // 5 minutes
 
 /**
  * WebhookService encapsulates webhook signature verification, payload processing,
  * and delivery with retry logic.
  */
 export class WebhookService {
-  private db: PrismaClient
-  private maxAttempts = MAX_ATTEMPTS
-  private retryDelays = RETRY_DELAYS
-  private toleranceSeconds: number
+  private db: PrismaClient;
+  private maxAttempts = MAX_ATTEMPTS;
+  private retryDelays = RETRY_DELAYS;
+  private toleranceSeconds: number;
 
   constructor(deps?: WebhookServiceDeps) {
-    this.db = deps?.db ?? defaultDb
-    this.toleranceSeconds = deps?.toleranceSeconds ?? DEFAULT_TOLERANCE_SECONDS
+    this.db = deps?.db ?? defaultDb;
+    this.toleranceSeconds = deps?.toleranceSeconds ?? DEFAULT_TOLERANCE_SECONDS;
   }
 
   /**
@@ -37,7 +37,7 @@ export class WebhookService {
    * Used for both outgoing webhook signatures and verification.
    */
   private sign(secret: string, payload: string): string {
-    return 'sha256=' + crypto.createHmac('sha256', secret).update(payload).digest('hex')
+    return 'sha256=' + crypto.createHmac('sha256', secret).update(payload).digest('hex');
   }
 
   /**
@@ -45,11 +45,11 @@ export class WebhookService {
    * Prevents timing attacks on signature verification.
    */
   verifySignature(secret: string, payload: string, signature: string): boolean {
-    const expected = this.sign(secret, payload)
+    const expected = this.sign(secret, payload);
     try {
-      return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(signature))
+      return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(signature));
     } catch {
-      return false
+      return false;
     }
   }
 
@@ -66,13 +66,13 @@ export class WebhookService {
     timestamp: string,
     nowMs = Date.now(),
   ): WebhookVerificationResult {
-    if (!/^\d+$/.test(timestamp)) return 'invalid_signature'
+    if (!/^\d+$/.test(timestamp)) return 'invalid_signature';
     if (!this.verifySignature(secret, `${timestamp}.${payload}`, signature)) {
-      return 'invalid_signature'
+      return 'invalid_signature';
     }
-    const ageMs = Math.abs(nowMs - Number(timestamp) * 1000)
-    if (ageMs > this.toleranceSeconds * 1000) return 'stale_timestamp'
-    return 'valid'
+    const ageMs = Math.abs(nowMs - Number(timestamp) * 1000);
+    if (ageMs > this.toleranceSeconds * 1000) return 'stale_timestamp';
+    return 'valid';
   }
 
   /**
@@ -87,9 +87,9 @@ export class WebhookService {
     payload: object,
     attempt = 0,
   ): Promise<void> {
-    const body = JSON.stringify(payload)
-    const timestamp = Math.floor(nowUtc().getTime() / 1000).toString()
-    const signature = this.sign(secret, `${timestamp}.${body}`)
+    const body = JSON.stringify(payload);
+    const timestamp = Math.floor(nowUtc().getTime() / 1000).toString();
+    const signature = this.sign(secret, `${timestamp}.${body}`);
 
     try {
       const res = await fetch(url, {
@@ -103,7 +103,7 @@ export class WebhookService {
         },
         body,
         signal: AbortSignal.timeout(10_000),
-      })
+      });
 
       await this.db.webhookLog.update({
         where: { id: logId },
@@ -113,13 +113,13 @@ export class WebhookService {
           attempts: attempt + 1,
           error: res.ok ? null : `HTTP ${res.status}`,
         },
-      })
+      });
 
       if (!res.ok && attempt < this.maxAttempts - 1) {
         setTimeout(
           () => this.deliver(logId, url, secret, event, payload, attempt + 1),
           this.retryDelays[attempt],
-        )
+        );
       }
     } catch (err) {
       await this.db.webhookLog.update({
@@ -128,13 +128,13 @@ export class WebhookService {
           attempts: attempt + 1,
           error: getErrorMessage(err),
         },
-      })
+      });
 
       if (attempt < this.maxAttempts - 1) {
         setTimeout(
           () => this.deliver(logId, url, secret, event, payload, attempt + 1),
           this.retryDelays[attempt],
-        )
+        );
       }
     }
   }
@@ -149,7 +149,7 @@ export class WebhookService {
         isActive: true,
         events: { has: event },
       },
-    })
+    });
 
     for (const sub of subscriptions) {
       const log = await this.db.webhookLog.create({
@@ -158,11 +158,11 @@ export class WebhookService {
           event,
           payload,
         },
-      })
+      });
 
       this.deliver(log.id, sub.url, sub.secret, event, payload).catch((err) =>
         logger.error({ err }, 'Webhook delivery error'),
-      )
+      );
     }
   }
 
@@ -171,7 +171,7 @@ export class WebhookService {
    * Generates a secure random secret for signature verification.
    */
   async createSubscription(userId: string, url: string, events: string[]) {
-    const secret = crypto.randomBytes(32).toString('hex')
+    const secret = crypto.randomBytes(32).toString('hex');
     return this.db.webhookSubscription.create({
       data: {
         userId,
@@ -179,7 +179,7 @@ export class WebhookService {
         secret,
         events,
       },
-    })
+    });
   }
 
   /**
@@ -189,7 +189,7 @@ export class WebhookService {
     return this.db.webhookSubscription.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
-    })
+    });
   }
 
   /**
@@ -199,12 +199,12 @@ export class WebhookService {
   async deleteSubscription(id: string, userId: string): Promise<boolean> {
     const sub = await this.db.webhookSubscription.findFirst({
       where: { id, userId },
-    })
+    });
 
-    if (!sub) return false
+    if (!sub) return false;
 
-    await this.db.webhookSubscription.delete({ where: { id } })
-    return true
+    await this.db.webhookSubscription.delete({ where: { id } });
+    return true;
   }
 
   /**
@@ -215,11 +215,11 @@ export class WebhookService {
   async getLogs(subscriptionId: string, userId: string, page = 1, limit = 20) {
     const sub = await this.db.webhookSubscription.findFirst({
       where: { id: subscriptionId, userId },
-    })
+    });
 
-    if (!sub) return null
+    if (!sub) return null;
 
-    const where = { subscriptionId }
+    const where = { subscriptionId };
     const [logs, total] = await Promise.all([
       this.db.webhookLog.findMany({
         where,
@@ -228,7 +228,7 @@ export class WebhookService {
         orderBy: { createdAt: 'desc' },
       }),
       this.db.webhookLog.count({ where }),
-    ])
+    ]);
 
     return {
       data: logs,
@@ -238,7 +238,7 @@ export class WebhookService {
         limit,
         pages: Math.ceil(total / limit),
       },
-    }
+    };
   }
 }
 
@@ -247,27 +247,27 @@ export class WebhookService {
  * Allows for easier testing and alternative implementations.
  */
 export function createWebhookService(deps?: WebhookServiceDeps): WebhookService {
-  return new WebhookService(deps)
+  return new WebhookService(deps);
 }
 
 // ── Default service instance (backward-compatible module-level API) ───────────
 
-const _defaultService = createWebhookService()
+const _defaultService = createWebhookService();
 
 /** Backward-compatible module-level exports */
 export const verifySignature = (secret: string, payload: string, signature: string) =>
-  _defaultService.verifySignature(secret, payload, signature)
+  _defaultService.verifySignature(secret, payload, signature);
 
 export const publishEvent = (event: string, payload: object) =>
-  _defaultService.publishEvent(event, payload)
+  _defaultService.publishEvent(event, payload);
 
 export const createSubscription = (userId: string, url: string, events: string[]) =>
-  _defaultService.createSubscription(userId, url, events)
+  _defaultService.createSubscription(userId, url, events);
 
-export const listSubscriptions = (userId: string) => _defaultService.listSubscriptions(userId)
+export const listSubscriptions = (userId: string) => _defaultService.listSubscriptions(userId);
 
 export const deleteSubscription = (id: string, userId: string) =>
-  _defaultService.deleteSubscription(id, userId)
+  _defaultService.deleteSubscription(id, userId);
 
 export const getLogs = (subscriptionId: string, userId: string, page?: number, limit?: number) =>
-  _defaultService.getLogs(subscriptionId, userId, page, limit)
+  _defaultService.getLogs(subscriptionId, userId, page, limit);

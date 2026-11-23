@@ -7,6 +7,7 @@ The staging environment is a production-like environment for testing changes bef
 ## Architecture
 
 ### Infrastructure
+
 - **Kubernetes Cluster**: Dedicated staging cluster
 - **Database**: PostgreSQL (smaller instance than production)
 - **Cache**: Redis (single node)
@@ -14,6 +15,7 @@ The staging environment is a production-like environment for testing changes bef
 - **CDN**: CloudFront distribution (staging subdomain)
 
 ### Domains
+
 - **API**: https://api-staging.bluecollar.example.com
 - **Frontend**: https://staging.bluecollar.example.com
 - **Admin**: https://admin-staging.bluecollar.example.com
@@ -21,6 +23,7 @@ The staging environment is a production-like environment for testing changes bef
 ## Deployment
 
 ### Prerequisites
+
 ```bash
 # Install kubectl
 curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
@@ -33,6 +36,7 @@ aws eks update-kubeconfig --name bluecollar-staging --region us-east-1
 ```
 
 ### Deploy Staging Infrastructure
+
 ```bash
 cd terraform
 
@@ -50,6 +54,7 @@ terraform apply -var-file=environments/staging.tfvars
 ```
 
 ### Deploy Application
+
 ```bash
 # Build and push Docker image
 docker build -t bluecollar-api:staging -f packages/api/Dockerfile .
@@ -71,6 +76,7 @@ kubectl get svc -n bluecollar-staging
 ## Configuration
 
 ### Environment Variables
+
 ```bash
 # Staging-specific environment variables
 NODE_ENV=staging
@@ -95,6 +101,7 @@ PROMETHEUS_ENDPOINT=http://prometheus-staging:9090
 ```
 
 ### Helm Values (values-staging.yaml)
+
 ```yaml
 replicaCount: 2
 
@@ -156,6 +163,7 @@ monitoring:
 ## Data Seeding
 
 ### Seed Script
+
 ```typescript
 // packages/api/src/database/seed-staging.ts
 import { PrismaClient } from '@prisma/client';
@@ -221,6 +229,7 @@ seedStaging()
 ```
 
 ### Run Seeding
+
 ```bash
 # Seed staging database
 npm run seed:staging
@@ -232,6 +241,7 @@ kubectl exec -it deployment/bluecollar-api -n bluecollar-staging -- npm run seed
 ## Testing in Staging
 
 ### Smoke Tests
+
 ```bash
 # Run smoke tests against staging
 export API_URL=https://api-staging.bluecollar.example.com
@@ -242,6 +252,7 @@ npm run test:smoke
 ```
 
 ### Integration Tests
+
 ```bash
 # Run full integration test suite
 export NODE_ENV=staging
@@ -249,6 +260,7 @@ npm run test:integration
 ```
 
 ### Load Tests
+
 ```bash
 # Run load tests against staging
 cd deploy/load-tests
@@ -258,6 +270,7 @@ k6 run --env API_URL=https://api-staging.bluecollar.example.com basic-load-test.
 ## Staging Deployment Pipeline
 
 ### GitHub Actions Workflow
+
 ```yaml
 name: Deploy to Staging
 
@@ -270,32 +283,32 @@ jobs:
   deploy-staging:
     runs-on: ubuntu-latest
     environment: staging
-    
+
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
-      
+
       - name: Login to ECR
         run: |
           aws ecr get-login-password --region us-east-1 | \
           docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }}
-      
+
       - name: Build and push Docker image
         run: |
           docker build -t bluecollar-api:${{ github.sha }} -f packages/api/Dockerfile .
           docker tag bluecollar-api:${{ github.sha }} ${{ secrets.ECR_REGISTRY }}/bluecollar-api:staging
           docker push ${{ secrets.ECR_REGISTRY }}/bluecollar-api:staging
-      
+
       - name: Update kubeconfig
         run: |
           aws eks update-kubeconfig --name bluecollar-staging --region us-east-1
-      
+
       - name: Deploy to staging
         run: |
           helm upgrade --install bluecollar-staging deploy/helm/bluecollar \
@@ -304,12 +317,12 @@ jobs:
             --values deploy/helm/bluecollar/values-staging.yaml \
             --set image.tag=staging \
             --wait
-      
+
       - name: Run smoke tests
         run: |
           export API_URL=https://api-staging.bluecollar.example.com
           npm run test:smoke
-      
+
       - name: Notify deployment
         if: always()
         uses: 8398a7/action-slack@v3
@@ -322,6 +335,7 @@ jobs:
 ## Staging-Specific Settings
 
 ### Rate Limiting
+
 ```typescript
 // More lenient rate limits for testing
 export const stagingRateLimits = {
@@ -331,6 +345,7 @@ export const stagingRateLimits = {
 ```
 
 ### Debug Logging
+
 ```typescript
 // Enable verbose logging in staging
 export const stagingLogConfig = {
@@ -341,6 +356,7 @@ export const stagingLogConfig = {
 ```
 
 ### Feature Flags
+
 ```typescript
 // Enable experimental features in staging
 export const stagingFeatureFlags = {
@@ -353,36 +369,40 @@ export const stagingFeatureFlags = {
 ## Monitoring and Observability
 
 ### Grafana Dashboards
+
 - Staging API Performance
 - Staging Database Metrics
 - Staging Error Rates
 - Staging User Activity
 
 ### Alerts
+
 ```yaml
 # Staging-specific alerts (less strict than production)
 - alert: StagingHighErrorRate
   expr: rate(http_requests_total{env="staging",status=~"5.."}[5m]) / rate(http_requests_total{env="staging"}[5m]) > 0.10
   for: 10m
   annotations:
-    summary: "Staging error rate exceeds 10%"
+    summary: 'Staging error rate exceeds 10%'
 
 - alert: StagingHighResponseTime
   expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{env="staging"}[5m])) > 2
   for: 10m
   annotations:
-    summary: "Staging p95 response time exceeds 2s"
+    summary: 'Staging p95 response time exceeds 2s'
 ```
 
 ## Access Control
 
 ### Staging Access
+
 - Developers: Full access
 - QA Team: Full access
 - Product Team: Read access
 - External stakeholders: Limited access with demo accounts
 
 ### Authentication
+
 ```bash
 # Use staging-specific OAuth credentials
 GOOGLE_CLIENT_ID=staging-client-id
@@ -393,6 +413,7 @@ GOOGLE_CALLBACK_URL=https://api-staging.bluecollar.example.com/auth/google/callb
 ## Data Management
 
 ### Database Refresh
+
 ```bash
 # Refresh staging database from production (sanitized)
 ./deploy/scripts/refresh-staging-db.sh
@@ -406,6 +427,7 @@ GOOGLE_CALLBACK_URL=https://api-staging.bluecollar.example.com/auth/google/callb
 ```
 
 ### Data Retention
+
 - Staging data is reset weekly
 - Logs retained for 7 days
 - Backups retained for 7 days
@@ -415,6 +437,7 @@ GOOGLE_CALLBACK_URL=https://api-staging.bluecollar.example.com/auth/google/callb
 ### Common Issues
 
 **Issue**: Pods not starting
+
 ```bash
 # Check pod status
 kubectl get pods -n bluecollar-staging
@@ -427,6 +450,7 @@ kubectl describe pod <pod-name> -n bluecollar-staging
 ```
 
 **Issue**: Database connection errors
+
 ```bash
 # Verify database credentials
 kubectl get secret staging-db-credentials -n bluecollar-staging -o yaml
@@ -437,6 +461,7 @@ kubectl run -it --rm debug --image=postgres:15 --restart=Never -- \
 ```
 
 **Issue**: High response times
+
 ```bash
 # Check resource usage
 kubectl top pods -n bluecollar-staging

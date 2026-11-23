@@ -25,8 +25,8 @@ export type {
   Message,
   AppNotification,
   NotificationType,
-  WorkerAnalytics
-} from '@bluecollar/types'
+  WorkerAnalytics,
+} from '@bluecollar/types';
 
 // ─── Analytics types (app-only views) ────────────────────────────────────────
 
@@ -185,7 +185,7 @@ export interface TipDTO {
 
 // ─── Invoices ─────────────────────────────────────────────────────────────────
 
-export type InvoiceStatus = "draft" | "issued" | "paid" | "overdue" | "void";
+export type InvoiceStatus = 'draft' | 'issued' | 'paid' | 'overdue' | 'void';
 
 export interface InvoiceLineItem {
   id: string;

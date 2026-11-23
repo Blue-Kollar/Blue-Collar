@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useState, useCallback } from "react";
-import type { ReactNode } from "react";
-import { useTranslations } from "next-intl";
+import { useState, useCallback } from 'react';
+import type { ReactNode } from 'react';
+import { useTranslations } from 'next-intl';
 
 interface FilterOption {
   id: string;
@@ -29,7 +29,7 @@ export default function SearchFilters({
   locations = [],
   onFilterChange,
 }: SearchFiltersProps) {
-  const t = useTranslations("componentText");
+  const t = useTranslations('componentText');
   const [selectedFilters, setSelectedFilters] = useState<SelectedFilters>({
     categories: [],
     ratings: [],
@@ -49,7 +49,7 @@ export default function SearchFilters({
         return updated;
       });
     },
-    [onFilterChange]
+    [onFilterChange],
   );
 
   const handleRatingChange = useCallback(
@@ -65,7 +65,7 @@ export default function SearchFilters({
         return updated;
       });
     },
-    [onFilterChange]
+    [onFilterChange],
   );
 
   const handleLocationChange = useCallback(
@@ -81,7 +81,7 @@ export default function SearchFilters({
         return updated;
       });
     },
-    [onFilterChange]
+    [onFilterChange],
   );
 
   const handleClearFilters = useCallback(() => {
@@ -98,20 +98,20 @@ export default function SearchFilters({
   return (
     <div className="space-y-4 rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900">
       <div className="flex items-center justify-between">
-        <h3 className="font-semibold text-gray-900 dark:text-gray-100">{t("filters")}</h3>
+        <h3 className="font-semibold text-gray-900 dark:text-gray-100">{t('filters')}</h3>
         {hasActiveFilters && (
           <button
             onClick={handleClearFilters}
             className="text-xs text-blue-600 hover:underline dark:text-blue-400"
           >
-            {t("clearAll")}
+            {t('clearAll')}
           </button>
         )}
       </div>
 
       {categories.length > 0 && (
         <FilterSection
-          title={t("categories")}
+          title={t('categories')}
           options={categories}
           selected={selectedFilters.categories}
           onChange={handleCategoryChange}
@@ -120,7 +120,7 @@ export default function SearchFilters({
 
       {ratings.length > 0 && (
         <FilterSection
-          title={t("ratings")}
+          title={t('ratings')}
           options={ratings}
           selected={selectedFilters.ratings}
           onChange={handleRatingChange}
@@ -129,7 +129,7 @@ export default function SearchFilters({
 
       {locations.length > 0 && (
         <FilterSection
-          title={t("locations")}
+          title={t('locations')}
           options={locations}
           selected={selectedFilters.locations}
           onChange={handleLocationChange}

@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import { useEffect, useId, useMemo, useRef, useState } from "react";
-import ReviewCard from "./ReviewCard";
-import ReviewForm from "./ReviewForm";
-import RatingBreakdown from "./RatingBreakdown";
-import ReviewSortFilter, { type SortOption } from "./ReviewSortFilter";
-import EmptyState from "./EmptyState";
-import type { Review, RatingDistributionEntry } from "@/types";
-import { useWorkerReviews } from "@/hooks/queries";
-import { useAuth } from "@/context/AuthContext";
-import { useTranslations } from "next-intl";
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import ReviewCard from './ReviewCard';
+import ReviewForm from './ReviewForm';
+import RatingBreakdown from './RatingBreakdown';
+import ReviewSortFilter, { type SortOption } from './ReviewSortFilter';
+import EmptyState from './EmptyState';
+import type { Review, RatingDistributionEntry } from '@/types';
+import { useWorkerReviews } from '@/hooks/queries';
+import { useAuth } from '@/context/AuthContext';
+import { useTranslations } from 'next-intl';
 
 const PAGE_SIZE = 5;
 
@@ -28,15 +28,15 @@ export default function ReviewsSection({
   averageRating,
   distribution,
 }: ReviewsSectionProps) {
-  const t = useTranslations("componentText");
+  const t = useTranslations('componentText');
   const { user } = useAuth();
   const [reviews, setReviews] = useState<Review[]>(initialReviews);
   const [count, setCount] = useState<number>(reviewCount);
   const [ratingFilter, setRatingFilter] = useState<number | null>(null);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
-  const [sort, setSort] = useState<SortOption>("newest");
+  const [sort, setSort] = useState<SortOption>('newest');
   /** Announced politely when the list changes under the user without a page move. */
-  const [announcement, setAnnouncement] = useState("");
+  const [announcement, setAnnouncement] = useState('');
 
   const headingId = useId();
   const listRef = useRef<HTMLUListElement>(null);
@@ -49,13 +49,21 @@ export default function ReviewsSection({
     setReviews((prev) => [review, ...prev]);
     setCount((c) => c + 1);
     setVisibleCount((v) => v + 1);
-    setAnnouncement(t("reviewPosted"));
+    setAnnouncement(t('reviewPosted'));
   };
 
   const handleSortChange = (next: SortOption) => {
     setSort(next);
-    const sortLabel = t(next === "newest" ? "newestFirst" : next === "oldest" ? "oldestFirst" : next === "highest" ? "highestRatedFirst" : "lowestRatedFirst");
-    setAnnouncement(t("reviewsSorted", { sort: sortLabel }));
+    const sortLabel = t(
+      next === 'newest'
+        ? 'newestFirst'
+        : next === 'oldest'
+          ? 'oldestFirst'
+          : next === 'highest'
+            ? 'highestRatedFirst'
+            : 'lowestRatedFirst',
+    );
+    setAnnouncement(t('reviewsSorted', { sort: sortLabel }));
   };
 
   const handleLoadMore = () => {
@@ -74,8 +82,12 @@ export default function ReviewsSection({
     target?.focus();
   }, [visibleCount]);
 
-  const filterParams = ratingFilter !== null ? { rating: String(ratingFilter), limit: "50" } : undefined;
-  const filteredQuery = useWorkerReviews(workerId, ratingFilter !== null ? filterParams : undefined);
+  const filterParams =
+    ratingFilter !== null ? { rating: String(ratingFilter), limit: '50' } : undefined;
+  const filteredQuery = useWorkerReviews(
+    workerId,
+    ratingFilter !== null ? filterParams : undefined,
+  );
   const filterLoading = ratingFilter !== null && filteredQuery.isLoading;
   const filteredReviews =
     ratingFilter !== null && filteredQuery.isSuccess ? (filteredQuery.data.data ?? []) : null;
@@ -84,7 +96,7 @@ export default function ReviewsSection({
     setRatingFilter(rating);
     setVisibleCount(PAGE_SIZE);
     if (rating === null) {
-      setAnnouncement(t("ratingFilterCleared"));
+      setAnnouncement(t('ratingFilterCleared'));
     }
   };
 
@@ -92,9 +104,14 @@ export default function ReviewsSection({
     if (ratingFilter === null) return;
     if (filteredQuery.isSuccess) {
       const n = (filteredQuery.data.data ?? []).length;
-      setAnnouncement(t(n === 1 ? "showingOneStarReview" : "showingStarReviews", { count: n, rating: ratingFilter }));
+      setAnnouncement(
+        t(n === 1 ? 'showingOneStarReview' : 'showingStarReviews', {
+          count: n,
+          rating: ratingFilter,
+        }),
+      );
     } else if (filteredQuery.isError) {
-      setAnnouncement(t("filteredReviewsError"));
+      setAnnouncement(t('filteredReviewsError'));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filteredQuery.isSuccess, filteredQuery.isError, filteredQuery.data, ratingFilter]);
@@ -104,13 +121,17 @@ export default function ReviewsSection({
   const sorted = useMemo(() => {
     const sortedArr = [...source];
     switch (sort) {
-      case "newest":
-        return sortedArr.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-      case "oldest":
-        return sortedArr.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-      case "highest":
+      case 'newest':
+        return sortedArr.sort(
+          (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+        );
+      case 'oldest':
+        return sortedArr.sort(
+          (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+        );
+      case 'highest':
         return sortedArr.sort((a, b) => b.rating - a.rating);
-      case "lowest":
+      case 'lowest':
         return sortedArr.sort((a, b) => a.rating - b.rating);
       default:
         return sortedArr;
@@ -121,13 +142,10 @@ export default function ReviewsSection({
   const hasMore = visibleCount < sorted.length;
 
   return (
-    <section
-      aria-labelledby={headingId}
-      className="mt-8 border-t pt-6 dark:border-gray-800"
-    >
+    <section aria-labelledby={headingId} className="mt-8 border-t pt-6 dark:border-gray-800">
       <div className="flex items-center justify-between mb-4">
         <h2 id={headingId} className="text-base font-semibold text-gray-900 dark:text-gray-100">
-          {t("reviews")} {count > 0 && `(${count})`}
+          {t('reviews')} {count > 0 && `(${count})`}
         </h2>
         {count > 0 && <ReviewSortFilter sort={sort} onSortChange={handleSortChange} />}
       </div>
@@ -149,12 +167,14 @@ export default function ReviewsSection({
 
       <div className="mb-6">
         {hasReviewed ? (
-          <p className="text-sm text-gray-500 italic dark:text-gray-400">{t("alreadyReviewed")}</p>
+          <p className="text-sm text-gray-500 italic dark:text-gray-400">{t('alreadyReviewed')}</p>
         ) : (
           // EmptyState's "Write a Review" CTA links here; the id must exist for
           // that skip target to work.
           <div id="review-form">
-            <p className="text-sm font-medium text-gray-700 mb-3 dark:text-gray-300">{t("leaveReview")}</p>
+            <p className="text-sm font-medium text-gray-700 mb-3 dark:text-gray-300">
+              {t('leaveReview')}
+            </p>
             <ReviewForm workerId={workerId} onReviewCreated={handleReviewCreated} />
           </div>
         )}
@@ -162,7 +182,7 @@ export default function ReviewsSection({
 
       {filterLoading ? (
         <div role="status" className="py-6 text-center text-sm text-gray-400">
-          {t("loadingReviews")}
+          {t('loadingReviews')}
         </div>
       ) : displayed.length > 0 ? (
         <div>
@@ -170,7 +190,11 @@ export default function ReviewsSection({
             {displayed.map((review) => (
               // tabIndex={-1} makes each item a programmatic focus target for
               // the "Load more" handler without adding it to the tab order.
-              <li key={review.id} tabIndex={-1} className="focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded">
+              <li
+                key={review.id}
+                tabIndex={-1}
+                className="focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded"
+              >
                 <ReviewCard review={review} />
               </li>
             ))}
@@ -179,10 +203,10 @@ export default function ReviewsSection({
             <button
               type="button"
               onClick={handleLoadMore}
-              aria-label={t("loadMoreReviews", { count: sorted.length - visibleCount })}
+              aria-label={t('loadMoreReviews', { count: sorted.length - visibleCount })}
               className="mt-4 w-full rounded-lg border py-2 text-sm text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
             >
-              {t("loadMore", { count: sorted.length - visibleCount })}
+              {t('loadMore', { count: sorted.length - visibleCount })}
             </button>
           )}
         </div>

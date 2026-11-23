@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useReportWebVitals } from "next/web-vitals";
-import { useSendWebVital } from "@/hooks/useSendWebVital";
+import { useReportWebVitals } from 'next/web-vitals';
+import { useSendWebVital } from '@/hooks/useSendWebVital';
 
 export default function WebVitalsReporter() {
   const sendWebVital = useSendWebVital();

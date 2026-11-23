@@ -38,13 +38,13 @@ The design extends this to cover additional variants while keeping the existing 
 
 ### Toast Variants
 
-| Variant | Icon | Background | Use case |
-|---|---|---|---|
-| **Success** | `CheckCircle2` | `bg-green-600` | Action completed (listing created, profile saved) |
-| **Error** | `AlertCircle` | `bg-red-600` | Action failed (network error, validation) |
-| **Info** | `Info` | `bg-blue-600` | Informational (new feature, system notice) |
-| **Warning** | `AlertTriangle` | `bg-amber-500` | Caution (approaching limit, pending verification) |
-| **Transaction** | `ArrowUpRight` | `bg-violet-600` | Blockchain transaction (tip sent, payment confirmed) |
+| Variant         | Icon            | Background      | Use case                                             |
+| --------------- | --------------- | --------------- | ---------------------------------------------------- |
+| **Success**     | `CheckCircle2`  | `bg-green-600`  | Action completed (listing created, profile saved)    |
+| **Error**       | `AlertCircle`   | `bg-red-600`    | Action failed (network error, validation)            |
+| **Info**        | `Info`          | `bg-blue-600`   | Informational (new feature, system notice)           |
+| **Warning**     | `AlertTriangle` | `bg-amber-500`  | Caution (approaching limit, pending verification)    |
+| **Transaction** | `ArrowUpRight`  | `bg-violet-600` | Blockchain transaction (tip sent, payment confirmed) |
 
 ### Toast Anatomy
 
@@ -100,15 +100,15 @@ Explorer link: text-xs underline opacity-80 hover:opacity-100
 
 ### Motion & Dismissal
 
-| Behaviour | Spec |
-|---|---|
-| **Enter** | Slide in from right + fade in. `translateX(100%) → translateX(0)`, `opacity: 0 → 1`. Duration: `200ms ease-out`. |
-| **Exit** | Slide out to right + fade out. Reverse of enter. Duration: `150ms ease-in`. |
-| **Auto-dismiss** | Default: 3.5s (existing). Transaction toasts: 6s (longer for explorer link). Persistent: no auto-dismiss (for critical errors). |
-| **Manual dismiss** | Click the `✕` button. |
-| **Hover pause** | Hovering over a toast pauses the auto-dismiss timer. Timer resumes on mouse leave. |
-| **Stacking** | Max 3 visible toasts. Oldest dismissed when a 4th arrives. Stack gap: `gap-2` (8px). |
-| **Swipe dismiss** | On touch devices, swipe right to dismiss. Threshold: 100px horizontal drag. |
+| Behaviour          | Spec                                                                                                                            |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------- |
+| **Enter**          | Slide in from right + fade in. `translateX(100%) → translateX(0)`, `opacity: 0 → 1`. Duration: `200ms ease-out`.                |
+| **Exit**           | Slide out to right + fade out. Reverse of enter. Duration: `150ms ease-in`.                                                     |
+| **Auto-dismiss**   | Default: 3.5s (existing). Transaction toasts: 6s (longer for explorer link). Persistent: no auto-dismiss (for critical errors). |
+| **Manual dismiss** | Click the `✕` button.                                                                                                           |
+| **Hover pause**    | Hovering over a toast pauses the auto-dismiss timer. Timer resumes on mouse leave.                                              |
+| **Stacking**       | Max 3 visible toasts. Oldest dismissed when a 4th arrives. Stack gap: `gap-2` (8px).                                            |
+| **Swipe dismiss**  | On touch devices, swipe right to dismiss. Threshold: 100px horizontal drag.                                                     |
 
 **CSS animation keyframes:**
 
@@ -136,22 +136,26 @@ Explorer link: text-xs underline opacity-80 hover:opacity-100
 }
 
 @keyframes toast-progress {
-  from { width: 100%; }
-  to { width: 0%; }
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
 }
 ```
 
 ### Updated `ToastType`
 
 ```typescript
-type ToastType = "success" | "error" | "info" | "warning" | "transaction";
+type ToastType = 'success' | 'error' | 'info' | 'warning' | 'transaction';
 
 interface ToastOptions {
   message: string;
   type: ToastType;
   detail?: string;
-  duration?: number;        // ms, default 3500
-  persistent?: boolean;     // no auto-dismiss
+  duration?: number; // ms, default 3500
+  persistent?: boolean; // no auto-dismiss
   action?: {
     label: string;
     href?: string;
@@ -272,13 +276,13 @@ Footer:
 
 ### Notification Types & Grouping
 
-| Type | Icon/Avatar | Example |
-|---|---|---|
-| **Review** | Reviewer avatar | "Jane Doe left a 5-star review on your listing" |
-| **Transaction** | `ArrowDownLeft` on violet bg | "You received a 500 XLM tip from Alice" |
-| **Listing** | `Briefcase` on blue bg | "Your listing was approved/rejected" |
-| **System** | `Info` on gray bg | "Platform maintenance scheduled for..." |
-| **Dispute** | `AlertTriangle` on amber bg | "A dispute was filed regarding your listing" |
+| Type            | Icon/Avatar                  | Example                                         |
+| --------------- | ---------------------------- | ----------------------------------------------- |
+| **Review**      | Reviewer avatar              | "Jane Doe left a 5-star review on your listing" |
+| **Transaction** | `ArrowDownLeft` on violet bg | "You received a 500 XLM tip from Alice"         |
+| **Listing**     | `Briefcase` on blue bg       | "Your listing was approved/rejected"            |
+| **System**      | `Info` on gray bg            | "Platform maintenance scheduled for..."         |
+| **Dispute**     | `AlertTriangle` on amber bg  | "A dispute was filed regarding your listing"    |
 
 **Grouping rules:**
 
@@ -303,13 +307,14 @@ Stacked avatars:
 
 ### Read / Unread States
 
-| State | Visual treatment |
-|---|---|
-| **Unread** | Blue dot (`h-2 w-2 bg-blue-500 rounded-full`) on the left. Row has `bg-blue-50/50` background. |
-| **Read** | No dot. Row has transparent/white background. |
-| **Hovered** | `bg-gray-50` regardless of read state. |
+| State       | Visual treatment                                                                               |
+| ----------- | ---------------------------------------------------------------------------------------------- |
+| **Unread**  | Blue dot (`h-2 w-2 bg-blue-500 rounded-full`) on the left. Row has `bg-blue-50/50` background. |
+| **Read**    | No dot. Row has transparent/white background.                                                  |
+| **Hovered** | `bg-gray-50` regardless of read state.                                                         |
 
 **Mark as read triggers:**
+
 1. Click the notification row (navigates + marks read).
 2. "Mark all as read" header action.
 3. Auto-mark as read after the notification panel is open for 5 seconds (for visible items only).
@@ -415,13 +420,13 @@ Toggle thumb:
 
 **Preference categories:**
 
-| Category | Default (Email) | Default (Push) |
-|---|---|---|
-| Reviews & Ratings | On | On |
-| Transactions | On | On |
-| Listing Updates | On | Off |
-| Disputes | On | On |
-| Platform Updates | Off | Off |
+| Category          | Default (Email) | Default (Push) |
+| ----------------- | --------------- | -------------- |
+| Reviews & Ratings | On              | On             |
+| Transactions      | On              | On             |
+| Listing Updates   | On              | Off            |
+| Disputes          | On              | On             |
+| Platform Updates  | Off             | Off            |
 
 **Settings card spec:**
 
@@ -476,13 +481,13 @@ Banner: bg-blue-50 border border-blue-200 rounded-lg px-4 py-3
 
 ```typescript
 interface PushNotification {
-  title: string;           // "New Review"
-  body: string;            // "Jane Doe left a 5-star review"
-  icon: string;            // App icon URL
-  badge: string;           // Small monochrome badge
-  tag: string;             // Dedup key (e.g., "review-42")
+  title: string; // "New Review"
+  body: string; // "Jane Doe left a 5-star review"
+  icon: string; // App icon URL
+  badge: string; // Small monochrome badge
+  tag: string; // Dedup key (e.g., "review-42")
   data: {
-    url: string;           // Deep link on click
+    url: string; // Deep link on click
     notificationId: string;
   };
 }

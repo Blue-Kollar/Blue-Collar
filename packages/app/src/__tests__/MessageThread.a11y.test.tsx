@@ -1,10 +1,10 @@
-import { screen } from '@testing-library/react'
-import { renderWithIntl as render } from '@/__tests__/renderWithIntl'
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import userEvent from '@testing-library/user-event'
-import { axe, toHaveNoViolations } from 'jest-axe'
+import { screen } from '@testing-library/react';
+import { renderWithIntl as render } from '@/__tests__/renderWithIntl';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import userEvent from '@testing-library/user-event';
+import { axe, toHaveNoViolations } from 'jest-axe';
 
-expect.extend(toHaveNoViolations)
+expect.extend(toHaveNoViolations);
 
 describe('MessageThread Accessibility', () => {
   const mockMessages = [
@@ -32,18 +32,18 @@ describe('MessageThread Accessibility', () => {
         avatar: null,
       },
     },
-  ]
+  ];
 
   beforeEach(() => {
-    vi.clearAllMocks()
-  })
+    vi.clearAllMocks();
+  });
 
   afterEach(() => {
-    vi.restoreAllMocks()
-  })
+    vi.restoreAllMocks();
+  });
 
   it('has no accessibility violations', async () => {
-    const { default: MessageThread } = await import('@/components/MessageThread')
+    const { default: MessageThread } = await import('@/components/MessageThread');
     const { container } = render(
       <MessageThread
         messages={mockMessages}
@@ -51,14 +51,14 @@ describe('MessageThread Accessibility', () => {
         onSend={vi.fn()}
         currentUserId="user-1"
       />,
-    )
+    );
 
-    const results = await axe(container)
-    expect(results).toHaveNoViolations()
-  })
+    const results = await axe(container);
+    expect(results).toHaveNoViolations();
+  });
 
   it('has proper ARIA labels for the message thread', async () => {
-    const { default: MessageThread } = await import('@/components/MessageThread')
+    const { default: MessageThread } = await import('@/components/MessageThread');
     render(
       <MessageThread
         messages={mockMessages}
@@ -66,15 +66,15 @@ describe('MessageThread Accessibility', () => {
         onSend={vi.fn()}
         currentUserId="user-1"
       />,
-    )
+    );
 
-    expect(screen.getByRole('main', { name: 'Message thread' })).toBeInTheDocument()
-    expect(screen.getByRole('region', { name: 'Messages' })).toBeInTheDocument()
-    expect(screen.getByRole('log', { name: 'Conversation messages' })).toBeInTheDocument()
-  })
+    expect(screen.getByRole('main', { name: 'Message thread' })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Messages' })).toBeInTheDocument();
+    expect(screen.getByRole('log', { name: 'Conversation messages' })).toBeInTheDocument();
+  });
 
   it('provides descriptive aria-labels for individual messages', async () => {
-    const { default: MessageThread } = await import('@/components/MessageThread')
+    const { default: MessageThread } = await import('@/components/MessageThread');
     render(
       <MessageThread
         messages={mockMessages}
@@ -82,29 +82,24 @@ describe('MessageThread Accessibility', () => {
         onSend={vi.fn()}
         currentUserId="user-1"
       />,
-    )
+    );
 
-    const messages = screen.getAllByRole('article')
-    expect(messages.length).toBeGreaterThan(0)
-    expect(messages[0]).toHaveAttribute('aria-label', expect.stringContaining('Message from'))
-  })
+    const messages = screen.getAllByRole('article');
+    expect(messages.length).toBeGreaterThan(0);
+    expect(messages[0]).toHaveAttribute('aria-label', expect.stringContaining('Message from'));
+  });
 
   it('displays proper status for no conversation selected', async () => {
-    const { default: MessageThread } = await import('@/components/MessageThread')
+    const { default: MessageThread } = await import('@/components/MessageThread');
     render(
-      <MessageThread
-        messages={[]}
-        conversationId={null}
-        onSend={vi.fn()}
-        currentUserId="user-1"
-      />,
-    )
+      <MessageThread messages={[]} conversationId={null} onSend={vi.fn()} currentUserId="user-1" />,
+    );
 
-    expect(screen.getByRole('status', { name: 'No conversation selected' })).toBeInTheDocument()
-  })
+    expect(screen.getByRole('status', { name: 'No conversation selected' })).toBeInTheDocument();
+  });
 
   it('displays proper status for no messages', async () => {
-    const { default: MessageThread } = await import('@/components/MessageThread')
+    const { default: MessageThread } = await import('@/components/MessageThread');
     render(
       <MessageThread
         messages={[]}
@@ -112,13 +107,13 @@ describe('MessageThread Accessibility', () => {
         onSend={vi.fn()}
         currentUserId="user-1"
       />,
-    )
+    );
 
-    expect(screen.getByRole('status', { name: 'No messages' })).toBeInTheDocument()
-  })
+    expect(screen.getByRole('status', { name: 'No messages' })).toBeInTheDocument();
+  });
 
   it('provides avatar alt text for accessibility', async () => {
-    const { default: MessageThread } = await import('@/components/MessageThread')
+    const { default: MessageThread } = await import('@/components/MessageThread');
     render(
       <MessageThread
         messages={mockMessages}
@@ -126,16 +121,16 @@ describe('MessageThread Accessibility', () => {
         onSend={vi.fn()}
         currentUserId="user-1"
       />,
-    )
+    );
 
-    const images = screen.getAllByRole('img')
+    const images = screen.getAllByRole('img');
     images.forEach((img) => {
-      expect(img).toHaveAttribute('alt', expect.anything())
-    })
-  })
+      expect(img).toHaveAttribute('alt', expect.anything());
+    });
+  });
 
   it('makes message region focusable for keyboard navigation', async () => {
-    const { default: MessageThread } = await import('@/components/MessageThread')
+    const { default: MessageThread } = await import('@/components/MessageThread');
     render(
       <MessageThread
         messages={mockMessages}
@@ -143,15 +138,15 @@ describe('MessageThread Accessibility', () => {
         onSend={vi.fn()}
         currentUserId="user-1"
       />,
-    )
+    );
 
-    const region = screen.getByRole('region', { name: 'Messages' })
-    expect(region).toHaveAttribute('tabindex', '0')
-  })
+    const region = screen.getByRole('region', { name: 'Messages' });
+    expect(region).toHaveAttribute('tabindex', '0');
+  });
 
   it('supports keyboard navigation to scroll to bottom', async () => {
-    const user = userEvent.setup()
-    const { default: MessageThread } = await import('@/components/MessageThread')
+    const user = userEvent.setup();
+    const { default: MessageThread } = await import('@/components/MessageThread');
     render(
       <MessageThread
         messages={mockMessages}
@@ -159,17 +154,17 @@ describe('MessageThread Accessibility', () => {
         onSend={vi.fn()}
         currentUserId="user-1"
       />,
-    )
+    );
 
-    const region = screen.getByRole('region', { name: 'Messages' })
-    await user.click(region)
-    await user.keyboard('{Control>}{End}{/Control}')
+    const region = screen.getByRole('region', { name: 'Messages' });
+    await user.click(region);
+    await user.keyboard('{Control>}{End}{/Control}');
 
-    expect(region).toHaveFocus()
-  })
+    expect(region).toHaveFocus();
+  });
 
   it('uses aria-live for message updates', async () => {
-    const { default: MessageThread } = await import('@/components/MessageThread')
+    const { default: MessageThread } = await import('@/components/MessageThread');
     render(
       <MessageThread
         messages={mockMessages}
@@ -177,10 +172,10 @@ describe('MessageThread Accessibility', () => {
         onSend={vi.fn()}
         currentUserId="user-1"
       />,
-    )
+    );
 
-    const region = screen.getByRole('region', { name: 'Messages' })
-    expect(region).toHaveAttribute('aria-live', 'polite')
-    expect(region).toHaveAttribute('aria-atomic', 'false')
-  })
-})
+    const region = screen.getByRole('region', { name: 'Messages' });
+    expect(region).toHaveAttribute('aria-live', 'polite');
+    expect(region).toHaveAttribute('aria-atomic', 'false');
+  });
+});

@@ -18,14 +18,20 @@
  * Documented per-package exceptions to the shared baseline. Anything not
  * listed here must match the baseline exactly.
  *
- *   packages/app     no-console allows warn/error (client-side code)
- *   packages/mobile  no-console is 'warn' (React Native debugging)
+ *   packages/app     no-console 'error' (client-side code)
+ *   packages/mobile  no-console 'warn' (React Native debugging); no-explicit-any 'warn' in tests
  *   packages/api     no-console off for seed, command, script, monitoring and test files
  *   packages/sdk     no-console off and no-explicit-any 'warn' in src/__tests__
  *   packages/types   no-console off and no-explicit-any 'warn' in test files
  *   packages/*       no-deprecated requires type info; see per-package configs
  *
- * Shared baseline expectations (#1797, #1798):
+ * Shared baseline expectations (#1797, #1798, #1881):
+ *   • `@typescript-eslint/no-unused-vars` is an **error** everywhere. Only
+ *     identifiers prefixed with `_` are ignored (args and vars), so throwaway
+ *     bindings must be named `_`-prefixed rather than left unused.
+ *   • `@typescript-eslint/no-explicit-any` is an **error** in production code.
+ *     The only relaxations are the documented test overrides above (sdk,
+ *     types, mobile), which keep it at 'warn' for legacy test fixtures.
  *   • Debug output must go through the shared logger, never `console.*`.
  *     The logger implementation itself (e.g. `lib/logger.ts`) is the only
  *     place allowed to touch `console`; it is exempted per-package via a
@@ -35,31 +41,34 @@
  *     literal-string rule is enforced everywhere.
  */
 
-'use strict'
+'use strict';
 
 /**
  * TypeScript-specific rules applied to all *.ts / *.tsx source files.
  * These are the rules that were duplicated across packages before #1289.
  */
 const tsRules = {
-  '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+  '@typescript-eslint/no-unused-vars': [
+    'error',
+    { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+  ],
   '@typescript-eslint/no-explicit-any': 'error',
   '@typescript-eslint/explicit-function-return-type': 'off',
-}
+};
 
 /**
  * General rules that apply to every JS/TS file.
  */
 const baseRules = {
   'no-debugger': 'error',
-}
+};
 
 /**
  * Rules that apply to production code but NOT to scripts / seed files / tests.
  */
 const productionOnlyRules = {
   'no-console': 'error',
-}
+};
 
 /**
  * File naming convention rules enforcing kebab-case (#1691).
@@ -81,7 +90,7 @@ const filenameRules = {
       ],
     },
   ],
-}
+};
 
 /**
  * Deprecation detection (#1688).
@@ -102,7 +111,7 @@ const filenameRules = {
  */
 const deprecationRules = {
   '@typescript-eslint/no-deprecated': 'error',
-}
+};
 
 /**
  * Hardcoded i18n string detection (#1797).
@@ -123,7 +132,7 @@ const i18nRules = {
       'should-validate-template': true,
     },
   ],
-}
+};
 
 module.exports = {
   tsRules,
@@ -132,4 +141,4 @@ module.exports = {
   filenameRules,
   deprecationRules,
   i18nRules,
-}
+};

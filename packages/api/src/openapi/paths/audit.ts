@@ -1,8 +1,10 @@
-import { z } from 'zod'
-import { registry, BearerAuth, ErrorSchema } from '@/openapi/registry.js'
+import { z } from 'zod';
+import { registry, BearerAuth, ErrorSchema } from '@/openapi/registry.js';
 
 registry.registerPath({
-  method: 'get', path: '/api/v1/audit', tags: ['Audit'],
+  method: 'get',
+  path: '/api/v1/audit',
+  tags: ['Audit'],
   summary: 'Query audit log entries (admin)',
   security: [{ [BearerAuth.name]: [] }],
   request: {
@@ -17,8 +19,19 @@ registry.registerPath({
     }),
   },
   responses: {
-    200: { description: 'Audit log entries', content: { 'application/json': { schema: z.object({ status: z.literal('success'), data: z.array(z.record(z.unknown())), meta: z.object({ total: z.number(), page: z.number(), limit: z.number() }) }) } } },
+    200: {
+      description: 'Audit log entries',
+      content: {
+        'application/json': {
+          schema: z.object({
+            status: z.literal('success'),
+            data: z.array(z.record(z.unknown())),
+            meta: z.object({ total: z.number(), page: z.number(), limit: z.number() }),
+          }),
+        },
+      },
+    },
     401: { description: 'Unauthorized', content: { 'application/json': { schema: ErrorSchema } } },
     403: { description: 'Forbidden', content: { 'application/json': { schema: ErrorSchema } } },
   },
-})
+});

@@ -197,7 +197,10 @@ export function buildTransactionSummary(
   xdr: string,
   networkPassphrase: string,
 ): TransactionSummary {
-  const tx = StellarSdk.TransactionBuilder.fromXDR(xdr, networkPassphrase) as StellarSdk.Transaction;
+  const tx = StellarSdk.TransactionBuilder.fromXDR(
+    xdr,
+    networkPassphrase,
+  ) as StellarSdk.Transaction;
   const ops = tx.operations;
 
   const networkName =

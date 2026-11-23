@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo } from 'react';
 
 export interface FilterValues {
   category: string;
@@ -9,9 +9,9 @@ export interface FilterValues {
 }
 
 export const EMPTY_FILTERS: FilterValues = {
-  category: "",
-  city: "",
-  state: "",
+  category: '',
+  city: '',
+  state: '',
 };
 
 export function countActiveFilters(filters: FilterValues): number {

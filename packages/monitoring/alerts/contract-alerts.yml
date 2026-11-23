@@ -13,9 +13,9 @@ groups:
           team: blockchain
           service: contracts
         annotations:
-          summary: "Contract transaction failure rate exceeds 10%"
-          description: "{{ $value }}% of transactions are failing"
-          runbook: "https://github.com/Blue-Kollar/Blue-Collar/docs/INCIDENT_RUNBOOK.md#contract-failures"
+          summary: 'Contract transaction failure rate exceeds 10%'
+          description: '{{ $value }}% of transactions are failing'
+          runbook: 'https://github.com/Blue-Kollar/Blue-Collar/docs/INCIDENT_RUNBOOK.md#contract-failures'
 
       # Contract Gas Spike Alert
       - alert: ContractGasSpike
@@ -27,8 +27,8 @@ groups:
           team: blockchain
           service: contracts
         annotations:
-          summary: "Contract gas usage exceeds 1M"
-          description: "Gas used is {{ $value }} in the last 5 minutes"
+          summary: 'Contract gas usage exceeds 1M'
+          description: 'Gas used is {{ $value }} in the last 5 minutes'
 
       # Contract Balance Low Alert
       - alert: ContractBalanceLow
@@ -40,6 +40,6 @@ groups:
           team: blockchain
           service: contracts
         annotations:
-          summary: "Contract balance is low"
-          description: "Contract balance is {{ $value }} (min: 1000)"
-          runbook: "https://github.com/Blue-Kollar/Blue-Collar/docs/INCIDENT_RUNBOOK.md#contract-balance-low"
+          summary: 'Contract balance is low'
+          description: 'Contract balance is {{ $value }} (min: 1000)'
+          runbook: 'https://github.com/Blue-Kollar/Blue-Collar/docs/INCIDENT_RUNBOOK.md#contract-balance-low'

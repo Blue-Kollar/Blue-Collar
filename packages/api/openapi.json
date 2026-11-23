@@ -25,9 +25,7 @@
         "properties": {
           "status": {
             "type": "string",
-            "enum": [
-              "error"
-            ]
+            "enum": ["error"]
           },
           "message": {
             "type": "string"
@@ -36,20 +34,14 @@
             "type": "number"
           }
         },
-        "required": [
-          "status",
-          "message",
-          "code"
-        ]
+        "required": ["status", "message", "code"]
       },
       "Success": {
         "type": "object",
         "properties": {
           "status": {
             "type": "string",
-            "enum": [
-              "success"
-            ]
+            "enum": ["success"]
           },
           "message": {
             "type": "string"
@@ -58,11 +50,7 @@
             "type": "number"
           }
         },
-        "required": [
-          "status",
-          "message",
-          "code"
-        ]
+        "required": ["status", "message", "code"]
       },
       "Category": {
         "type": "object",
@@ -77,11 +65,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "id",
-          "name",
-          "slug"
-        ]
+        "required": ["id", "name", "slug"]
       },
       "Worker": {
         "type": "object",
@@ -93,31 +77,19 @@
             "type": "string"
           },
           "phone": {
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": ["string", "null"]
           },
           "email": {
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": ["string", "null"]
           },
           "bio": {
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": ["string", "null"]
           },
           "isActive": {
             "type": "boolean"
           },
           "walletAddress": {
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": ["string", "null"]
           },
           "avgRating": {
             "type": "number"
@@ -167,33 +139,20 @@
           },
           "role": {
             "type": "string",
-            "enum": [
-              "user",
-              "curator",
-              "admin"
-            ]
+            "enum": ["user", "curator", "admin"]
           },
           "verified": {
             "type": "boolean"
           }
         },
-        "required": [
-          "id",
-          "email",
-          "firstName",
-          "lastName",
-          "role",
-          "verified"
-        ]
+        "required": ["id", "email", "firstName", "lastName", "role", "verified"]
       },
       "TokenResponse": {
         "type": "object",
         "properties": {
           "status": {
             "type": "string",
-            "enum": [
-              "success"
-            ]
+            "enum": ["success"]
           },
           "message": {
             "type": "string"
@@ -208,22 +167,14 @@
             "$ref": "#/components/schemas/User"
           }
         },
-        "required": [
-          "status",
-          "message",
-          "code",
-          "token",
-          "data"
-        ]
+        "required": ["status", "message", "code", "token", "data"]
       },
       "PaginatedWorkers": {
         "type": "object",
         "properties": {
           "status": {
             "type": "string",
-            "enum": [
-              "success"
-            ]
+            "enum": ["success"]
           },
           "data": {
             "type": "array",
@@ -244,18 +195,10 @@
                 "type": "number"
               }
             },
-            "required": [
-              "total",
-              "page",
-              "limit"
-            ]
+            "required": ["total", "page", "limit"]
           }
         },
-        "required": [
-          "status",
-          "data",
-          "meta"
-        ]
+        "required": ["status", "data", "meta"]
       },
       "WebhookSubscription": {
         "type": "object",
@@ -276,12 +219,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "id",
-          "url",
-          "events",
-          "createdAt"
-        ]
+        "required": ["id", "url", "events", "createdAt"]
       },
       "Conversation": {
         "type": "object",
@@ -296,10 +234,7 @@
             }
           },
           "subject": {
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": ["string", "null"]
           },
           "createdAt": {
             "type": "string"
@@ -308,13 +243,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "id",
-          "participantIds",
-          "subject",
-          "createdAt",
-          "updatedAt"
-        ]
+        "required": ["id", "participantIds", "subject", "createdAt", "updatedAt"]
       },
       "PortfolioItem": {
         "type": "object",
@@ -329,22 +258,13 @@
             "type": "string"
           },
           "description": {
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": ["string", "null"]
           },
           "order": {
             "type": "number"
           }
         },
-        "required": [
-          "id",
-          "workerId",
-          "imageUrl",
-          "description",
-          "order"
-        ]
+        "required": ["id", "workerId", "imageUrl", "description", "order"]
       },
       "Escrow": {
         "type": "object",
@@ -368,14 +288,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "id",
-          "jobId",
-          "payeeId",
-          "amountXlm",
-          "status",
-          "createdAt"
-        ]
+        "required": ["id", "jobId", "payeeId", "amountXlm", "status", "createdAt"]
       },
       "Booking": {
         "type": "object",
@@ -391,12 +304,7 @@
           },
           "status": {
             "type": "string",
-            "enum": [
-              "pending",
-              "confirmed",
-              "cancelled",
-              "completed"
-            ]
+            "enum": ["pending", "confirmed", "cancelled", "completed"]
           },
           "startTime": {
             "type": "string"
@@ -408,16 +316,10 @@
             "type": "string"
           },
           "note": {
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": ["string", "null"]
           },
           "serviceDescription": {
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": ["string", "null"]
           }
         },
         "required": [
@@ -448,12 +350,7 @@
             "type": "boolean"
           }
         },
-        "required": [
-          "newWorkerNearby",
-          "statusChange",
-          "reviewReply",
-          "announcements"
-        ]
+        "required": ["newWorkerNearby", "statusChange", "reviewReply", "announcements"]
       },
       "Notification": {
         "type": "object",
@@ -474,13 +371,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "id",
-          "type",
-          "message",
-          "read",
-          "createdAt"
-        ]
+        "required": ["id", "type", "message", "read", "createdAt"]
       },
       "Job": {
         "type": "object",
@@ -495,19 +386,11 @@
             "type": "string"
           },
           "budget": {
-            "type": [
-              "number",
-              "null"
-            ]
+            "type": ["number", "null"]
           },
           "status": {
             "type": "string",
-            "enum": [
-              "open",
-              "in_progress",
-              "completed",
-              "cancelled"
-            ]
+            "enum": ["open", "in_progress", "completed", "cancelled"]
           },
           "categoryId": {
             "type": "string"
@@ -516,10 +399,7 @@
             "type": "string"
           },
           "expiresAt": {
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": ["string", "null"]
           },
           "createdAt": {
             "type": "string"
@@ -547,9 +427,7 @@
   "paths": {
     "/api/v1/webhooks": {
       "post": {
-        "tags": [
-          "Webhooks"
-        ],
+        "tags": ["Webhooks"],
         "summary": "Create a webhook subscription",
         "security": [
           {
@@ -573,10 +451,7 @@
                     }
                   }
                 },
-                "required": [
-                  "url",
-                  "events"
-                ]
+                "required": ["url", "events"]
               }
             }
           }
@@ -591,18 +466,13 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "$ref": "#/components/schemas/WebhookSubscription"
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -620,9 +490,7 @@
         }
       },
       "get": {
-        "tags": [
-          "Webhooks"
-        ],
+        "tags": ["Webhooks"],
         "summary": "List webhook subscriptions for the authenticated user",
         "security": [
           {
@@ -639,9 +507,7 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "array",
@@ -650,10 +516,7 @@
                       }
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -663,9 +526,7 @@
     },
     "/api/v1/webhooks/{id}": {
       "delete": {
-        "tags": [
-          "Webhooks"
-        ],
+        "tags": ["Webhooks"],
         "summary": "Delete a webhook subscription",
         "security": [
           {
@@ -708,9 +569,7 @@
     },
     "/api/v1/webhooks/{id}/logs": {
       "get": {
-        "tags": [
-          "Webhooks"
-        ],
+        "tags": ["Webhooks"],
         "summary": "Get delivery logs for a webhook subscription",
         "security": [
           {
@@ -753,9 +612,7 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "array",
@@ -765,10 +622,7 @@
                       }
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -778,9 +632,7 @@
     },
     "/api/v1/audit": {
       "get": {
-        "tags": [
-          "Audit"
-        ],
+        "tags": ["Audit"],
         "summary": "Query audit log entries (admin)",
         "security": [
           {
@@ -855,9 +707,7 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "array",
@@ -879,18 +729,10 @@
                           "type": "number"
                         }
                       },
-                      "required": [
-                        "total",
-                        "page",
-                        "limit"
-                      ]
+                      "required": ["total", "page", "limit"]
                     }
                   },
-                  "required": [
-                    "status",
-                    "data",
-                    "meta"
-                  ]
+                  "required": ["status", "data", "meta"]
                 }
               }
             }
@@ -920,9 +762,7 @@
     },
     "/api/v1/recommendations": {
       "get": {
-        "tags": [
-          "Recommendations"
-        ],
+        "tags": ["Recommendations"],
         "summary": "Get personalized worker recommendations",
         "security": [
           {
@@ -949,9 +789,7 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "array",
@@ -961,10 +799,7 @@
                       }
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -974,9 +809,7 @@
     },
     "/api/v1/recommendations/interactions": {
       "post": {
-        "tags": [
-          "Recommendations"
-        ],
+        "tags": ["Recommendations"],
         "summary": "Track an interaction with a recommended worker",
         "security": [
           {
@@ -996,10 +829,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "workerId",
-                  "type"
-                ]
+                "required": ["workerId", "type"]
               }
             }
           }
@@ -1020,9 +850,7 @@
     },
     "/api/events": {
       "get": {
-        "tags": [
-          "Indexer"
-        ],
+        "tags": ["Indexer"],
         "summary": "Query indexed on-chain events",
         "parameters": [
           {
@@ -1068,9 +896,7 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "array",
@@ -1080,10 +906,7 @@
                       }
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -1093,9 +916,7 @@
     },
     "/api/events/worker-registrations/{contractId}/{ownerAddress}": {
       "get": {
-        "tags": [
-          "Indexer"
-        ],
+        "tags": ["Indexer"],
         "summary": "Get indexed worker registration events for an owner address",
         "parameters": [
           {
@@ -1125,9 +946,7 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "array",
@@ -1137,10 +956,7 @@
                       }
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -1150,9 +966,7 @@
     },
     "/api/events/cursor/{contractId}": {
       "get": {
-        "tags": [
-          "Indexer"
-        ],
+        "tags": ["Indexer"],
         "summary": "Get the current indexing cursor for a contract",
         "parameters": [
           {
@@ -1174,19 +988,14 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "object",
                       "additionalProperties": {}
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -1196,9 +1005,7 @@
     },
     "/api/v1/referrals/my/code": {
       "get": {
-        "tags": [
-          "Referrals"
-        ],
+        "tags": ["Referrals"],
         "summary": "Get the authenticated user's referral code",
         "security": [
           {
@@ -1215,9 +1022,7 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "object",
@@ -1226,15 +1031,10 @@
                           "type": "string"
                         }
                       },
-                      "required": [
-                        "code"
-                      ]
+                      "required": ["code"]
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -1244,9 +1044,7 @@
     },
     "/api/v1/referrals/apply": {
       "post": {
-        "tags": [
-          "Referrals"
-        ],
+        "tags": ["Referrals"],
         "summary": "Apply a referral code to the authenticated user",
         "security": [
           {
@@ -1263,9 +1061,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "code"
-                ]
+                "required": ["code"]
               }
             }
           }
@@ -1296,9 +1092,7 @@
     },
     "/api/v1/referrals/my/stats": {
       "get": {
-        "tags": [
-          "Referrals"
-        ],
+        "tags": ["Referrals"],
         "summary": "Get the authenticated user's referral stats",
         "security": [
           {
@@ -1315,19 +1109,14 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "object",
                       "additionalProperties": {}
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -1337,9 +1126,7 @@
     },
     "/api/v1/referrals/leaderboard": {
       "get": {
-        "tags": [
-          "Referrals"
-        ],
+        "tags": ["Referrals"],
         "summary": "Get the public referral leaderboard",
         "responses": {
           "200": {
@@ -1351,9 +1138,7 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "array",
@@ -1363,10 +1148,7 @@
                       }
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -1376,9 +1158,7 @@
     },
     "/api/v1/referrals/{id}/reward": {
       "patch": {
-        "tags": [
-          "Referrals"
-        ],
+        "tags": ["Referrals"],
         "summary": "Mark a referral as rewarded (admin)",
         "security": [
           {
@@ -1411,9 +1191,7 @@
     },
     "/api/v1/workers/{id}/response-stats": {
       "get": {
-        "tags": [
-          "ResponseTime"
-        ],
+        "tags": ["ResponseTime"],
         "summary": "Get response-time stats for a worker (public)",
         "parameters": [
           {
@@ -1435,19 +1213,14 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "object",
                       "additionalProperties": {}
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -1457,9 +1230,7 @@
     },
     "/api/v1/workers/{id}/contacts/{requestId}/respond": {
       "patch": {
-        "tags": [
-          "ResponseTime"
-        ],
+        "tags": ["ResponseTime"],
         "summary": "Respond to a contact request (curator/admin)",
         "security": [
           {
@@ -1494,9 +1265,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "status"
-                ]
+                "required": ["status"]
               }
             }
           }
@@ -1517,9 +1286,7 @@
     },
     "/api/v1/analytics/response-times": {
       "get": {
-        "tags": [
-          "ResponseTime"
-        ],
+        "tags": ["ResponseTime"],
         "summary": "Get platform-wide response-time analytics (admin)",
         "security": [
           {
@@ -1536,19 +1303,14 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "object",
                       "additionalProperties": {}
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -1558,9 +1320,7 @@
     },
     "/api/messages": {
       "get": {
-        "tags": [
-          "Messages"
-        ],
+        "tags": ["Messages"],
         "summary": "List the authenticated user's conversations",
         "security": [
           {
@@ -1595,9 +1355,7 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "array",
@@ -1606,10 +1364,7 @@
                       }
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -1617,9 +1372,7 @@
         }
       },
       "post": {
-        "tags": [
-          "Messages"
-        ],
+        "tags": ["Messages"],
         "summary": "Create a new conversation",
         "security": [
           {
@@ -1642,9 +1395,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "participantIds"
-                ]
+                "required": ["participantIds"]
               }
             }
           }
@@ -1659,18 +1410,13 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "$ref": "#/components/schemas/Conversation"
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -1680,9 +1426,7 @@
     },
     "/api/messages/unread": {
       "get": {
-        "tags": [
-          "Messages"
-        ],
+        "tags": ["Messages"],
         "summary": "Get the unread message count",
         "security": [
           {
@@ -1699,9 +1443,7 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "object",
@@ -1710,15 +1452,10 @@
                           "type": "number"
                         }
                       },
-                      "required": [
-                        "count"
-                      ]
+                      "required": ["count"]
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -1728,9 +1465,7 @@
     },
     "/api/messages/{conversationId}": {
       "get": {
-        "tags": [
-          "Messages"
-        ],
+        "tags": ["Messages"],
         "summary": "Get a conversation with its messages",
         "security": [
           {
@@ -1757,19 +1492,14 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "object",
                       "additionalProperties": {}
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -1789,9 +1519,7 @@
     },
     "/api/messages/{conversationId}/read": {
       "put": {
-        "tags": [
-          "Messages"
-        ],
+        "tags": ["Messages"],
         "summary": "Mark a conversation as read",
         "security": [
           {
@@ -1824,9 +1552,7 @@
     },
     "/api/messages/{conversationId}/search": {
       "get": {
-        "tags": [
-          "Messages"
-        ],
+        "tags": ["Messages"],
         "summary": "Search messages within a conversation",
         "security": [
           {
@@ -1861,9 +1587,7 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "array",
@@ -1873,10 +1597,7 @@
                       }
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -1886,9 +1607,7 @@
     },
     "/api/messages/{messageId}": {
       "delete": {
-        "tags": [
-          "Messages"
-        ],
+        "tags": ["Messages"],
         "summary": "Delete a message",
         "security": [
           {
@@ -1921,9 +1640,7 @@
     },
     "/api/v1/auth/devices": {
       "get": {
-        "tags": [
-          "Devices"
-        ],
+        "tags": ["Devices"],
         "summary": "List active devices/sessions for the authenticated user",
         "security": [
           {
@@ -1940,9 +1657,7 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "array",
@@ -1952,10 +1667,7 @@
                       }
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -1965,9 +1677,7 @@
     },
     "/api/v1/auth/devices/{deviceId}": {
       "delete": {
-        "tags": [
-          "Devices"
-        ],
+        "tags": ["Devices"],
         "summary": "Revoke a specific device/session",
         "security": [
           {
@@ -2000,9 +1710,7 @@
     },
     "/api/v1/auth/devices/revoke-others": {
       "post": {
-        "tags": [
-          "Devices"
-        ],
+        "tags": ["Devices"],
         "summary": "Revoke all other active devices (log out other sessions)",
         "security": [
           {
@@ -2020,9 +1728,7 @@
                     "minLength": 1
                   }
                 },
-                "required": [
-                  "currentDeviceId"
-                ]
+                "required": ["currentDeviceId"]
               }
             }
           }
@@ -2043,9 +1749,7 @@
     },
     "/api/wallet/account/{publicKey}": {
       "get": {
-        "tags": [
-          "Wallet"
-        ],
+        "tags": ["Wallet"],
         "summary": "Get Stellar account info for a public key (public)",
         "parameters": [
           {
@@ -2067,19 +1771,14 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "object",
                       "additionalProperties": {}
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -2099,9 +1798,7 @@
     },
     "/api/wallet/testnet-fund": {
       "post": {
-        "tags": [
-          "Wallet"
-        ],
+        "tags": ["Wallet"],
         "summary": "Fund a testnet account via Friendbot (public)",
         "requestBody": {
           "content": {
@@ -2113,9 +1810,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "publicKey"
-                ]
+                "required": ["publicKey"]
               }
             }
           }
@@ -2130,19 +1825,14 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "object",
                       "additionalProperties": {}
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -2152,9 +1842,7 @@
     },
     "/api/wallet/transactions/{publicKey}": {
       "get": {
-        "tags": [
-          "Wallet"
-        ],
+        "tags": ["Wallet"],
         "summary": "Get recent transactions for a public key (public)",
         "parameters": [
           {
@@ -2176,10 +1864,7 @@
           {
             "schema": {
               "type": "string",
-              "enum": [
-                "asc",
-                "desc"
-              ]
+              "enum": ["asc", "desc"]
             },
             "required": false,
             "name": "order",
@@ -2196,9 +1881,7 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "array",
@@ -2208,10 +1891,7 @@
                       }
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -2221,9 +1901,7 @@
     },
     "/api/wallet/balance": {
       "get": {
-        "tags": [
-          "Wallet"
-        ],
+        "tags": ["Wallet"],
         "summary": "Get the authenticated user's linked wallet balance",
         "security": [
           {
@@ -2240,19 +1918,14 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "object",
                       "additionalProperties": {}
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -2262,9 +1935,7 @@
     },
     "/api/wallet/link": {
       "post": {
-        "tags": [
-          "Wallet"
-        ],
+        "tags": ["Wallet"],
         "summary": "Link a Stellar public key to the authenticated user",
         "security": [
           {
@@ -2283,9 +1954,7 @@
                     "maxLength": 56
                   }
                 },
-                "required": [
-                  "publicKey"
-                ]
+                "required": ["publicKey"]
               }
             }
           }
@@ -2300,9 +1969,7 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "code": {
                       "type": "number"
@@ -2315,12 +1982,7 @@
                       "additionalProperties": {}
                     }
                   },
-                  "required": [
-                    "status",
-                    "code",
-                    "message",
-                    "data"
-                  ]
+                  "required": ["status", "code", "message", "data"]
                 }
               }
             }
@@ -2340,9 +2002,7 @@
     },
     "/api/wallet/build-tx": {
       "post": {
-        "tags": [
-          "Wallet"
-        ],
+        "tags": ["Wallet"],
         "summary": "Build an unsigned Stellar transaction envelope",
         "security": [
           {
@@ -2368,11 +2028,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "sourcePublicKey",
-                  "destinationPublicKey",
-                  "amount"
-                ]
+                "required": ["sourcePublicKey", "destinationPublicKey", "amount"]
               }
             }
           }
@@ -2387,19 +2043,14 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "object",
                       "additionalProperties": {}
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -2409,9 +2060,7 @@
     },
     "/api/wallet/broadcast": {
       "post": {
-        "tags": [
-          "Wallet"
-        ],
+        "tags": ["Wallet"],
         "summary": "Submit a signed transaction to the network",
         "security": [
           {
@@ -2428,9 +2077,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "signedXdr"
-                ]
+                "required": ["signedXdr"]
               }
             }
           }
@@ -2445,19 +2092,14 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "object",
                       "additionalProperties": {}
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -2467,9 +2109,7 @@
     },
     "/api/wallet/tx-status/{txHash}": {
       "get": {
-        "tags": [
-          "Wallet"
-        ],
+        "tags": ["Wallet"],
         "summary": "Poll the status of a submitted transaction",
         "security": [
           {
@@ -2496,19 +2136,14 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "object",
                       "additionalProperties": {}
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -2518,9 +2153,7 @@
     },
     "/api/v1/workers/{id}/insurance": {
       "post": {
-        "tags": [
-          "Insurance"
-        ],
+        "tags": ["Insurance"],
         "summary": "Upload an insurance document for a worker (curator/admin)",
         "security": [
           {
@@ -2557,12 +2190,7 @@
                     "description": "Insurance document file"
                   }
                 },
-                "required": [
-                  "expiresAt",
-                  "provider",
-                  "policyNumber",
-                  "document"
-                ]
+                "required": ["expiresAt", "provider", "policyNumber", "document"]
               }
             }
           }
@@ -2577,19 +2205,14 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "object",
                       "additionalProperties": {}
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -2597,9 +2220,7 @@
         }
       },
       "get": {
-        "tags": [
-          "Insurance"
-        ],
+        "tags": ["Insurance"],
         "summary": "List insurance documents for a worker (curator/admin)",
         "security": [
           {
@@ -2626,9 +2247,7 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "array",
@@ -2638,10 +2257,7 @@
                       }
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -2651,9 +2267,7 @@
     },
     "/api/v1/workers/{id}/insurance/{docId}": {
       "patch": {
-        "tags": [
-          "Insurance"
-        ],
+        "tags": ["Insurance"],
         "summary": "Verify or reject an insurance document (admin)",
         "security": [
           {
@@ -2686,15 +2300,10 @@
                 "properties": {
                   "status": {
                     "type": "string",
-                    "enum": [
-                      "verified",
-                      "rejected"
-                    ]
+                    "enum": ["verified", "rejected"]
                   }
                 },
-                "required": [
-                  "status"
-                ]
+                "required": ["status"]
               }
             }
           }
@@ -2715,9 +2324,7 @@
     },
     "/api/v1/workers/insurance/reminders": {
       "post": {
-        "tags": [
-          "Insurance"
-        ],
+        "tags": ["Insurance"],
         "summary": "Manually trigger insurance renewal reminders (admin)",
         "security": [
           {
@@ -2740,9 +2347,7 @@
     },
     "/api/subscriptions/webhook": {
       "post": {
-        "tags": [
-          "Subscriptions"
-        ],
+        "tags": ["Subscriptions"],
         "summary": "Stripe webhook receiver (raw body, Stripe-signature verified, no bearer auth)",
         "responses": {
           "200": {
@@ -2760,9 +2365,7 @@
     },
     "/api/subscriptions/{workerId}": {
       "get": {
-        "tags": [
-          "Subscriptions"
-        ],
+        "tags": ["Subscriptions"],
         "summary": "Get a worker's subscription (curator/admin)",
         "security": [
           {
@@ -2789,19 +2392,14 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "object",
                       "additionalProperties": {}
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -2809,9 +2407,7 @@
         }
       },
       "post": {
-        "tags": [
-          "Subscriptions"
-        ],
+        "tags": ["Subscriptions"],
         "summary": "Create or upgrade a worker's subscription (curator/admin)",
         "security": [
           {
@@ -2847,9 +2443,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "tier"
-                ]
+                "required": ["tier"]
               }
             }
           }
@@ -2864,19 +2458,14 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "object",
                       "additionalProperties": {}
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -2884,9 +2473,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "Subscriptions"
-        ],
+        "tags": ["Subscriptions"],
         "summary": "Cancel a worker's subscription (curator/admin)",
         "security": [
           {
@@ -2919,9 +2506,7 @@
     },
     "/api/workers/{workerId}/portfolio": {
       "get": {
-        "tags": [
-          "Portfolio"
-        ],
+        "tags": ["Portfolio"],
         "summary": "List a worker's portfolio items (public)",
         "parameters": [
           {
@@ -2943,9 +2528,7 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "array",
@@ -2954,10 +2537,7 @@
                       }
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -2965,9 +2545,7 @@
         }
       },
       "post": {
-        "tags": [
-          "Portfolio"
-        ],
+        "tags": ["Portfolio"],
         "summary": "Add a portfolio item (curator/admin)",
         "security": [
           {
@@ -3001,9 +2579,7 @@
                     "description": "Image file"
                   }
                 },
-                "required": [
-                  "image"
-                ]
+                "required": ["image"]
               }
             }
           }
@@ -3018,18 +2594,13 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "$ref": "#/components/schemas/PortfolioItem"
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -3039,9 +2610,7 @@
     },
     "/api/workers/{workerId}/portfolio/{id}": {
       "post": {
-        "tags": [
-          "Portfolio"
-        ],
+        "tags": ["Portfolio"],
         "summary": "Update a portfolio item (curator/admin). Method-spoofed PUT via X-HTTP-Method-Override for file uploads.",
         "security": [
           {
@@ -3097,18 +2666,13 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "$ref": "#/components/schemas/PortfolioItem"
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -3116,9 +2680,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "Portfolio"
-        ],
+        "tags": ["Portfolio"],
         "summary": "Delete a portfolio item (curator/admin)",
         "security": [
           {
@@ -3159,9 +2721,7 @@
     },
     "/api/workers/{workerId}/portfolio/reorder": {
       "patch": {
-        "tags": [
-          "Portfolio"
-        ],
+        "tags": ["Portfolio"],
         "summary": "Reorder portfolio items (curator/admin)",
         "security": [
           {
@@ -3196,16 +2756,11 @@
                           "type": "number"
                         }
                       },
-                      "required": [
-                        "id",
-                        "order"
-                      ]
+                      "required": ["id", "order"]
                     }
                   }
                 },
-                "required": [
-                  "items"
-                ]
+                "required": ["items"]
               }
             }
           }
@@ -3226,9 +2781,7 @@
     },
     "/api/escrow": {
       "get": {
-        "tags": [
-          "Escrow"
-        ],
+        "tags": ["Escrow"],
         "summary": "List the authenticated user's escrow records",
         "security": [
           {
@@ -3263,9 +2816,7 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "array",
@@ -3274,10 +2825,7 @@
                       }
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -3285,9 +2833,7 @@
         }
       },
       "post": {
-        "tags": [
-          "Escrow"
-        ],
+        "tags": ["Escrow"],
         "summary": "Create an escrow payment",
         "security": [
           {
@@ -3316,12 +2862,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "jobId",
-                  "payeeId",
-                  "amountXlm",
-                  "txId"
-                ]
+                "required": ["jobId", "payeeId", "amountXlm", "txId"]
               }
             }
           }
@@ -3336,18 +2877,13 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "$ref": "#/components/schemas/Escrow"
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -3357,9 +2893,7 @@
     },
     "/api/escrow/{id}": {
       "get": {
-        "tags": [
-          "Escrow"
-        ],
+        "tags": ["Escrow"],
         "summary": "Get an escrow record",
         "security": [
           {
@@ -3386,18 +2920,13 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "$ref": "#/components/schemas/Escrow"
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -3427,9 +2956,7 @@
     },
     "/api/escrow/{id}/activate": {
       "patch": {
-        "tags": [
-          "Escrow"
-        ],
+        "tags": ["Escrow"],
         "summary": "Activate an escrow once funded on-chain",
         "security": [
           {
@@ -3456,9 +2983,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "txId"
-                ]
+                "required": ["txId"]
               }
             }
           }
@@ -3473,18 +2998,13 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "$ref": "#/components/schemas/Escrow"
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -3494,9 +3014,7 @@
     },
     "/api/escrow/{id}/release": {
       "patch": {
-        "tags": [
-          "Escrow"
-        ],
+        "tags": ["Escrow"],
         "summary": "Release escrowed funds to the payee",
         "security": [
           {
@@ -3523,18 +3041,13 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "$ref": "#/components/schemas/Escrow"
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -3544,9 +3057,7 @@
     },
     "/api/escrow/{id}/cancel": {
       "patch": {
-        "tags": [
-          "Escrow"
-        ],
+        "tags": ["Escrow"],
         "summary": "Cancel an escrow",
         "security": [
           {
@@ -3573,18 +3084,13 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "$ref": "#/components/schemas/Escrow"
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -3594,9 +3100,7 @@
     },
     "/api/escrow/{id}/disputes": {
       "post": {
-        "tags": [
-          "Escrow"
-        ],
+        "tags": ["Escrow"],
         "summary": "File a dispute against an escrow",
         "security": [
           {
@@ -3626,9 +3130,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "reason"
-                ]
+                "required": ["reason"]
               }
             }
           }
@@ -3643,19 +3145,14 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "object",
                       "additionalProperties": {}
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -3665,9 +3162,7 @@
     },
     "/api/escrow/{id}/disputes/{disputeId}": {
       "patch": {
-        "tags": [
-          "Escrow"
-        ],
+        "tags": ["Escrow"],
         "summary": "Resolve an escrow dispute (admin)",
         "security": [
           {
@@ -3705,10 +3200,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "status",
-                  "resolution"
-                ]
+                "required": ["status", "resolution"]
               }
             }
           }
@@ -3729,9 +3221,7 @@
     },
     "/api/analytics/events": {
       "post": {
-        "tags": [
-          "Analytics"
-        ],
+        "tags": ["Analytics"],
         "summary": "Record client analytics events (public)",
         "requestBody": {
           "content": {
@@ -3747,9 +3237,7 @@
                     }
                   }
                 },
-                "required": [
-                  "events"
-                ]
+                "required": ["events"]
               }
             }
           }
@@ -3763,9 +3251,7 @@
     },
     "/api/analytics/curator": {
       "get": {
-        "tags": [
-          "Analytics"
-        ],
+        "tags": ["Analytics"],
         "summary": "Get curator dashboard analytics (curator/admin)",
         "security": [
           {
@@ -3782,19 +3268,14 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "object",
                       "additionalProperties": {}
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -3804,9 +3285,7 @@
     },
     "/api/analytics/export/curator": {
       "get": {
-        "tags": [
-          "Analytics"
-        ],
+        "tags": ["Analytics"],
         "summary": "Export curator analytics as CSV (curator/admin)",
         "security": [
           {
@@ -3822,9 +3301,7 @@
     },
     "/api/analytics/platform": {
       "get": {
-        "tags": [
-          "Analytics"
-        ],
+        "tags": ["Analytics"],
         "summary": "Get platform-wide dashboard analytics (admin)",
         "security": [
           {
@@ -3841,19 +3318,14 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "object",
                       "additionalProperties": {}
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -3863,9 +3335,7 @@
     },
     "/api/analytics/export/platform": {
       "get": {
-        "tags": [
-          "Analytics"
-        ],
+        "tags": ["Analytics"],
         "summary": "Export platform analytics as CSV (admin)",
         "security": [
           {
@@ -3881,9 +3351,7 @@
     },
     "/api/analytics/admin/dashboard": {
       "get": {
-        "tags": [
-          "Analytics"
-        ],
+        "tags": ["Analytics"],
         "summary": "Get admin dashboard analytics for a date range (admin)",
         "security": [
           {
@@ -3918,19 +3386,14 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "object",
                       "additionalProperties": {}
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -3940,9 +3403,7 @@
     },
     "/api/analytics/admin/export": {
       "get": {
-        "tags": [
-          "Analytics"
-        ],
+        "tags": ["Analytics"],
         "summary": "Export admin analytics as CSV for a date range (admin)",
         "security": [
           {
@@ -3976,9 +3437,7 @@
     },
     "/api/analytics/metrics": {
       "get": {
-        "tags": [
-          "Analytics"
-        ],
+        "tags": ["Analytics"],
         "summary": "Get protocol health metrics",
         "responses": {
           "200": {
@@ -3990,19 +3449,14 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "object",
                       "additionalProperties": {}
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -4012,9 +3466,7 @@
     },
     "/api/analytics/metrics/timeseries": {
       "get": {
-        "tags": [
-          "Analytics"
-        ],
+        "tags": ["Analytics"],
         "summary": "Get protocol health metrics as a time series",
         "parameters": [
           {
@@ -4036,9 +3488,7 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "array",
@@ -4048,10 +3498,7 @@
                       }
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -4061,9 +3508,7 @@
     },
     "/api/analytics/top-workers": {
       "get": {
-        "tags": [
-          "Analytics"
-        ],
+        "tags": ["Analytics"],
         "summary": "Get top workers leaderboard by a metric",
         "parameters": [
           {
@@ -4093,9 +3538,7 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "array",
@@ -4105,10 +3548,7 @@
                       }
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -4118,9 +3558,7 @@
     },
     "/api/bookings": {
       "post": {
-        "tags": [
-          "Bookings"
-        ],
+        "tags": ["Bookings"],
         "summary": "Create a booking request (rate-limited to 10/hr per user)",
         "security": [
           {
@@ -4152,11 +3590,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "workerId",
-                  "startTime",
-                  "endTime"
-                ]
+                "required": ["workerId", "startTime", "endTime"]
               }
             }
           }
@@ -4171,18 +3605,13 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "$ref": "#/components/schemas/Booking"
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -4195,9 +3624,7 @@
     },
     "/api/bookings/mine": {
       "get": {
-        "tags": [
-          "Bookings"
-        ],
+        "tags": ["Bookings"],
         "summary": "List bookings for the authenticated user",
         "security": [
           {
@@ -4208,10 +3635,7 @@
           {
             "schema": {
               "type": "string",
-              "enum": [
-                "worker",
-                "requester"
-              ]
+              "enum": ["worker", "requester"]
             },
             "required": false,
             "name": "role",
@@ -4220,12 +3644,7 @@
           {
             "schema": {
               "type": "string",
-              "enum": [
-                "pending",
-                "confirmed",
-                "cancelled",
-                "completed"
-              ]
+              "enum": ["pending", "confirmed", "cancelled", "completed"]
             },
             "required": false,
             "name": "status",
@@ -4258,9 +3677,7 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "array",
@@ -4269,10 +3686,7 @@
                       }
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -4282,9 +3696,7 @@
     },
     "/api/bookings/{id}/confirm": {
       "patch": {
-        "tags": [
-          "Bookings"
-        ],
+        "tags": ["Bookings"],
         "summary": "Confirm a pending booking (worker only)",
         "security": [
           {
@@ -4311,18 +3723,13 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "$ref": "#/components/schemas/Booking"
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -4332,9 +3739,7 @@
     },
     "/api/bookings/{id}/cancel": {
       "patch": {
-        "tags": [
-          "Bookings"
-        ],
+        "tags": ["Bookings"],
         "summary": "Cancel a booking (worker or requester)",
         "security": [
           {
@@ -4381,9 +3786,7 @@
     },
     "/api/notifications/preferences": {
       "get": {
-        "tags": [
-          "Notifications"
-        ],
+        "tags": ["Notifications"],
         "summary": "Get the authenticated user's notification preferences",
         "security": [
           {
@@ -4404,9 +3807,7 @@
         }
       },
       "put": {
-        "tags": [
-          "Notifications"
-        ],
+        "tags": ["Notifications"],
         "summary": "Update the authenticated user's notification preferences",
         "security": [
           {
@@ -4452,9 +3853,7 @@
     },
     "/api/v1/notifications": {
       "get": {
-        "tags": [
-          "Notifications"
-        ],
+        "tags": ["Notifications"],
         "summary": "List the authenticated user's notifications",
         "security": [
           {
@@ -4471,9 +3870,7 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "array",
@@ -4482,10 +3879,7 @@
                       }
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -4495,9 +3889,7 @@
     },
     "/api/v1/notifications/unread-count": {
       "get": {
-        "tags": [
-          "Notifications"
-        ],
+        "tags": ["Notifications"],
         "summary": "Get the unread notification count",
         "security": [
           {
@@ -4514,9 +3906,7 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "object",
@@ -4525,15 +3915,10 @@
                           "type": "number"
                         }
                       },
-                      "required": [
-                        "count"
-                      ]
+                      "required": ["count"]
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -4543,9 +3928,7 @@
     },
     "/api/v1/notifications/preferences": {
       "get": {
-        "tags": [
-          "Notifications"
-        ],
+        "tags": ["Notifications"],
         "summary": "Get the authenticated user's notification channel preferences",
         "security": [
           {
@@ -4562,19 +3945,14 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "object",
                       "additionalProperties": {}
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -4582,9 +3960,7 @@
         }
       },
       "put": {
-        "tags": [
-          "Notifications"
-        ],
+        "tags": ["Notifications"],
         "summary": "Update the authenticated user's notification channel preferences",
         "security": [
           {
@@ -4619,9 +3995,7 @@
     },
     "/api/v1/notifications/dispatch": {
       "post": {
-        "tags": [
-          "Notifications"
-        ],
+        "tags": ["Notifications"],
         "summary": "Dispatch a multi-channel notification",
         "security": [
           {
@@ -4654,9 +4028,7 @@
     },
     "/api/v1/notifications/{notificationId}/delivery-log": {
       "get": {
-        "tags": [
-          "Notifications"
-        ],
+        "tags": ["Notifications"],
         "summary": "Get the delivery log for a notification",
         "security": [
           {
@@ -4683,9 +4055,7 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "array",
@@ -4695,10 +4065,7 @@
                       }
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -4708,9 +4075,7 @@
     },
     "/api/v1/notifications/{id}/read": {
       "patch": {
-        "tags": [
-          "Notifications"
-        ],
+        "tags": ["Notifications"],
         "summary": "Mark a notification as read",
         "security": [
           {
@@ -4743,9 +4108,7 @@
     },
     "/api/v1/notifications/read-all": {
       "patch": {
-        "tags": [
-          "Notifications"
-        ],
+        "tags": ["Notifications"],
         "summary": "Mark all notifications as read",
         "security": [
           {
@@ -4768,9 +4131,7 @@
     },
     "/api/v1/notifications/{id}": {
       "delete": {
-        "tags": [
-          "Notifications"
-        ],
+        "tags": ["Notifications"],
         "summary": "Delete a notification",
         "security": [
           {
@@ -4803,9 +4164,7 @@
     },
     "/api/v1/verifications": {
       "post": {
-        "tags": [
-          "Verifications"
-        ],
+        "tags": ["Verifications"],
         "summary": "Request a verification",
         "security": [
           {
@@ -4832,19 +4191,14 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "object",
                       "additionalProperties": {}
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -4852,9 +4206,7 @@
         }
       },
       "get": {
-        "tags": [
-          "Verifications"
-        ],
+        "tags": ["Verifications"],
         "summary": "List pending verification requests (admin)",
         "security": [
           {
@@ -4871,9 +4223,7 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "array",
@@ -4883,10 +4233,7 @@
                       }
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -4896,9 +4243,7 @@
     },
     "/api/v1/verifications/{id}/review": {
       "patch": {
-        "tags": [
-          "Verifications"
-        ],
+        "tags": ["Verifications"],
         "summary": "Approve or reject a verification request (admin)",
         "security": [
           {
@@ -4923,15 +4268,10 @@
                 "properties": {
                   "action": {
                     "type": "string",
-                    "enum": [
-                      "approve",
-                      "reject"
-                    ]
+                    "enum": ["approve", "reject"]
                   }
                 },
-                "required": [
-                  "action"
-                ]
+                "required": ["action"]
               }
             }
           }
@@ -4952,9 +4292,7 @@
     },
     "/api/vitals": {
       "post": {
-        "tags": [
-          "System"
-        ],
+        "tags": ["System"],
         "summary": "Report a Web Vitals measurement from the client (public, fire-and-forget)",
         "requestBody": {
           "content": {
@@ -4975,10 +4313,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "name",
-                  "value"
-                ]
+                "required": ["name", "value"]
               }
             }
           }
@@ -4992,9 +4327,7 @@
     },
     "/api/workers/events": {
       "get": {
-        "tags": [
-          "Realtime"
-        ],
+        "tags": ["Realtime"],
         "summary": "Subscribe to live worker status changes via Server-Sent Events",
         "description": "Long-lived `text/event-stream` connection. Emits a `workerStatus` event `{ workerId, isActive, ts }` whenever a worker is toggled, plus periodic `: heartbeat` comments every 25s.",
         "responses": {
@@ -5013,9 +4346,7 @@
     },
     "/api/v1/auth/register": {
       "post": {
-        "tags": [
-          "Auth"
-        ],
+        "tags": ["Auth"],
         "summary": "Register a new account",
         "requestBody": {
           "content": {
@@ -5040,12 +4371,7 @@
                     "minLength": 1
                   }
                 },
-                "required": [
-                  "email",
-                  "password",
-                  "firstName",
-                  "lastName"
-                ]
+                "required": ["email", "password", "firstName", "lastName"]
               }
             }
           }
@@ -5086,9 +4412,7 @@
     },
     "/api/v1/auth/login": {
       "post": {
-        "tags": [
-          "Auth"
-        ],
+        "tags": ["Auth"],
         "summary": "Login with email and password",
         "requestBody": {
           "content": {
@@ -5105,10 +4429,7 @@
                     "minLength": 1
                   }
                 },
-                "required": [
-                  "email",
-                  "password"
-                ]
+                "required": ["email", "password"]
               }
             }
           }
@@ -5139,9 +4460,7 @@
     },
     "/api/v1/auth/logout": {
       "delete": {
-        "tags": [
-          "Auth"
-        ],
+        "tags": ["Auth"],
         "summary": "Logout (revokes refresh tokens)",
         "security": [
           {
@@ -5174,9 +4493,7 @@
     },
     "/api/v1/auth/me": {
       "get": {
-        "tags": [
-          "Auth"
-        ],
+        "tags": ["Auth"],
         "summary": "Get current user",
         "security": [
           {
@@ -5193,18 +4510,13 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "$ref": "#/components/schemas/User"
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -5224,9 +4536,7 @@
     },
     "/api/v1/auth/refresh": {
       "post": {
-        "tags": [
-          "Auth"
-        ],
+        "tags": ["Auth"],
         "summary": "Refresh access token",
         "responses": {
           "200": {
@@ -5254,9 +4564,7 @@
     },
     "/api/v1/auth/verify-account": {
       "put": {
-        "tags": [
-          "Auth"
-        ],
+        "tags": ["Auth"],
         "summary": "Verify email address",
         "requestBody": {
           "content": {
@@ -5269,9 +4577,7 @@
                     "minLength": 1
                   }
                 },
-                "required": [
-                  "token"
-                ]
+                "required": ["token"]
               }
             }
           }
@@ -5302,9 +4608,7 @@
     },
     "/api/v1/auth/resend-verification": {
       "post": {
-        "tags": [
-          "Auth"
-        ],
+        "tags": ["Auth"],
         "summary": "Resend verification email",
         "requestBody": {
           "content": {
@@ -5317,9 +4621,7 @@
                     "format": "email"
                   }
                 },
-                "required": [
-                  "email"
-                ]
+                "required": ["email"]
               }
             }
           }
@@ -5340,9 +4642,7 @@
     },
     "/api/v1/auth/unsubscribe-reminders": {
       "get": {
-        "tags": [
-          "Auth"
-        ],
+        "tags": ["Auth"],
         "summary": "One-click unsubscribe from reminder emails (via emailed link token)",
         "parameters": [
           {
@@ -5370,9 +4670,7 @@
     },
     "/api/v1/auth/forgot-password": {
       "post": {
-        "tags": [
-          "Auth"
-        ],
+        "tags": ["Auth"],
         "summary": "Request password reset email",
         "requestBody": {
           "content": {
@@ -5385,9 +4683,7 @@
                     "format": "email"
                   }
                 },
-                "required": [
-                  "email"
-                ]
+                "required": ["email"]
               }
             }
           }
@@ -5408,9 +4704,7 @@
     },
     "/api/v1/auth/reset-password": {
       "put": {
-        "tags": [
-          "Auth"
-        ],
+        "tags": ["Auth"],
         "summary": "Reset password with token",
         "requestBody": {
           "content": {
@@ -5427,10 +4721,7 @@
                     "minLength": 8
                   }
                 },
-                "required": [
-                  "token",
-                  "password"
-                ]
+                "required": ["token", "password"]
               }
             }
           }
@@ -5461,9 +4752,7 @@
     },
     "/api/v1/auth/google": {
       "get": {
-        "tags": [
-          "Auth"
-        ],
+        "tags": ["Auth"],
         "summary": "Initiate Google OAuth flow",
         "responses": {
           "302": {
@@ -5474,9 +4763,7 @@
     },
     "/api/v1/auth/google/callback": {
       "get": {
-        "tags": [
-          "Auth"
-        ],
+        "tags": ["Auth"],
         "summary": "Google OAuth callback",
         "responses": {
           "302": {
@@ -5487,9 +4774,7 @@
     },
     "/api/v1/categories": {
       "get": {
-        "tags": [
-          "Categories"
-        ],
+        "tags": ["Categories"],
         "summary": "List all categories",
         "responses": {
           "200": {
@@ -5501,9 +4786,7 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "array",
@@ -5512,10 +4795,7 @@
                       }
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -5523,9 +4803,7 @@
         }
       },
       "post": {
-        "tags": [
-          "Categories"
-        ],
+        "tags": ["Categories"],
         "summary": "Create a category (admin)",
         "security": [
           {
@@ -5545,10 +4823,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "name",
-                  "slug"
-                ]
+                "required": ["name", "slug"]
               }
             }
           }
@@ -5563,18 +4838,13 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "$ref": "#/components/schemas/Category"
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -5584,9 +4854,7 @@
     },
     "/api/v1/categories/{id}": {
       "get": {
-        "tags": [
-          "Categories"
-        ],
+        "tags": ["Categories"],
         "summary": "Get a single category",
         "parameters": [
           {
@@ -5608,18 +4876,13 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "$ref": "#/components/schemas/Category"
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -5637,9 +4900,7 @@
         }
       },
       "put": {
-        "tags": [
-          "Categories"
-        ],
+        "tags": ["Categories"],
         "summary": "Update a category (admin)",
         "security": [
           {
@@ -5683,18 +4944,13 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "$ref": "#/components/schemas/Category"
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -5702,9 +4958,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "Categories"
-        ],
+        "tags": ["Categories"],
         "summary": "Delete a category (admin)",
         "security": [
           {
@@ -5737,9 +4991,7 @@
     },
     "/api/v1/workers": {
       "get": {
-        "tags": [
-          "Workers"
-        ],
+        "tags": ["Workers"],
         "summary": "List active workers (paginated)",
         "parameters": [
           {
@@ -5789,9 +5041,7 @@
         }
       },
       "post": {
-        "tags": [
-          "Workers"
-        ],
+        "tags": ["Workers"],
         "summary": "Create a worker listing (curator)",
         "security": [
           {
@@ -5826,10 +5076,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "name",
-                  "categoryId"
-                ]
+                "required": ["name", "categoryId"]
               }
             },
             "multipart/form-data": {
@@ -5858,10 +5105,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "name",
-                  "categoryId"
-                ]
+                "required": ["name", "categoryId"]
               }
             }
           }
@@ -5876,18 +5120,13 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "$ref": "#/components/schemas/Worker"
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -5927,9 +5166,7 @@
     },
     "/api/v1/workers/mine": {
       "get": {
-        "tags": [
-          "Workers"
-        ],
+        "tags": ["Workers"],
         "summary": "List my worker listings (curator/admin)",
         "security": [
           {
@@ -5962,9 +5199,7 @@
     },
     "/api/v1/workers/{id}": {
       "get": {
-        "tags": [
-          "Workers"
-        ],
+        "tags": ["Workers"],
         "summary": "Get a single worker",
         "parameters": [
           {
@@ -5986,18 +5221,13 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "$ref": "#/components/schemas/Worker"
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -6015,9 +5245,7 @@
         }
       },
       "put": {
-        "tags": [
-          "Workers"
-        ],
+        "tags": ["Workers"],
         "summary": "Update a worker (curator). Use POST + X-HTTP-Method: PUT for file uploads.",
         "security": [
           {
@@ -6102,18 +5330,13 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "$ref": "#/components/schemas/Worker"
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -6131,9 +5354,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "Workers"
-        ],
+        "tags": ["Workers"],
         "summary": "Delete a worker (curator)",
         "security": [
           {
@@ -6176,9 +5397,7 @@
     },
     "/api/v1/workers/{id}/toggle": {
       "patch": {
-        "tags": [
-          "Workers"
-        ],
+        "tags": ["Workers"],
         "summary": "Toggle worker active status (curator)",
         "security": [
           {
@@ -6205,18 +5424,13 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "$ref": "#/components/schemas/Worker"
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -6226,9 +5440,7 @@
     },
     "/api/v1/workers/{id}/reviews": {
       "post": {
-        "tags": [
-          "Workers"
-        ],
+        "tags": ["Workers"],
         "summary": "Submit a review for a worker",
         "security": [
           {
@@ -6260,9 +5472,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "rating"
-                ]
+                "required": ["rating"]
               }
             }
           }
@@ -6291,9 +5501,7 @@
         }
       },
       "get": {
-        "tags": [
-          "Reviews"
-        ],
+        "tags": ["Reviews"],
         "summary": "List reviews for a worker",
         "parameters": [
           {
@@ -6315,9 +5523,7 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "array",
@@ -6333,12 +5539,7 @@
                       "type": "number"
                     }
                   },
-                  "required": [
-                    "status",
-                    "data",
-                    "avgRating",
-                    "reviewCount"
-                  ]
+                  "required": ["status", "data", "avgRating", "reviewCount"]
                 }
               }
             }
@@ -6348,9 +5549,7 @@
     },
     "/api/v1/workers/{id}/bookmark": {
       "post": {
-        "tags": [
-          "Workers"
-        ],
+        "tags": ["Workers"],
         "summary": "Toggle bookmark on a worker",
         "security": [
           {
@@ -6383,9 +5582,7 @@
     },
     "/api/v1/workers/{id}/contact": {
       "post": {
-        "tags": [
-          "Workers"
-        ],
+        "tags": ["Workers"],
         "summary": "Send a contact request to a worker",
         "security": [
           {
@@ -6413,9 +5610,7 @@
                     "minLength": 10
                   }
                 },
-                "required": [
-                  "message"
-                ]
+                "required": ["message"]
               }
             }
           }
@@ -6436,9 +5631,7 @@
     },
     "/api/v1/users/me": {
       "patch": {
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "summary": "Update own profile",
         "security": [
           {
@@ -6478,18 +5671,13 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "$ref": "#/components/schemas/User"
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -6497,9 +5685,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "summary": "Delete own account",
         "security": [
           {
@@ -6520,9 +5706,7 @@
         }
       },
       "put": {
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "summary": "Full profile update (supports avatar upload via X-HTTP-Method: PUT)",
         "security": [
           {
@@ -6565,18 +5749,13 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "$ref": "#/components/schemas/User"
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -6586,9 +5765,7 @@
     },
     "/api/v1/users/me/password": {
       "put": {
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "summary": "Change password",
         "security": [
           {
@@ -6609,10 +5786,7 @@
                     "minLength": 8
                   }
                 },
-                "required": [
-                  "currentPassword",
-                  "newPassword"
-                ]
+                "required": ["currentPassword", "newPassword"]
               }
             }
           }
@@ -6643,9 +5817,7 @@
     },
     "/api/v1/users/me/bookmarks": {
       "get": {
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "summary": "List bookmarked workers",
         "security": [
           {
@@ -6668,9 +5840,7 @@
     },
     "/api/v1/payments/fee": {
       "get": {
-        "tags": [
-          "Payments"
-        ],
+        "tags": ["Payments"],
         "summary": "Get current platform fee",
         "responses": {
           "200": {
@@ -6682,9 +5852,7 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "object",
@@ -6693,15 +5861,10 @@
                           "type": "number"
                         }
                       },
-                      "required": [
-                        "fee_bps"
-                      ]
+                      "required": ["fee_bps"]
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -6709,9 +5872,7 @@
         }
       },
       "patch": {
-        "tags": [
-          "Payments"
-        ],
+        "tags": ["Payments"],
         "summary": "Update platform fee (admin)",
         "security": [
           {
@@ -6729,9 +5890,7 @@
                     "minimum": 0
                   }
                 },
-                "required": [
-                  "fee_bps"
-                ]
+                "required": ["fee_bps"]
               }
             }
           }
@@ -6752,9 +5911,7 @@
     },
     "/api/v1/payments/tip": {
       "post": {
-        "tags": [
-          "Payments"
-        ],
+        "tags": ["Payments"],
         "summary": "Send a tip to a worker via Stellar",
         "security": [
           {
@@ -6778,11 +5935,7 @@
                     "exclusiveMinimum": 0
                   }
                 },
-                "required": [
-                  "from",
-                  "to",
-                  "amount"
-                ]
+                "required": ["from", "to", "amount"]
               }
             }
           }
@@ -6813,9 +5966,7 @@
     },
     "/api/v1/payments/escrow": {
       "post": {
-        "tags": [
-          "Payments"
-        ],
+        "tags": ["Payments"],
         "summary": "Create an escrow payment",
         "security": [
           {
@@ -6842,12 +5993,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "from",
-                  "to",
-                  "amount",
-                  "expiryDate"
-                ]
+                "required": ["from", "to", "amount", "expiryDate"]
               }
             }
           }
@@ -6868,9 +6014,7 @@
     },
     "/api/v1/admin/stats": {
       "get": {
-        "tags": [
-          "Admin"
-        ],
+        "tags": ["Admin"],
         "summary": "Platform statistics (admin)",
         "security": [
           {
@@ -6887,19 +6031,14 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "object",
                       "additionalProperties": {}
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -6909,9 +6048,7 @@
     },
     "/api/v1/admin/workers": {
       "get": {
-        "tags": [
-          "Admin"
-        ],
+        "tags": ["Admin"],
         "summary": "List all workers (admin)",
         "security": [
           {
@@ -6934,9 +6071,7 @@
     },
     "/api/v1/admin/users": {
       "get": {
-        "tags": [
-          "Admin"
-        ],
+        "tags": ["Admin"],
         "summary": "List all users (admin)",
         "security": [
           {
@@ -6953,9 +6088,7 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "array",
@@ -6964,10 +6097,7 @@
                       }
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -6977,9 +6107,7 @@
     },
     "/api/v1/admin/workers/bulk-toggle": {
       "post": {
-        "tags": [
-          "Admin"
-        ],
+        "tags": ["Admin"],
         "summary": "Bulk toggle worker active status (admin)",
         "security": [
           {
@@ -7000,9 +6128,7 @@
                     "minItems": 1
                   }
                 },
-                "required": [
-                  "ids"
-                ]
+                "required": ["ids"]
               }
             }
           }
@@ -7023,9 +6149,7 @@
     },
     "/api/v1/admin/workers/bulk-delete": {
       "delete": {
-        "tags": [
-          "Admin"
-        ],
+        "tags": ["Admin"],
         "summary": "Bulk delete workers (admin)",
         "security": [
           {
@@ -7046,9 +6170,7 @@
                     "minItems": 1
                   }
                 },
-                "required": [
-                  "ids"
-                ]
+                "required": ["ids"]
               }
             }
           }
@@ -7069,9 +6191,7 @@
     },
     "/api/v1/admin/audit": {
       "get": {
-        "tags": [
-          "Admin"
-        ],
+        "tags": ["Admin"],
         "summary": "List audit log entries (admin)",
         "security": [
           {
@@ -7088,9 +6208,7 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "array",
@@ -7100,10 +6218,7 @@
                       }
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -7113,9 +6228,7 @@
     },
     "/api/v1/admin/users/{id}/suspend": {
       "patch": {
-        "tags": [
-          "Admin"
-        ],
+        "tags": ["Admin"],
         "summary": "Suspend a user (admin)",
         "security": [
           {
@@ -7148,9 +6261,7 @@
     },
     "/api/v1/admin/users/{id}/unsuspend": {
       "patch": {
-        "tags": [
-          "Admin"
-        ],
+        "tags": ["Admin"],
         "summary": "Unsuspend a user (admin)",
         "security": [
           {
@@ -7183,9 +6294,7 @@
     },
     "/api/v1/admin/users/{id}/ban": {
       "patch": {
-        "tags": [
-          "Admin"
-        ],
+        "tags": ["Admin"],
         "summary": "Ban a user (admin)",
         "security": [
           {
@@ -7218,9 +6327,7 @@
     },
     "/api/v1/admin/users/{id}/role": {
       "patch": {
-        "tags": [
-          "Admin"
-        ],
+        "tags": ["Admin"],
         "summary": "Change a user's role (admin)",
         "security": [
           {
@@ -7245,16 +6352,10 @@
                 "properties": {
                   "role": {
                     "type": "string",
-                    "enum": [
-                      "user",
-                      "curator",
-                      "admin"
-                    ]
+                    "enum": ["user", "curator", "admin"]
                   }
                 },
-                "required": [
-                  "role"
-                ]
+                "required": ["role"]
               }
             }
           }
@@ -7275,9 +6376,7 @@
     },
     "/api/v1/admin/users/bulk-suspend": {
       "patch": {
-        "tags": [
-          "Admin"
-        ],
+        "tags": ["Admin"],
         "summary": "Bulk suspend users (admin)",
         "security": [
           {
@@ -7298,9 +6397,7 @@
                     "minItems": 1
                   }
                 },
-                "required": [
-                  "ids"
-                ]
+                "required": ["ids"]
               }
             }
           }
@@ -7321,9 +6418,7 @@
     },
     "/api/v1/admin/users/bulk-unsuspend": {
       "patch": {
-        "tags": [
-          "Admin"
-        ],
+        "tags": ["Admin"],
         "summary": "Bulk unsuspend users (admin)",
         "security": [
           {
@@ -7344,9 +6439,7 @@
                     "minItems": 1
                   }
                 },
-                "required": [
-                  "ids"
-                ]
+                "required": ["ids"]
               }
             }
           }
@@ -7367,9 +6460,7 @@
     },
     "/api/v1/admin/workers/{id}/moderate": {
       "patch": {
-        "tags": [
-          "Admin"
-        ],
+        "tags": ["Admin"],
         "summary": "Moderate a worker listing (admin)",
         "security": [
           {
@@ -7394,15 +6485,10 @@
                 "properties": {
                   "action": {
                     "type": "string",
-                    "enum": [
-                      "approve",
-                      "reject"
-                    ]
+                    "enum": ["approve", "reject"]
                   }
                 },
-                "required": [
-                  "action"
-                ]
+                "required": ["action"]
               }
             }
           }
@@ -7423,9 +6509,7 @@
     },
     "/health": {
       "get": {
-        "tags": [
-          "Health"
-        ],
+        "tags": ["Health"],
         "summary": "Liveness check",
         "responses": {
           "200": {
@@ -7437,14 +6521,10 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "ok"
-                      ]
+                      "enum": ["ok"]
                     }
                   },
-                  "required": [
-                    "status"
-                  ]
+                  "required": ["status"]
                 }
               }
             }
@@ -7454,9 +6534,7 @@
     },
     "/ready": {
       "get": {
-        "tags": [
-          "Health"
-        ],
+        "tags": ["Health"],
         "summary": "Readiness check (DB + Redis)",
         "responses": {
           "200": {
@@ -7474,10 +6552,7 @@
                       "additionalProperties": {}
                     }
                   },
-                  "required": [
-                    "status",
-                    "checks"
-                  ]
+                  "required": ["status", "checks"]
                 }
               }
             }
@@ -7497,10 +6572,7 @@
                       "additionalProperties": {}
                     }
                   },
-                  "required": [
-                    "status",
-                    "checks"
-                  ]
+                  "required": ["status", "checks"]
                 }
               }
             }
@@ -7510,9 +6582,7 @@
     },
     "/api/version": {
       "get": {
-        "tags": [
-          "Versioning"
-        ],
+        "tags": ["Versioning"],
         "summary": "Get API versioning information",
         "responses": {
           "200": {
@@ -7560,9 +6630,7 @@
     },
     "/api/v1/version": {
       "get": {
-        "tags": [
-          "Versioning"
-        ],
+        "tags": ["Versioning"],
         "summary": "Get v1 API version information",
         "responses": {
           "200": {
@@ -7614,9 +6682,7 @@
     },
     "/api/v1/versions": {
       "get": {
-        "tags": [
-          "Versioning"
-        ],
+        "tags": ["Versioning"],
         "summary": "List all supported API versions with metadata",
         "responses": {
           "200": {
@@ -7636,16 +6702,10 @@
                           },
                           "status": {
                             "type": "string",
-                            "enum": [
-                              "current",
-                              "deprecated"
-                            ]
+                            "enum": ["current", "deprecated"]
                           },
                           "sunset": {
-                            "type": [
-                              "string",
-                              "null"
-                            ]
+                            "type": ["string", "null"]
                           },
                           "rateLimiting": {
                             "type": "object",
@@ -7657,28 +6717,17 @@
                                 "type": "number"
                               }
                             },
-                            "required": [
-                              "requests",
-                              "windowMs"
-                            ]
+                            "required": ["requests", "windowMs"]
                           }
                         },
-                        "required": [
-                          "version",
-                          "status",
-                          "sunset",
-                          "rateLimiting"
-                        ]
+                        "required": ["version", "status", "sunset", "rateLimiting"]
                       }
                     },
                     "current": {
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "versions",
-                    "current"
-                  ]
+                  "required": ["versions", "current"]
                 }
               }
             }
@@ -7688,9 +6737,7 @@
     },
     "/api/v1/auth/2fa/setup": {
       "post": {
-        "tags": [
-          "2FA"
-        ],
+        "tags": ["2FA"],
         "summary": "Generate TOTP secret and QR code",
         "security": [
           {
@@ -7707,9 +6754,7 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "object",
@@ -7727,17 +6772,10 @@
                           }
                         }
                       },
-                      "required": [
-                        "otpauth",
-                        "qrCode",
-                        "backupCodes"
-                      ]
+                      "required": ["otpauth", "qrCode", "backupCodes"]
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -7747,9 +6785,7 @@
     },
     "/api/v1/auth/2fa/enable": {
       "post": {
-        "tags": [
-          "2FA"
-        ],
+        "tags": ["2FA"],
         "summary": "Enable 2FA after verifying TOTP code",
         "security": [
           {
@@ -7768,9 +6804,7 @@
                     "maxLength": 6
                   }
                 },
-                "required": [
-                  "code"
-                ]
+                "required": ["code"]
               }
             }
           }
@@ -7801,9 +6835,7 @@
     },
     "/api/v1/auth/2fa/verify": {
       "post": {
-        "tags": [
-          "2FA"
-        ],
+        "tags": ["2FA"],
         "summary": "Verify TOTP code during login (step 2)",
         "requestBody": {
           "content": {
@@ -7820,10 +6852,7 @@
                     "maxLength": 6
                   }
                 },
-                "required": [
-                  "userId",
-                  "code"
-                ]
+                "required": ["userId", "code"]
               }
             }
           }
@@ -7854,9 +6883,7 @@
     },
     "/api/v1/auth/2fa/verify-backup": {
       "post": {
-        "tags": [
-          "2FA"
-        ],
+        "tags": ["2FA"],
         "summary": "Verify a backup code (consumes it)",
         "requestBody": {
           "content": {
@@ -7871,10 +6898,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "userId",
-                  "code"
-                ]
+                "required": ["userId", "code"]
               }
             }
           }
@@ -7905,9 +6929,7 @@
     },
     "/api/v1/auth/2fa": {
       "delete": {
-        "tags": [
-          "2FA"
-        ],
+        "tags": ["2FA"],
         "summary": "Disable 2FA",
         "security": [
           {
@@ -7924,9 +6946,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "code"
-                ]
+                "required": ["code"]
               }
             }
           }
@@ -7947,9 +6967,7 @@
     },
     "/api/v1/auth/2fa/backup-codes/regenerate": {
       "post": {
-        "tags": [
-          "2FA"
-        ],
+        "tags": ["2FA"],
         "summary": "Regenerate backup codes",
         "security": [
           {
@@ -7966,9 +6984,7 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "object",
@@ -7980,15 +6996,10 @@
                           }
                         }
                       },
-                      "required": [
-                        "backupCodes"
-                      ]
+                      "required": ["backupCodes"]
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -7998,9 +7009,7 @@
     },
     "/api/v1/jobs": {
       "get": {
-        "tags": [
-          "Jobs"
-        ],
+        "tags": ["Jobs"],
         "summary": "List jobs (paginated)",
         "parameters": [
           {
@@ -8054,9 +7063,7 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "array",
@@ -8077,18 +7084,10 @@
                           "type": "number"
                         }
                       },
-                      "required": [
-                        "total",
-                        "page",
-                        "limit"
-                      ]
+                      "required": ["total", "page", "limit"]
                     }
                   },
-                  "required": [
-                    "status",
-                    "data",
-                    "meta"
-                  ]
+                  "required": ["status", "data", "meta"]
                 }
               }
             }
@@ -8096,9 +7095,7 @@
         }
       },
       "post": {
-        "tags": [
-          "Jobs"
-        ],
+        "tags": ["Jobs"],
         "summary": "Create a job posting",
         "security": [
           {
@@ -8127,11 +7124,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "title",
-                  "description",
-                  "categoryId"
-                ]
+                "required": ["title", "description", "categoryId"]
               }
             }
           }
@@ -8146,18 +7139,13 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "$ref": "#/components/schemas/Job"
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -8177,9 +7165,7 @@
     },
     "/api/v1/jobs/{id}": {
       "get": {
-        "tags": [
-          "Jobs"
-        ],
+        "tags": ["Jobs"],
         "summary": "Get a single job",
         "parameters": [
           {
@@ -8201,18 +7187,13 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "$ref": "#/components/schemas/Job"
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -8230,9 +7211,7 @@
         }
       },
       "put": {
-        "tags": [
-          "Jobs"
-        ],
+        "tags": ["Jobs"],
         "summary": "Update a job posting",
         "security": [
           {
@@ -8282,18 +7261,13 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "$ref": "#/components/schemas/Job"
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -8311,9 +7285,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "Jobs"
-        ],
+        "tags": ["Jobs"],
         "summary": "Delete a job posting",
         "security": [
           {
@@ -8346,9 +7318,7 @@
     },
     "/api/v1/jobs/{id}/renew": {
       "post": {
-        "tags": [
-          "Jobs"
-        ],
+        "tags": ["Jobs"],
         "summary": "Renew a job posting (extend expiry)",
         "security": [
           {
@@ -8375,18 +7345,13 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "$ref": "#/components/schemas/Job"
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -8396,9 +7361,7 @@
     },
     "/api/v1/jobs/me/posted": {
       "get": {
-        "tags": [
-          "Jobs"
-        ],
+        "tags": ["Jobs"],
         "summary": "List jobs posted by the current user",
         "security": [
           {
@@ -8415,9 +7378,7 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "array",
@@ -8426,10 +7387,7 @@
                       }
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -8439,9 +7397,7 @@
     },
     "/api/v1/jobs/me/applications": {
       "get": {
-        "tags": [
-          "Jobs"
-        ],
+        "tags": ["Jobs"],
         "summary": "List job applications made by the current user",
         "security": [
           {
@@ -8458,9 +7414,7 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "array",
@@ -8470,10 +7424,7 @@
                       }
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -8483,9 +7434,7 @@
     },
     "/api/v1/jobs/{id}/apply": {
       "post": {
-        "tags": [
-          "Jobs"
-        ],
+        "tags": ["Jobs"],
         "summary": "Apply to a job",
         "security": [
           {
@@ -8543,9 +7492,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "Jobs"
-        ],
+        "tags": ["Jobs"],
         "summary": "Withdraw a job application",
         "security": [
           {
@@ -8578,9 +7525,7 @@
     },
     "/api/v1/jobs/{id}/applications": {
       "get": {
-        "tags": [
-          "Jobs"
-        ],
+        "tags": ["Jobs"],
         "summary": "List applications for a job (job owner)",
         "security": [
           {
@@ -8607,9 +7552,7 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "array",
@@ -8619,10 +7562,7 @@
                       }
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -8632,9 +7572,7 @@
     },
     "/api/v1/jobs/{id}/applications/{applicationId}": {
       "patch": {
-        "tags": [
-          "Jobs"
-        ],
+        "tags": ["Jobs"],
         "summary": "Update application status (accept / reject)",
         "security": [
           {
@@ -8667,15 +7605,10 @@
                 "properties": {
                   "status": {
                     "type": "string",
-                    "enum": [
-                      "accepted",
-                      "rejected"
-                    ]
+                    "enum": ["accepted", "rejected"]
                   }
                 },
-                "required": [
-                  "status"
-                ]
+                "required": ["status"]
               }
             }
           }
@@ -8696,9 +7629,7 @@
     },
     "/api/v1/jobs/{id}/messages": {
       "post": {
-        "tags": [
-          "Jobs"
-        ],
+        "tags": ["Jobs"],
         "summary": "Send a message in a job thread",
         "security": [
           {
@@ -8726,9 +7657,7 @@
                     "minLength": 1
                   }
                 },
-                "required": [
-                  "body"
-                ]
+                "required": ["body"]
               }
             }
           }
@@ -8747,9 +7676,7 @@
         }
       },
       "get": {
-        "tags": [
-          "Jobs"
-        ],
+        "tags": ["Jobs"],
         "summary": "List messages in a job thread",
         "security": [
           {
@@ -8776,9 +7703,7 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "array",
@@ -8788,10 +7713,7 @@
                       }
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -8801,9 +7723,7 @@
     },
     "/api/v1/jobs/recommendations/{workerId}": {
       "get": {
-        "tags": [
-          "Jobs"
-        ],
+        "tags": ["Jobs"],
         "summary": "Get recommended jobs for a worker",
         "parameters": [
           {
@@ -8825,9 +7745,7 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "array",
@@ -8836,10 +7754,7 @@
                       }
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -8849,9 +7764,7 @@
     },
     "/api/v1/workers/reviews/{id}": {
       "delete": {
-        "tags": [
-          "Reviews"
-        ],
+        "tags": ["Reviews"],
         "summary": "Delete a review (owner only)",
         "security": [
           {
@@ -8897,9 +7810,7 @@
     },
     "/api/reviews/helpful": {
       "get": {
-        "tags": [
-          "Reviews"
-        ],
+        "tags": ["Reviews"],
         "summary": "List reviews",
         "responses": {
           "200": {
@@ -8911,9 +7822,7 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "array",
@@ -8923,10 +7832,7 @@
                       }
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -8934,9 +7840,7 @@
         }
       },
       "post": {
-        "tags": [
-          "Reviews"
-        ],
+        "tags": ["Reviews"],
         "summary": "Create a review",
         "security": [
           {
@@ -8961,10 +7865,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "workerId",
-                  "rating"
-                ]
+                "required": ["workerId", "rating"]
               }
             }
           }
@@ -8979,19 +7880,14 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "object",
                       "additionalProperties": {}
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -9001,9 +7897,7 @@
     },
     "/api/reviews/helpful/{id}": {
       "delete": {
-        "tags": [
-          "Reviews"
-        ],
+        "tags": ["Reviews"],
         "summary": "Delete a review (owner only)",
         "security": [
           {
@@ -9049,9 +7943,7 @@
     },
     "/api/reviews/helpful/{id}/flag": {
       "patch": {
-        "tags": [
-          "Reviews"
-        ],
+        "tags": ["Reviews"],
         "summary": "Flag a review for moderation",
         "security": [
           {
@@ -9084,9 +7976,7 @@
     },
     "/api/reviews/helpful/moderation/queue": {
       "get": {
-        "tags": [
-          "Reviews"
-        ],
+        "tags": ["Reviews"],
         "summary": "Get moderation queue (admin)",
         "security": [
           {
@@ -9103,9 +7993,7 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "array",
@@ -9115,10 +8003,7 @@
                       }
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -9128,9 +8013,7 @@
     },
     "/api/reviews/helpful/{id}/moderate": {
       "patch": {
-        "tags": [
-          "Reviews"
-        ],
+        "tags": ["Reviews"],
         "summary": "Approve or reject a flagged review (admin)",
         "security": [
           {
@@ -9155,15 +8038,10 @@
                 "properties": {
                   "action": {
                     "type": "string",
-                    "enum": [
-                      "approve",
-                      "reject"
-                    ]
+                    "enum": ["approve", "reject"]
                   }
                 },
-                "required": [
-                  "action"
-                ]
+                "required": ["action"]
               }
             }
           }
@@ -9184,9 +8062,7 @@
     },
     "/api/v1/reviews/{reviewId}/helpful": {
       "post": {
-        "tags": [
-          "Reviews"
-        ],
+        "tags": ["Reviews"],
         "summary": "Toggle \"helpful\" vote on a review",
         "security": [
           {
@@ -9219,9 +8095,7 @@
     },
     "/api/v1/disputes": {
       "post": {
-        "tags": [
-          "Disputes"
-        ],
+        "tags": ["Disputes"],
         "summary": "Open a dispute",
         "security": [
           {
@@ -9245,10 +8119,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "workerId",
-                  "reason"
-                ]
+                "required": ["workerId", "reason"]
               }
             }
           }
@@ -9267,9 +8138,7 @@
         }
       },
       "get": {
-        "tags": [
-          "Disputes"
-        ],
+        "tags": ["Disputes"],
         "summary": "List disputes for the authenticated user (or all, for admins)",
         "security": [
           {
@@ -9304,9 +8173,7 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "array",
@@ -9316,10 +8183,7 @@
                       }
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -9329,9 +8193,7 @@
     },
     "/api/v1/disputes/{id}": {
       "get": {
-        "tags": [
-          "Disputes"
-        ],
+        "tags": ["Disputes"],
         "summary": "Get a single dispute",
         "security": [
           {
@@ -9358,19 +8220,14 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "object",
                       "additionalProperties": {}
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -9400,9 +8257,7 @@
     },
     "/api/v1/disputes/{id}/resolve": {
       "patch": {
-        "tags": [
-          "Disputes"
-        ],
+        "tags": ["Disputes"],
         "summary": "Resolve a dispute (admin)",
         "security": [
           {
@@ -9432,10 +8287,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "status",
-                  "resolution"
-                ]
+                "required": ["status", "resolution"]
               }
             }
           }
@@ -9456,9 +8308,7 @@
     },
     "/api/v1/workers/search": {
       "get": {
-        "tags": [
-          "Workers"
-        ],
+        "tags": ["Workers"],
         "summary": "Search workers",
         "parameters": [
           {
@@ -9510,9 +8360,7 @@
     },
     "/api/v1/workers/search/advanced": {
       "get": {
-        "tags": [
-          "Workers"
-        ],
+        "tags": ["Workers"],
         "summary": "Advanced worker search",
         "parameters": [
           {
@@ -9588,9 +8436,7 @@
     },
     "/api/v1/workers/{id}/availability": {
       "get": {
-        "tags": [
-          "Workers"
-        ],
+        "tags": ["Workers"],
         "summary": "Get worker availability",
         "parameters": [
           {
@@ -9612,9 +8458,7 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "array",
@@ -9624,10 +8468,7 @@
                       }
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -9635,9 +8476,7 @@
         }
       },
       "put": {
-        "tags": [
-          "Workers"
-        ],
+        "tags": ["Workers"],
         "summary": "Replace worker availability (curator)",
         "security": [
           {
@@ -9668,9 +8507,7 @@
                     }
                   }
                 },
-                "required": [
-                  "slots"
-                ]
+                "required": ["slots"]
               }
             }
           }
@@ -9689,9 +8526,7 @@
         }
       },
       "post": {
-        "tags": [
-          "Workers"
-        ],
+        "tags": ["Workers"],
         "summary": "Add a single availability slot (curator)",
         "security": [
           {
@@ -9734,9 +8569,7 @@
     },
     "/api/v1/workers/{id}/availability/{slotId}": {
       "delete": {
-        "tags": [
-          "Workers"
-        ],
+        "tags": ["Workers"],
         "summary": "Delete an availability slot (curator)",
         "security": [
           {
@@ -9777,9 +8610,7 @@
     },
     "/api/v1/workers/{id}/analytics/dashboard": {
       "get": {
-        "tags": [
-          "Workers"
-        ],
+        "tags": ["Workers"],
         "summary": "Get a worker's personal analytics dashboard (curator/admin)",
         "security": [
           {
@@ -9806,19 +8637,14 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "object",
                       "additionalProperties": {}
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -9828,9 +8654,7 @@
     },
     "/api/v1/workers/{id}/analytics/export": {
       "get": {
-        "tags": [
-          "Workers"
-        ],
+        "tags": ["Workers"],
         "summary": "Export a worker's personal analytics as CSV (curator/admin)",
         "security": [
           {
@@ -9856,9 +8680,7 @@
     },
     "/api/v1/workers/{id}/analytics/trends": {
       "get": {
-        "tags": [
-          "Workers"
-        ],
+        "tags": ["Workers"],
         "summary": "Get a worker's profile-view trends (curator/admin)",
         "security": [
           {
@@ -9893,19 +8715,14 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "object",
                       "additionalProperties": {}
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -9915,9 +8732,7 @@
     },
     "/api/v1/workers/{id}/register-on-chain": {
       "post": {
-        "tags": [
-          "Workers"
-        ],
+        "tags": ["Workers"],
         "summary": "Register worker on Stellar Registry contract (curator)",
         "security": [
           {
@@ -9944,9 +8759,7 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "object",
@@ -9955,15 +8768,10 @@
                           "type": "string"
                         }
                       },
-                      "required": [
-                        "txHash"
-                      ]
+                      "required": ["txHash"]
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -9983,9 +8791,7 @@
     },
     "/api/v1/workers/{id}/contacts": {
       "get": {
-        "tags": [
-          "Workers"
-        ],
+        "tags": ["Workers"],
         "summary": "List contact requests for a worker (curator)",
         "security": [
           {
@@ -10012,9 +8818,7 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "array",
@@ -10024,10 +8828,7 @@
                       }
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -10037,9 +8838,7 @@
     },
     "/api/v1/workers/{id}/contacts/{requestId}": {
       "patch": {
-        "tags": [
-          "Workers"
-        ],
+        "tags": ["Workers"],
         "summary": "Update contact request status (curator)",
         "security": [
           {
@@ -10072,15 +8871,10 @@
                 "properties": {
                   "status": {
                     "type": "string",
-                    "enum": [
-                      "read",
-                      "archived"
-                    ]
+                    "enum": ["read", "archived"]
                   }
                 },
-                "required": [
-                  "status"
-                ]
+                "required": ["status"]
               }
             }
           }
@@ -10101,9 +8895,7 @@
     },
     "/api/v1/workers/{id}/verifications": {
       "get": {
-        "tags": [
-          "Workers"
-        ],
+        "tags": ["Workers"],
         "summary": "List verifications for a worker (curator/admin)",
         "security": [
           {
@@ -10130,9 +8922,7 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "array",
@@ -10142,10 +8932,7 @@
                       }
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -10155,9 +8942,7 @@
     },
     "/api/v1/workers/{id}/analytics": {
       "get": {
-        "tags": [
-          "Workers"
-        ],
+        "tags": ["Workers"],
         "summary": "Worker analytics (curator/admin)",
         "security": [
           {
@@ -10184,19 +8969,14 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "object",
                       "additionalProperties": {}
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -10206,9 +8986,7 @@
     },
     "/api/v1/workers/{id}/analytics/view": {
       "post": {
-        "tags": [
-          "Workers"
-        ],
+        "tags": ["Workers"],
         "summary": "Track a profile view (public)",
         "parameters": [
           {
@@ -10236,9 +9014,7 @@
     },
     "/api/v1/workers/{id}/reputation": {
       "get": {
-        "tags": [
-          "Workers"
-        ],
+        "tags": ["Workers"],
         "summary": "Get worker reputation score",
         "parameters": [
           {
@@ -10260,9 +9036,7 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "object",
@@ -10275,16 +9049,10 @@
                           "additionalProperties": {}
                         }
                       },
-                      "required": [
-                        "score",
-                        "breakdown"
-                      ]
+                      "required": ["score", "breakdown"]
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }
@@ -10294,9 +9062,7 @@
     },
     "/api/v1/workers/{id}/reputation/sync": {
       "post": {
-        "tags": [
-          "Workers"
-        ],
+        "tags": ["Workers"],
         "summary": "Sync reputation from on-chain data (admin)",
         "security": [
           {
@@ -10329,9 +9095,7 @@
     },
     "/api/v1/users/me/push-subscription": {
       "post": {
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "summary": "Save Web Push subscription",
         "security": [
           {
@@ -10357,16 +9121,10 @@
                         "type": "string"
                       }
                     },
-                    "required": [
-                      "p256dh",
-                      "auth"
-                    ]
+                    "required": ["p256dh", "auth"]
                   }
                 },
-                "required": [
-                  "endpoint",
-                  "keys"
-                ]
+                "required": ["endpoint", "keys"]
               }
             }
           }
@@ -10385,9 +9143,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "summary": "Remove Web Push subscription",
         "security": [
           {
@@ -10410,9 +9166,7 @@
     },
     "/api/v1/users/onboarding/complete": {
       "post": {
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "summary": "Mark onboarding as completed",
         "security": [
           {
@@ -10435,9 +9189,7 @@
     },
     "/api/v1/admin/export/workers": {
       "get": {
-        "tags": [
-          "Admin"
-        ],
+        "tags": ["Admin"],
         "summary": "Export workers as CSV or JSON (admin, 1/min rate limit)",
         "security": [
           {
@@ -10448,10 +9200,7 @@
           {
             "schema": {
               "type": "string",
-              "enum": [
-                "csv",
-                "json"
-              ]
+              "enum": ["csv", "json"]
             },
             "required": false,
             "name": "format",
@@ -10477,9 +9226,7 @@
     },
     "/api/v1/admin/export/users": {
       "get": {
-        "tags": [
-          "Admin"
-        ],
+        "tags": ["Admin"],
         "summary": "Export users as CSV or JSON (admin, 1/min rate limit)",
         "security": [
           {
@@ -10490,10 +9237,7 @@
           {
             "schema": {
               "type": "string",
-              "enum": [
-                "csv",
-                "json"
-              ]
+              "enum": ["csv", "json"]
             },
             "required": false,
             "name": "format",
@@ -10519,9 +9263,7 @@
     },
     "/api/v1/admin/workers/import": {
       "post": {
-        "tags": [
-          "Admin"
-        ],
+        "tags": ["Admin"],
         "summary": "Bulk import workers from CSV (admin)",
         "security": [
           {
@@ -10539,9 +9281,7 @@
                     "description": "CSV file (max 5 MB)"
                   }
                 },
-                "required": [
-                  "file"
-                ]
+                "required": ["file"]
               }
             }
           }
@@ -10556,9 +9296,7 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "success"
-                      ]
+                      "enum": ["success"]
                     },
                     "data": {
                       "type": "object",
@@ -10576,17 +9314,10 @@
                           }
                         }
                       },
-                      "required": [
-                        "imported",
-                        "failed",
-                        "errors"
-                      ]
+                      "required": ["imported", "failed", "errors"]
                     }
                   },
-                  "required": [
-                    "status",
-                    "data"
-                  ]
+                  "required": ["status", "data"]
                 }
               }
             }

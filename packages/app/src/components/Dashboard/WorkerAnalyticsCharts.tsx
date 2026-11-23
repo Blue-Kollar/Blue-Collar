@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import {
   Area,
@@ -12,17 +12,17 @@ import {
   Tooltip,
   XAxis,
   YAxis,
-} from "recharts";
-import type { PersonalAnalytics } from "@/hooks/useWorkerAnalytics";
-import { formatDate } from "@/lib/utils";
-import { useTranslations } from "next-intl";
+} from 'recharts';
+import type { PersonalAnalytics } from '@/hooks/useWorkerAnalytics';
+import { formatDate } from '@/lib/utils';
+import { useTranslations } from 'next-intl';
 
 interface WorkerAnalyticsChartsProps {
   data: PersonalAnalytics;
 }
 
 function formatDateLabel(value: string) {
-  return formatDate(value, { month: "short", day: "numeric" });
+  return formatDate(value, { month: 'short', day: 'numeric' });
 }
 
 function ChartCard({ title, children }: { title: string; children: React.ReactNode }) {
@@ -35,35 +35,47 @@ function ChartCard({ title, children }: { title: string; children: React.ReactNo
 }
 
 export function WorkerAnalyticsCharts({ data }: WorkerAnalyticsChartsProps) {
-  const t = useTranslations("componentText");
+  const t = useTranslations('componentText');
   return (
     <div className="grid gap-6 lg:grid-cols-2">
-      <ChartCard title={t("viewsOverTime")}>
+      <ChartCard title={t('viewsOverTime')}>
         <ResponsiveContainer width="100%" height={280}>
           <AreaChart data={data.charts.series}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="date" tickFormatter={formatDateLabel} fontSize={12} />
             <YAxis fontSize={12} />
             <Tooltip labelFormatter={(value) => formatDate(String(value))} />
-            <Area type="monotone" dataKey="views" name={t("views")} stroke="#2563eb" fill="#dbeafe" />
-            <Area type="monotone" dataKey="uniqueViews" name={t("uniqueViews")} stroke="#0891b2" fill="#cffafe" />
+            <Area
+              type="monotone"
+              dataKey="views"
+              name={t('views')}
+              stroke="#2563eb"
+              fill="#dbeafe"
+            />
+            <Area
+              type="monotone"
+              dataKey="uniqueViews"
+              name={t('uniqueViews')}
+              stroke="#0891b2"
+              fill="#cffafe"
+            />
           </AreaChart>
         </ResponsiveContainer>
       </ChartCard>
 
-      <ChartCard title={t("tipsAndEarnings")}>
+      <ChartCard title={t('tipsAndEarnings')}>
         <ResponsiveContainer width="100%" height={280}>
           <BarChart data={data.charts.series}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="date" tickFormatter={formatDateLabel} fontSize={12} />
             <YAxis fontSize={12} />
             <Tooltip labelFormatter={(value) => formatDate(String(value))} />
-            <Bar dataKey="earnings" name={t("earningsXlm")} fill="#16a34a" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="earnings" name={t('earningsXlm')} fill="#16a34a" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </ChartCard>
 
-      <ChartCard title={t("ratingsTrend")}>
+      <ChartCard title={t('ratingsTrend')}>
         <ResponsiveContainer width="100%" height={280}>
           <LineChart data={data.charts.series}>
             <CartesianGrid strokeDasharray="3 3" />
@@ -73,7 +85,7 @@ export function WorkerAnalyticsCharts({ data }: WorkerAnalyticsChartsProps) {
             <Line
               type="monotone"
               dataKey="avgRating"
-              name={t("averageRating")}
+              name={t('averageRating')}
               stroke="#f59e0b"
               strokeWidth={2}
               connectNulls
@@ -82,7 +94,7 @@ export function WorkerAnalyticsCharts({ data }: WorkerAnalyticsChartsProps) {
         </ResponsiveContainer>
       </ChartCard>
 
-      <ChartCard title={t("ratingDistribution")}>
+      <ChartCard title={t('ratingDistribution')}>
         <ResponsiveContainer width="100%" height={280}>
           <BarChart data={data.charts.ratingDistribution} layout="vertical">
             <CartesianGrid strokeDasharray="3 3" />
@@ -94,7 +106,7 @@ export function WorkerAnalyticsCharts({ data }: WorkerAnalyticsChartsProps) {
               fontSize={12}
             />
             <Tooltip />
-            <Bar dataKey="count" name={t("reviews")} fill="#f59e0b" radius={[0, 4, 4, 0]} />
+            <Bar dataKey="count" name={t('reviews')} fill="#f59e0b" radius={[0, 4, 4, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </ChartCard>

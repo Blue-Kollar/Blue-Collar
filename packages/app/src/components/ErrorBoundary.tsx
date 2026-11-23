@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useTranslations } from "next-intl";
-import { Component, type ErrorInfo, type ReactNode, useEffect, useState } from "react";
-import ErrorState from "@/components/ErrorState";
-import { logger } from "@/lib/logger";
+import { useTranslations } from 'next-intl';
+import { Component, type ErrorInfo, type ReactNode, useEffect, useState } from 'react';
+import ErrorState from '@/components/ErrorState';
+import { logger } from '@/lib/logger';
 
 interface Props {
   error: Error & { digest?: string };
@@ -25,18 +25,18 @@ function buildReport(error: Error & { digest?: string }) {
     name: error.name,
     stack: error.stack,
     digest: error.digest,
-    url: typeof window !== "undefined" ? window.location.href : "",
+    url: typeof window !== 'undefined' ? window.location.href : '',
     timestamp: new Date().toISOString(),
   };
 }
 
 function ErrorFallback({ error, reset, title, description }: FallbackProps) {
-  const t = useTranslations("errors");
+  const t = useTranslations('errors');
   const [reported, setReported] = useState(false);
 
   const handleReport = () => {
     const report = buildReport(error);
-    if (typeof navigator !== "undefined" && navigator.clipboard) {
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
       navigator.clipboard.writeText(JSON.stringify(report, null, 2)).catch(() => {});
     }
     setReported(true);
@@ -45,46 +45,34 @@ function ErrorFallback({ error, reset, title, description }: FallbackProps) {
   return (
     <div className="flex min-h-[40vh] flex-col items-center justify-center px-4 text-center">
       <ErrorState
-        title={title ?? t("genericTitle")}
-        message={description ?? t("genericDescription")}
+        title={title ?? t('genericTitle')}
+        message={description ?? t('genericDescription')}
         onRetry={reset}
-        retryLabel={t("tryAgain")}
+        retryLabel={t('tryAgain')}
       />
       <div className="mt-5 flex flex-wrap items-center gap-3 justify-center">
         <button
           onClick={handleReport}
           className="rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
         >
-          {reported ? t("copiedToClipboard") : t("reportError")}
+          {reported ? t('copiedToClipboard') : t('reportError')}
         </button>
       </div>
       {error.digest && (
         <p className="mt-4 text-xs text-gray-400 font-mono">
-          {t("errorId", { digest: error.digest })}
+          {t('errorId', { digest: error.digest })}
         </p>
       )}
     </div>
   );
 }
 
-export default function ErrorBoundary({
-  error,
-  reset,
-  title,
-  description,
-}: Props) {
+export default function ErrorBoundary({ error, reset, title, description }: Props) {
   useEffect(() => {
     console.error(error);
   }, [error]);
 
-  return (
-    <ErrorFallback
-      error={error}
-      reset={reset}
-      title={title}
-      description={description}
-    />
-  );
+  return <ErrorFallback error={error} reset={reset} title={title} description={description} />;
 }
 
 interface WrapperProps {

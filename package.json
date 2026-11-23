@@ -14,11 +14,14 @@
     "build": "pnpm --filter @bluecollar/api build && pnpm --filter @bluecollar/app build",
     "test": "pnpm --filter @bluecollar/api test && pnpm --filter @bluecollar/app test",
     "test:integration:db": "pnpm --filter @bluecollar/api test:integration:db",
-    "type-check": "pnpm --filter @bluecollar/types type-check && pnpm --filter @bluecollar/api tsc --noEmit && pnpm --filter @bluecollar/app type-check",
+    "type-check": "pnpm --filter @bluecollar/types type-check && pnpm --filter @bluecollar/api exec tsc --noEmit && pnpm --filter @bluecollar/app type-check",
+    "typecheck:all": "pnpm -r --filter './packages/*' --filter '!@bluecollar/contracts' exec tsc --noEmit",
     "lint": "pnpm --filter @bluecollar/types lint && pnpm --filter @bluecollar/sdk lint && pnpm --filter @bluecollar/api lint && pnpm --filter @bluecollar/app lint && pnpm lint:dead-code",
+    "lint:all": "pnpm -r --filter './packages/*' run lint",
+    "lint:staged": "lint-staged",
     "lint:dead-code": "knip",
-    "format": "prettier --write \"packages/**/*.{ts,tsx,js,json,md}\"",
-    "format:check": "prettier --check \"packages/**/*.{ts,tsx,js,json,md}\"",
+    "format": "prettier --write . --config .prettierrc",
+    "format:check": "prettier --check . --config .prettierrc",
     "audit": "pnpm audit --audit-level=high",
     "audit:fix": "pnpm audit --fix",
     "security:scan": "pnpm audit --audit-level=high && pnpm --filter @bluecollar/contracts security:scan",
@@ -48,6 +51,7 @@
       "prettier --write"
     ],
     "packages/app/src/**/*.{ts,tsx}": [
+      "pnpm --filter @bluecollar/app exec eslint --fix --max-warnings=0",
       "prettier --write"
     ],
     "packages/sdk/src/**/*.ts": [
@@ -59,6 +63,10 @@
       "prettier --write"
     ],
     "packages/monitoring/src/**/*.ts": [
+      "prettier --write"
+    ],
+    "packages/mobile/src/**/*.{ts,tsx}": [
+      "pnpm --filter @bluecollar/mobile exec eslint --fix --max-warnings=0",
       "prettier --write"
     ],
     "packages/contracts/**/*.rs": [

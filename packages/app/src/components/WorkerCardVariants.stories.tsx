@@ -1,6 +1,10 @@
-import type { Meta, StoryObj } from '@storybook/react'
-import { CompactWorkerCard, StandardWorkerCard, FeaturedWorkerCard } from '@/components/WorkerCardVariants'
-import type { Worker } from '@/types'
+import type { Meta, StoryObj } from '@storybook/react';
+import {
+  CompactWorkerCard,
+  StandardWorkerCard,
+  FeaturedWorkerCard,
+} from '@/components/WorkerCardVariants';
+import type { Worker } from '@/types';
 
 const mockWorker: Worker = {
   id: '1',
@@ -15,25 +19,25 @@ const mockWorker: Worker = {
   isActive: true,
   createdAt: new Date(),
   updatedAt: new Date(),
-}
+};
 
 const meta: Meta = {
   title: 'Components/WorkerCardVariants',
   tags: ['autodocs'],
-}
-export default meta
+};
+export default meta;
 
 export const Compact: StoryObj = {
   render: () => <CompactWorkerCard worker={mockWorker} />,
-}
+};
 
 export const Standard: StoryObj = {
   render: () => <StandardWorkerCard worker={mockWorker} />,
-}
+};
 
 export const Featured: StoryObj = {
   render: () => <FeaturedWorkerCard worker={mockWorker} />,
-}
+};
 
 export const AllVariants: StoryObj = {
   render: () => (
@@ -52,34 +56,43 @@ export const AllVariants: StoryObj = {
       </div>
     </div>
   ),
-}
+};
 
 export const CompactGrid: StoryObj = {
   render: () => (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
       {Array.from({ length: 6 }).map((_, i) => (
-        <CompactWorkerCard key={i} worker={{ ...mockWorker, id: `${i}`, name: `Worker ${i + 1}` }} />
+        <CompactWorkerCard
+          key={i}
+          worker={{ ...mockWorker, id: `${i}`, name: `Worker ${i + 1}` }}
+        />
       ))}
     </div>
   ),
-}
+};
 
 export const StandardGrid: StoryObj = {
   render: () => (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 p-6">
       {Array.from({ length: 6 }).map((_, i) => (
-        <StandardWorkerCard key={i} worker={{ ...mockWorker, id: `${i}`, name: `Worker ${i + 1}` }} />
+        <StandardWorkerCard
+          key={i}
+          worker={{ ...mockWorker, id: `${i}`, name: `Worker ${i + 1}` }}
+        />
       ))}
     </div>
   ),
-}
+};
 
 export const FeaturedGrid: StoryObj = {
   render: () => (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
       {Array.from({ length: 4 }).map((_, i) => (
-        <FeaturedWorkerCard key={i} worker={{ ...mockWorker, id: `${i}`, name: `Worker ${i + 1}` }} />
+        <FeaturedWorkerCard
+          key={i}
+          worker={{ ...mockWorker, id: `${i}`, name: `Worker ${i + 1}` }}
+        />
       ))}
     </div>
   ),
-}
+};

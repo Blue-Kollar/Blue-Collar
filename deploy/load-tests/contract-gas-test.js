@@ -48,7 +48,7 @@ export function setup() {
       email: __ENV.TEST_EMAIL || 'curator@example.com',
       password: __ENV.TEST_PASSWORD || 'Password123!',
     }),
-    { headers: { 'Content-Type': 'application/json' } }
+    { headers: { 'Content-Type': 'application/json' } },
   );
   return { token: res.status === 202 ? res.json('token') : '' };
 }

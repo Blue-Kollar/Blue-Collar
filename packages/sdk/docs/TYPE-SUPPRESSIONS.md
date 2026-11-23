@@ -27,3 +27,4 @@ const tx = sdk.build(args as BuildArgs) as unknown as Transaction;
 // https://github.com/stellar/soroban-sdk/issues/XXXX
 // @ts-expect-error - soroban-sdk@0.9.x response type missing `.result`
 const result = response.result;
+```

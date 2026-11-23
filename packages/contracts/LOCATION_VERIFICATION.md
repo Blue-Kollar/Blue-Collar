@@ -24,6 +24,7 @@ pub struct LocationVerification {
 ### Storage
 
 Location verifications are stored in persistent contract storage:
+
 - **Key**: `DataKey::LocationVerification(worker_id)`
 - **Value**: `LocationVerification` struct
 - **TTL**: Managed by Soroban's storage TTL system
@@ -44,17 +45,21 @@ pub fn verify_location(
 ```
 
 **Parameters:**
+
 - `verifier`: Address with verification authority (must call `require_auth()`)
 - `worker_id`: The worker's unique identifier
 - `expires_at`: Unix timestamp when verification expires
 
 **Events:**
+
 - Emits `("LocVfy", worker_id)` with data `(verifier, verified_at, expires_at)`
 
 **Panics:**
+
 - `"Worker not found"` if worker doesn't exist
 
 **Example:**
+
 ```rust
 let verifier = Address::generate(&env);
 let worker_id = Symbol::new(&env, "worker123");
@@ -75,13 +80,16 @@ pub fn get_location_verification(
 ```
 
 **Parameters:**
+
 - `worker_id`: The worker's unique identifier
 
 **Returns:**
+
 - `Some(LocationVerification)` if verified
 - `None` if not verified
 
 **Example:**
+
 ```rust
 if let Some(verification) = client.get_location_verification(&worker_id) {
     println!("Verified by: {}", verification.verifier);

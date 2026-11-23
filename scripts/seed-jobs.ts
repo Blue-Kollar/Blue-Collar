@@ -22,9 +22,36 @@ if (!URL) {
   process.exit(1);
 }
 
-const CATEGORIES = ['plumbing', 'electrical', 'carpentry', 'painting', 'cleaning', 'moving', 'gardening', 'roofing'];
-const CITIES = ['Lagos', 'Nairobi', 'Accra', 'Kampala', 'Kigali', 'Dar es Salaam', 'Abuja', 'Mombasa'];
-const TITLES = ['Repair', 'Installation', 'Maintenance', 'Inspection', 'Emergency', 'Consultation', 'Upgrade', 'Replacement'];
+const CATEGORIES = [
+  'plumbing',
+  'electrical',
+  'carpentry',
+  'painting',
+  'cleaning',
+  'moving',
+  'gardening',
+  'roofing',
+];
+const CITIES = [
+  'Lagos',
+  'Nairobi',
+  'Accra',
+  'Kampala',
+  'Kigali',
+  'Dar es Salaam',
+  'Abuja',
+  'Mombasa',
+];
+const TITLES = [
+  'Repair',
+  'Installation',
+  'Maintenance',
+  'Inspection',
+  'Emergency',
+  'Consultation',
+  'Upgrade',
+  'Replacement',
+];
 
 function rnd<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
@@ -55,10 +82,14 @@ async function main() {
       const title = `${rnd(TITLES)} ${category}`;
       const description = `Load-test job ${n}: ${title} in ${city}. Generated for #1491.`;
       const budget = 100 + Math.floor(Math.random() * 9900);
-      const createdAt = new Date(Date.now() - Math.floor(Math.random() * 90) * 86400000).toISOString();
+      const createdAt = new Date(
+        Date.now() - Math.floor(Math.random() * 90) * 86400000,
+      ).toISOString();
 
       values.push(title, description, category, city, budget, createdAt);
-      placeholders.push(`($${base + 1}, $${base + 2}, $${base + 3}, $${base + 4}, $${base + 5}, $${base + 6})`);
+      placeholders.push(
+        `($${base + 1}, $${base + 2}, $${base + 3}, $${base + 4}, $${base + 5}, $${base + 6})`,
+      );
     }
 
     await client.query(

@@ -87,14 +87,14 @@ Snapshots are uploaded to Percy and compared against the baseline.
 
 ## Covered Pages
 
-| Page | Path | Purpose |
-|------|------|---------|
-| Home | `/en` | Landing page, hero section |
-| Workers Listing | `/en/workers` | Worker discovery, filters |
-| Worker Profile | `/en/workers/:id` | Individual worker details |
-| Login | `/en/auth/login` | Authentication |
-| Register | `/en/auth/register` | Account creation |
-| Dashboard | `/en/dashboard` | User dashboard |
+| Page            | Path                | Purpose                    |
+| --------------- | ------------------- | -------------------------- |
+| Home            | `/en`               | Landing page, hero section |
+| Workers Listing | `/en/workers`       | Worker discovery, filters  |
+| Worker Profile  | `/en/workers/:id`   | Individual worker details  |
+| Login           | `/en/auth/login`    | Authentication             |
+| Register        | `/en/auth/register` | Account creation           |
+| Dashboard       | `/en/dashboard`     | User dashboard             |
 
 ## Configuration
 
@@ -103,9 +103,9 @@ Snapshots are uploaded to Percy and compared against the baseline.
 Adjust the threshold in `e2e/visual.spec.ts`:
 
 ```typescript
-await expect(page).toHaveScreenshot('home.png', { 
-  maxDiffPixelRatio: 0.02  // 2% tolerance
-})
+await expect(page).toHaveScreenshot('home.png', {
+  maxDiffPixelRatio: 0.02, // 2% tolerance
+});
 ```
 
 Lower values = stricter matching (more false positives)
@@ -150,7 +150,7 @@ Run visual tests on a schedule to catch subtle regressions:
 ```yaml
 on:
   schedule:
-    - cron: '0 0 * * 0'  # Weekly on Sunday
+    - cron: '0 0 * * 0' # Weekly on Sunday
 ```
 
 ## Troubleshooting

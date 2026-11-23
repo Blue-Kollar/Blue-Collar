@@ -5,19 +5,19 @@
  */
 
 export interface NotificationMessage {
-  userId: string
-  title: string
-  message: string
-  href?: string
-  data?: Record<string, string>
-  type: string
+  userId: string;
+  title: string;
+  message: string;
+  href?: string;
+  data?: Record<string, string>;
+  type: string;
 }
 
 export interface DeliveryResult {
-  channel: string
-  status: 'sent' | 'failed'
-  error?: string
-  sentAt: Date
+  channel: string;
+  status: 'sent' | 'failed';
+  error?: string;
+  sentAt: Date;
 }
 
 /**
@@ -31,7 +31,7 @@ export interface NotificationChannel {
   /**
    * Unique identifier for this channel (e.g., 'email', 'push', 'webhook')
    */
-  readonly name: string
+  readonly name: string;
 
   /**
    * Determine if this channel should deliver the notification based on user preferences.
@@ -41,8 +41,8 @@ export interface NotificationChannel {
    */
   shouldSend(
     message: NotificationMessage,
-    prefs: Record<string, boolean>
-  ): boolean | Promise<boolean>
+    prefs: Record<string, boolean>,
+  ): boolean | Promise<boolean>;
 
   /**
    * Send the notification through this channel.
@@ -50,5 +50,5 @@ export interface NotificationChannel {
    * @returns Delivery result (sent/failed status and timing)
    * @throws Channel should catch errors internally and return failed status
    */
-  send(message: NotificationMessage): Promise<DeliveryResult>
+  send(message: NotificationMessage): Promise<DeliveryResult>;
 }

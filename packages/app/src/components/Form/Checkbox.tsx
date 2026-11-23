@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import * as React from "react";
-import { cn } from "@/lib/utils";
+import * as React from 'react';
+import { cn } from '@/lib/utils';
 
-export interface CheckboxProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "type"> {
+export interface CheckboxProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type'> {
   label: string;
   error?: string;
   hint?: string;
@@ -24,10 +24,10 @@ const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
             aria-invalid={!!error}
             aria-describedby={error ? errorId : undefined}
             className={cn(
-              "h-4 w-4 rounded border-gray-300 dark:border-gray-600",
-              "accent-brand-600 focus:ring-2 focus:ring-brand-500/20",
-              "disabled:cursor-not-allowed disabled:opacity-50",
-              className
+              'h-4 w-4 rounded border-gray-300 dark:border-gray-600',
+              'accent-brand-600 focus:ring-2 focus:ring-brand-500/20',
+              'disabled:cursor-not-allowed disabled:opacity-50',
+              className,
             )}
             {...props}
           />
@@ -38,13 +38,11 @@ const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
             {error}
           </p>
         )}
-        {!error && hint && (
-          <p className="text-xs text-gray-400 dark:text-gray-500 ml-6">{hint}</p>
-        )}
+        {!error && hint && <p className="text-xs text-gray-400 dark:text-gray-500 ml-6">{hint}</p>}
       </div>
     );
-  }
+  },
 );
-Checkbox.displayName = "FormCheckbox";
+Checkbox.displayName = 'FormCheckbox';
 
 export { Checkbox };

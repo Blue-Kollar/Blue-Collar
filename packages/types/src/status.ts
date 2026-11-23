@@ -42,4 +42,3 @@ export const TxStatusValue = {
   Failed: 'failed',
 } as const;
 export type TxStatusValue = (typeof TxStatusValue)[keyof typeof TxStatusValue];
-

@@ -20,13 +20,13 @@
  * This is the automated equivalent of the issue's "manual config check"
  * acceptance criterion, made repeatable so the audit does not drift.
  */
-'use strict'
+'use strict';
 
-const fs = require('fs')
-const path = require('path')
-const { execSync } = require('child_process')
+const fs = require('fs');
+const path = require('path');
+const { execSync } = require('child_process');
 
-const ROOT = path.resolve(__dirname, '..')
+const ROOT = path.resolve(__dirname, '..');
 
 const COMPOSE_FILES = [
   'docker-compose.yml',
@@ -34,29 +34,24 @@ const COMPOSE_FILES = [
   'docker-compose.staging.yml',
   'deploy/docker-compose.monitoring.yml',
   'deploy/jaeger/docker-compose.jaeger.yml',
-].filter((f) => fs.existsSync(path.join(ROOT, f)))
+].filter((f) => fs.existsSync(path.join(ROOT, f)));
 
 // Reserved names consumed by the container / base image itself.
-const RUNTIME_RESERVED = new Set([
-  'NODE_ENV',
-  'PORT',
-  'COMPOSE_PROJECT_NAME',
-  'COMPOSE_FILE',
-])
+const RUNTIME_RESERVED = new Set(['NODE_ENV', 'PORT', 'COMPOSE_PROJECT_NAME', 'COMPOSE_FILE']);
 
 // Postgres official image consumes these.
-const POSTGRES_RESERVED = /^POSTGRES_/
+const POSTGRES_RESERVED = /^POSTGRES_/;
 
 // Next.js public build args — baked into the browser bundle at image build.
-const NEXT_PUBLIC = /^NEXT_PUBLIC_/
+const NEXT_PUBLIC = /^NEXT_PUBLIC_/;
 
 function extractComposeVars(content) {
   // Matches ${VAR} and ${VAR:-default} and ${VAR:?err}
-  const re = /\$\{([A-Z_][A-Z0-9_]*)(?::[-?][^}]*)?\}/g
-  const out = new Set()
-  let m
-  while ((m = re.exec(content))) out.add(m[1])
-  return out
+  const re = /\$\{([A-Z_][A-Z0-9_]*)(?::[-?][^}]*)?\}/g;
+  const out = new Set();
+  let m;
+  while ((m = re.exec(content))) out.add(m[1]);
+  return out;
 }
 
 function codeReads() {
@@ -67,64 +62,71 @@ function codeReads() {
         '--include="*.ts" --include="*.tsx" --include="*.js" --include="*.mjs" ' +
         '2>/dev/null',
       { cwd: ROOT, encoding: 'utf8' },
-    )
-    return new Set(raw.split('\n').filter(Boolean).map((s) => s.split('.').pop()))
+    );
+    return new Set(
+      raw
+        .split('\n')
+        .filter(Boolean)
+        .map((s) => s.split('.').pop()),
+    );
   } catch {
-    return new Set()
+    return new Set();
   }
 }
 
 function envFileVars() {
   // Read every .env* file that a compose file mounts via env_file:.
-  const files = []
+  const files = [];
   for (const cf of COMPOSE_FILES) {
-    const content = fs.readFileSync(path.join(ROOT, cf), 'utf8')
-    const re = /env_file:\s*\n((?:\s*-\s*[^\n]+\n?)+)/g
-    let m
+    const content = fs.readFileSync(path.join(ROOT, cf), 'utf8');
+    const re = /env_file:\s*\n((?:\s*-\s*[^\n]+\n?)+)/g;
+    let m;
     while ((m = re.exec(content))) {
       for (const line of m[1].split('\n')) {
-        const hit = line.match(/-\s*([^\s#]+)/)
-        if (hit) files.push(hit[1].trim())
+        const hit = line.match(/-\s*([^\s#]+)/);
+        if (hit) files.push(hit[1].trim());
       }
     }
   }
-  const names = new Set()
+  const names = new Set();
   for (const f of files) {
-    const p = path.join(ROOT, f)
-    if (!fs.existsSync(p)) continue
+    const p = path.join(ROOT, f);
+    if (!fs.existsSync(p)) continue;
     for (const line of fs.readFileSync(p, 'utf8').split('\n')) {
-      const hit = line.match(/^([A-Z_][A-Z0-9_]*)\s*=/)
-      if (hit) names.add(hit[1])
+      const hit = line.match(/^([A-Z_][A-Z0-9_]*)\s*=/);
+      if (hit) names.add(hit[1]);
     }
   }
-  return names
+  return names;
 }
 
 function main() {
-  const reads = codeReads()
-  const envFile = envFileVars()
-  const offenders = []
+  const reads = codeReads();
+  const envFile = envFileVars();
+  const offenders = [];
 
   for (const cf of COMPOSE_FILES) {
-    const content = fs.readFileSync(path.join(ROOT, cf), 'utf8')
-    const vars = extractComposeVars(content)
+    const content = fs.readFileSync(path.join(ROOT, cf), 'utf8');
+    const vars = extractComposeVars(content);
     for (const v of vars) {
-      if (RUNTIME_RESERVED.has(v)) continue
-      if (POSTGRES_RESERVED.test(v)) continue
-      if (NEXT_PUBLIC.test(v)) continue
-      if (reads.has(v)) continue
-      if (envFile.has(v)) continue
-      offenders.push({ file: cf, var: v })
+      if (RUNTIME_RESERVED.has(v)) continue;
+      if (POSTGRES_RESERVED.test(v)) continue;
+      if (NEXT_PUBLIC.test(v)) continue;
+      if (reads.has(v)) continue;
+      if (envFile.has(v)) continue;
+      offenders.push({ file: cf, var: v });
     }
   }
 
   if (offenders.length) {
-    console.error('[#1689] Unused compose variables found:')
-    for (const o of offenders) console.error(`  ${o.file}: ${o.var}`)
-    console.error('Delete them from the compose file, or add a read.')
-    process.exit(1)
+    console.error('[#1689] Unused compose variables found:');
+    for (const o of offenders) console.error(`  ${o.file}: ${o.var}`);
+    console.error('Delete them from the compose file, or add a read.');
+    process.exit(1);
   }
-  console.log(`[#1689] OK — all ${COMPOSE_FILES.length} compose file(s) reference only read variables.`)
+  console.log(
+    `[#1689] OK — all ${COMPOSE_FILES.length} compose file(s) reference only read variables.`,
+  );
 }
 
-main()
+main();

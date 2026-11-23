@@ -7,15 +7,6 @@ import type { SdkConfig } from './types.js';
 import { SdkError } from './horizon.client.js';
 import { SOROBAN_RPC_URLS } from './constants.js';
 
-interface WorkerOnChainData {
-  id: string;
-  owner: string;
-  categoryId: string;
-  isActive: boolean;
-  reputation: number;
-  reviewCount: number;
-}
-
 export class RegistryClient {
   private readonly contractId: string;
   private readonly network: SdkConfig['network'];

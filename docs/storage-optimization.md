@@ -1,16 +1,19 @@
 # Storage Key Optimization Guide
 
 ## Overview
+
 This guide explains how to optimize storage keys in Soroban contracts to reduce footprint and gas costs.
 
 ## Why Optimize Storage Keys?
 
 ### Problem
+
 - Long string-based keys use more storage
 - Each byte of storage costs XLM
 - Large keys increase contract size and deployment costs
 
 ### Solution
+
 - Use compact enum-based keys
 - Use short symbols instead of long strings
 - Combine keys with small identifiers
@@ -20,6 +23,7 @@ This guide explains how to optimize storage keys in Soroban contracts to reduce 
 ### 1. Use Enums Instead of Strings
 
 **Before (String-based):**
+
 ```rust
 let key = Symbol::new(&env, "balance:user:123");
 let key = CompactKey::Balance.to_symbol(&env);
@@ -70,3 +74,4 @@ let key = Symbol::new(&env, &format!("balance_{}", user));
 // New
 let key = StorageKeyBuilder::new(&env, CompactKey::Balance)
     .with_address(&user);
+```

@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useState, useCallback, ReactNode } from "react";
+import { useState, useCallback, ReactNode } from 'react';
 
 interface AsyncState<T> {
   data: T | null;
@@ -23,7 +23,7 @@ interface UseAsyncStateOptions {
  */
 export function useAsyncState<T, Args extends unknown[]>(
   fn: (...args: Args) => Promise<T>,
-  options?: UseAsyncStateOptions
+  options?: UseAsyncStateOptions,
 ) {
   const [state, setState] = useState<AsyncState<T>>({
     data: null,
@@ -40,14 +40,14 @@ export function useAsyncState<T, Args extends unknown[]>(
         options?.onSuccess?.();
         return data;
       } catch (err) {
-        const error = err instanceof Error ? err.message : "An error occurred";
+        const error = err instanceof Error ? err.message : 'An error occurred';
         setState({ data: null, loading: false, error });
         options?.onError?.(err instanceof Error ? err : new Error(error));
         throw err;
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [fn, options?.onSuccess, options?.onError]
+    [fn, options?.onSuccess, options?.onError],
   );
 
   const reset = useCallback(() => {

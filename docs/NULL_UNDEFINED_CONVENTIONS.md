@@ -13,26 +13,26 @@
 ```ts
 // ✅ Good — optional parameter
 function greet(name?: string) {
-  return `Hello, ${name ?? 'World'}`
+  return `Hello, ${name ?? 'World'}`;
 }
 
 // ✅ Good — absent value in a service return
 interface UserProfile {
-  bio?: string            // absent = undefined
+  bio?: string; // absent = undefined
 }
 
 // ❌ Avoid — unnecessary null
-let cursor: string | null = null  // use: let cursor: string | undefined
+let cursor: string | null = null; // use: let cursor: string | undefined
 ```
 
 ### 2. Use `null` only for these exceptions
 
-| Case | Reason | Example |
-|---|---|---|
-| **Prisma ORM fields** | Prisma generates `null` for nullable DB columns | `user.avatar` → `string \| null` |
-| **JSON serialisation** | JSON has `null` but not `undefined`; some API contracts require it | `{ "bio": null }` |
-| **Third-party library types** | You do not control the return type | `jwt.verify` may return `null` |
-| **Explicit reset-to-null DB writes** | Writing `null` to a DB column to clear it | `{ resetToken: null }` in `userRepository.update` |
+| Case                                 | Reason                                                             | Example                                           |
+| ------------------------------------ | ------------------------------------------------------------------ | ------------------------------------------------- |
+| **Prisma ORM fields**                | Prisma generates `null` for nullable DB columns                    | `user.avatar` → `string \| null`                  |
+| **JSON serialisation**               | JSON has `null` but not `undefined`; some API contracts require it | `{ "bio": null }`                                 |
+| **Third-party library types**        | You do not control the return type                                 | `jwt.verify` may return `null`                    |
+| **Explicit reset-to-null DB writes** | Writing `null` to a DB column to clear it                          | `{ resetToken: null }` in `userRepository.update` |
 
 ### 3. Nullish coalescing and optional chaining
 
@@ -40,10 +40,10 @@ Prefer `??` over `|| ` for null/undefined checks (avoids falsy-value pitfalls):
 
 ```ts
 // ✅
-const limit = opts.limit ?? 20
+const limit = opts.limit ?? 20;
 
 // ❌ (treats 0 and '' as absent)
-const limit = opts.limit || 20
+const limit = opts.limit || 20;
 ```
 
 ---
@@ -61,7 +61,7 @@ no-restricted-syntax: Prefer `undefined` over `null` for optional values …
 
 ```ts
 // eslint-disable-next-line no-restricted-syntax
-const resetToken: string | null = null  // Prisma DB column reset
+const resetToken: string | null = null; // Prisma DB column reset
 ```
 
 ---
@@ -70,12 +70,12 @@ const resetToken: string | null = null  // Prisma DB column reset
 
 The following modules were audited and updated to prefer `undefined`:
 
-| Module | Change |
-|---|---|
-| `packages/api/src/services/auth.service.ts` | Internal error state vars use `undefined`; Prisma column writes keep `null` |
-| `packages/api/src/services/user.service.ts` | Optional function params use `undefined` |
-| `packages/api/src/services/category.service.ts` | Service method return types use `T \| undefined` internally |
-| `packages/api/src/container/types.ts` | Interface optional fields use `?:` (implies `undefined`) |
+| Module                                          | Change                                                                      |
+| ----------------------------------------------- | --------------------------------------------------------------------------- |
+| `packages/api/src/services/auth.service.ts`     | Internal error state vars use `undefined`; Prisma column writes keep `null` |
+| `packages/api/src/services/user.service.ts`     | Optional function params use `undefined`                                    |
+| `packages/api/src/services/category.service.ts` | Service method return types use `T \| undefined` internally                 |
+| `packages/api/src/container/types.ts`           | Interface optional fields use `?:` (implies `undefined`)                    |
 
 ---
 

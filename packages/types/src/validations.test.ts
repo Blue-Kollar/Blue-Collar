@@ -63,9 +63,7 @@ describe('passwordSchema', () => {
     const result = passwordSchema.safeParse('Ab1');
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.issues[0].message).toBe(
-        'Password must be at least 8 characters'
-      );
+      expect(result.error.issues[0].message).toBe('Password must be at least 8 characters');
     }
   });
 
@@ -73,9 +71,7 @@ describe('passwordSchema', () => {
     const result = passwordSchema.safeParse('password123');
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.issues[0].message).toBe(
-        'Password must contain an uppercase letter'
-      );
+      expect(result.error.issues[0].message).toBe('Password must contain an uppercase letter');
     }
   });
 
@@ -83,9 +79,7 @@ describe('passwordSchema', () => {
     const result = passwordSchema.safeParse('PASSWORD123');
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.issues[0].message).toBe(
-        'Password must contain a lowercase letter'
-      );
+      expect(result.error.issues[0].message).toBe('Password must contain a lowercase letter');
     }
   });
 
@@ -93,9 +87,7 @@ describe('passwordSchema', () => {
     const result = passwordSchema.safeParse('PasswordABC');
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.issues[0].message).toBe(
-        'Password must contain a number'
-      );
+      expect(result.error.issues[0].message).toBe('Password must contain a number');
     }
   });
 
@@ -117,15 +109,13 @@ describe('stellarAddressSchema', () => {
     const result = stellarAddressSchema.safeParse('GINVALID');
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.issues[0].message).toBe(
-        'Invalid Stellar address'
-      );
+      expect(result.error.issues[0].message).toBe('Invalid Stellar address');
     }
   });
 
   it('rejects an address with invalid characters', () => {
     const result = stellarAddressSchema.safeParse(
-      'GBRPYHIL2CI3FNQ4BXLFMNDLFJUNPU2HY3ZMFSHONUCEOASW7QC7OX2!'
+      'GBRPYHIL2CI3FNQ4BXLFMNDLFJUNPU2HY3ZMFSHONUCEOASW7QC7OX2!',
     );
     expect(result.success).toBe(false);
   });
@@ -134,9 +124,7 @@ describe('stellarAddressSchema', () => {
     const result = stellarAddressSchema.safeParse('');
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.issues[0].message).toBe(
-        'Stellar address is required'
-      );
+      expect(result.error.issues[0].message).toBe('Stellar address is required');
     }
   });
 
@@ -167,9 +155,7 @@ describe('amountSchema', () => {
     const result = amountSchema.safeParse(0);
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.issues[0].message).toBe(
-        'Amount must be greater than 0'
-      );
+      expect(result.error.issues[0].message).toBe('Amount must be greater than 0');
     }
   });
 
@@ -177,9 +163,7 @@ describe('amountSchema', () => {
     const result = amountSchema.safeParse(-10);
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.issues[0].message).toBe(
-        'Amount must be greater than 0'
-      );
+      expect(result.error.issues[0].message).toBe('Amount must be greater than 0');
     }
   });
 
@@ -187,9 +171,7 @@ describe('amountSchema', () => {
     const result = amountSchema.safeParse(1_000_000_000);
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.issues[0].message).toBe(
-        'Amount exceeds maximum allowed value'
-      );
+      expect(result.error.issues[0].message).toBe('Amount exceeds maximum allowed value');
     }
   });
 
@@ -197,9 +179,7 @@ describe('amountSchema', () => {
     const result = amountSchema.safeParse('abc');
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.issues[0].message).toBe(
-        'Amount must be a valid number'
-      );
+      expect(result.error.issues[0].message).toBe('Amount must be a valid number');
     }
   });
 
@@ -214,8 +194,7 @@ describe('matchSchema', () => {
     title: 'Senior Frontend Developer',
     description: 'Build and maintain our React applications.',
     amount: 5000,
-    stellarAddress:
-      'GBRPYHIL2CI3FNQ4BXLFMNDLFJUNPU2HY3ZMFSHONUCEOASW7QC7OX2H',
+    stellarAddress: 'GBRPYHIL2CI3FNQ4BXLFMNDLFJUNPU2HY3ZMFSHONUCEOASW7QC7OX2H',
   };
 
   it('accepts a valid match payload', () => {
@@ -224,7 +203,7 @@ describe('matchSchema', () => {
   });
 
   it('rejects a missing title', () => {
-    const { title, ...rest } = validMatch;
+    const { title: _title, ...rest } = validMatch;
     const result = matchSchema.safeParse(rest);
     expect(result.success).toBe(false);
     if (!result.success) {
@@ -238,20 +217,16 @@ describe('matchSchema', () => {
     expect(result.success).toBe(false);
     if (!result.success) {
       const issue = result.error.issues.find((i) => i.path[0] === 'title');
-      expect(issue?.message).toBe(
-        'Title must be at least 3 characters'
-      );
+      expect(issue?.message).toBe('Title must be at least 3 characters');
     }
   });
 
   it('rejects a missing description', () => {
-    const { description, ...rest } = validMatch;
+    const { description: _description, ...rest } = validMatch;
     const result = matchSchema.safeParse(rest);
     expect(result.success).toBe(false);
     if (!result.success) {
-      const issue = result.error.issues.find(
-        (i) => i.path[0] === 'description'
-      );
+      const issue = result.error.issues.find((i) => i.path[0] === 'description');
       expect(issue?.message).toBe('Description is required');
     }
   });
@@ -272,15 +247,13 @@ describe('matchSchema', () => {
     });
     expect(result.success).toBe(false);
     if (!result.success) {
-      const issue = result.error.issues.find(
-        (i) => i.path[0] === 'stellarAddress'
-      );
+      const issue = result.error.issues.find((i) => i.path[0] === 'stellarAddress');
       expect(issue?.message).toBe('Invalid Stellar address');
     }
   });
 
   it('rejects a missing stellar address', () => {
-    const { stellarAddress, ...rest } = validMatch;
+    const { stellarAddress: _stellarAddress, ...rest } = validMatch;
     const result = matchSchema.safeParse(rest);
     expect(result.success).toBe(false);
   });
@@ -299,7 +272,7 @@ describe('contactMessageSchema', () => {
   });
 
   it('rejects a missing name', () => {
-    const { name, ...rest } = validMessage;
+    const { name: _name, ...rest } = validMessage;
     const result = contactMessageSchema.safeParse(rest);
     expect(result.success).toBe(false);
     if (!result.success) {
@@ -328,14 +301,12 @@ describe('contactMessageSchema', () => {
     expect(result.success).toBe(false);
     if (!result.success) {
       const issue = result.error.issues.find((i) => i.path[0] === 'message');
-      expect(issue?.message).toBe(
-        'Message must be at least 10 characters'
-      );
+      expect(issue?.message).toBe('Message must be at least 10 characters');
     }
   });
 
   it('rejects a missing message', () => {
-    const { message, ...rest } = validMessage;
+    const { message: _message, ...rest } = validMessage;
     const result = contactMessageSchema.safeParse(rest);
     expect(result.success).toBe(false);
   });
@@ -361,24 +332,18 @@ describe('validatePassword', () => {
   });
 
   it('returns an error message for a short password', () => {
-    expect(validatePassword('Ab1')).toBe(
-      'Password must be at least 8 characters'
-    );
+    expect(validatePassword('Ab1')).toBe('Password must be at least 8 characters');
   });
 
   it('returns an error message for a password without a number', () => {
-    expect(validatePassword('PasswordABC')).toBe(
-      'Password must contain a number'
-    );
+    expect(validatePassword('PasswordABC')).toBe('Password must contain a number');
   });
 });
 
 describe('validateStellarAddress', () => {
   it('returns null for a valid address', () => {
     expect(
-      validateStellarAddress(
-        'GBRPYHIL2CI3FNQ4BXLFMNDLFJUNPU2HY3ZMFSHONUCEOASW7QC7OX2H'
-      )
+      validateStellarAddress('GBRPYHIL2CI3FNQ4BXLFMNDLFJUNPU2HY3ZMFSHONUCEOASW7QC7OX2H'),
     ).toBeNull();
   });
 
@@ -405,9 +370,7 @@ describe('validateAmount', () => {
   });
 
   it('returns an error message for an out-of-range amount', () => {
-    expect(validateAmount(1_000_000_000)).toBe(
-      'Amount exceeds maximum allowed value'
-    );
+    expect(validateAmount(1_000_000_000)).toBe('Amount exceeds maximum allowed value');
   });
 
   it('returns an error message for a non-numeric amount', () => {
@@ -420,8 +383,7 @@ describe('validateMatch', () => {
     title: 'Senior Frontend Developer',
     description: 'Build and maintain our React applications.',
     amount: 5000,
-    stellarAddress:
-      'GBRPYHIL2CI3FNQ4BXLFMNDLFJUNPU2HY3ZMFSHONUCEOASW7QC7OX2H',
+    stellarAddress: 'GBRPYHIL2CI3FNQ4BXLFMNDLFJUNPU2HY3ZMFSHONUCEOASW7QC7OX2H',
   };
 
   it('returns an empty object for a valid match', () => {

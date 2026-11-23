@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback, useRef } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { cacheStore } from "./cache-store";
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { cacheStore } from './cache-store';
 
 export interface StaleWhileRevalidateOptions<T> {
   queryKey: string[];
@@ -14,11 +14,20 @@ export interface StaleWhileRevalidateOptions<T> {
 }
 
 export function useStaleWhileRevalidate<T>(options: StaleWhileRevalidateOptions<T>) {
-  const { queryKey, queryFn, cacheKey, ttl, staleTime, enabled = true, onSuccess, onError } = options;
+  const {
+    queryKey,
+    queryFn,
+    cacheKey,
+    ttl,
+    staleTime,
+    enabled = true,
+    onSuccess,
+    onError,
+  } = options;
   const [isFromCache, setIsFromCache] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const hasFetchedRef = useRef(false);
-  const effectiveCacheKey = cacheKey || `cache:query:${queryKey.join(":")}`;
+  const effectiveCacheKey = cacheKey || `cache:query:${queryKey.join(':')}`;
 
   const getCachedData = useCallback((): T | null => {
     return cacheStore.getCachedData<T>(effectiveCacheKey);
@@ -57,7 +66,16 @@ export function useStaleWhileRevalidate<T>(options: StaleWhileRevalidateOptions<
         setTimeout(() => setIsRefreshing(false), 500);
       }
     }
-  }, [query.data, query.isLoading, effectiveCacheKey, ttl, staleTime, isFromCache, isCacheStale, onSuccess]);
+  }, [
+    query.data,
+    query.isLoading,
+    effectiveCacheKey,
+    ttl,
+    staleTime,
+    isFromCache,
+    isCacheStale,
+    onSuccess,
+  ]);
 
   useEffect(() => {
     if (query.error) onError?.(query.error as Error);
@@ -84,7 +102,7 @@ export function useOfflineQuery<T>(options: StaleWhileRevalidateOptions<T> & { f
   }
 
   if (result.isError && !result.data) {
-    const cachedData = cacheStore.getCachedData<T>(`cache:query:${rest.queryKey.join(":")}`);
+    const cachedData = cacheStore.getCachedData<T>(`cache:query:${rest.queryKey.join(':')}`);
     if (cachedData) {
       return { ...result, data: cachedData, isError: false, error: undefined, isLoading: false };
     }
@@ -98,15 +116,15 @@ export async function prefetchAndCache<T>(
   queryFn: () => Promise<T>,
   cacheKey?: string,
   ttl?: number,
-  staleTime?: number
+  staleTime?: number,
 ): Promise<T | null> {
-  const effectiveCacheKey = cacheKey || `cache:query:${queryKey.join(":")}`;
+  const effectiveCacheKey = cacheKey || `cache:query:${queryKey.join(':')}`;
   try {
     const data = await queryFn();
     cacheStore.setCacheEntry(effectiveCacheKey, data, ttl, staleTime);
     return data;
   } catch (error) {
-    console.error("Prefetch failed:", error);
+    console.error('Prefetch failed:', error);
     return cacheStore.getCachedData<T>(effectiveCacheKey);
   }
 }

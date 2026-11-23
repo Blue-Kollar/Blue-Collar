@@ -1,7 +1,10 @@
-import type { Category } from '@prisma/client'
-import { BaseSerializer } from './base.serializer.js'
+import type { Category } from '@prisma/client';
+import { BaseSerializer } from './base.serializer.js';
 
-export type SerializedCategory = Pick<Category, 'id' | 'name' | 'description' | 'icon' | 'createdAt' | 'updatedAt'>
+export type SerializedCategory = Pick<
+  Category,
+  'id' | 'name' | 'description' | 'icon' | 'createdAt' | 'updatedAt'
+>;
 
 export class CategorySerializer extends BaseSerializer<Category, SerializedCategory> {
   serialize(category: Category): SerializedCategory {
@@ -12,8 +15,8 @@ export class CategorySerializer extends BaseSerializer<Category, SerializedCateg
       icon: category.icon,
       createdAt: category.createdAt,
       updatedAt: category.updatedAt,
-    }
+    };
   }
 }
 
-export const categorySerializer = new CategorySerializer()
+export const categorySerializer = new CategorySerializer();

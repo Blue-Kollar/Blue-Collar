@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import * as React from "react";
-import { cn } from "@/lib/utils";
+import * as React from 'react';
+import { cn } from '@/lib/utils';
 
-export interface DatePickerProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "type"> {
+export interface DatePickerProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type'> {
   label: string;
   error?: string;
   hint?: string;
@@ -17,10 +17,7 @@ const DatePicker = React.forwardRef<HTMLInputElement, DatePickerProps>(
 
     return (
       <div className="flex flex-col gap-1.5">
-        <label
-          htmlFor={inputId}
-          className="text-sm font-medium text-gray-700 dark:text-gray-300"
-        >
+        <label htmlFor={inputId} className="text-sm font-medium text-gray-700 dark:text-gray-300">
           {label}
         </label>
         <input
@@ -31,14 +28,14 @@ const DatePicker = React.forwardRef<HTMLInputElement, DatePickerProps>(
           aria-invalid={!!error}
           aria-describedby={error ? errorId : hint ? hintId : undefined}
           className={cn(
-            "h-10 w-full rounded-lg border px-3 py-2 text-sm",
-            "bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100",
-            "transition-colors focus:outline-none focus:ring-2",
-            "disabled:cursor-not-allowed disabled:opacity-50",
+            'h-10 w-full rounded-lg border px-3 py-2 text-sm',
+            'bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100',
+            'transition-colors focus:outline-none focus:ring-2',
+            'disabled:cursor-not-allowed disabled:opacity-50',
             error
-              ? "border-error focus:border-error focus:ring-error/20"
-              : "border-gray-300 dark:border-gray-700 focus:border-brand-500 focus:ring-brand-500/20",
-            className
+              ? 'border-error focus:border-error focus:ring-error/20'
+              : 'border-gray-300 dark:border-gray-700 focus:border-brand-500 focus:ring-brand-500/20',
+            className,
           )}
           {...props}
         />
@@ -54,8 +51,8 @@ const DatePicker = React.forwardRef<HTMLInputElement, DatePickerProps>(
         )}
       </div>
     );
-  }
+  },
 );
-DatePicker.displayName = "FormDatePicker";
+DatePicker.displayName = 'FormDatePicker';
 
 export { DatePicker };

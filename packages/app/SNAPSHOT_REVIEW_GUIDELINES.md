@@ -31,20 +31,20 @@ reviewing those diffs carefully.
 
 **Good candidates:**
 
-| Scenario | Why it's appropriate |
-|---|---|
-| A design-system primitive (Button, Badge) whose DOM structure is intentionally frozen | Small, stable, reviewed on every update |
-| A serialised data format (e.g., CSV export, email template HTML) | The format IS the contract |
-| A Playwright visual regression screenshot (`toHaveScreenshot`) | Captures pixel-level regressions across full pages; reviewed by a human |
+| Scenario                                                                              | Why it's appropriate                                                    |
+| ------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| A design-system primitive (Button, Badge) whose DOM structure is intentionally frozen | Small, stable, reviewed on every update                                 |
+| A serialised data format (e.g., CSV export, email template HTML)                      | The format IS the contract                                              |
+| A Playwright visual regression screenshot (`toHaveScreenshot`)                        | Captures pixel-level regressions across full pages; reviewed by a human |
 
 **Poor candidates:**
 
-| Scenario | Why it's inappropriate |
-|---|---|
-| `expect(container).toMatchSnapshot()` on a full page component | Too broad; breaks on unrelated changes |
-| Snapshot of a component that renders third-party library output | You don't own the snapshot shape |
-| Testing that text content is correct via a snapshot | Use `screen.getByText(...)` instead |
-| Testing that a button exists via a snapshot | Use `screen.getByRole('button', { name: ... })` instead |
+| Scenario                                                        | Why it's inappropriate                                  |
+| --------------------------------------------------------------- | ------------------------------------------------------- |
+| `expect(container).toMatchSnapshot()` on a full page component  | Too broad; breaks on unrelated changes                  |
+| Snapshot of a component that renders third-party library output | You don't own the snapshot shape                        |
+| Testing that text content is correct via a snapshot             | Use `screen.getByText(...)` instead                     |
+| Testing that a button exists via a snapshot                     | Use `screen.getByRole('button', { name: ... })` instead |
 
 ---
 
@@ -69,9 +69,9 @@ Instead of:
 ```tsx
 // ❌ Broad — breaks on unrelated DOM changes
 it('renders correctly', () => {
-  const { container } = render(<LoadingState message="Loading…" />)
-  expect(container).toMatchSnapshot()
-})
+  const { container } = render(<LoadingState message="Loading…" />);
+  expect(container).toMatchSnapshot();
+});
 ```
 
 Write:
@@ -79,14 +79,14 @@ Write:
 ```tsx
 // ✅ Targeted — tests observable, user-facing behaviour
 it('shows the message text', () => {
-  render(<LoadingState message="Loading…" />)
-  expect(screen.getByText('Loading…')).toBeInTheDocument()
-})
+  render(<LoadingState message="Loading…" />);
+  expect(screen.getByText('Loading…')).toBeInTheDocument();
+});
 
 it('exposes a status role for screen readers', () => {
-  render(<LoadingState />)
-  expect(screen.getByRole('status')).toBeInTheDocument()
-})
+  render(<LoadingState />);
+  expect(screen.getByRole('status')).toBeInTheDocument();
+});
 ```
 
 ---
@@ -94,6 +94,7 @@ it('exposes a status role for screen readers', () => {
 ## Inline snapshots
 
 `toMatchInlineSnapshot()` is preferable to file-based snapshots when:
+
 - The snapshot is small enough to read inline (< ~20 lines of serialised output).
 - You want code review to surface the snapshot content automatically.
 
@@ -106,8 +107,8 @@ it('serialises the API error shape', () => {
       "message": "Unauthorized",
       "status": "error",
     }
-  `)
-})
+  `);
+});
 ```
 
 ---
@@ -154,12 +155,12 @@ Tailwind v4 migration. No user-visible behaviour changed.
 Files audited: all `*.test.{ts,tsx}` files under `packages/app/src/__tests__/`
 and `packages/mobile/src/**/__tests__/`.
 
-| File | Finding | Action taken |
-|---|---|---|
-| `LoadingState.test.tsx` | 3 broad `toMatchSnapshot()` calls on full container | **Replaced** with 7 targeted assertions |
-| `ErrorState.test.tsx` | 3 broad `toMatchSnapshot()` calls on full container | **Replaced** with 9 targeted assertions (added retry-click test) |
-| `visual/snapshots.spec.ts` | Playwright `toHaveScreenshot()` — visual regression suite | **Kept** — appropriate use of pixel snapshots |
-| All other test files | No `toMatchSnapshot` usage found | No action required |
+| File                       | Finding                                                   | Action taken                                                     |
+| -------------------------- | --------------------------------------------------------- | ---------------------------------------------------------------- |
+| `LoadingState.test.tsx`    | 3 broad `toMatchSnapshot()` calls on full container       | **Replaced** with 7 targeted assertions                          |
+| `ErrorState.test.tsx`      | 3 broad `toMatchSnapshot()` calls on full container       | **Replaced** with 9 targeted assertions (added retry-click test) |
+| `visual/snapshots.spec.ts` | Playwright `toHaveScreenshot()` — visual regression suite | **Kept** — appropriate use of pixel snapshots                    |
+| All other test files       | No `toMatchSnapshot` usage found                          | No action required                                               |
 
 No stored `.snap` files were found on disk. The two files above used
 `toMatchSnapshot()` but the snapshot files had not yet been committed (they
@@ -181,16 +182,16 @@ candidates per the "When snapshots ARE appropriate" guidance above.
 
 ### Components & states covered
 
-| Component | States / variants snapshotted |
-|---|---|
-| `Button` (`components/ui/button.tsx`) | all 6 variants × all 4 sizes + disabled |
-| `Badge` (`components/ui/badge.tsx`) | all 4 variants |
-| `Card` (`components/ui/card.tsx`) | composed Card + Header/Title/Content/Footer |
-| `Input` (`components/ui/input.tsx`) | default + disabled |
-| `IconButton` (`components/IconButton.tsx`) | default + disabled (with `aria-label`) |
-| `StarRating` (`components/StarRating.tsx`) | 3/5 and 5/5 |
-| `CategoryBadge` (`components/CategoryBadge.tsx`) | md label, md no-label, sm (electrician) |
-| `Dialog` / Modal (`components/ui/dialog.tsx`) | closed trigger + open content |
+| Component                                        | States / variants snapshotted               |
+| ------------------------------------------------ | ------------------------------------------- |
+| `Button` (`components/ui/button.tsx`)            | all 6 variants × all 4 sizes + disabled     |
+| `Badge` (`components/ui/badge.tsx`)              | all 4 variants                              |
+| `Card` (`components/ui/card.tsx`)                | composed Card + Header/Title/Content/Footer |
+| `Input` (`components/ui/input.tsx`)              | default + disabled                          |
+| `IconButton` (`components/IconButton.tsx`)       | default + disabled (with `aria-label`)      |
+| `StarRating` (`components/StarRating.tsx`)       | 3/5 and 5/5                                 |
+| `CategoryBadge` (`components/CategoryBadge.tsx`) | md label, md no-label, sm (electrician)     |
+| `Dialog` / Modal (`components/ui/dialog.tsx`)    | closed trigger + open content               |
 
 ### Keeping snapshots deterministic
 
@@ -224,4 +225,3 @@ change, with a message explaining the intentional change (see
 "Updating a snapshot deliberately" above). Do not use snapshots as a replacement
 for meaningful behavioural assertions — behavioural tests (roles, disabled,
 error text, aria) remain the primary coverage for stateful components.
-

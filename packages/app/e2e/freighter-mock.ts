@@ -9,10 +9,10 @@
  * network set to TESTNET so wallet-gating logic in the app passes cleanly.
  */
 
-import type { Page } from '@playwright/test'
+import type { Page } from '@playwright/test';
 
-export const MOCK_WALLET_ADDRESS = 'GDQP2KPQGKIHYJGXNUIYOMHARUARCA7DJT5FO2FFOOKY3B2WSQHG4W37'
-export const MOCK_NETWORK = 'TESTNET'
+export const MOCK_WALLET_ADDRESS = 'GDQP2KPQGKIHYJGXNUIYOMHARUARCA7DJT5FO2FFOOKY3B2WSQHG4W37';
+export const MOCK_NETWORK = 'TESTNET';
 
 export async function injectFreighterMock(page: Page): Promise<void> {
   await page.addInitScript(
@@ -21,16 +21,18 @@ export async function injectFreighterMock(page: Page): Promise<void> {
         isConnected: () => Promise.resolve({ isConnected: true }),
         requestAccess: () => Promise.resolve({ address }),
         getAddress: () => Promise.resolve({ address }),
-        getNetwork: () => Promise.resolve({ network, networkPassphrase: 'Test SDF Network ; September 2015' }),
+        getNetwork: () =>
+          Promise.resolve({ network, networkPassphrase: 'Test SDF Network ; September 2015' }),
         signTransaction: (_xdr: string, _opts: unknown) =>
           Promise.resolve({ signedTxXdr: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' }),
-        signBlob: (_blob: string, _opts: unknown) => Promise.resolve({ signedBlob: 'mock-signed-blob' }),
-      }
+        signBlob: (_blob: string, _opts: unknown) =>
+          Promise.resolve({ signedBlob: 'mock-signed-blob' }),
+      };
       // Expose as the global Freighter API that @stellar/freighter-api reads from
-      ;(window as any).freighterApi = freighter
+      (window as any).freighterApi = freighter;
       // Also override the module-level exports that the app bundles
-      ;(window as any).__mockFreighter = freighter
+      (window as any).__mockFreighter = freighter;
     },
-    { address: MOCK_WALLET_ADDRESS, network: MOCK_NETWORK }
-  )
+    { address: MOCK_WALLET_ADDRESS, network: MOCK_NETWORK },
+  );
 }

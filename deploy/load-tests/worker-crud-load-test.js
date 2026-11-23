@@ -19,7 +19,7 @@ const TOKEN = __ENV.AUTH_TOKEN || '';
 export default function () {
   const headers = {
     'Content-Type': 'application/json',
-    'Authorization': `Bearer ${TOKEN}`,
+    Authorization: `Bearer ${TOKEN}`,
   };
 
   // Create worker
@@ -31,7 +31,7 @@ export default function () {
       location: 'New York',
       bio: 'Experienced plumber',
     }),
-    { headers }
+    { headers },
   );
 
   check(createRes, {
@@ -62,7 +62,7 @@ export default function () {
           ...headers,
           'X-HTTP-Method': 'PUT',
         },
-      }
+      },
     );
 
     check(updateRes, {

@@ -5,13 +5,16 @@ This directory contains all React components for the Blue-Collar application.
 ## Component Categories
 
 ### Core Components
+
 - **WorkerForm**: Main form for worker registration/profile editing
   - Decomposed into: WorkerBasicInfo, WorkerContactInfo, WorkerWalletInfo
 - **ImageUpload**: Image upload with editing capabilities (crop, rotate, flip)
   - Uses custom hook: useImageProcessing
 
 ### UI Components (Shared Library)
+
 Located in `ui/` directory - reusable design system components:
+
 - Button
 - Card
 - Dialog
@@ -21,6 +24,7 @@ Located in `ui/` directory - reusable design system components:
 - Badge
 
 ### Feature Components
+
 - **WorkerCard**: Displays worker information
 - **WorkerMap**: Map view of workers
 - **SearchAutocomplete**: Search with autocomplete
@@ -31,11 +35,13 @@ Located in `ui/` directory - reusable design system components:
 - **WorkerTipSection**: Wallet tipping and transaction history section
 
 ### Form Components
+
 - **FormField**: Reusable form field wrapper
 - **PasswordStrength**: Password strength indicator
 - **StarRating**: Rating component
 
 ### Utility Components
+
 - **Skeleton**: Loading placeholder
 - **Toast**: Notification messages
 - **ZoomableAvatar**: Interactive avatar component
@@ -56,11 +62,13 @@ Located in `ui/` directory - reusable design system components:
 All shared/global state lives in a single store pattern. Do not introduce new state libraries or ad hoc global state.
 
 ### Store Location
+
 - Stores live in `src/stores/` (one file per domain slice, e.g. `workerStore.ts`, `notificationStore.ts`).
 - Each slice is created with the same factory/pattern and exported as a typed hook.
 - Local, component-only UI state (e.g. an open/closed toggle) may stay in `useState`; anything shared across routes or components belongs in a store slice.
 
 ### Reading and Writing State
+
 - Components read state via **selectors**, not by receiving props drilled down from parents:
   ```tsx
   const workers = useWorkerStore((s) => s.workers);
@@ -74,6 +82,7 @@ All shared/global state lives in a single store pattern. Do not introduce new st
 - Do not pass store values or setters through multiple component layers. If a deep child needs shared state, it should read the store directly.
 
 ### Migrating Away from Prop Drilling
+
 - When refactoring, move shared state into the appropriate slice and replace prop chains with selector reads.
 - Keep components that are genuinely presentational (no shared state) prop-driven.
 
@@ -82,6 +91,7 @@ All shared/global state lives in a single store pattern. Do not introduce new st
 Route-level crashes are contained by an `ErrorBoundary` so a single failing route does not blank the whole app.
 
 ### Usage
+
 - `ErrorBoundary` is a class component that catches render/lifecycle errors in its subtree and renders a fallback UI.
 - Wrap each route element with `ErrorBoundary` (typically in the router configuration or a shared route layout):
   ```tsx
@@ -93,21 +103,25 @@ Route-level crashes are contained by an `ErrorBoundary` so a single failing rout
 - Boundaries do not catch errors in event handlers or async code; handle those with local error state (see `ErrorState`).
 
 ### Testing
+
 - Fallback UI tests live alongside the boundary in `__tests__/`. Render a child that throws and assert the fallback renders and the recovery action works.
 
 ## Recent Refactoring
 
 ### ImageUpload Component
+
 - **Before**: 239 lines, all logic inline
 - **After**: 149 lines, logic extracted to `useImageProcessing` hook
 - **Benefits**: Reusable image processing logic, cleaner component
 
 ### WorkerForm Component
+
 - **Before**: 223 lines, all form fields inline
 - **After**: 101 lines, decomposed into sub-components
 - **Benefits**: Better maintainability, reusable form sections
 
 ### Dead Code Cleanup
+
 - Removed unused components and assets identified by `knip`.
 - Run `knip` before adding new components to catch dead exports early.
 

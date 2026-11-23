@@ -158,8 +158,7 @@ export const createAuthSlice = (
 ): AuthSlice => ({
   ...initialAuthState,
   setUser: (user) => set({ user }),
-  setSession: (session) =>
-    set((state) => ({ session: { ...state.session, ...session } })),
+  setSession: (session) => set((state) => ({ session: { ...state.session, ...session } })),
   setStatus: (status) => set({ status }),
   setError: (error) => set({ error }),
   login: (user, session) =>
@@ -234,9 +233,7 @@ export const createNotificationsSlice = (
     set((state) => ({ items: state.items.filter((item) => item.id !== id) })),
   markAsRead: (id) =>
     set((state) => ({
-      items: state.items.map((item) =>
-        item.id === id ? { ...item, read: true } : item,
-      ),
+      items: state.items.map((item) => (item.id === id ? { ...item, read: true } : item)),
     })),
   markAllAsRead: () =>
     set((state) => ({
@@ -251,8 +248,7 @@ export const createUIPreferencesSlice = (
 ): UIPreferencesSlice => ({
   ...initialUIPreferencesState,
   setTheme: (theme) => set({ theme }),
-  toggleSidebar: () =>
-    set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
+  toggleSidebar: () => set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
   setSidebarCollapsed: (sidebarCollapsed) => set({ sidebarCollapsed }),
   setLanguage: (language) => set({ language }),
   setReducedMotion: (reducedMotion) => set({ reducedMotion }),
@@ -346,8 +342,7 @@ export const useNotificationActions = () =>
 // UI preferences
 export const useUIPreferences = () => useAppStore((state) => state);
 export const useTheme = () => useAppStore((state) => state.theme);
-export const useSidebarCollapsed = () =>
-  useAppStore((state) => state.sidebarCollapsed);
+export const useSidebarCollapsed = () => useAppStore((state) => state.sidebarCollapsed);
 export const useLanguage = () => useAppStore((state) => state.language);
 export const useReducedMotion = () => useAppStore((state) => state.reducedMotion);
 export const useUIPreferencesActions = () =>

@@ -4,24 +4,24 @@ on:
   push:
     branches: [main]
     paths:
-      - "packages/api/src/**"
-      - "packages/api/package.json"
-      - "packages/api/vitest.config.ts"
-      - ".github/workflows/api-tests.yml"
+      - 'packages/api/src/**'
+      - 'packages/api/package.json'
+      - 'packages/api/vitest.config.ts'
+      - '.github/workflows/api-tests.yml'
   pull_request:
     paths:
-      - "packages/api/src/**"
-      - "packages/api/package.json"
-      - "packages/api/vitest.config.ts"
-      - ".github/workflows/api-tests.yml"
+      - 'packages/api/src/**'
+      - 'packages/api/package.json'
+      - 'packages/api/vitest.config.ts'
+      - '.github/workflows/api-tests.yml'
   workflow_dispatch:
 
 env:
-  CI: "true"
-  JWT_SECRET: "ci-test-secret-not-for-production"
-  DATABASE_URL: "postgresql://localhost:5432/bluecollar_test"
-  REDIS_URL: "redis://localhost:6379"
-  APP_URL: "http://localhost:3000"
+  CI: 'true'
+  JWT_SECRET: 'ci-test-secret-not-for-production'
+  DATABASE_URL: 'postgresql://localhost:5432/bluecollar_test'
+  REDIS_URL: 'redis://localhost:6379'
+  APP_URL: 'http://localhost:3000'
 
 jobs:
   api-tests:

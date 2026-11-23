@@ -13,9 +13,9 @@ groups:
           team: backend
           service: queue
         annotations:
-          summary: "Queue backlog exceeds 1000 messages"
-          description: "There are {{ $value }} unprocessed messages in the queue"
-          runbook: "https://github.com/Blue-Kollar/Blue-Collar/docs/INCIDENT_RUNBOOK.md#queue-backlog"
+          summary: 'Queue backlog exceeds 1000 messages'
+          description: 'There are {{ $value }} unprocessed messages in the queue'
+          runbook: 'https://github.com/Blue-Kollar/Blue-Collar/docs/INCIDENT_RUNBOOK.md#queue-backlog'
 
       # Queue Processing Rate Alert
       - alert: QueueProcessingSlowdown
@@ -27,8 +27,8 @@ groups:
           team: backend
           service: queue
         annotations:
-          summary: "Queue processing rate is slow"
-          description: "Processing rate is {{ $value }} messages/second over the last 10 minutes"
+          summary: 'Queue processing rate is slow'
+          description: 'Processing rate is {{ $value }} messages/second over the last 10 minutes'
 
       # Queue Dead Letter Alert
       - alert: QueueDeadLetter
@@ -40,6 +40,6 @@ groups:
           team: backend
           service: queue
         annotations:
-          summary: "Messages entering dead letter queue"
-          description: "{{ $value }} messages dead-lettered in the last 5 minutes"
-          runbook: "https://github.com/Blue-Kollar/Blue-Collar/docs/INCIDENT_RUNBOOK.md#queue-dead-letter"
+          summary: 'Messages entering dead letter queue'
+          description: '{{ $value }} messages dead-lettered in the last 5 minutes'
+          runbook: 'https://github.com/Blue-Kollar/Blue-Collar/docs/INCIDENT_RUNBOOK.md#queue-dead-letter'

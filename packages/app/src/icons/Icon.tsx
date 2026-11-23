@@ -11,14 +11,7 @@
  *   <Icon name="logo" size={32} />       // brand logo
  */
 
-export type IconName =
-  | 'logo'
-  | 'wallet'
-  | 'worker'
-  | 'star'
-  | 'location'
-  | 'phone'
-  | 'email';
+export type IconName = 'logo' | 'wallet' | 'worker' | 'star' | 'location' | 'phone' | 'email';
 
 interface IconProps {
   name: IconName;

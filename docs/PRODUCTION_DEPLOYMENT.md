@@ -69,14 +69,14 @@ kubectl create secret generic blue-collar-secrets \
 
 ## Environment variables
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `DATABASE_URL` | ✅ | Primary (read-write) PostgreSQL connection string |
-| `DATABASE_READ_URL` | — | Read-replica connection string (falls back to primary) |
-| `DB_POOL_SIZE` | — | Max connections for primary pool (default: `10`) |
-| `DB_READ_POOL_SIZE` | — | Max connections for replica pool (default: `20`) |
-| `JWT_SECRET` | ✅ | Long random string for JWT signing |
-| `REDIS_URL` | ✅ | Redis connection URL for caching and queues |
+| Variable            | Required | Description                                            |
+| ------------------- | -------- | ------------------------------------------------------ |
+| `DATABASE_URL`      | ✅       | Primary (read-write) PostgreSQL connection string      |
+| `DATABASE_READ_URL` | —        | Read-replica connection string (falls back to primary) |
+| `DB_POOL_SIZE`      | —        | Max connections for primary pool (default: `10`)       |
+| `DB_READ_POOL_SIZE` | —        | Max connections for replica pool (default: `20`)       |
+| `JWT_SECRET`        | ✅       | Long random string for JWT signing                     |
+| `REDIS_URL`         | ✅       | Redis connection URL for caching and queues            |
 
 See `packages/api/.env.example` for the full list.
 
@@ -87,7 +87,7 @@ See `packages/api/.env.example` for the full list.
 ### PgBouncer (recommended for production)
 
 PgBouncer in **transaction mode** is the correct choice for a Node.js/Prisma
-API that opens many short-lived connections.  Without it, each pod maintains
+API that opens many short-lived connections. Without it, each pod maintains
 up to `DB_POOL_SIZE` persistent TCP connections to PostgreSQL — at 10 API
 pods this means up to 100 connections even at idle, which exhausts PostgreSQL's
 `max_connections` on small instances.
@@ -106,9 +106,9 @@ postgresql://user:pass@pgbouncer-host:5433/bluecollar?pgbouncer=true&connection_
 
 Key parameters:
 
-| Parameter | Value | Why |
-|-----------|-------|-----|
-| `pgbouncer=true` | required | Disables Prisma's advisory lock logic which is incompatible with transaction mode |
+| Parameter            | Value    | Why                                                                                  |
+| -------------------- | -------- | ------------------------------------------------------------------------------------ |
+| `pgbouncer=true`     | required | Disables Prisma's advisory lock logic which is incompatible with transaction mode    |
 | `connection_limit=1` | required | One PgBouncer-managed connection per Prisma instance; the pool is at PgBouncer level |
 
 **Recommended PgBouncer settings (`pgbouncer.ini`):**
@@ -137,7 +137,7 @@ DB_POOL_SIZE=1    # One managed connection per Prisma instance when behind PgBou
 
 ### Prisma built-in pooling (development / small deployments)
 
-Without PgBouncer, Prisma uses its own `@prisma/adapter-pg` pool.  The pool
+Without PgBouncer, Prisma uses its own `@prisma/adapter-pg` pool. The pool
 size is controlled by `DB_POOL_SIZE` and `DB_READ_POOL_SIZE`.
 
 **Rule of thumb:**
@@ -160,12 +160,12 @@ Set `max_connections = 100` on your PostgreSQL instance.
 
 The API ships with a first-class read/write split abstraction in `src/db.ts`:
 
-| Export | Client | Connected to |
-|--------|--------|-------------|
-| `db` | primary | `DATABASE_URL` |
-| `readDb` | replica | `DATABASE_READ_URL` (fallback: `DATABASE_URL`) |
-| `getDb('read')` | replica | Same as `readDb` |
-| `getDb('write')` | primary | Same as `db` |
+| Export           | Client  | Connected to                                   |
+| ---------------- | ------- | ---------------------------------------------- |
+| `db`             | primary | `DATABASE_URL`                                 |
+| `readDb`         | replica | `DATABASE_READ_URL` (fallback: `DATABASE_URL`) |
+| `getDb('read')`  | replica | Same as `readDb`                               |
+| `getDb('write')` | primary | Same as `db`                                   |
 
 **To enable a read replica:**
 
@@ -181,13 +181,13 @@ DB_READ_POOL_SIZE=20
 3. In services with heavy read paths, use `readDb` or `getDb('read')`:
 
 ```typescript
-import { readDb } from '../db.js'
+import { readDb } from '../db.js';
 
 // This query hits the replica
 const workers = await readDb.worker.findMany({
   where: { isActive: true, deletedAt: null },
   include: { category: true },
-})
+});
 ```
 
 4. Writes always go through `db` (the primary):
@@ -225,11 +225,11 @@ k6 run packages/api/load/auth.js --vus 20 --duration 30s
 
 Watch for these signals during a pool load test:
 
-| Signal | Likely cause | Fix |
-|--------|-------------|-----|
-| `P95 latency > 500 ms` during burst | Pool exhaustion | Increase `DB_POOL_SIZE` or add a replica |
-| `Connection pool timeout` errors | Pool too small for concurrency | Increase pool size or scale API pods |
-| PostgreSQL `max_connections` exceeded | Too many API pods × pool size | Switch to PgBouncer |
+| Signal                                | Likely cause                   | Fix                                      |
+| ------------------------------------- | ------------------------------ | ---------------------------------------- |
+| `P95 latency > 500 ms` during burst   | Pool exhaustion                | Increase `DB_POOL_SIZE` or add a replica |
+| `Connection pool timeout` errors      | Pool too small for concurrency | Increase pool size or scale API pods     |
+| PostgreSQL `max_connections` exceeded | Too many API pods × pool size  | Switch to PgBouncer                      |
 
 ---
 
@@ -261,12 +261,12 @@ When average query time rises above 20 ms median:
 
 ### Connection string reference
 
-| Scenario | `DATABASE_URL` format |
-|----------|----------------------|
-| Direct to PostgreSQL | `postgresql://user:pass@host:5432/db` |
-| Via PgBouncer (transaction mode) | `postgresql://user:pass@host:5433/db?pgbouncer=true&connection_limit=1` |
-| AWS RDS IAM auth | `postgresql://user@host:5432/db?sslmode=require` (use IAM token rotation) |
-| AWS Aurora | Use the cluster endpoint for writes, reader endpoint for `DATABASE_READ_URL` |
+| Scenario                         | `DATABASE_URL` format                                                        |
+| -------------------------------- | ---------------------------------------------------------------------------- |
+| Direct to PostgreSQL             | `postgresql://user:pass@host:5432/db`                                        |
+| Via PgBouncer (transaction mode) | `postgresql://user:pass@host:5433/db?pgbouncer=true&connection_limit=1`      |
+| AWS RDS IAM auth                 | `postgresql://user@host:5432/db?sslmode=require` (use IAM token rotation)    |
+| AWS Aurora                       | Use the cluster endpoint for writes, reader endpoint for `DATABASE_READ_URL` |
 
 ---
 
@@ -311,12 +311,12 @@ For automated backup and point-in-time recovery, see
 
 Key metrics to watch for connection-pool health:
 
-| Metric | Alert threshold | Action |
-|--------|----------------|--------|
-| `pg_stat_activity.count` | > 80 % of `max_connections` | Add PgBouncer or scale down pods |
-| Pool wait time (P95) | > 100 ms | Increase pool size |
-| Replication lag | > 1 s | Investigate replica load or network |
-| Transaction duration (P99) | > 5 s | Query optimisation or index review |
+| Metric                     | Alert threshold             | Action                              |
+| -------------------------- | --------------------------- | ----------------------------------- |
+| `pg_stat_activity.count`   | > 80 % of `max_connections` | Add PgBouncer or scale down pods    |
+| Pool wait time (P95)       | > 100 ms                    | Increase pool size                  |
+| Replication lag            | > 1 s                       | Investigate replica load or network |
+| Transaction duration (P99) | > 5 s                       | Query optimisation or index review  |
 
 See [docs/MONITORING_SETUP.md](./MONITORING_SETUP.md) for the full Prometheus
 / Grafana dashboard setup.

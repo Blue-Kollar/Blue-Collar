@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useMemo } from "react";
-import type { DashboardWorker } from "@/components/Dashboard/WorkersPanel";
+import { useMemo } from 'react';
+import type { DashboardWorker } from '@/components/Dashboard/WorkersPanel';
 
 export interface DashboardWorkerStats {
   total: number;

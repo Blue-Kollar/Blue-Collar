@@ -29,12 +29,12 @@ dependency was confidently zero-usage, so none were removed outright.
 
 ## Retained-with-justification (previously looked suspicious)
 
-| Package | Why it looks unused | Why it's kept |
-|---|---|---|
-| `pino-pretty` | No `import` statement anywhere | Loaded by pino via a string `target` in `src/config/logger.ts` and `src/middleware/requestLogger.ts` for pretty-printed dev logs |
-| `v8-profiler-next` | Only referenced from one file | `src/monitoring/profiler.ts` uses it for on-demand CPU/heap profiling |
-| `node-vault` | Only referenced from one file | `src/services/vault.ts` wraps it for secret retrieval |
-| `rate-limit-redis` | Only referenced from one file | `src/middleware/versionRateLimit.ts` uses its `RedisStore` for distributed rate limiting |
+| Package            | Why it looks unused            | Why it's kept                                                                                                                    |
+| ------------------ | ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
+| `pino-pretty`      | No `import` statement anywhere | Loaded by pino via a string `target` in `src/config/logger.ts` and `src/middleware/requestLogger.ts` for pretty-printed dev logs |
+| `v8-profiler-next` | Only referenced from one file  | `src/monitoring/profiler.ts` uses it for on-demand CPU/heap profiling                                                            |
+| `node-vault`       | Only referenced from one file  | `src/services/vault.ts` wraps it for secret retrieval                                                                            |
+| `rate-limit-redis` | Only referenced from one file  | `src/middleware/versionRateLimit.ts` uses its `RedisStore` for distributed rate limiting                                         |
 
 ## Fix applied
 

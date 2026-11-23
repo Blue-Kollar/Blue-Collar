@@ -10,30 +10,32 @@ The mobile app targets workers and users who need on-the-go access to the BlueCo
 
 ### Core Features
 
-| Feature                  | User | Worker/Curator |
-| ------------------------ | ---- | -------------- |
-| Browse & search workers  | ✓    |                |
-| Filter by category       | ✓    |                |
-| View worker profiles     | ✓    |                |
-| Bookmark workers         | ✓    |                |
-| Send contact requests    | ✓    |                |
-| Leave reviews            | ✓    |                |
-| Send tips (Stellar)      | ✓    |                |
-| Create escrow payments   | ✓    |                |
-| Register/manage profile  |      | ✓              |
-| Set availability         |      | ✓              |
-| View contact requests    |      | ✓              |
-| Receive push alerts      | ✓    | ✓              |
-| QR code share/scan       | ✓    | ✓              |
-| Wallet connect (Freighter)|     | ✓              |
+| Feature                    | User | Worker/Curator |
+| -------------------------- | ---- | -------------- |
+| Browse & search workers    | ✓    |                |
+| Filter by category         | ✓    |                |
+| View worker profiles       | ✓    |                |
+| Bookmark workers           | ✓    |                |
+| Send contact requests      | ✓    |                |
+| Leave reviews              | ✓    |                |
+| Send tips (Stellar)        | ✓    |                |
+| Create escrow payments     | ✓    |                |
+| Register/manage profile    |      | ✓              |
+| Set availability           |      | ✓              |
+| View contact requests      |      | ✓              |
+| Receive push alerts        | ✓    | ✓              |
+| QR code share/scan         | ✓    | ✓              |
+| Wallet connect (Freighter) |      | ✓              |
 
 ### Auth Features
+
 - Email/password login and registration
 - Google OAuth (via in-app browser)
 - Email verification flow
 - Password reset via deep link
 
 ### Offline Features
+
 - Cached worker profiles and bookmarks (readable offline)
 - Queued contact requests (sent when back online)
 - Offline-aware UI states
@@ -42,23 +44,23 @@ The mobile app targets workers and users who need on-the-go access to the BlueCo
 
 ## Technology Stack
 
-| Concern              | Choice                          | Rationale                                                  |
-| -------------------- | ------------------------------- | ---------------------------------------------------------- |
-| Framework            | React Native (Expo SDK 51+)     | Shared JS logic with web app, fast iteration, OTA updates  |
-| Navigation           | Expo Router (file-based)        | Mirrors Next.js routing, familiar to the web team          |
-| State management     | Zustand                         | Lightweight, no boilerplate, works well with async storage |
-| Server state         | TanStack Query (React Query)    | Caching, background refetch, offline support built-in      |
-| Styling              | NativeWind (Tailwind for RN)    | Reuse Tailwind class knowledge from the web app            |
-| Forms                | React Hook Form + Zod           | Same validation stack as the web app                       |
-| Stellar wallet       | Freighter mobile SDK / WalletConnect | Wallet signing on mobile                              |
-| Push notifications   | Expo Notifications + FCM/APNs   | Cross-platform, integrates with existing web-push service  |
-| Offline storage      | MMKV (via react-native-mmkv)    | Faster than AsyncStorage, synchronous reads                |
-| Background sync      | Expo TaskManager                | Queue and retry failed requests in background              |
-| Image handling       | Expo Image + expo-image-picker  | Optimized caching, lazy loading, camera/gallery access     |
-| QR codes             | expo-barcode-scanner + react-native-qrcode-svg | Scan and generate QR codes             |
-| HTTP client          | Same `lib/api.ts` (fetch-based) | Reuse existing API client with minor RN adaptations        |
-| Testing              | Jest + React Native Testing Library | Consistent with web test patterns                     |
-| CI/CD                | EAS Build + EAS Submit          | Managed builds and store submissions via Expo              |
+| Concern            | Choice                                         | Rationale                                                  |
+| ------------------ | ---------------------------------------------- | ---------------------------------------------------------- |
+| Framework          | React Native (Expo SDK 51+)                    | Shared JS logic with web app, fast iteration, OTA updates  |
+| Navigation         | Expo Router (file-based)                       | Mirrors Next.js routing, familiar to the web team          |
+| State management   | Zustand                                        | Lightweight, no boilerplate, works well with async storage |
+| Server state       | TanStack Query (React Query)                   | Caching, background refetch, offline support built-in      |
+| Styling            | NativeWind (Tailwind for RN)                   | Reuse Tailwind class knowledge from the web app            |
+| Forms              | React Hook Form + Zod                          | Same validation stack as the web app                       |
+| Stellar wallet     | Freighter mobile SDK / WalletConnect           | Wallet signing on mobile                                   |
+| Push notifications | Expo Notifications + FCM/APNs                  | Cross-platform, integrates with existing web-push service  |
+| Offline storage    | MMKV (via react-native-mmkv)                   | Faster than AsyncStorage, synchronous reads                |
+| Background sync    | Expo TaskManager                               | Queue and retry failed requests in background              |
+| Image handling     | Expo Image + expo-image-picker                 | Optimized caching, lazy loading, camera/gallery access     |
+| QR codes           | expo-barcode-scanner + react-native-qrcode-svg | Scan and generate QR codes                                 |
+| HTTP client        | Same `lib/api.ts` (fetch-based)                | Reuse existing API client with minor RN adaptations        |
+| Testing            | Jest + React Native Testing Library            | Consistent with web test patterns                          |
+| CI/CD              | EAS Build + EAS Submit                         | Managed builds and store submissions via Expo              |
 
 ---
 
@@ -205,7 +207,7 @@ Use Expo TaskManager + a local queue in MMKV for actions taken offline:
 // Offline queue entry shape
 type QueuedAction = {
   id: string;
-  type: "contact_request" | "bookmark" | "review";
+  type: 'contact_request' | 'bookmark' | 'review';
   payload: unknown;
   createdAt: number;
   retries: number;
@@ -217,7 +219,7 @@ On reconnect, the background task drains the queue in order, retrying up to 3 ti
 ### Network state detection
 
 ```ts
-import NetInfo from "@react-native-community/netinfo";
+import NetInfo from '@react-native-community/netinfo';
 
 NetInfo.addEventListener((state) => {
   if (state.isConnected) drainOfflineQueue();
@@ -255,29 +257,29 @@ The existing API already has a `push.service.ts` and `PushSubscription` model. T
 ### Token registration
 
 ```ts
-import * as Notifications from "expo-notifications";
+import * as Notifications from 'expo-notifications';
 
 async function registerPushToken(userId: string) {
   const { status } = await Notifications.requestPermissionsAsync();
-  if (status !== "granted") return;
+  if (status !== 'granted') return;
 
   const token = (await Notifications.getExpoPushTokenAsync()).data;
 
   // POST to existing /api/push/subscribe endpoint
-  await api.post("/push/subscribe", { token, platform: "mobile" });
+  await api.post('/push/subscribe', { token, platform: 'mobile' });
 }
 ```
 
 ### Notification types
 
-| Event                        | Recipient  | Title                        |
-| ---------------------------- | ---------- | ---------------------------- |
-| New contact request received | Worker     | "New request from [name]"    |
-| Contact request accepted     | User       | "[Worker] accepted your request" |
-| Contact request declined     | User       | "[Worker] declined your request" |
-| New review posted            | Worker     | "You received a new review"  |
-| Escrow released              | Worker     | "Payment released to you"    |
-| Escrow expiry reminder       | User       | "Your escrow expires soon"   |
+| Event                        | Recipient | Title                            |
+| ---------------------------- | --------- | -------------------------------- |
+| New contact request received | Worker    | "New request from [name]"        |
+| Contact request accepted     | User      | "[Worker] accepted your request" |
+| Contact request declined     | User      | "[Worker] declined your request" |
+| New review posted            | Worker    | "You received a new review"      |
+| Escrow released              | Worker    | "Payment released to you"        |
+| Escrow expiry reminder       | User      | "Your escrow expires soon"       |
 
 ### Foreground handling
 
@@ -303,6 +305,7 @@ Notifications.addNotificationResponseReceivedListener((response) => {
 ```
 
 Example deep link targets:
+
 - `/workers/[id]` — worker profile
 - `/dashboard/requests/[id]` — contact request detail
 - `/dashboard` — dashboard home

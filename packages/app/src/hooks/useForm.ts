@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useState, useCallback, ChangeEvent } from "react";
+import { useState, useCallback, ChangeEvent } from 'react';
 
 type FormErrors<T> = Partial<Record<keyof T, string>>;
 type Validator<T> = (values: T) => FormErrors<T>;
@@ -17,7 +17,7 @@ type Validator<T> = (values: T) => FormErrors<T>;
 export function useForm<T extends Record<string, unknown>>(
   initialValues: T,
   onSubmit: (values: T) => Promise<void>,
-  validate?: Validator<T>
+  validate?: Validator<T>,
 ) {
   const [values, setValues] = useState<T>(initialValues);
   const [errors, setErrors] = useState<FormErrors<T>>({});
@@ -30,7 +30,7 @@ export function useForm<T extends Record<string, unknown>>(
       // Clear field error on change
       setErrors((prev) => ({ ...prev, [name]: undefined }));
     },
-    []
+    [],
   );
 
   const setValue = useCallback((name: keyof T, value: unknown) => {
@@ -55,7 +55,7 @@ export function useForm<T extends Record<string, unknown>>(
         setIsSubmitting(false);
       }
     },
-    [values, validate, onSubmit]
+    [values, validate, onSubmit],
   );
 
   const reset = useCallback(() => {

@@ -1,59 +1,91 @@
-import { ZodError } from 'zod'
-import { AppError, ErrorCode } from '@/utils/app-error.js'
-import { getTraceId } from '@/monitoring/tracing.js'
-import { ErrorMessages, HttpStatus } from '@/constants/index.js'
-import { config } from '@/config/config.js'
+import { ZodError } from 'zod';
+import { AppError, ErrorCode } from '@/utils/app-error.js';
+import { getTraceId } from '@/monitoring/tracing.js';
+import { ErrorMessages, HttpStatus } from '@/constants/index.js';
+import { config } from '@/config/config.js';
 
 export interface ErrorResponse {
-  status: 'error'
-  message: string
-  code: number
-  errorCode: ErrorCode
-  traceId?: string
-  details?: unknown
-  stack?: string
-  originalMessage?: string
+  status: 'error';
+  message: string;
+  code: number;
+  errorCode: ErrorCode;
+  traceId?: string;
+  details?: unknown;
+  stack?: string;
+  originalMessage?: string;
 }
 
 function isZodError(err: unknown): err is ZodError {
-  return err instanceof ZodError || (typeof err === 'object' && err !== null && (err as { name?: unknown }).name === 'ZodError')
+  return (
+    err instanceof ZodError ||
+    (typeof err === 'object' && err !== null && (err as { name?: unknown }).name === 'ZodError')
+  );
 }
 
 interface PrismaClientKnownRequestError {
-  code: string
-  meta?: Record<string, unknown>
+  code: string;
+  meta?: Record<string, unknown>;
 }
 
 function isPrismaError(err: unknown): err is PrismaClientKnownRequestError {
   if (typeof err !== 'object' || err === null || !('code' in err)) {
-    return false
+    return false;
   }
-  const code = (err as Record<string, unknown>).code
-  return typeof code === 'string' && code.startsWith('P')
+  const code = (err as Record<string, unknown>).code;
+  return typeof code === 'string' && code.startsWith('P');
 }
 
-function mapPrismaError(err: PrismaClientKnownRequestError): { statusCode: number; message: string; errorCode: ErrorCode } {
+function mapPrismaError(err: PrismaClientKnownRequestError): {
+  statusCode: number;
+  message: string;
+  errorCode: ErrorCode;
+} {
   switch (err.code) {
-    case 'P2002': return { statusCode: HttpStatus.CONFLICT, message: ErrorMessages.DB_DUPLICATE_VALUE, errorCode: ErrorCode.CONFLICT }
-    case 'P2025': return { statusCode: HttpStatus.NOT_FOUND, message: ErrorMessages.DB_RECORD_NOT_FOUND, errorCode: ErrorCode.NOT_FOUND }
-    case 'P2003': return { statusCode: HttpStatus.BAD_REQUEST, message: ErrorMessages.DB_RELATED_NOT_FOUND, errorCode: ErrorCode.VALIDATION_ERROR }
-    default:      return { statusCode: HttpStatus.INTERNAL_SERVER_ERROR, message: ErrorMessages.DB_ERROR, errorCode: ErrorCode.INTERNAL_ERROR }
+    case 'P2002':
+      return {
+        statusCode: HttpStatus.CONFLICT,
+        message: ErrorMessages.DB_DUPLICATE_VALUE,
+        errorCode: ErrorCode.CONFLICT,
+      };
+    case 'P2025':
+      return {
+        statusCode: HttpStatus.NOT_FOUND,
+        message: ErrorMessages.DB_RECORD_NOT_FOUND,
+        errorCode: ErrorCode.NOT_FOUND,
+      };
+    case 'P2003':
+      return {
+        statusCode: HttpStatus.BAD_REQUEST,
+        message: ErrorMessages.DB_RELATED_NOT_FOUND,
+        errorCode: ErrorCode.VALIDATION_ERROR,
+      };
+    default:
+      return {
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        message: ErrorMessages.DB_ERROR,
+        errorCode: ErrorCode.INTERNAL_ERROR,
+      };
   }
 }
 
 export interface SerializedError {
-  statusCode: number
-  body: ErrorResponse
+  statusCode: number;
+  body: ErrorResponse;
 }
 
 export function serializeError(err: unknown): SerializedError {
-  const traceId = getTraceId()
+  const traceId = getTraceId();
 
   if (err instanceof Error && err.message.startsWith('CORS:')) {
     return {
       statusCode: HttpStatus.FORBIDDEN,
-      body: { status: 'error', message: ErrorMessages.FORBIDDEN, code: HttpStatus.FORBIDDEN, errorCode: ErrorCode.FORBIDDEN },
-    }
+      body: {
+        status: 'error',
+        message: ErrorMessages.FORBIDDEN,
+        code: HttpStatus.FORBIDDEN,
+        errorCode: ErrorCode.FORBIDDEN,
+      },
+    };
   }
 
   if (isZodError(err)) {
@@ -68,12 +100,12 @@ export function serializeError(err: unknown): SerializedError {
         traceId,
         details: err.flatten(),
       },
-    }
+    };
   }
 
   if (isPrismaError(err)) {
-    const { statusCode, message, errorCode } = mapPrismaError(err)
-    return { statusCode, body: { status: 'error', message, code: statusCode, errorCode, traceId } }
+    const { statusCode, message, errorCode } = mapPrismaError(err);
+    return { statusCode, body: { status: 'error', message, code: statusCode, errorCode, traceId } };
   }
 
   if (err instanceof AppError && err.isOperational) {
@@ -89,13 +121,13 @@ export function serializeError(err: unknown): SerializedError {
         traceId,
         ...(err.details !== undefined && { details: err.details }),
       },
-    }
+    };
   }
 
   // PII SAFETY: unexpected errors return a generic message without any
   // request context, user data, or internal details. Stack traces are
   // only included in development and are logged server-side only.
-  const error = err instanceof Error ? err : new Error(String(err))
+  const error = err instanceof Error ? err : new Error(String(err));
   const body: ErrorResponse = {
     status: 'error',
     message: ErrorMessages.INTERNAL_SERVER_ERROR,
@@ -103,6 +135,6 @@ export function serializeError(err: unknown): SerializedError {
     errorCode: ErrorCode.INTERNAL_ERROR,
     traceId,
     ...(config.env === 'development' && { stack: error.stack, originalMessage: error.message }),
-  }
-  return { statusCode: HttpStatus.INTERNAL_SERVER_ERROR, body }
+  };
+  return { statusCode: HttpStatus.INTERNAL_SERVER_ERROR, body };
 }

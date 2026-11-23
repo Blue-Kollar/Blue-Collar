@@ -20,12 +20,12 @@
  *
  * See `./README.md` for the full list and guidance.
  */
-import { vi } from 'vitest'
-import jwt from 'jsonwebtoken'
+import { vi } from 'vitest';
+import jwt from 'jsonwebtoken';
 
 // ─── Environment ─────────────────────────────────────────────────────────────
 
-export const TEST_JWT_SECRET = 'test-integration-secret'
+export const TEST_JWT_SECRET = 'test-integration-secret';
 
 /** Every variable `config/config.ts` requires at load time, set to test values. */
 export const TEST_ENV: Record<string, string> = {
@@ -40,17 +40,17 @@ export const TEST_ENV: Record<string, string> = {
   MAIL_PORT: '587',
   MAIL_USER: 'test',
   MAIL_PASS: 'test',
-}
+};
 
 for (const [key, value] of Object.entries(TEST_ENV)) {
-  process.env[key] ??= value
+  process.env[key] ??= value;
 }
 
 // ─── Auth ────────────────────────────────────────────────────────────────────
 
 /** Sign a JWT the app's `authenticate` middleware accepts in tests. */
 export function makeAuthToken(role = 'USER', id = 'user-1', email = 'test@example.com') {
-  return jwt.sign({ id, email, role }, TEST_JWT_SECRET, { expiresIn: '1h' })
+  return jwt.sign({ id, email, role }, TEST_JWT_SECRET, { expiresIn: '1h' });
 }
 
 // ─── Infrastructure mock factories ───────────────────────────────────────────
@@ -91,9 +91,13 @@ export const infraMocks = {
 
   openapiDocs: () => {
     // Pass-through router-like stub: every method just advances the chain.
-    const passThrough = (_req: unknown, _res: unknown, next: () => void) => next()
-    const fn = Object.assign(passThrough, { use: passThrough, get: passThrough, handle: passThrough })
-    return { default: fn }
+    const passThrough = (_req: unknown, _res: unknown, next: () => void) => next();
+    const fn = Object.assign(passThrough, {
+      use: passThrough,
+      get: passThrough,
+      handle: passThrough,
+    });
+    return { default: fn };
   },
 
   passport: () => ({
@@ -111,7 +115,7 @@ export const infraMocks = {
 
   // BullMQ queues open Redis connections when the module loads; stub them all.
   queue: () => {
-    const fakeQueue = () => ({ add: vi.fn().mockResolvedValue({ id: 'job-1' }), close: vi.fn() })
+    const fakeQueue = () => ({ add: vi.fn().mockResolvedValue({ id: 'job-1' }), close: vi.fn() });
     return {
       emailQueue: fakeQueue(),
       notificationQueue: fakeQueue(),
@@ -122,7 +126,7 @@ export const infraMocks = {
       enqueueEmail: vi.fn().mockResolvedValue({ id: 'job-1' }),
       enqueueNotification: vi.fn().mockResolvedValue({ id: 'job-1' }),
       enqueueScheduled: vi.fn().mockResolvedValue({ id: 'job-1' }),
-    }
+    };
   },
 
   rateLimiter: () => ({
@@ -148,4 +152,4 @@ export const infraMocks = {
   mailerTransport: () => ({
     transporter: { sendMail: vi.fn().mockResolvedValue({ messageId: 'test-msg' }) },
   }),
-}
+};

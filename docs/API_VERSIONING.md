@@ -33,19 +33,19 @@ The resolved version is echoed back in every response via the `X-API-Version` he
 
 ## Version Lifecycle
 
-| Phase        | Description                                           | SLA                     |
-|------------- |------------------------------------------------------ |------------------------ |
-| **Current**  | Actively maintained, receives features and fixes      | Full support            |
-| **Stable**   | No new features; security and critical fixes only     | ≥ 12 months notice      |
+| Phase          | Description                                          | SLA                      |
+| -------------- | ---------------------------------------------------- | ------------------------ |
+| **Current**    | Actively maintained, receives features and fixes     | Full support             |
+| **Stable**     | No new features; security and critical fixes only    | ≥ 12 months notice       |
 | **Deprecated** | End-of-life announced, `Deprecation` headers emitted | ≥ 6 months sunset window |
-| **Sunset**   | Version removed; requests receive `410 Gone`          | —                       |
+| **Sunset**     | Version removed; requests receive `410 Gone`         | —                        |
 
 ### Current versions
 
-| Version | Status  | Sunset date |
-|---------|---------|-------------|
+| Version | Status  | Sunset date        |
+| ------- | ------- | ------------------ |
 | `v1`    | Stable  | TBD (≥ 2027-01-01) |
-| `v2`    | Current | —           |
+| `v2`    | Current | —                  |
 
 ## Deprecation Headers
 
@@ -61,15 +61,15 @@ Warning: 299 - "API version v1 is deprecated. Migrate to v2."
 
 ### v1 vs v2 field changes
 
-| Resource | v1 fields              | Added in v2              |
-|----------|------------------------|--------------------------|
-| `worker` | Standard fields        | `verificationStatus`     |
-| `user`   | Standard fields        | `twoFactorEnabled`       |
+| Resource | v1 fields       | Added in v2          |
+| -------- | --------------- | -------------------- |
+| `worker` | Standard fields | `verificationStatus` |
+| `user`   | Standard fields | `twoFactorEnabled`   |
 
 ### Authentication policies
 
-| Version | JWT Bearer | API Key |
-|---------|-----------|---------|
+| Version | JWT Bearer  | API Key    |
+| ------- | ----------- | ---------- |
 | `v1`    | ✅ Required | ✅ Allowed |
 | `v2`    | ✅ Required | ❌ Removed |
 
@@ -78,7 +78,7 @@ Using an API key in v2 returns `401 Unauthorized`. Migrate to JWT Bearer tokens.
 ### Rate limits
 
 | Version | Requests / minute |
-|---------|-------------------|
+| ------- | ----------------- |
 | `v1`    | 100               |
 | `v2`    | 150               |
 

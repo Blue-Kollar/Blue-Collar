@@ -1,18 +1,22 @@
-import type { Worker, Prisma } from '@prisma/client'
-import type { IRepository } from './base.repository.js'
-import { BaseRepository } from './base.repository.js'
-import { db } from '@/db.js'
-import { QueryBuilder } from './queryBuilder.js'
+import type { Worker, Prisma } from '@prisma/client';
+import type { IRepository } from './base.repository.js';
+import { BaseRepository } from './base.repository.js';
+import { db } from '@/db.js';
+import { QueryBuilder } from './queryBuilder.js';
 
 // ── Interface ─────────────────────────────────────────────────────────────────
 
-export interface IWorkerRepository extends IRepository<Worker, Prisma.WorkerCreateInput, Prisma.WorkerUpdateInput> {
-  findWithRelations(id: string): Promise<(Worker & { category: unknown; curator: unknown }) | null>
-  findByCurator(curatorId: string): Promise<Worker[]>
-  findByCategory(categoryId: string, opts?: { skip?: number; take?: number }): Promise<Worker[]>
-  findActive(opts?: { skip?: number; take?: number }): Promise<Worker[]>
-  toggleActive(id: string, tx?: Prisma.TransactionClient): Promise<Worker>
-  advancedSearch(filters: AdvancedSearchFilters): Promise<AdvancedSearchResult>
+export interface IWorkerRepository extends IRepository<
+  Worker,
+  Prisma.WorkerCreateInput,
+  Prisma.WorkerUpdateInput
+> {
+  findWithRelations(id: string): Promise<(Worker & { category: unknown; curator: unknown }) | null>;
+  findByCurator(curatorId: string): Promise<Worker[]>;
+  findByCategory(categoryId: string, opts?: { skip?: number; take?: number }): Promise<Worker[]>;
+  findActive(opts?: { skip?: number; take?: number }): Promise<Worker[]>;
+  toggleActive(id: string, tx?: Prisma.TransactionClient): Promise<Worker>;
+  advancedSearch(filters: AdvancedSearchFilters): Promise<AdvancedSearchResult>;
 }
 
 /**
@@ -21,54 +25,67 @@ export interface IWorkerRepository extends IRepository<Worker, Prisma.WorkerCrea
  * satisfy this shape, so write methods can run inside or outside a
  * transaction without changing their call sites.
  */
-type WorkerDbClient = Pick<typeof db, 'worker' | 'review'>
+type WorkerDbClient = Pick<typeof db, 'worker' | 'review'>;
 
 export interface AdvancedSearchFilters {
-  query?: string
-  lat?: number
-  lng?: number
-  radius?: number
-  categories?: string[]
-  minRating?: number
-  maxRating?: number
-  dayOfWeek?: number
-  startTime?: string
-  endTime?: string
-  isVerified?: boolean
-  sortBy?: 'relevance' | 'rating' | 'distance' | 'newest' | 'reviews'
-  skip?: number
-  take?: number
+  query?: string;
+  lat?: number;
+  lng?: number;
+  radius?: number;
+  categories?: string[];
+  minRating?: number;
+  maxRating?: number;
+  dayOfWeek?: number;
+  startTime?: string;
+  endTime?: string;
+  isVerified?: boolean;
+  sortBy?: 'relevance' | 'rating' | 'distance' | 'newest' | 'reviews';
+  skip?: number;
+  take?: number;
 }
 
 export interface AdvancedSearchResult {
-  data: (Worker & { relevanceScore?: number; distanceKm?: number; avgRating?: number; reviewCount?: number })[]
-  total: number
-  hasMore: boolean
+  data: (Worker & {
+    relevanceScore?: number;
+    distanceKm?: number;
+    avgRating?: number;
+    reviewCount?: number;
+  })[];
+  total: number;
+  hasMore: boolean;
 }
 
 // ── Review aggregation result type ───────────────────────────────────────────
 interface ReviewAgg {
-  workerId: string
-  avgRating: number
-  reviewCount: number
+  workerId: string;
+  avgRating: number;
+  reviewCount: number;
 }
 
 // ── Prisma implementation ─────────────────────────────────────────────────────
 
-const workerInclude = { category: true, curator: true } as const
+const workerInclude = { category: true, curator: true } as const;
 
-export class WorkerRepository extends BaseRepository<Worker, Prisma.WorkerCreateInput, Prisma.WorkerUpdateInput, Prisma.WorkerWhereInput> implements IWorkerRepository {
+export class WorkerRepository
+  extends BaseRepository<
+    Worker,
+    Prisma.WorkerCreateInput,
+    Prisma.WorkerUpdateInput,
+    Prisma.WorkerWhereInput
+  >
+  implements IWorkerRepository
+{
   constructor() {
-    super(db.worker, { softDelete: true })
+    super(db.worker, { softDelete: true });
   }
 
   /** Resolve the client to use: an explicit transaction client, or the root client. */
   private client(tx?: Prisma.TransactionClient): WorkerDbClient {
-    return (tx ?? db) as WorkerDbClient
+    return (tx ?? db) as WorkerDbClient;
   }
 
   async findWithRelations(id: string) {
-    return db.worker.findUnique({ where: { id }, include: workerInclude })
+    return db.worker.findUnique({ where: { id }, include: workerInclude });
   }
 
   async findActive(opts: { skip?: number; take?: number } = {}): Promise<Worker[]> {
@@ -76,97 +93,110 @@ export class WorkerRepository extends BaseRepository<Worker, Prisma.WorkerCreate
       pagination: opts,
       filter: { isActive: true, deletedAt: null },
     }) as {
-      skip: number
-      take: number
-      where: Prisma.WorkerWhereInput
-      orderBy: Prisma.WorkerOrderByWithRelationInput
-    }
+      skip: number;
+      take: number;
+      where: Prisma.WorkerWhereInput;
+      orderBy: Prisma.WorkerOrderByWithRelationInput;
+    };
     return db.worker.findMany({
       ...query,
       include: workerInclude,
-    })
+    });
   }
 
   async findByCurator(curatorId: string): Promise<Worker[]> {
     const query = QueryBuilder.buildQuery({
       filter: { curatorId, deletedAt: null },
     }) as {
-      skip: number
-      take: number
-      where: Prisma.WorkerWhereInput
-      orderBy: Prisma.WorkerOrderByWithRelationInput
-    }
+      skip: number;
+      take: number;
+      where: Prisma.WorkerWhereInput;
+      orderBy: Prisma.WorkerOrderByWithRelationInput;
+    };
     return db.worker.findMany({
       ...query,
       include: workerInclude,
-    })
+    });
   }
 
-  async findByCategory(categoryId: string, opts: { skip?: number; take?: number } = {}): Promise<Worker[]> {
+  async findByCategory(
+    categoryId: string,
+    opts: { skip?: number; take?: number } = {},
+  ): Promise<Worker[]> {
     const query = QueryBuilder.buildQuery({
       pagination: opts,
       filter: { categoryId, isActive: true },
     }) as {
-      skip: number
-      take: number
-      where: Prisma.WorkerWhereInput
-      orderBy: Prisma.WorkerOrderByWithRelationInput
-    }
+      skip: number;
+      take: number;
+      where: Prisma.WorkerWhereInput;
+      orderBy: Prisma.WorkerOrderByWithRelationInput;
+    };
     return db.worker.findMany({
       ...query,
       include: workerInclude,
-    })
+    });
   }
 
   /**
    * Overrides BaseRepository.create to eagerly load category/curator relations.
    * Accepts an optional transaction client so multi-step writes stay atomic.
    */
-  override async create(data: Prisma.WorkerCreateInput, tx?: Prisma.TransactionClient): Promise<Worker> {
-    return this.client(tx).worker.create({ data, include: workerInclude })
+  override async create(
+    data: Prisma.WorkerCreateInput,
+    tx?: Prisma.TransactionClient,
+  ): Promise<Worker> {
+    return this.client(tx).worker.create({ data, include: workerInclude });
   }
 
   /**
    * Overrides BaseRepository.update to eagerly load category/curator relations.
    * Accepts an optional transaction client so multi-step writes stay atomic.
    */
-  override async update(id: string, data: Prisma.WorkerUpdateInput, tx?: Prisma.TransactionClient): Promise<Worker> {
+  override async update(
+    id: string,
+    data: Prisma.WorkerUpdateInput,
+    tx?: Prisma.TransactionClient,
+  ): Promise<Worker> {
     return this.client(tx).worker.update({
       where: { id },
       data: { ...data, updatedAt: new Date() },
       include: workerInclude,
-    })
+    });
   }
 
   // delete() and count() are inherited from BaseRepository (soft-delete applies).
 
   async toggleActive(id: string, tx?: Prisma.TransactionClient): Promise<Worker> {
-    const client = this.client(tx)
-    const worker = await client.worker.findUniqueOrThrow({ where: { id } })
-    return client.worker.update({ where: { id }, data: { isActive: !worker.isActive } })
+    const client = this.client(tx);
+    const worker = await client.worker.findUniqueOrThrow({ where: { id } });
+    return client.worker.update({ where: { id }, data: { isActive: !worker.isActive } });
   }
 
   /**
    * Fetch aggregated review data (avg rating + count) for a set of worker IDs.
    * Uses a single GROUP BY query instead of N+1 includes.
    */
-  private async fetchReviewAggs(workerIds: string[], tx?: Prisma.TransactionClient): Promise<Map<string, ReviewAgg>> {
-    if (workerIds.length === 0) return new Map()
+  private async fetchReviewAggs(
+    workerIds: string[],
+    tx?: Prisma.TransactionClient,
+  ): Promise<Map<string, ReviewAgg>> {
+    if (workerIds.length === 0) return new Map();
     const aggs = await this.client(tx).review.groupBy({
       by: ['workerId'],
       where: { workerId: { in: workerIds } },
       _avg: { rating: true },
       _count: { rating: true },
-    })
-    const map = new Map<string, ReviewAgg>()
+    });
+    const map = new Map<string, ReviewAgg>();
     for (const agg of aggs) {
       map.set(agg.workerId, {
         workerId: agg.workerId,
         avgRating: agg._avg.rating ?? 0,
         reviewCount: agg._count.rating,
-      })
+      });
     }
-    return map
+    return map;
   }
 
   async advancedSearch(filters: AdvancedSearchFilters): Promise<AdvancedSearchResult> {
@@ -185,34 +215,34 @@ export class WorkerRepository extends BaseRepository<Worker, Prisma.WorkerCreate
       sortBy = 'relevance',
       skip = 0,
       take = 20,
-    } = filters
+    } = filters;
 
     // Build base where clause
     const where: Prisma.WorkerWhereInput = {
       isActive: true,
-    }
+    };
 
     if (categories && categories.length > 0) {
-      where.categoryId = { in: categories }
+      where.categoryId = { in: categories };
     }
 
     if (isVerified !== undefined) {
-      where.isVerified = isVerified
+      where.isVerified = isVerified;
     }
 
     // Availability filtering
     if (dayOfWeek !== undefined || startTime || endTime) {
-      const availWhere: Prisma.AvailabilityWhereInput = {}
+      const availWhere: Prisma.AvailabilityWhereInput = {};
       if (dayOfWeek !== undefined) {
-        availWhere.dayOfWeek = dayOfWeek
+        availWhere.dayOfWeek = dayOfWeek;
       }
       if (startTime) {
-        availWhere.startTime = { gte: startTime }
+        availWhere.startTime = { gte: startTime };
       }
       if (endTime) {
-        availWhere.endTime = { lte: endTime }
+        availWhere.endTime = { lte: endTime };
       }
-      where.availability = { some: availWhere }
+      where.availability = { some: availWhere };
     }
 
     // Fetch workers with essential relations only (no reviews — avoids N+1).
@@ -227,38 +257,41 @@ export class WorkerRepository extends BaseRepository<Worker, Prisma.WorkerCreate
       ...(sortBy === 'newest' ? { orderBy: { createdAt: 'desc' as const } } : {}),
       skip,
       take: take + 1, // +1 for hasMore detection (used when no in-memory filtering)
-    })
+    });
 
     // Apply geo filtering in memory if provided (PostGIS would be ideal but not configured)
     if (lat !== undefined && lng !== undefined) {
-      workers = workers.filter(w => {
-        if (!w.location?.lat || !w.location?.lng) return false
-        const dist = this.haversine(lat, lng, w.location.lat, w.location.lng)
-        return dist <= radius
-      })
+      workers = workers.filter((w) => {
+        if (!w.location?.lat || !w.location?.lng) return false;
+        const dist = this.haversine(lat, lng, w.location.lat, w.location.lng);
+        return dist <= radius;
+      });
     }
 
     // Fetch aggregated review data in a single GROUP BY query (eliminates N+1)
-    const workerIds = workers.map(w => w.id)
-    const reviewAggs = await this.fetchReviewAggs(workerIds)
+    const workerIds = workers.map((w) => w.id);
+    const reviewAggs = await this.fetchReviewAggs(workerIds);
 
     // Apply rating filtering using pre-computed aggregates
     if (minRating !== undefined || maxRating !== undefined) {
-      workers = workers.filter(w => {
-        const agg = reviewAggs.get(w.id)
-        if (!agg || agg.reviewCount === 0) return false
-        return (!minRating || agg.avgRating >= minRating) && (!maxRating || agg.avgRating <= maxRating)
-      })
+      workers = workers.filter((w) => {
+        const agg = reviewAggs.get(w.id);
+        if (!agg || agg.reviewCount === 0) return false;
+        return (
+          (!minRating || agg.avgRating >= minRating) && (!maxRating || agg.avgRating <= maxRating)
+        );
+      });
     }
 
     // Enrich with computed fields
-    const enriched = workers.map(w => {
-      const agg = reviewAggs.get(w.id)
-      const avgRating = agg?.avgRating ?? 0
-      const reviewCount = agg?.reviewCount ?? 0
-      const distanceKm = lat && lng && w.location?.lat && w.location?.lng
-        ? this.haversine(lat, lng, w.location.lat, w.location.lng)
-        : undefined
+    const enriched = workers.map((w) => {
+      const agg = reviewAggs.get(w.id);
+      const avgRating = agg?.avgRating ?? 0;
+      const reviewCount = agg?.reviewCount ?? 0;
+      const distanceKm =
+        lat && lng && w.location?.lat && w.location?.lng
+          ? this.haversine(lat, lng, w.location.lat, w.location.lng)
+          : undefined;
       return {
         ...w,
         reviews: undefined,
@@ -267,47 +300,47 @@ export class WorkerRepository extends BaseRepository<Worker, Prisma.WorkerCreate
         distanceKm,
         reviewCount,
         relevanceScore: this.calculateRelevance(w, query, avgRating, distanceKm),
-      }
-    })
+      };
+    });
 
     // Apply sorting that requires computed fields
-    const requiresPostProcessing = sortBy !== 'newest'
-    const sortedEnriched = enriched
+    const requiresPostProcessing = sortBy !== 'newest';
+    const sortedEnriched = enriched;
     if (requiresPostProcessing) {
       sortedEnriched.sort((a, b) => {
         switch (sortBy) {
           case 'rating':
-            return b.avgRating - a.avgRating
+            return b.avgRating - a.avgRating;
           case 'distance':
-            if (a.distanceKm === undefined) return 1
-            if (b.distanceKm === undefined) return -1
-            return a.distanceKm - b.distanceKm
+            if (a.distanceKm === undefined) return 1;
+            if (b.distanceKm === undefined) return -1;
+            return a.distanceKm - b.distanceKm;
           case 'reviews':
-            return b.reviewCount - a.reviewCount
+            return b.reviewCount - a.reviewCount;
           case 'relevance':
           default:
-            return (b.relevanceScore || 0) - (a.relevanceScore || 0)
+            return (b.relevanceScore || 0) - (a.relevanceScore || 0);
         }
-      })
+      });
     }
 
-    const hasMore = sortedEnriched.length > take
-    const data = sortedEnriched.slice(0, take)
+    const hasMore = sortedEnriched.length > take;
+    const data = sortedEnriched.slice(0, take);
 
     // Use count estimate for total to avoid full table scan on large datasets
-    const total = await db.worker.count({ where })
+    const total = await db.worker.count({ where });
 
-    return { data, total, hasMore }
+    return { data, total, hasMore };
   }
 
   private haversine(lat1: number, lon1: number, lat2: number, lon2: number): number {
-    const R = 6371
-    const dLat = ((lat2 - lat1) * Math.PI) / 180
-    const dLon = ((lon2 - lon1) * Math.PI) / 180
+    const R = 6371;
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
     const a =
       Math.sin(dLat / 2) ** 2 +
-      Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) ** 2
-    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+      Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   }
 
   private calculateRelevance(
@@ -316,34 +349,34 @@ export class WorkerRepository extends BaseRepository<Worker, Prisma.WorkerCreate
     avgRating?: number,
     distanceKm?: number,
   ): number {
-    let score = 0
+    let score = 0;
 
     // Name/bio relevance
     if (query) {
-      const q = query.toLowerCase()
-      const nameMatch = (worker.name?.toLowerCase() ?? '').includes(q)
-      const bioMatch = (worker.bio?.toLowerCase() ?? '').includes(q)
-      if (nameMatch) score += 50
-      if (bioMatch) score += 25
+      const q = query.toLowerCase();
+      const nameMatch = (worker.name?.toLowerCase() ?? '').includes(q);
+      const bioMatch = (worker.bio?.toLowerCase() ?? '').includes(q);
+      if (nameMatch) score += 50;
+      if (bioMatch) score += 25;
     }
 
     // Rating relevance (up to 50 points)
     if (avgRating !== undefined) {
-      score += (avgRating / 5) * 50
+      score += (avgRating / 5) * 50;
     }
 
     // Proximity relevance (up to 30 points, closer is better)
     if (distanceKm !== undefined) {
-      score += Math.max(0, 30 - distanceKm)
+      score += Math.max(0, 30 - distanceKm);
     }
 
     // Verification bonus
     if (worker.isVerified) {
-      score += 20
+      score += 20;
     }
 
-    return score
+    return score;
   }
 }
 
-export const workerRepository = new WorkerRepository()
+export const workerRepository = new WorkerRepository();

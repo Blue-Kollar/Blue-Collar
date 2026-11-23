@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
-import { ListingForm } from "@/components/Curator/ListingForm";
-import { NewListingHeader } from "@/components/curator/new/NewListingHeader";
-import { NewListingShell } from "@/components/curator/new/NewListingShell";
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
+import { ListingForm } from '@/components/Curator/ListingForm';
+import { NewListingHeader } from '@/components/curator/new/NewListingHeader';
+import { NewListingShell } from '@/components/curator/new/NewListingShell';
 
 export default function NewListingPage() {
   const router = useRouter();
@@ -21,9 +21,7 @@ export default function NewListingPage() {
       </Link>
       <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-8 shadow-sm">
         <NewListingHeader />
-        <ListingForm
-          onSuccess={() => router.push("/curator")}
-        />
+        <ListingForm onSuccess={() => router.push('/curator')} />
       </div>
     </NewListingShell>
   );

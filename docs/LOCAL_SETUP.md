@@ -23,15 +23,15 @@ it, focused on how the API fits together with everything else.
 
 ## Prerequisites
 
-| Tool | Version | Needed for |
-|---|---|---|
-| [Node.js](https://nodejs.org) | >= 20 | api, app, mobile, monitoring, sdk, types |
-| [pnpm](https://pnpm.io) | >= 9 | all TypeScript packages (workspace-managed) |
-| [PostgreSQL](https://www.postgresql.org/download/) | 16.x | api |
-| [Redis](https://redis.io/docs/getting-started/) | 7.x | api (optional — API degrades gracefully without it) |
-| [Rust](https://www.rust-lang.org/tools/install) + `wasm32v1-none` target | stable | contracts |
-| [Stellar CLI](https://developers.stellar.org/docs/tools/cli/install-cli) | latest | contracts, and deploying/funding accounts for api/app/mobile/monitoring to talk to |
-| [Docker](https://docs.docker.com/get-docker/) | any recent | optional — Docker Compose path, and/or a local Soroban network |
+| Tool                                                                     | Version    | Needed for                                                                         |
+| ------------------------------------------------------------------------ | ---------- | ---------------------------------------------------------------------------------- |
+| [Node.js](https://nodejs.org)                                            | >= 20      | api, app, mobile, monitoring, sdk, types                                           |
+| [pnpm](https://pnpm.io)                                                  | >= 9       | all TypeScript packages (workspace-managed)                                        |
+| [PostgreSQL](https://www.postgresql.org/download/)                       | 16.x       | api                                                                                |
+| [Redis](https://redis.io/docs/getting-started/)                          | 7.x        | api (optional — API degrades gracefully without it)                                |
+| [Rust](https://www.rust-lang.org/tools/install) + `wasm32v1-none` target | stable     | contracts                                                                          |
+| [Stellar CLI](https://developers.stellar.org/docs/tools/cli/install-cli) | latest     | contracts, and deploying/funding accounts for api/app/mobile/monitoring to talk to |
+| [Docker](https://docs.docker.com/get-docker/)                            | any recent | optional — Docker Compose path, and/or a local Soroban network                     |
 
 Install the Rust/Stellar toolchain:
 
@@ -234,11 +234,11 @@ validates it in isolation.
 Once contracts are deployed (step 4) and `api`/`app` are running (step 5), point each
 consumer at the deployed contract IDs so the whole stack talks to the same network:
 
-| File | Variables |
-|---|---|
-| `packages/api/.env` | `REGISTRY_CONTRACT_ID`, `MARKET_CONTRACT_ID`, `HORIZON_URL` |
-| `packages/app/.env` | `NEXT_PUBLIC_REGISTRY_CONTRACT_ID`, `NEXT_PUBLIC_MARKET_CONTRACT_ID`, `NEXT_PUBLIC_STELLAR_NETWORK` |
-| `packages/monitoring/.env` | `REGISTRY_CONTRACT_ID`, `MARKET_CONTRACT_ID`, `STELLAR_RPC_URL` |
+| File                       | Variables                                                                                           |
+| -------------------------- | --------------------------------------------------------------------------------------------------- |
+| `packages/api/.env`        | `REGISTRY_CONTRACT_ID`, `MARKET_CONTRACT_ID`, `HORIZON_URL`                                         |
+| `packages/app/.env`        | `NEXT_PUBLIC_REGISTRY_CONTRACT_ID`, `NEXT_PUBLIC_MARKET_CONTRACT_ID`, `NEXT_PUBLIC_STELLAR_NETWORK` |
+| `packages/monitoring/.env` | `REGISTRY_CONTRACT_ID`, `MARKET_CONTRACT_ID`, `STELLAR_RPC_URL`                                     |
 
 If you're on the local standalone network from step 3, `HORIZON_URL`/
 `NEXT_PUBLIC_STELLAR_HORIZON_URL`/`STELLAR_RPC_URL` also need to point at
@@ -264,9 +264,9 @@ Compose doesn't build or deploy Rust/Soroban contracts.
 
 ## Troubleshooting
 
-| Symptom | Likely cause |
-|---|---|
-| `api` fails to start with a message naming a missing env var | A required variable in `packages/api/.env` is unset — the config module validates eagerly at startup. See [docs/ENVIRONMENT_VARIABLES.md](./ENVIRONMENT_VARIABLES.md) for what's required. |
-| `stellar keys fund` hangs or errors | Friendbot (testnet) is rate-limited or briefly down; retry, or switch to the local standalone network (step 3, Option B). |
-| `app`/`mobile` can reach the API but on-chain actions (tips, registration) fail | Contract IDs in `.env` don't match a contract actually deployed on the network you configured — re-check step 6 against step 4's deploy output. |
-| `pnpm install` fails on `contracts`-adjacent scripts | `contracts` is a Cargo workspace, not part of the pnpm workspace — make sure you're not trying to `pnpm install` from inside `packages/contracts`. |
+| Symptom                                                                         | Likely cause                                                                                                                                                                               |
+| ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `api` fails to start with a message naming a missing env var                    | A required variable in `packages/api/.env` is unset — the config module validates eagerly at startup. See [docs/ENVIRONMENT_VARIABLES.md](./ENVIRONMENT_VARIABLES.md) for what's required. |
+| `stellar keys fund` hangs or errors                                             | Friendbot (testnet) is rate-limited or briefly down; retry, or switch to the local standalone network (step 3, Option B).                                                                  |
+| `app`/`mobile` can reach the API but on-chain actions (tips, registration) fail | Contract IDs in `.env` don't match a contract actually deployed on the network you configured — re-check step 6 against step 4's deploy output.                                            |
+| `pnpm install` fails on `contracts`-adjacent scripts                            | `contracts` is a Cargo workspace, not part of the pnpm workspace — make sure you're not trying to `pnpm install` from inside `packages/contracts`.                                         |

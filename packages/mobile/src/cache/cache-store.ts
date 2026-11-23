@@ -1,4 +1,4 @@
-import { MMKV } from "react-native-mmkv";
+import { MMKV } from 'react-native-mmkv';
 import {
   CacheEntry,
   QueuedAction,
@@ -8,7 +8,7 @@ import {
   CategoryCache,
   UserProfileCache,
   SyncStatus,
-} from "./types";
+} from './types';
 
 const DEFAULT_CONFIG: CacheConfig = {
   defaultTTL: 24 * 60 * 60 * 1000,
@@ -34,7 +34,7 @@ export class CacheStore {
       isInternetReachable: null,
       lastConnected: Date.now(),
     };
-    this.syncStatus = "idle";
+    this.syncStatus = 'idle';
   }
 
   setCacheEntry<T>(key: string, data: T, ttl?: number, staleTime?: number): void {
@@ -84,12 +84,12 @@ export class CacheStore {
   clearCache(): void {
     const keys = this.storage.getAllKeys();
     keys.forEach((key) => {
-      if (key.startsWith("cache:")) this.storage.delete(key);
+      if (key.startsWith('cache:')) this.storage.delete(key);
     });
   }
 
   private enforceCacheSizeLimit(): void {
-    const keys = this.storage.getAllKeys().filter((k) => k.startsWith("cache:"));
+    const keys = this.storage.getAllKeys().filter((k) => k.startsWith('cache:'));
     if (keys.length <= this.config.maxCacheSize) return;
     const entries: { key: string; timestamp: number }[] = [];
     keys.forEach((key) => {
@@ -115,16 +115,18 @@ export class CacheStore {
   }
 
   getAllCachedWorkerProfiles(): WorkerProfileCache[] {
-    const keys = this.storage.getAllKeys().filter((k) => k.startsWith("cache:worker:"));
-    return keys.map((key) => this.getCachedData<WorkerProfileCache>(key)).filter(Boolean) as WorkerProfileCache[];
+    const keys = this.storage.getAllKeys().filter((k) => k.startsWith('cache:worker:'));
+    return keys
+      .map((key) => this.getCachedData<WorkerProfileCache>(key))
+      .filter(Boolean) as WorkerProfileCache[];
   }
 
   cacheCategories(categories: CategoryCache[]): void {
-    this.setCacheEntry("cache:categories", categories);
+    this.setCacheEntry('cache:categories', categories);
   }
 
   getCategories(): CategoryCache[] | null {
-    return this.getCachedData<CategoryCache[]>("cache:categories");
+    return this.getCachedData<CategoryCache[]>('cache:categories');
   }
 
   cacheUserProfile(profile: UserProfileCache): void {
@@ -135,7 +137,7 @@ export class CacheStore {
     return this.getCachedData<UserProfileCache>(`cache:user:${userId}`);
   }
 
-  queueAction(action: Omit<QueuedAction, "id" | "createdAt" | "retries" | "maxRetries">): string {
+  queueAction(action: Omit<QueuedAction, 'id' | 'createdAt' | 'retries' | 'maxRetries'>): string {
     const queue = this.getQueue();
     if (queue.length >= this.config.maxQueueSize) {
       throw new Error(`Queue size limit reached (${this.config.maxQueueSize})`);
@@ -155,9 +157,13 @@ export class CacheStore {
   }
 
   getQueue(): QueuedAction[] {
-    const raw = this.storage.getString("queue:actions");
+    const raw = this.storage.getString('queue:actions');
     if (!raw) return [];
-    try { return JSON.parse(raw); } catch { return []; }
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return [];
+    }
   }
 
   removeQueuedAction(id: string): void {
@@ -165,37 +171,43 @@ export class CacheStore {
   }
 
   private saveQueue(queue: QueuedAction[]): void {
-    this.storage.set("queue:actions", JSON.stringify(queue));
+    this.storage.set('queue:actions', JSON.stringify(queue));
   }
 
   clearQueue(): void {
-    this.storage.delete("queue:actions");
+    this.storage.delete('queue:actions');
   }
 
   async processQueue(): Promise<void> {
-    if (!this.networkState.isConnected || this.syncStatus === "syncing") return;
+    if (!this.networkState.isConnected || this.syncStatus === 'syncing') return;
     const queue = this.getQueue();
     if (queue.length === 0) return;
-    this.setSyncStatus("syncing");
+    this.setSyncStatus('syncing');
     for (const action of queue) {
       try {
-        const { api } = await import("../lib/api");
-        const response = await api.request({ url: action.endpoint, method: action.method, data: action.payload });
+        const { api } = await import('../lib/api');
+        const response = await api.request({
+          url: action.endpoint,
+          method: action.method,
+          data: action.payload,
+        });
         if (response.ok) {
           this.removeQueuedAction(action.id);
         } else {
           throw new Error(`HTTP ${response.status}`);
         }
       } catch (error) {
-        const errMsg = error instanceof Error ? error.message : "Unknown error";
-        const updated = this.getQueue().map((a) => a.id === action.id ? { ...a, retries: a.retries + 1, lastError: errMsg } : a);
+        const errMsg = error instanceof Error ? error.message : 'Unknown error';
+        const updated = this.getQueue().map((a) =>
+          a.id === action.id ? { ...a, retries: a.retries + 1, lastError: errMsg } : a,
+        );
         this.saveQueue(updated);
         if (action.retries + 1 >= action.maxRetries) {
           console.error(`Action ${action.id} failed after ${action.maxRetries} retries: ${errMsg}`);
         }
       }
     }
-    this.setSyncStatus(this.getQueue().length > 0 ? "error" : "idle");
+    this.setSyncStatus(this.getQueue().length > 0 ? 'error' : 'idle');
   }
 
   setNetworkState(state: Partial<NetworkState>): void {
@@ -232,7 +244,7 @@ export class CacheStore {
   }
 
   getStats() {
-    const keys = this.storage.getAllKeys().filter((k) => k.startsWith("cache:"));
+    const keys = this.storage.getAllKeys().filter((k) => k.startsWith('cache:'));
     return {
       cacheSize: keys.length,
       queueSize: this.getQueue().length,

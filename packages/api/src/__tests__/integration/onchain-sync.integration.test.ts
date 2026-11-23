@@ -19,20 +19,20 @@
  *
  * Issue: [Testing] Add mock Stellar/Soroban RPC service for deterministic backend tests
  */
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { MockStellarRpcServer } from '../../clients/mockStellarRpcServer.js'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { MockStellarRpcServer } from '../../clients/mockStellarRpcServer.js';
 
 // ─── Env (read at module-load time by horizon-poller.service.ts) ─────────────
 // `vi.hoisted` runs before the hoisted imports below, so the poller module sees
 // the contract IDs. Plain assignments here would run after it had already loaded.
 vi.hoisted(() => {
-  process.env.REGISTRY_CONTRACT_ID = 'CREGISTRYCONTRACTAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
-  process.env.MARKET_CONTRACT_ID = 'CMARKETCONTRACTAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
-  process.env.HORIZON_URL = 'https://horizon-testnet.stellar.org'
-})
+  process.env.REGISTRY_CONTRACT_ID = 'CREGISTRYCONTRACTAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
+  process.env.MARKET_CONTRACT_ID = 'CMARKETCONTRACTAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
+  process.env.HORIZON_URL = 'https://horizon-testnet.stellar.org';
+});
 
-const REGISTRY_CONTRACT_ID = process.env.REGISTRY_CONTRACT_ID
-const MARKET_CONTRACT_ID = process.env.MARKET_CONTRACT_ID
+const REGISTRY_CONTRACT_ID = process.env.REGISTRY_CONTRACT_ID;
+const MARKET_CONTRACT_ID = process.env.MARKET_CONTRACT_ID;
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
 
@@ -43,13 +43,13 @@ vi.mock('../../db.js', () => ({
     webhookSubscription: { findMany: vi.fn() },
     webhookLog: { create: vi.fn(), update: vi.fn() },
   },
-}))
+}));
 
 // ─── Imports (after mocks/env) ─────────────────────────────────────────────────
 
-import { db } from '../../db.js'
-import { startHorizonPoller, stopHorizonPoller } from '../../services/horizon-poller.service.js'
-import { verifySignature } from '../../services/webhook.service.js'
+import { db } from '../../db.js';
+import { startHorizonPoller, stopHorizonPoller } from '../../services/horizon-poller.service.js';
+import { verifySignature } from '../../services/webhook.service.js';
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 
@@ -60,10 +60,10 @@ const SUBSCRIBER = {
   secret: 'whsec_test_integration_secret_0123456789',
   events: ['worker.registered'],
   isActive: true,
-}
+};
 
 function makeCursor(contractId: string, ledger = BigInt(0), txIndex = 0) {
-  return { id: `cursor-${contractId}`, contractId, ledger, txIndex, updatedAt: new Date() }
+  return { id: `cursor-${contractId}`, contractId, ledger, txIndex, updatedAt: new Date() };
 }
 
 /** A realistic Horizon `/contracts/:id/events` record for a `register` topic. */
@@ -73,15 +73,18 @@ function registerEventRecord(overrides: Record<string, unknown> = {}) {
     type: 'contract',
     contract_id: REGISTRY_CONTRACT_ID,
     topic: ['register'],
-    value: { owner: 'GABCXYZ0000000000000000000000000000000000000000000000', workerId: 'onchain-worker-1' },
+    value: {
+      owner: 'GABCXYZ0000000000000000000000000000000000000000000000',
+      workerId: 'onchain-worker-1',
+    },
     paging_token: '12345-1-0',
     ledger_close_time: '2026-08-22T00:00:00Z',
     ...overrides,
-  }
+  };
 }
 
 function horizonEventsBody(records: unknown[]) {
-  return { _embedded: { records } }
+  return { _embedded: { records } };
 }
 
 /**
@@ -99,21 +102,21 @@ function makeOnchainSyncServer(registryRecords: unknown[]) {
   return new MockStellarRpcServer({
     customHandler: (url, _method) => {
       if (url.includes(`/contracts/${REGISTRY_CONTRACT_ID}/events`)) {
-        return new Response(JSON.stringify(horizonEventsBody(registryRecords)), { status: 200 })
+        return new Response(JSON.stringify(horizonEventsBody(registryRecords)), { status: 200 });
       }
       if (url.includes(`/contracts/${MARKET_CONTRACT_ID}/events`)) {
-        return new Response(JSON.stringify(horizonEventsBody([])), { status: 200 })
+        return new Response(JSON.stringify(horizonEventsBody([])), { status: 200 });
       }
       if (url === SUBSCRIBER.url) {
-        return new Response(JSON.stringify({}), { status: 200 })
+        return new Response(JSON.stringify({}), { status: 200 });
       }
-      return null // fall through
+      return null; // fall through
     },
-  })
+  });
 }
 
 /** Let pending promise callbacks (fetch/JSON/DB mock chains) settle without wall-clock waits. */
-const flushPromises = () => new Promise<void>((resolve) => setImmediate(resolve))
+const flushPromises = () => new Promise<void>((resolve) => setImmediate(resolve));
 
 /**
  * Advance the faked poller clock until `check` holds. Each step runs any due
@@ -122,59 +125,63 @@ const flushPromises = () => new Promise<void>((resolve) => setImmediate(resolve)
  */
 async function driveUntil(check: () => boolean, maxSteps = 50) {
   for (let step = 0; step < maxSteps; step++) {
-    if (check()) return
-    await vi.advanceTimersByTimeAsync(0)
-    await flushPromises()
+    if (check()) return;
+    await vi.advanceTimersByTimeAsync(0);
+    await flushPromises();
   }
-  throw new Error('driveUntil: condition was not met within the step budget')
+  throw new Error('driveUntil: condition was not met within the step budget');
 }
 
 function resetDbMocks() {
-  vi.mocked(db.eventIndexerCursor.upsert).mockImplementation(async ({ where }: any) => makeCursor(where.contractId))
-  vi.mocked(db.eventIndexerCursor.findUnique).mockImplementation(async ({ where }: any) => makeCursor(where.contractId))
+  vi.mocked(db.eventIndexerCursor.upsert).mockImplementation(async ({ where }: any) =>
+    makeCursor(where.contractId),
+  );
+  vi.mocked(db.eventIndexerCursor.findUnique).mockImplementation(async ({ where }: any) =>
+    makeCursor(where.contractId),
+  );
   vi.mocked(db.eventIndexerCursor.update).mockImplementation(async ({ where, data }: any) => ({
     ...makeCursor(where.contractId),
     ...data,
-  }))
-  vi.mocked(db.contractEvent.upsert).mockResolvedValue({ id: 'evt-1' } as any)
-  vi.mocked(db.webhookSubscription.findMany).mockResolvedValue([SUBSCRIBER] as any)
-  vi.mocked(db.webhookLog.create).mockResolvedValue({ id: 'log-1' } as any)
-  vi.mocked(db.webhookLog.update).mockResolvedValue({} as any)
+  }));
+  vi.mocked(db.contractEvent.upsert).mockResolvedValue({ id: 'evt-1' } as any);
+  vi.mocked(db.webhookSubscription.findMany).mockResolvedValue([SUBSCRIBER] as any);
+  vi.mocked(db.webhookLog.create).mockResolvedValue({ id: 'log-1' } as any);
+  vi.mocked(db.webhookLog.update).mockResolvedValue({} as any);
 }
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
 describe('On-chain sync: Horizon poller → indexer → webhook (MockStellarRpcServer)', () => {
-  let server: MockStellarRpcServer
+  let server: MockStellarRpcServer;
 
   beforeEach(() => {
-    vi.clearAllMocks()
-    resetDbMocks()
+    vi.clearAllMocks();
+    resetDbMocks();
     // Fake the poller's timers and Date so polling is driven explicitly by the test.
-    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
-    vi.setSystemTime(new Date('2026-01-15T12:00:00.000Z'))
-  })
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] });
+    vi.setSystemTime(new Date('2026-01-15T12:00:00.000Z'));
+  });
 
   afterEach(() => {
-    stopHorizonPoller()
-    server?.uninstall()
-    vi.useRealTimers()
-  })
+    stopHorizonPoller();
+    server?.uninstall();
+    vi.useRealTimers();
+  });
 
   it('ingests a Horizon contract event, advances the cursor, and delivers a signed webhook', async () => {
-    server = makeOnchainSyncServer([registerEventRecord()])
-    server.install()
+    server = makeOnchainSyncServer([registerEventRecord()]);
+    server.install();
 
-    startHorizonPoller()
-    await driveUntil(() => vi.mocked(db.webhookLog.update).mock.calls.length > 0)
+    startHorizonPoller();
+    await driveUntil(() => vi.mocked(db.webhookLog.update).mock.calls.length > 0);
 
     // Both configured contracts are polled every cycle.
     expect(db.eventIndexerCursor.upsert).toHaveBeenCalledWith(
       expect.objectContaining({ where: { contractId: REGISTRY_CONTRACT_ID } }),
-    )
+    );
     expect(db.eventIndexerCursor.upsert).toHaveBeenCalledWith(
       expect.objectContaining({ where: { contractId: MARKET_CONTRACT_ID } }),
-    )
+    );
 
     // Indexer: event persisted idempotently, keyed by (contractId, ledger, txIndex, eventIndex)
     // parsed from the Horizon paging token "12345-1-0".
@@ -197,7 +204,7 @@ describe('On-chain sync: Horizon poller → indexer → webhook (MockStellarRpcS
           data: registerEventRecord().value,
         }),
       }),
-    )
+    );
 
     // Cursor advances past the processed event for the registry contract only
     // (the market contract saw zero records this cycle).
@@ -206,30 +213,38 @@ describe('On-chain sync: Horizon poller → indexer → webhook (MockStellarRpcS
         where: { contractId: REGISTRY_CONTRACT_ID },
         data: expect.objectContaining({ ledger: BigInt(12345), txIndex: 1 }),
       }),
-    )
+    );
     expect(db.eventIndexerCursor.update).not.toHaveBeenCalledWith(
       expect.objectContaining({ where: { contractId: MARKET_CONTRACT_ID } }),
-    )
+    );
 
     // Webhook fan-out: the `register` topic maps to `worker.registered`, so only
     // subscriptions for that event are queried and notified.
     expect(db.webhookSubscription.findMany).toHaveBeenCalledWith({
       where: { isActive: true, events: { has: 'worker.registered' } },
-    })
+    });
     expect(db.webhookLog.create).toHaveBeenCalledWith(
-      expect.objectContaining({ data: expect.objectContaining({ subscriptionId: SUBSCRIBER.id, event: 'worker.registered' }) }),
-    )
+      expect.objectContaining({
+        data: expect.objectContaining({
+          subscriptionId: SUBSCRIBER.id,
+          event: 'worker.registered',
+        }),
+      }),
+    );
 
     // Delivery: the signed payload actually reaches the subscriber URL, and the
     // signature verifies against the subscription's own secret.
-    const deliveryCall = server.calls.find(({ url }) => url === SUBSCRIBER.url)
-    expect(deliveryCall).toBeDefined()
+    const deliveryCall = server.calls.find(({ url }) => url === SUBSCRIBER.url);
+    expect(deliveryCall).toBeDefined();
 
     // Verify the HMAC signature over the exact body and headers the mock recorded.
-    const signature = deliveryCall!.headers!['x-bluecollar-signature']
-    expect(signature).toBeDefined()
-    expect(verifySignature(SUBSCRIBER.secret, deliveryCall!.body!, signature)).toBe(true)
-    expect(JSON.parse(deliveryCall!.body!)).toMatchObject({ contractId: REGISTRY_CONTRACT_ID, topic: ['register'] })
+    const signature = deliveryCall!.headers!['x-bluecollar-signature'];
+    expect(signature).toBeDefined();
+    expect(verifySignature(SUBSCRIBER.secret, deliveryCall!.body!, signature)).toBe(true);
+    expect(JSON.parse(deliveryCall!.body!)).toMatchObject({
+      contractId: REGISTRY_CONTRACT_ID,
+      topic: ['register'],
+    });
 
     // Delivery outcome is recorded back onto the log — proving the full
     // on-chain-event → API-state loop closes.
@@ -238,46 +253,50 @@ describe('On-chain sync: Horizon poller → indexer → webhook (MockStellarRpcS
         where: { id: 'log-1' },
         data: expect.objectContaining({ statusCode: 200, success: true }),
       }),
-    )
+    );
 
     // Every Horizon request was answered by the mock: one events query per
     // configured contract, and nothing else leaked out to the network.
-    const eventQueries = server.calls.filter((c) => c.url.includes('/events'))
-    expect(eventQueries).toHaveLength(2)
+    const eventQueries = server.calls.filter((c) => c.url.includes('/events'));
+    expect(eventQueries).toHaveLength(2);
     expect(eventQueries.map((c) => c.url)).toEqual(
       expect.arrayContaining([
         expect.stringContaining(`/contracts/${REGISTRY_CONTRACT_ID}/events`),
         expect.stringContaining(`/contracts/${MARKET_CONTRACT_ID}/events`),
       ]),
-    )
-  })
+    );
+  });
 
   it('does not fan out a webhook when no subscription is registered for the mapped event', async () => {
-    vi.mocked(db.webhookSubscription.findMany).mockResolvedValue([])
-    server = makeOnchainSyncServer([registerEventRecord()])
-    server.install()
+    vi.mocked(db.webhookSubscription.findMany).mockResolvedValue([]);
+    server = makeOnchainSyncServer([registerEventRecord()]);
+    server.install();
 
-    startHorizonPoller()
-    await driveUntil(() => vi.mocked(db.webhookSubscription.findMany).mock.calls.length > 0)
-    await vi.advanceTimersByTimeAsync(100) // let any stray delivery attempt surface
+    startHorizonPoller();
+    await driveUntil(() => vi.mocked(db.webhookSubscription.findMany).mock.calls.length > 0);
+    await vi.advanceTimersByTimeAsync(100); // let any stray delivery attempt surface
 
-    expect(db.contractEvent.upsert).toHaveBeenCalled() // raw event is still indexed
-    expect(db.webhookLog.create).not.toHaveBeenCalled()
-  })
+    expect(db.contractEvent.upsert).toHaveBeenCalled(); // raw event is still indexed
+    expect(db.webhookLog.create).not.toHaveBeenCalled();
+  });
 
   it('indexes an event with an unmapped topic without publishing a webhook', async () => {
     // 'unrecognized_event' has no mapping in resolveEventName for either contract.
-    server = makeOnchainSyncServer([registerEventRecord({ topic: ['unrecognized_event'], paging_token: '12346-0-0' })])
-    server.install()
+    server = makeOnchainSyncServer([
+      registerEventRecord({ topic: ['unrecognized_event'], paging_token: '12346-0-0' }),
+    ]);
+    server.install();
 
-    startHorizonPoller()
-    await driveUntil(() => vi.mocked(db.contractEvent.upsert).mock.calls.length > 0)
-    await vi.advanceTimersByTimeAsync(100) // let any stray delivery attempt surface
+    startHorizonPoller();
+    await driveUntil(() => vi.mocked(db.contractEvent.upsert).mock.calls.length > 0);
+    await vi.advanceTimersByTimeAsync(100); // let any stray delivery attempt surface
 
     expect(db.contractEvent.upsert).toHaveBeenCalledWith(
-      expect.objectContaining({ create: expect.objectContaining({ eventName: 'unrecognized_event' }) }),
-    )
-    expect(db.webhookSubscription.findMany).not.toHaveBeenCalled()
-    expect(db.webhookLog.create).not.toHaveBeenCalled()
-  })
-})
+      expect.objectContaining({
+        create: expect.objectContaining({ eventName: 'unrecognized_event' }),
+      }),
+    );
+    expect(db.webhookSubscription.findMany).not.toHaveBeenCalled();
+    expect(db.webhookLog.create).not.toHaveBeenCalled();
+  });
+});

@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import type { Dispatch, SetStateAction } from "react";
+import { useEffect, useState } from 'react';
+import type { Dispatch, SetStateAction } from 'react';
 
 export function readLocalStorageValue<T>(key: string, fallback: T): T {
   try {
-    if (typeof window === "undefined") return fallback;
+    if (typeof window === 'undefined') return fallback;
 
     const storedValue = window.localStorage.getItem(key);
     return storedValue === null ? fallback : (JSON.parse(storedValue) as T);
@@ -14,15 +14,12 @@ export function readLocalStorageValue<T>(key: string, fallback: T): T {
   }
 }
 
-export function useLocalStorage<T>(
-  key: string,
-  initialValue: T
-): [T, Dispatch<SetStateAction<T>>] {
+export function useLocalStorage<T>(key: string, initialValue: T): [T, Dispatch<SetStateAction<T>>] {
   const [value, setValue] = useState<T>(() => readLocalStorageValue(key, initialValue));
 
   useEffect(() => {
     try {
-      if (typeof window !== "undefined") {
+      if (typeof window !== 'undefined') {
         window.localStorage.setItem(key, JSON.stringify(value));
       }
     } catch {

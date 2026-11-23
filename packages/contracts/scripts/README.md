@@ -4,11 +4,11 @@ This directory contains **manual scripts** for the BlueCollar Soroban smart cont
 
 ## Scripts
 
-| Script | Purpose |
-|--------|---------|
-| `deploy-registry.sh` | Build and deploy the Registry contract |
-| `deploy-market.sh` | Build and deploy the Market contract |
-| `profile-storage.sh` | Measure the CPU/memory cost of the key `job_registry` and `market` entrypoints (storage/fee profiling) |
+| Script                  | Purpose                                                                                                                 |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `deploy-registry.sh`    | Build and deploy the Registry contract                                                                                  |
+| `deploy-market.sh`      | Build and deploy the Market contract                                                                                    |
+| `profile-storage.sh`    | Measure the CPU/memory cost of the key `job_registry` and `market` entrypoints (storage/fee profiling)                  |
 | `compare-wasm-sizes.sh` | Build the release WASM for every deployable contract and print each bytecode size and the total (size-regression check) |
 
 ---
@@ -17,12 +17,12 @@ This directory contains **manual scripts** for the BlueCollar Soroban smart cont
 
 Before running any script, make sure the following are installed and available on your `$PATH`:
 
-| Tool | Install |
-|------|---------|
-| **Rust** with `wasm32v1-none` target | `rustup target add wasm32v1-none` |
-| **Stellar CLI** | `cargo install --locked stellar-cli` |
-| **Python 3** | Required for JSON manipulation (`deployments.json` update) |
-| **bash** | Scripts use `bash` with `set -euo pipefail` |
+| Tool                                 | Install                                                    |
+| ------------------------------------ | ---------------------------------------------------------- |
+| **Rust** with `wasm32v1-none` target | `rustup target add wasm32v1-none`                          |
+| **Stellar CLI**                      | `cargo install --locked stellar-cli`                       |
+| **Python 3**                         | Required for JSON manipulation (`deployments.json` update) |
+| **bash**                             | Scripts use `bash` with `set -euo pipefail`                |
 
 ---
 
@@ -41,11 +41,11 @@ Builds the Registry contract WASM, deploys it to Stellar, initialises it with an
 
 ### Flags
 
-| Flag | Required | Description |
-|------|----------|-------------|
-| `--network` | âœ… | Target network: `testnet` or `mainnet` |
-| `--source` | âœ… | Stellar secret key or `stellar keys` alias used to sign the deploy transaction |
-| `--admin` | âœ… | Stellar address that becomes the contract admin (granted `ROLE_ADMIN` on initialisation) |
+| Flag        | Required | Description                                                                              |
+| ----------- | -------- | ---------------------------------------------------------------------------------------- |
+| `--network` | âœ…      | Target network: `testnet` or `mainnet`                                                   |
+| `--source`  | âœ…      | Stellar secret key or `stellar keys` alias used to sign the deploy transaction           |
+| `--admin`   | âœ…      | Stellar address that becomes the contract admin (granted `ROLE_ADMIN` on initialisation) |
 
 ### What it does
 
@@ -92,13 +92,13 @@ Builds the Market contract WASM, deploys it to Stellar, initialises it with an a
 
 ### Flags
 
-| Flag | Required | Description |
-|------|----------|-------------|
-| `--network` | âœ… | Target network: `testnet` or `mainnet` |
-| `--source` | âœ… | Stellar secret key or `stellar keys` alias used to sign the deploy transaction |
-| `--admin` | âœ… | Stellar address that becomes the contract admin |
-| `--fee-bps` | âœ… | Protocol fee in basis points (0â€“500, i.e. 0%â€“5%). Defaults to `0` if omitted |
-| `--fee-recipient` | âœ… | Stellar address that receives collected protocol fees |
+| Flag              | Required | Description                                                                      |
+| ----------------- | -------- | -------------------------------------------------------------------------------- |
+| `--network`       | âœ…      | Target network: `testnet` or `mainnet`                                           |
+| `--source`        | âœ…      | Stellar secret key or `stellar keys` alias used to sign the deploy transaction   |
+| `--admin`         | âœ…      | Stellar address that becomes the contract admin                                  |
+| `--fee-bps`       | âœ…      | Protocol fee in basis points (0â€“500, i.e. 0%â€“5%). Defaults to `0` if omitted |
+| `--fee-recipient` | âœ…      | Stellar address that receives collected protocol fees                            |
 
 ### What it does
 
@@ -218,6 +218,7 @@ Each deployment overwrites the previous record for that contract + network combi
 These scripts are **not run by CI**. GitHub Actions workflows (`ci.yml`, `api-tests.yml`, etc.) run unit/integration tests via `cargo test` only â€” they do not deploy to any network.
 
 Deployments are a manual operator action, typically performed:
+
 - When a new contract version is ready for testnet review
 - Before a mainnet release (following the [Mainnet Launch Checklist](../../docs/MAINNET_LAUNCH_CHECKLIST.md))
 - After a contract upgrade (WASM install + `upgrade` invocation)

@@ -1,24 +1,24 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2 } from "lucide-react";
-import { loginSchema, type LoginInput, authApi } from "@/lib/auth";
-import { useAuth } from "@/context/AuthContext";
-import type { AuthUser } from "@/context/AuthContext";
-import FormField from "@/components/Form/FormField";
-import FormError from "@/components/Form/FormError";
-import { cn } from "@/lib/utils";
-import { useTranslations } from "next-intl";
+import { useState } from 'react';
+import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Loader2 } from 'lucide-react';
+import { loginSchema, type LoginInput, authApi } from '@/lib/auth';
+import { useAuth } from '@/context/AuthContext';
+import type { AuthUser } from '@/context/AuthContext';
+import FormField from '@/components/Form/FormField';
+import FormError from '@/components/Form/FormError';
+import { cn } from '@/lib/utils';
+import { useTranslations } from 'next-intl';
 
 export default function LoginForm() {
-  const t = useTranslations("auth");
+  const t = useTranslations('auth');
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirect = searchParams.get("redirect") ?? "/workers";
+  const redirect = searchParams.get('redirect') ?? '/workers';
   const { login } = useAuth();
   const [apiError, setApiError] = useState<string | null>(null);
 
@@ -28,11 +28,10 @@ export default function LoginForm() {
     formState: { errors, isSubmitting, touchedFields, dirtyFields },
   } = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
-    mode: "onChange",
+    mode: 'onChange',
   });
 
-  const isValid = (field: keyof LoginInput) =>
-    dirtyFields[field] && !errors[field];
+  const isValid = (field: keyof LoginInput) => dirtyFields[field] && !errors[field];
 
   const onSubmit = async (data: LoginInput) => {
     setApiError(null);
@@ -41,64 +40,56 @@ export default function LoginForm() {
       login(res.data as AuthUser, res.token);
       router.push(redirect);
     } catch (err: unknown) {
-      setApiError(err instanceof Error ? err.message : t("loginFailed"));
+      setApiError(err instanceof Error ? err.message : t('loginFailed'));
     }
   };
 
   const inputClass = (hasError?: boolean, valid?: boolean) =>
     cn(
-      "w-full rounded-lg border px-3 py-2.5 pr-9 text-sm outline-none focus:ring-2 focus:ring-blue-500 transition-colors",
-      hasError && "border-red-400 focus:ring-red-300",
-      valid && !hasError && "border-green-400 focus:ring-green-300"
+      'w-full rounded-lg border px-3 py-2.5 pr-9 text-sm outline-none focus:ring-2 focus:ring-blue-500 transition-colors',
+      hasError && 'border-red-400 focus:ring-red-300',
+      valid && !hasError && 'border-green-400 focus:ring-green-300',
     );
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4" noValidate>
-      {apiError && (
-        <FormError message={apiError} />
-      )}
+      {apiError && <FormError message={apiError} />}
 
       <FormField
-        label={t("email")}
+        label={t('email')}
         id="email"
         error={touchedFields.email ? errors.email?.message : undefined}
-        isValid={isValid("email")}
+        isValid={isValid('email')}
       >
         <input
           id="email"
           type="email"
           autoComplete="email"
-          placeholder={t("emailExample")}
-          {...register("email")}
-          className={inputClass(
-            touchedFields.email && !!errors.email,
-            isValid("email")
-          )}
+          placeholder={t('emailExample')}
+          {...register('email')}
+          className={inputClass(touchedFields.email && !!errors.email, isValid('email'))}
         />
       </FormField>
 
       <FormField
-        label={t("password")}
+        label={t('password')}
         id="password"
         error={touchedFields.password ? errors.password?.message : undefined}
-        isValid={isValid("password")}
+        isValid={isValid('password')}
       >
         <input
           id="password"
           type="password"
           autoComplete="current-password"
           placeholder="••••••••"
-          {...register("password")}
-          className={inputClass(
-            touchedFields.password && !!errors.password,
-            isValid("password")
-          )}
+          {...register('password')}
+          className={inputClass(touchedFields.password && !!errors.password, isValid('password'))}
         />
       </FormField>
 
       <div className="flex justify-end">
         <Link href="/auth/forgot-password" className="text-xs text-blue-600 hover:underline">
-          {t("forgotPassword")}
+          {t('forgotPassword')}
         </Link>
       </div>
 
@@ -108,7 +99,7 @@ export default function LoginForm() {
         className="flex items-center justify-center gap-2 rounded-lg bg-blue-600 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60 transition-colors"
       >
         {isSubmitting && <Loader2 size={15} className="animate-spin" />}
-        {t("signIn")}
+        {t('signIn')}
       </button>
     </form>
   );

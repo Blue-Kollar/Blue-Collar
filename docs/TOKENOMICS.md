@@ -76,11 +76,11 @@ The protocol does **not** maintain a hardcoded allowlist of tokens. All Stellar 
 contracts are treated uniformly — any valid Stellar token contract address can be
 used in tips, escrows, staking, and insurance.
 
-| Asset | Type | Example Use | Notes |
-|---|---|---|---|
-| **XLM** | Native Stellar asset | Tips, escrows, staking | Network fees are paid in XLM |
-| **USDC** | Stellar Asset Contract (SAC) | Tips, escrows | Circle-issued on Stellar |
-| **Custom tokens** | Any Stellar `token::Client` | Staking, insurance | Must implement the Stellar token interface |
+| Asset             | Type                         | Example Use            | Notes                                      |
+| ----------------- | ---------------------------- | ---------------------- | ------------------------------------------ |
+| **XLM**           | Native Stellar asset         | Tips, escrows, staking | Network fees are paid in XLM               |
+| **USDC**          | Stellar Asset Contract (SAC) | Tips, escrows          | Circle-issued on Stellar                   |
+| **Custom tokens** | Any Stellar `token::Client`  | Staking, insurance     | Must implement the Stellar token interface |
 
 ### How tokens reach the protocol
 
@@ -115,11 +115,11 @@ their wallet.
 
 ### Fee parameters
 
-| Parameter | Contract Value | API Default | Location |
-|---|---|---|---|
-| `MAX_FEE_BPS` | **500** (5%) | — | `market/src/lib.rs:25` |
-| `fee_bps` (contract) | Configurable 0–500 | — | `market/src/lib.rs:79–86` |
-| `fee_bps` (API) | — | **250** (2.5%) | `payment.service.ts:72` |
+| Parameter            | Contract Value     | API Default    | Location                  |
+| -------------------- | ------------------ | -------------- | ------------------------- |
+| `MAX_FEE_BPS`        | **500** (5%)       | —              | `market/src/lib.rs:25`    |
+| `fee_bps` (contract) | Configurable 0–500 | —              | `market/src/lib.rs:79–86` |
+| `fee_bps` (API)      | —                  | **250** (2.5%) | `payment.service.ts:72`   |
 
 ### Fee calculation
 
@@ -133,16 +133,16 @@ Where `amount` is in **stroops** (1 XLM = 10,000,000 stroops).
 
 ### Which operations incur a fee
 
-| Operation | Fee | Recipient |
-|---|---|---|
-| **Direct tip** (`tip()`) | `fee_bps` % | `fee_recipient` (treasury) |
-| **Escrow create** | None (0%) | — |
-| **Escrow release** | None | — |
-| **Multi-sig escrow** | None | — |
-| **Arbitration payment** | Set by requester | Arbitrator (protocol takes 0%) |
-| **Dispute filing** | None | — |
-| **Staking** | None | — |
-| **Insurance contribution** | None | — |
+| Operation                  | Fee              | Recipient                      |
+| -------------------------- | ---------------- | ------------------------------ |
+| **Direct tip** (`tip()`)   | `fee_bps` %      | `fee_recipient` (treasury)     |
+| **Escrow create**          | None (0%)        | —                              |
+| **Escrow release**         | None             | —                              |
+| **Multi-sig escrow**       | None             | —                              |
+| **Arbitration payment**    | Set by requester | Arbitrator (protocol takes 0%) |
+| **Dispute filing**         | None             | —                              |
+| **Staking**                | None             | —                              |
+| **Insurance contribution** | None             | —                              |
 
 ### Fee distribution
 
@@ -161,45 +161,45 @@ share = available_balance × recipient.percentage_bps / 10_000
 A client tips a worker **100 XLM** (1,000,000,000 stroops). The protocol fee is
 the default **2.5% (250 bps)**.
 
-| Field | Calculation | Value (XLM) |
-|---|---|---|
-| Gross amount | | 100.00 |
-| Fee (stroops) | `floor(1_000_000_000 × 250 / 10_000)` | 25,000,000 stroops |
-| Fee (XLM) | | 2.50 |
-| Worker receives | `100.00 - 2.50` | **97.50 XLM** |
-| Treasury receives | | **2.50 XLM** |
+| Field             | Calculation                           | Value (XLM)        |
+| ----------------- | ------------------------------------- | ------------------ |
+| Gross amount      |                                       | 100.00             |
+| Fee (stroops)     | `floor(1_000_000_000 × 250 / 10_000)` | 25,000,000 stroops |
+| Fee (XLM)         |                                       | 2.50               |
+| Worker receives   | `100.00 - 2.50`                       | **97.50 XLM**      |
+| Treasury receives |                                       | **2.50 XLM**       |
 
 #### Example 2: Direct tip with capped fee
 
 Same tip but the admin raised `fee_bps` to the maximum **5% (500 bps)**.
 
-| Field | Calculation | Value (XLM) |
-|---|---|---|
-| Gross amount | | 100.00 |
-| Fee | `floor(100 × 500 / 10_000)` | 5.00 |
-| Worker receives | | **95.00 XLM** |
-| Treasury receives | | **5.00 XLM** |
+| Field             | Calculation                 | Value (XLM)   |
+| ----------------- | --------------------------- | ------------- |
+| Gross amount      |                             | 100.00        |
+| Fee               | `floor(100 × 500 / 10_000)` | 5.00          |
+| Worker receives   |                             | **95.00 XLM** |
+| Treasury receives |                             | **5.00 XLM**  |
 
 #### Example 3: Small tip
 
 A client tips **1.50 XLM** with default fee (250 bps).
 
-| Field | Value |
-|---|---|
-| Gross amount (stroops) | 15,000,000 |
-| Fee (stroops) | `floor(15_000_000 × 250 / 10_000) = 375,000` |
-| Worker receives | 14,625,000 stroops (**1.4625 XLM**) |
-| Treasury receives | **0.0375 XLM** |
+| Field                  | Value                                        |
+| ---------------------- | -------------------------------------------- |
+| Gross amount (stroops) | 15,000,000                                   |
+| Fee (stroops)          | `floor(15_000_000 × 250 / 10_000) = 375,000` |
+| Worker receives        | 14,625,000 stroops (**1.4625 XLM**)          |
+| Treasury receives      | **0.0375 XLM**                               |
 
 #### Example 4: Escrow (no fee)
 
 Client locks **250 XLM** in escrow for a job. After completion, the full amount
 is released to the worker.
 
-| Field | Value |
-|---|---|
-| Escrow amount | 250.00 XLM |
-| Protocol fee | **0.00 XLM** |
+| Field           | Value          |
+| --------------- | -------------- |
+| Escrow amount   | 250.00 XLM     |
+| Protocol fee    | **0.00 XLM**   |
 | Worker receives | **250.00 XLM** |
 
 ---
@@ -208,22 +208,22 @@ is released to the worker.
 
 ### Standard escrows
 
-| Parameter | Value |
-|---|---|
-| Fee | None (0%) |
-| Expiry | Set by creator (Unix timestamp) |
-| Release | Callable by `from` or `to` at any time |
-| Cancel | `from` only after `expiry` |
-| Third-party cancel | Anyone can cancel an expired escrow |
+| Parameter          | Value                                  |
+| ------------------ | -------------------------------------- |
+| Fee                | None (0%)                              |
+| Expiry             | Set by creator (Unix timestamp)        |
+| Release            | Callable by `from` or `to` at any time |
+| Cancel             | `from` only after `expiry`             |
+| Third-party cancel | Anyone can cancel an expired escrow    |
 
 ### Multi-sig escrows
 
-| Parameter | Value |
-|---|---|
-| Fee | None (0%) |
-| Signers | Array of approved addresses |
-| Threshold | `1 ≤ threshold ≤ signers.length` |
-| Release | Auto-executes when approval count reaches threshold |
+| Parameter | Value                                               |
+| --------- | --------------------------------------------------- |
+| Fee       | None (0%)                                           |
+| Signers   | Array of approved addresses                         |
+| Threshold | `1 ≤ threshold ≤ signers.length`                    |
+| Release   | Auto-executes when approval count reaches threshold |
 
 ### Arbitration fees
 
@@ -241,12 +241,12 @@ When a dispute escalates to arbitration:
 
 ### Parameters
 
-| Parameter | Value | Location |
-|---|---|---|
-| `UNSTAKE_COOLDOWN_SECS` | **604,800** (7 days)  | `registry/src/lib.rs:1956` |
-| `REWARD_RATE_BPS_PER_1000_SECS` | **1** (1 bps per 1000s) | `registry/src/lib.rs:1958` |
-| Min stake | None (only `amount > 0`) | — |
-| Max stake | None | — |
+| Parameter                       | Value                    | Location                   |
+| ------------------------------- | ------------------------ | -------------------------- |
+| `UNSTAKE_COOLDOWN_SECS`         | **604,800** (7 days)     | `registry/src/lib.rs:1956` |
+| `REWARD_RATE_BPS_PER_1000_SECS` | **1** (1 bps per 1000s)  | `registry/src/lib.rs:1958` |
+| Min stake                       | None (only `amount > 0`) | —                          |
+| Max stake                       | None                     | —                          |
 
 ### Reward calculation
 
@@ -273,33 +273,33 @@ request_unstake()   →  7-day cooldown   →   unstake()
 
 #### Example 5: Staking 500 XLM for 30 days
 
-| Field | Calculation | Value |
-|---|---|---|
-| Staked amount | | 500 XLM |
-| Duration | | 30 days = 2,592,000 seconds |
-| Rewards (stroops) | `5_000_000_000 × 1 × 2_592_000 / 10_000_000` | 1,296,000,000 stroops |
-| Rewards (XLM) | | **129.60 XLM** |
-| Total returned | 500 + 129.60 | **629.60 XLM** |
+| Field             | Calculation                                  | Value                       |
+| ----------------- | -------------------------------------------- | --------------------------- |
+| Staked amount     |                                              | 500 XLM                     |
+| Duration          |                                              | 30 days = 2,592,000 seconds |
+| Rewards (stroops) | `5_000_000_000 × 1 × 2_592_000 / 10_000_000` | 1,296,000,000 stroops       |
+| Rewards (XLM)     |                                              | **129.60 XLM**              |
+| Total returned    | 500 + 129.60                                 | **629.60 XLM**              |
 
 #### Example 6: Staking 10,000 XLM for 90 days
 
-| Field | Calculation | Value |
-|---|---|---|
-| Staked amount | | 10,000 XLM |
-| Duration | | 90 days = 7,776,000 seconds |
-| Rewards (stroops) | `100_000_000_000 × 1 × 7_776_000 / 10_000_000` | 77,760,000,000 stroops |
-| Rewards (XLM) | | **7,776.00 XLM** |
-| Total returned | 10,000 + 7,776 | **17,776.00 XLM** |
+| Field             | Calculation                                    | Value                       |
+| ----------------- | ---------------------------------------------- | --------------------------- |
+| Staked amount     |                                                | 10,000 XLM                  |
+| Duration          |                                                | 90 days = 7,776,000 seconds |
+| Rewards (stroops) | `100_000_000_000 × 1 × 7_776_000 / 10_000_000` | 77,760,000,000 stroops      |
+| Rewards (XLM)     |                                                | **7,776.00 XLM**            |
+| Total returned    | 10,000 + 7,776                                 | **17,776.00 XLM**           |
 
 #### Example 7: Staking 100 XLM for 7 days (then unstake)
 
-| Field | Calculation | Value |
-|---|---|---|
-| Staked amount | | 100 XLM |
-| Duration | | 7 days = 604,800 seconds |
-| Rewards (stroops) | `1_000_000_000 × 1 × 604_800 / 10_000_000` | 60,480,000 stroops |
-| Rewards (XLM) | | **6.048 XLM** |
-| Total returned | 100 + 6.048 | **106.048 XLM** |
+| Field             | Calculation                                | Value                    |
+| ----------------- | ------------------------------------------ | ------------------------ |
+| Staked amount     |                                            | 100 XLM                  |
+| Duration          |                                            | 7 days = 604,800 seconds |
+| Rewards (stroops) | `1_000_000_000 × 1 × 604_800 / 10_000_000` | 60,480,000 stroops       |
+| Rewards (XLM)     |                                            | **6.048 XLM**            |
+| Total returned    | 100 + 6.048                                | **106.048 XLM**          |
 
 ---
 
@@ -312,11 +312,11 @@ timestamp. There is **no on-chain pricing** — tier metadata is handled off-cha
 
 ### Off-chain (API + Stripe)
 
-| Tier | Features | Pricing |
-|---|---|---|
-| **Free** | `basic_listing` | $0 (default) |
-| **Pro** | `basic_listing`, `portfolio`, `priority_search` | Via Stripe |
-| **Premium** | `basic_listing`, `portfolio`, `priority_search`, `analytics`, `featured_badge` | Via Stripe |
+| Tier        | Features                                                                       | Pricing      |
+| ----------- | ------------------------------------------------------------------------------ | ------------ |
+| **Free**    | `basic_listing`                                                                | $0 (default) |
+| **Pro**     | `basic_listing`, `portfolio`, `priority_search`                                | Via Stripe   |
+| **Premium** | `basic_listing`, `portfolio`, `priority_search`, `analytics`, `featured_badge` | Via Stripe   |
 
 Pricing is set via Stripe dashboard — no hardcoded amounts exist in the codebase.
 Workers are downgraded to Free when their Stripe subscription expires
@@ -341,11 +341,11 @@ composite of three factors:
 reputation = (quality × 60) + (volume × 25) + (recency × 15)  / 100
 ```
 
-| Component | Weight | Description |
-|---|---|---|
-| **Quality** | 60% | Average rating of the worker (0–10,000 bps) |
-| **Volume** | 25% | Tip/job count, capped at `MAX_TIP_VOLUME = 50` |
-| **Recency** | 15% | Time since last review, half-life ~90 days |
+| Component   | Weight | Description                                    |
+| ----------- | ------ | ---------------------------------------------- |
+| **Quality** | 60%    | Average rating of the worker (0–10,000 bps)    |
+| **Volume**  | 25%    | Tip/job count, capped at `MAX_TIP_VOLUME = 50` |
+| **Recency** | 15%    | Time since last review, half-life ~90 days     |
 
 ### Auto-slashing
 
@@ -393,12 +393,12 @@ There is no:
 
 ### Proposed incentives (not yet implemented)
 
-| Proposal | Description | Tracked in |
-|---|---|---|
-| **Curator bonding** | Curators stake tokens that can be slashed for registering bad actors | [#776] |
-| **Registration fee split** | A portion of protocol fees directed to curators whose registrations generate tips | [#778] |
-| **Reputation for curators** | On-chain curator score based on the performance of workers they registered | [#779] |
-| **Curator DAO / vote** | Community-elected curators via token-weighted voting | [#780] |
+| Proposal                    | Description                                                                       | Tracked in |
+| --------------------------- | --------------------------------------------------------------------------------- | ---------- |
+| **Curator bonding**         | Curators stake tokens that can be slashed for registering bad actors              | [#776]     |
+| **Registration fee split**  | A portion of protocol fees directed to curators whose registrations generate tips | [#778]     |
+| **Reputation for curators** | On-chain curator score based on the performance of workers they registered        | [#779]     |
+| **Curator DAO / vote**      | Community-elected curators via token-weighted voting                              | [#780]     |
 
 Without on-chain incentives, curator quality relies entirely on the admin's
 off-chain vetting process. This is a recognised gap — see
@@ -410,11 +410,11 @@ off-chain vetting process. This is a recognised gap — see
 
 ### Parameters
 
-| Parameter | Range | Default | Set by |
-|---|---|---|---|
-| `premium_bps` | 0–10,000 (0%–100%) | Per-pool | Admin at `initialize()` |
-| Contribution | Any positive amount | — | Pool member |
-| Claim amount | Any positive amount | — | Claimant |
+| Parameter     | Range               | Default  | Set by                  |
+| ------------- | ------------------- | -------- | ----------------------- |
+| `premium_bps` | 0–10,000 (0%–100%)  | Per-pool | Admin at `initialize()` |
+| Contribution  | Any positive amount | —        | Pool member             |
+| Claim amount  | Any positive amount | —        | Claimant                |
 
 ### How it works
 
@@ -430,12 +430,12 @@ off-chain vetting process. This is a recognised gap — see
 
 Pool initialised with `premium_bps = 500` (5%). A worker contributes 1,000 XLM.
 
-| Field | Value |
-|---|---|
-| Contribution | 1,000 XLM |
-| Notional coverage (at 5%) | 20,000 XLM |
-| Claim filed | 500 XLM |
-| Claim approved | Paid from pool balance |
+| Field                     | Value                  |
+| ------------------------- | ---------------------- |
+| Contribution              | 1,000 XLM              |
+| Notional coverage (at 5%) | 20,000 XLM             |
+| Claim filed               | 500 XLM                |
+| Claim approved            | Paid from pool balance |
 
 ---
 
@@ -443,34 +443,34 @@ Pool initialised with `premium_bps = 500` (5%). A worker contributes 1,000 XLM.
 
 The following questions are **unresolved** and tracked as follow-up issues:
 
-| # | Question | Context |
-|---|---|---|
-| [#778] | Should curators receive a portion of tip fees from workers they registered? | Currently curators have no direct financial incentive |
-| [#779] | Should curator reputation be on-chain and tied to registered-worker performance? | Currently no accountability for curator quality |
-| [#780] | Should curators be elected via token-weighted vote rather than appointed by admin? | Centralisation risk in curator selection |
-| [#781] | Should there be a minimum stake or bond for becoming a curator? | Sybil resistance for curator roles |
-| [#782] | Should there be an approved-token list, or remain fully permissionless? | Scam-token risk vs. composability |
-| [#783] | Should there be dynamic fee_bps (e.g. lower fees for high-volume users)? | Currently flat rate |
-| [#784] | Should staking rewards use a different curve (e.g. logarithmic, time-weighted)? | Linear rewards may not optimise retention |
-| [#785] | Should arbitration fees have a protocol-defined minimum or be fully market-driven? | Currently unconstrained |
-| [#786] | Should the protocol subsidise Stellar network fees for certain operations? | Currently users pay all network fees |
-| [#787] | Should subscription pricing be on-chain (e.g. via token payment) rather than off-chain Stripe? | Centralisation of subscription revenue |
+| #      | Question                                                                                       | Context                                               |
+| ------ | ---------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| [#778] | Should curators receive a portion of tip fees from workers they registered?                    | Currently curators have no direct financial incentive |
+| [#779] | Should curator reputation be on-chain and tied to registered-worker performance?               | Currently no accountability for curator quality       |
+| [#780] | Should curators be elected via token-weighted vote rather than appointed by admin?             | Centralisation risk in curator selection              |
+| [#781] | Should there be a minimum stake or bond for becoming a curator?                                | Sybil resistance for curator roles                    |
+| [#782] | Should there be an approved-token list, or remain fully permissionless?                        | Scam-token risk vs. composability                     |
+| [#783] | Should there be dynamic fee_bps (e.g. lower fees for high-volume users)?                       | Currently flat rate                                   |
+| [#784] | Should staking rewards use a different curve (e.g. logarithmic, time-weighted)?                | Linear rewards may not optimise retention             |
+| [#785] | Should arbitration fees have a protocol-defined minimum or be fully market-driven?             | Currently unconstrained                               |
+| [#786] | Should the protocol subsidise Stellar network fees for certain operations?                     | Currently users pay all network fees                  |
+| [#787] | Should subscription pricing be on-chain (e.g. via token payment) rather than off-chain Stripe? | Centralisation of subscription revenue                |
 
 ---
 
 ## References
 
-| Document | Link |
-|---|---|
-| Smart Contract Reference | [CONTRACTS.md](./CONTRACTS.md) |
-| Security Guide | [SECURITY_GUIDE.md](./SECURITY_GUIDE.md) |
-| Environment Variables | [ENVIRONMENT_VARIABLES.md](./ENVIRONMENT_VARIABLES.md) |
-| Incident Runbook | [INCIDENT_RUNBOOK.md](./INCIDENT_RUNBOOK.md) |
-| Contract Integration Guide | [CONTRACT_INTEGRATION.md](./CONTRACT_INTEGRATION.md) |
-| Market Contract Source | `packages/contracts/contracts/market/src/lib.rs` |
-| Registry Contract Source | `packages/contracts/contracts/registry/src/lib.rs` |
-| Payment Service | `packages/api/src/services/payment.service.ts` |
-| Subscriptions Controller | `packages/api/src/controllers/subscriptions.ts` |
+| Document                   | Link                                                   |
+| -------------------------- | ------------------------------------------------------ |
+| Smart Contract Reference   | [CONTRACTS.md](./CONTRACTS.md)                         |
+| Security Guide             | [SECURITY_GUIDE.md](./SECURITY_GUIDE.md)               |
+| Environment Variables      | [ENVIRONMENT_VARIABLES.md](./ENVIRONMENT_VARIABLES.md) |
+| Incident Runbook           | [INCIDENT_RUNBOOK.md](./INCIDENT_RUNBOOK.md)           |
+| Contract Integration Guide | [CONTRACT_INTEGRATION.md](./CONTRACT_INTEGRATION.md)   |
+| Market Contract Source     | `packages/contracts/contracts/market/src/lib.rs`       |
+| Registry Contract Source   | `packages/contracts/contracts/registry/src/lib.rs`     |
+| Payment Service            | `packages/api/src/services/payment.service.ts`         |
+| Subscriptions Controller   | `packages/api/src/controllers/subscriptions.ts`        |
 
 ---
 

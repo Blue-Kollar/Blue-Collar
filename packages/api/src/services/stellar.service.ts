@@ -1,16 +1,16 @@
-import { db } from '@/db.js'
-import { AppError } from '@/utils/app-error.js'
-import { nowUtc, parseUtcDate, addUtcMs, formatUtcIso } from '@/utils/date.js'
+import { db } from '@/db.js';
+import { AppError } from '@/utils/app-error.js';
+import { nowUtc, parseUtcDate, addUtcMs, formatUtcIso } from '@/utils/date.js';
 
 export async function registerOnChain(workerId: string, contractId: string) {
-  const worker = await db.worker.findUnique({ where: { id: workerId } })
-  if (!worker) throw new AppError('Worker not found', 404)
+  const worker = await db.worker.findUnique({ where: { id: workerId } });
+  if (!worker) throw new AppError('Worker not found', 404);
 
   return db.worker.update({
     where: { id: workerId },
     data: { stellarContractId: contractId },
-    include: { category: true, curator: true }
-  })
+    include: { category: true, curator: true },
+  });
 }
 
 /**
@@ -31,13 +31,13 @@ export async function syncReputationToDb(
   reviewCount: number,
   reputation: number,
 ) {
-  const worker = await db.worker.findUnique({ where: { id: workerId } })
-  if (!worker) throw new AppError('Worker not found', 404)
+  const worker = await db.worker.findUnique({ where: { id: workerId } });
+  if (!worker) throw new AppError('Worker not found', 404);
 
   await db.workerAnalytics.upsert({
     where: { workerId },
     update: {
-      avgRating: avgRating / 100,         // convert bps → 0-100 scale
+      avgRating: avgRating / 100, // convert bps → 0-100 scale
       reviewCount,
     },
     create: {
@@ -45,13 +45,13 @@ export async function syncReputationToDb(
       avgRating: avgRating / 100,
       reviewCount,
     },
-  })
+  });
 
   return db.worker.update({
     where: { id: workerId },
     data: { stellarContractId: worker.stellarContractId },
     include: { category: true, curator: true },
-  })
+  });
 }
 
 /**
@@ -71,9 +71,9 @@ export async function getWorkerReputation(workerId: string) {
       where: { workerId },
       select: { avgRating: true, reviewCount: true },
     }),
-  ])
+  ]);
 
-  if (!worker) throw new AppError('Worker not found', 404)
+  if (!worker) throw new AppError('Worker not found', 404);
 
   return {
     workerId,
@@ -81,5 +81,5 @@ export async function getWorkerReputation(workerId: string) {
     stellarContractId: worker.stellarContractId ?? null,
     avgRating: analytics?.avgRating ?? 0,
     reviewCount: analytics?.reviewCount ?? 0,
-  }
+  };
 }

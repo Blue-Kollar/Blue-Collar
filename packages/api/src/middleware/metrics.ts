@@ -70,7 +70,7 @@ export const metricsMiddleware = (req: Request, res: Response, next: NextFunctio
 
   // Capture response
   const originalSend = res.send;
-  res.send = function(body: unknown): Response {
+  res.send = function (body: unknown): Response {
     const duration = (Date.now() - start) / 1000;
     const route = req.route?.path || req.path;
     const statusCode = res.statusCode.toString();

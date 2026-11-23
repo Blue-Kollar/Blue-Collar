@@ -9,11 +9,11 @@
  * compatibility but now delegates to this module.
  */
 
-import { JobRunner } from './job-runner.js'
-import { runVerificationReminderJob } from '@/services/reminder.service.js'
-import { logger } from '@/config/logger.js'
+import { JobRunner } from './job-runner.js';
+import { runVerificationReminderJob } from '@/services/reminder.service.js';
+import { logger } from '@/config/logger.js';
 
-const HOUR_MS = 60 * 60 * 1000
+const HOUR_MS = 60 * 60 * 1000;
 
 /**
  * JobRunner instance for the verification-reminder job.
@@ -27,15 +27,15 @@ export const reminderJobRunner = new JobRunner(
   'verification-reminder',
   runVerificationReminderJob,
   { intervalMs: HOUR_MS, runOnStart: true },
-)
+);
 
 /**
  * Start the reminder background job.
  * Called once at application startup (from `src/index.ts`).
  */
 export function startReminderJob(): void {
-  logger.info('Starting verification reminder job')
-  reminderJobRunner.start()
+  logger.info('Starting verification reminder job');
+  reminderJobRunner.start();
 }
 
 /**
@@ -43,5 +43,5 @@ export function startReminderJob(): void {
  * Called during graceful shutdown or in test teardown.
  */
 export function stopReminderJob(): void {
-  reminderJobRunner.stop()
+  reminderJobRunner.stop();
 }

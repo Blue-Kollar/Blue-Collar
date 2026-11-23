@@ -18,18 +18,18 @@
  * transaction client directly.
  */
 
-export type { IRepository } from '@/repositories/base.repository.js'
-export type { IUserRepository } from '@/repositories/user.repository.js'
-export type { IJobRepository } from '@/repositories/job.repository.js'
-export type { IBookingRepository, BookingSlot } from '@/repositories/booking.repository.js'
+export type { IRepository } from '@/repositories/base.repository.js';
+export type { IUserRepository } from '@/repositories/user.repository.js';
+export type { IJobRepository } from '@/repositories/job.repository.js';
+export type { IBookingRepository, BookingSlot } from '@/repositories/booking.repository.js';
 export type {
   IPaymentRepository,
   PaymentRecord,
   CreatePaymentInput,
   UpdatePaymentInput,
-} from '@/repositories/payment.repository.js'
+} from '@/repositories/payment.repository.js';
 export type {
   ITransactionManager,
   ITransactionalRepository,
   TransactionContext,
-} from '@/repositories/transaction.interface.js'
+} from '@/repositories/transaction.interface.js';

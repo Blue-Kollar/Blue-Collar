@@ -13,8 +13,8 @@ metadata:
     app.kubernetes.io/managed-by: deploy-blue-green
 data:
   # Possible values: "blue" | "green"
-  slot: "blue"
+  slot: 'blue'
   # ISO-8601 timestamp of the last successful promotion (set by deploy script)
-  promoted-at: ""
+  promoted-at: ''
   # Git SHA of the image that is currently live
-  live-sha: ""
+  live-sha: ''

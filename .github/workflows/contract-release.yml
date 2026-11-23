@@ -3,7 +3,7 @@ name: Contract Release
 on:
   push:
     tags:
-      - "contracts/v*"
+      - 'contracts/v*'
 
 defaults:
   run:

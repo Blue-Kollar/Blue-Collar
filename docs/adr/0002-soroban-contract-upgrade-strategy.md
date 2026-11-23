@@ -6,6 +6,7 @@
 ## Context
 
 The BlueCollar protocol relies on five core smart contracts deployed on the Stellar Soroban network:
+
 - `registry` — Worker profiles, curation, staking, badges, and reputation
 - `market` — Tips, escrow payments, and arbitration
 - `dispute` — Dispute lifecycle, evidence submission, and settlements
@@ -26,10 +27,13 @@ This ADR documents the chosen upgrade and migration strategy for all Soroban sma
 ## Decision
 
 ### 1. Native In-Place WASM Replacement
+
 We adopt Soroban's native in-place upgrade mechanism:
+
 ```rust
 env.deployer().update_current_contract_wasm(new_wasm_hash);
 ```
+
 - **Process**: New WASM bytecode is installed on the Stellar network (`stellar contract install`), producing a deterministic 32-byte bytecode hash. The deployed contract is then updated to point to the new hash.
 - **State & ID Preservation**: The contract address (Contract ID) and all storage entries (instance, persistent, and temporary) remain untouched and continuous.
 
@@ -38,19 +42,25 @@ env.deployer().update_current_contract_wasm(new_wasm_hash);
 To balance agility with protocol security, we apply tiered upgrade governance based on contract criticality:
 
 #### A. Two-Step Timelocked Upgrades (Critical Contracts: `registry`, `insurance_pool`)
+
 For contracts securing identity, staking, or pooled funds:
+
 1. **Proposal (`propose_upgrade`)**: Restricted to accounts with `ROLE_UPGRADER` or multi-sig admin authority. Stores `proposed_wasm_hash` and `upgrade_valid_after = current_ledger + TIMELOCK_LEDGERS`.
 2. **Timelock Delay**: A mandatory **48-hour timelock** (`TIMELOCK_LEDGERS = 34,560` ledgers at ~5s per ledger).
 3. **Execution (`execute_upgrade`)**: Callable by any address once `current_ledger >= upgrade_valid_after`.
 4. **Cancellation (`cancel_upgrade`)**: Admin can cancel a proposed upgrade before execution if an issue is discovered.
 
 #### B. Admin-Gated Direct Upgrades (Operational Contracts: `market`, `dispute`, `fee_distribution`)
+
 For high-frequency operational contracts:
+
 - Upgrades are executed via `upgrade(new_wasm_hash)` with strict cryptographic authorization (`admin.require_auth()`).
 - Managed by a multi-sig administrative account.
 
 ### 3. Explicit Storage Schema Migration
+
 When a new WASM version alters storage struct definitions or key layouts:
+
 1. **Version Tracking**: Contracts maintain a monotonically increasing version number in persistent storage.
 2. **Migration Functions (`migrate`)**: A dedicated administrative migration function is invoked immediately following WASM upgrade:
    ```bash
@@ -100,12 +110,14 @@ sequenceDiagram
 ## Alternatives Considered
 
 ### 1. Proxy Pattern (EVM-Style Delegatecall / Diamond Proxy)
+
 - **Concept**: A persistent proxy contract holds state and delegates execution to logic contracts via fallback routing.
 - **Why Rejected**:
   - Soroban's native host environment inherently decouples bytecode (`WASM hash`) from contract identity (`Contract ID`) and persistent storage.
   - Implementing an application-level proxy on Soroban would incur redundant CPU instruction costs, extra cross-contract call hops, increased gas fees, and unnecessary complexity without additional benefits over native `update_current_contract_wasm`.
 
 ### 2. Immediate Admin-Only Upgrades for All Contracts (No Timelock)
+
 - **Concept**: Allow instant single-transaction WASM upgrades across all contracts.
 - **Why Rejected as Universal Strategy**:
   - Eliminates the security buffer for protocol users, workers, and curators.
@@ -113,6 +125,7 @@ sequenceDiagram
   - A 48-hour timelock on foundational contracts provides transparency and gives users time to exit if they disagree with proposed changes.
 
 ### 3. Immutable Contracts + Redeploy / Pointer Migration
+
 - **Concept**: Make all contracts completely immutable (`update_current_contract_wasm` omitted). Upgrades require deploying a new contract instance and pointing client apps to the new address.
 - **Why Rejected**:
   - **State Fragmentation**: Open escrows, registered worker IDs, reviews, and accumulated stakes would be trapped in deprecated contracts or require complex, expensive bulk on-chain migration transactions.
@@ -123,16 +136,18 @@ sequenceDiagram
 ## Consequences
 
 ### Positive
+
 - **Stable Integrations**: Contract IDs remain constant across upgrades, requiring zero configuration updates in API, web, mobile, or monitoring clients for purely functional updates.
 - **Preserved State**: All user data, escrows, stakes, and storage TTL extensions persist seamlessly across versions.
 - **Security & Transparency**: 48-hour timelock and on-chain event emission give users and automated monitors (`packages/monitoring`) advance notice before code changes take effect.
 - **Cost Efficiency**: Leverages Soroban host-native upgrade operations with minimal ledger footprint and no proxy dispatch overhead.
 
 ### Trade-offs & Mitigations
+
 - **Storage Incompatibility Risk**: Upgraded WASM expecting new struct layouts could fail on existing storage entries.
-  - *Mitigation*: Strict unit testing, schema versioning guards, and dedicated `migrate()` execution runbooks as detailed in [`docs/contract-upgrade-guide.md`](../contract-upgrade-guide.md).
+  - _Mitigation_: Strict unit testing, schema versioning guards, and dedicated `migrate()` execution runbooks as detailed in [`docs/contract-upgrade-guide.md`](../contract-upgrade-guide.md).
 - **Timelock Emergency Delay**: Critical bug fixes on timelocked contracts must wait 48 hours for full upgrade execution.
-  - *Mitigation*: High-criticality contracts include circuit breakers / emergency pause mechanisms (`pause()` / `unpause()`) that can be triggered immediately to halt vulnerable operations while an upgrade timelock elapses.
+  - _Mitigation_: High-criticality contracts include circuit breakers / emergency pause mechanisms (`pause()` / `unpause()`) that can be triggered immediately to halt vulnerable operations while an upgrade timelock elapses.
 
 ---
 

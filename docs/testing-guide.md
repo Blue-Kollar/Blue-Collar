@@ -8,15 +8,16 @@ All packages in the monorepo follow a consistent naming and location convention 
 
 ### Naming Convention
 
-| Test type | Suffix | Example |
-|-----------|--------|---------|
-| Unit test | `*.test.ts` / `*.test.tsx` | `auth.test.ts`, `LoginForm.test.tsx` |
-| Integration test | `*.integration.test.ts` | `workers.integration.test.ts` |
-| E2E test (API) | `*.e2e.test.ts` | `auth.e2e.test.ts` |
-| E2E test (App — Playwright) | `*.spec.ts` | `auth.spec.ts`, `workers.spec.ts` |
-| Contract/Pact test | `*.pact.test.ts` | `consumer.workers.pact.test.ts` |
+| Test type                   | Suffix                     | Example                              |
+| --------------------------- | -------------------------- | ------------------------------------ |
+| Unit test                   | `*.test.ts` / `*.test.tsx` | `auth.test.ts`, `LoginForm.test.tsx` |
+| Integration test            | `*.integration.test.ts`    | `workers.integration.test.ts`        |
+| E2E test (API)              | `*.e2e.test.ts`            | `auth.e2e.test.ts`                   |
+| E2E test (App — Playwright) | `*.spec.ts`                | `auth.spec.ts`, `workers.spec.ts`    |
+| Contract/Pact test          | `*.pact.test.ts`           | `consumer.workers.pact.test.ts`      |
 
 **Key rules:**
+
 - Never use `.spec.ts` for Vitest-based unit or integration tests.
 - Always use `*.e2e.test.ts` for API end-to-end tests (Vitest).
 - Always use `*.spec.ts` for Playwright browser E2E tests (App package).
@@ -69,21 +70,26 @@ packages/
 ### How Test Runners Discover Files
 
 **API (`vitest.config.ts`):**
+
 ```typescript
 include: ['src/**/*.test.ts', 'src/**/__tests__/**/*.test.ts'],
 exclude: ['src/**/*.e2e.test.ts'],
 ```
+
 - Includes all `*.test.ts` files anywhere under `src/`
 - Excludes `*.e2e.test.ts` (run separately with a live database)
 - E2E tests: `pnpm exec vitest run src/__tests__/e2e/`
 
 **App (`vitest.config.ts`):**
+
 ```typescript
 include: ['src/**/*.{test,spec}.{ts,tsx}'],
 ```
+
 - Includes both `*.test.*` and `*.spec.*` for compatibility
 
 **Playwright (App E2E):**
+
 ```typescript
 // playwright.config.ts
 testMatch: 'e2e/**/*.spec.ts',
@@ -91,14 +97,14 @@ testMatch: 'e2e/**/*.spec.ts',
 
 ### Test Fixtures & Helpers
 
-| Location | Purpose |
-|----------|---------|
-| `packages/api/src/__tests__/factories/` | Faker-based data factories (`user.factory.ts`, `worker.factory.ts`, `category.factory.ts`) |
-| `packages/api/src/__tests__/helpers/factories.ts` | Shared test helpers re-exporting `@bluecollar/test-utils` |
-| `packages/api/src/__tests__/types.ts` | Shared test types (`User`, `Worker`, `Category`) |
-| `packages/test-utils/src/` | Cross-package shared utilities (mock helpers, factories, contract fixtures) |
-| `packages/test-utils/src/express/` | Express mock helpers (`makeRequest`, `makeResponse`, `makeJwt`) |
-| `packages/test-utils/src/factories/` | Shared data factories (`userFactory`, `workerFactory`) |
+| Location                                          | Purpose                                                                                    |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `packages/api/src/__tests__/factories/`           | Faker-based data factories (`user.factory.ts`, `worker.factory.ts`, `category.factory.ts`) |
+| `packages/api/src/__tests__/helpers/factories.ts` | Shared test helpers re-exporting `@bluecollar/test-utils`                                  |
+| `packages/api/src/__tests__/types.ts`             | Shared test types (`User`, `Worker`, `Category`)                                           |
+| `packages/test-utils/src/`                        | Cross-package shared utilities (mock helpers, factories, contract fixtures)                |
+| `packages/test-utils/src/express/`                | Express mock helpers (`makeRequest`, `makeResponse`, `makeJwt`)                            |
+| `packages/test-utils/src/factories/`              | Shared data factories (`userFactory`, `workerFactory`)                                     |
 
 ### How to Name a New Test
 
@@ -132,7 +138,7 @@ export default defineConfig({
     },
     include: ['src/__tests__/**/*.test.ts'],
   },
-})
+});
 ```
 
 ### Running Tests
@@ -161,8 +167,8 @@ pnpm test --run src/__tests__/auth.test.ts
 
 ```typescript
 beforeAll(async () => {
-  execSync('pnpm exec prisma migrate deploy', { stdio: 'inherit' })
-})
+  execSync('pnpm exec prisma migrate deploy', { stdio: 'inherit' });
+});
 
 afterEach(async () => {
   await db.$transaction([
@@ -170,8 +176,8 @@ afterEach(async () => {
     db.user.deleteMany(),
     db.category.deleteMany(),
     db.location.deleteMany(),
-  ])
-})
+  ]);
+});
 ```
 
 Set `TEST_DATABASE_URL` in your `.env` to point to a dedicated test database:
@@ -191,31 +197,31 @@ Unit tests mock all external dependencies (database, mailer, services) and test 
 vi.mock('../services/auth.service.js', () => ({
   registerUser: vi.fn(),
   loginUser: vi.fn(),
-}))
+}));
 
 vi.mock('../mailer/transport.js', () => ({
   transporter: {
     sendMail: vi.fn().mockResolvedValue({ messageId: 'mock-id' }),
   },
-}))
+}));
 
 // Import after mocks
-import * as authService from '../services/auth.service.js'
-import { register } from '../controllers/auth.js'
+import * as authService from '../services/auth.service.js';
+import { register } from '../controllers/auth.js';
 ```
 
 **Request/Response helpers:**
 
 ```typescript
 function makeRes() {
-  const res: any = {}
-  res.status = vi.fn().mockReturnValue(res)
-  res.json = vi.fn().mockReturnValue(res)
-  return res
+  const res: any = {};
+  res.status = vi.fn().mockReturnValue(res);
+  res.json = vi.fn().mockReturnValue(res);
+  return res;
 }
 
 function makeReq(body = {}, user?: any): any {
-  return { body, user }
+  return { body, user };
 }
 ```
 
@@ -223,47 +229,45 @@ function makeReq(body = {}, user?: any): any {
 
 ```typescript
 it('returns 201 on successful registration', async () => {
-  (authService.registerUser as any).mockResolvedValue(mockUser)
-  const req = makeReq({ email: 'alice@example.com', password: 'secret' })
-  const res = makeRes()
+  (authService.registerUser as any).mockResolvedValue(mockUser);
+  const req = makeReq({ email: 'alice@example.com', password: 'secret' });
+  const res = makeRes();
 
-  await register(req, res)
+  await register(req, res);
 
-  expect(res.status).toHaveBeenCalledWith(201)
-  expect(res.json).toHaveBeenCalledWith(
-    expect.objectContaining({ status: 'success', code: 201 })
-  )
-})
+  expect(res.status).toHaveBeenCalledWith(201);
+  expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ status: 'success', code: 201 }));
+});
 ```
 
 **Testing middleware:**
 
 ```typescript
-import { authenticate, authorize } from '../middleware/auth.js'
-import jwt from 'jsonwebtoken'
+import { authenticate, authorize } from '../middleware/auth.js';
+import jwt from 'jsonwebtoken';
 
 it('returns 401 for missing Authorization header', () => {
-  const req = makeReq({ headers: {} })
-  const res = makeRes()
-  const next = vi.fn()
+  const req = makeReq({ headers: {} });
+  const res = makeRes();
+  const next = vi.fn();
 
-  authenticate(req, res, next)
+  authenticate(req, res, next);
 
-  expect(res.status).toHaveBeenCalledWith(401)
-  expect(next).not.toHaveBeenCalled()
-})
+  expect(res.status).toHaveBeenCalledWith(401);
+  expect(next).not.toHaveBeenCalled();
+});
 
 it('calls next() for a valid JWT', () => {
-  const token = jwt.sign({ id: 'user-1', role: 'curator' }, 'test-secret')
-  const req = makeReq({ headers: { authorization: `Bearer ${token}` } })
-  const res = makeRes()
-  const next = vi.fn()
+  const token = jwt.sign({ id: 'user-1', role: 'curator' }, 'test-secret');
+  const req = makeReq({ headers: { authorization: `Bearer ${token}` } });
+  const res = makeRes();
+  const next = vi.fn();
 
-  authenticate(req, res, next)
+  authenticate(req, res, next);
 
-  expect(next).toHaveBeenCalledOnce()
-  expect(req.user).toMatchObject({ id: 'user-1', role: 'curator' })
-})
+  expect(next).toHaveBeenCalledOnce();
+  expect(req.user).toMatchObject({ id: 'user-1', role: 'curator' });
+});
 ```
 
 ## Database Integration Testing (Real PostgreSQL)
@@ -328,12 +332,13 @@ export default defineConfig({
     testTimeout: 30_000,
     hookTimeout: 30_000,
   },
-})
+});
 ```
 
 ### Test Setup (`db-integration/setup.ts`)
 
 The setup file:
+
 - Validates `TEST_DATABASE_URL` or `DATABASE_URL` is a valid PostgreSQL URL
 - Runs `prisma migrate deploy` to ensure schema is current
 - Cleans all tables before each test (FK-safe order)
@@ -342,22 +347,22 @@ The setup file:
 ### Writing New Database Integration Tests
 
 ```typescript
-import { describe, it, expect } from 'vitest'
-import { db } from './setup.js'
+import { describe, it, expect } from 'vitest';
+import { db } from './setup.js';
 
 describe('MyFeature persistence', () => {
   it('creates and retrieves a record', async () => {
     const created = await db.myModel.create({
       data: { name: 'Test', value: 42 },
-    })
+    });
 
-    expect(created.id).toBeDefined()
+    expect(created.id).toBeDefined();
 
-    const found = await db.myModel.findUnique({ where: { id: created.id } })
-    expect(found).not.toBeNull()
-    expect(found!.name).toBe('Test')
-  })
-})
+    const found = await db.myModel.findUnique({ where: { id: created.id } });
+    expect(found).not.toBeNull();
+    expect(found!.name).toBe('Test');
+  });
+});
 ```
 
 ## Contract Testing with Soroban SDK
@@ -494,39 +499,40 @@ TEST_DATABASE_URL=postgresql://localhost:5432/bluecollar_test pnpm test --run sr
 ### E2E Test Pattern
 
 ```typescript
-import request from 'supertest'
-import app from '../../app.js'
+import request from 'supertest';
+import app from '../../app.js';
 
 // Mock external services that shouldn't run in tests
 vi.mock('../../mailer/transport.js', () => ({
   transporter: { sendMail: vi.fn().mockResolvedValue({ messageId: 'mock' }) },
-}))
+}));
 
 describe('POST /api/auth/register', () => {
   it('creates a new account and returns 201', async () => {
-    const res = await request(app)
-      .post('/api/auth/register')
-      .send({ email: 'user@example.com', password: 'Password123!', firstName: 'Alice', lastName: 'Smith' })
+    const res = await request(app).post('/api/auth/register').send({
+      email: 'user@example.com',
+      password: 'Password123!',
+      firstName: 'Alice',
+      lastName: 'Smith',
+    });
 
-    expect(res.status).toBe(201)
-    expect(res.body.status).toBe('success')
-    expect(res.body.data.email).toBe('user@example.com')
-  })
-})
+    expect(res.status).toBe(201);
+    expect(res.body.status).toBe('success');
+    expect(res.body.data.email).toBe('user@example.com');
+  });
+});
 ```
 
 **Authenticated requests:**
 
 ```typescript
-let authToken: string
+let authToken: string;
 
 // Obtain a token in a beforeAll or earlier test
-authToken = (await request(app).post('/api/auth/login').send(credentials)).body.token
+authToken = (await request(app).post('/api/auth/login').send(credentials)).body.token;
 
 // Use it in subsequent requests
-const res = await request(app)
-  .get('/api/auth/me')
-  .set('Authorization', `Bearer ${authToken}`)
+const res = await request(app).get('/api/auth/me').set('Authorization', `Bearer ${authToken}`);
 ```
 
 ### Frontend Component Testing
@@ -546,7 +552,7 @@ export default defineConfig({
   resolve: {
     alias: { '@': path.resolve(__dirname, './src') },
   },
-})
+});
 ```
 
 **Running frontend tests:**
@@ -601,42 +607,42 @@ Factories in `packages/api/src/__tests__/factories/` use [@faker-js/faker](https
 **userFactory**
 
 ```typescript
-import { userFactory } from './factories/user.factory'
+import { userFactory } from './factories/user.factory';
 
-const user = userFactory()
+const user = userFactory();
 // { id: uuid, email: 'alice@example.com', firstName: 'Alice', role: 'user', ... }
 
-const admin = userFactory({ role: 'admin', email: 'admin@example.com' })
+const admin = userFactory({ role: 'admin', email: 'admin@example.com' });
 ```
 
 **workerFactory**
 
 ```typescript
-import { workerFactory } from './factories/worker.factory'
+import { workerFactory } from './factories/worker.factory';
 
-const worker = workerFactory()
+const worker = workerFactory();
 // { id: uuid, name: 'John Smith', isActive: true, isVerified: false, ... }
 
-const verifiedWorker = workerFactory({ isVerified: true, walletAddress: 'GABC...' })
+const verifiedWorker = workerFactory({ isVerified: true, walletAddress: 'GABC...' });
 ```
 
 **categoryFactory**
 
 ```typescript
-import { categoryFactory } from './factories/category.factory'
+import { categoryFactory } from './factories/category.factory';
 
-const category = categoryFactory()
+const category = categoryFactory();
 // { id: uuid, name: 'Electronics', description: '...', ... }
 
-const plumbing = categoryFactory({ name: 'Plumbing' })
+const plumbing = categoryFactory({ name: 'Plumbing' });
 ```
 
 ### Creating a New Factory
 
 ```typescript
 // packages/api/src/__tests__/factories/review.factory.ts
-import { faker } from '@faker-js/faker'
-import type { Review } from '../types'
+import { faker } from '@faker-js/faker';
+import type { Review } from '../types';
 
 export const reviewFactory = (overrides: Partial<Review> = {}): Review => ({
   id: faker.string.uuid(),
@@ -647,7 +653,7 @@ export const reviewFactory = (overrides: Partial<Review> = {}): Review => ({
   createdAt: new Date(),
   updatedAt: new Date(),
   ...overrides,
-})
+});
 ```
 
 ### Using Factories in E2E Tests
@@ -655,11 +661,11 @@ export const reviewFactory = (overrides: Partial<Review> = {}): Review => ({
 In E2E tests, factories generate the data shape but you still need to persist it to the database:
 
 ```typescript
-import { userFactory } from '../factories/user.factory'
-import { db } from '../../db.js'
+import { userFactory } from '../factories/user.factory';
+import { db } from '../../db.js';
 
-const userData = userFactory({ role: 'curator' })
-await db.user.create({ data: userData })
+const userData = userFactory({ role: 'curator' });
+await db.user.create({ data: userData });
 ```
 
 ## Monitoring Alert Rule Coverage
@@ -785,11 +791,11 @@ Push / PR
 
 Set these in your GitHub repository settings under **Settings → Secrets and variables → Actions**:
 
-| Secret | Description |
-|---|---|
+| Secret              | Description                                        |
+| ------------------- | -------------------------------------------------- |
 | `TEST_DATABASE_URL` | PostgreSQL connection string for the test database |
-| `JWT_SECRET` | Secret used to sign JWTs in tests |
-| `APP_URL` | Base URL used in email templates during tests |
+| `JWT_SECRET`        | Secret used to sign JWTs in tests                  |
+| `APP_URL`           | Base URL used in email templates during tests      |
 
 ### Coverage Thresholds
 

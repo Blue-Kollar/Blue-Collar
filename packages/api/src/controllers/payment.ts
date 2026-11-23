@@ -9,12 +9,15 @@
  * `createPaymentController()`.  The module-level exports use the shared
  * singleton so existing route wiring requires no changes.
  */
-import type { Request, Response } from 'express'
-import { catchAsync } from '@/utils/catchAsync.js'
-import { AppError, ErrorCode } from '@/utils/app-error.js'
-import { paymentService as defaultPaymentService, PaymentService } from '@/services/payment.service.js'
-import { HttpStatus } from '@/constants/index.js'
-import { ErrorMessages } from '@/constants/errors.js'
+import type { Request, Response } from 'express';
+import { catchAsync } from '@/utils/catchAsync.js';
+import { AppError, ErrorCode } from '@/utils/app-error.js';
+import {
+  paymentService as defaultPaymentService,
+  PaymentService,
+} from '@/services/payment.service.js';
+import { HttpStatus } from '@/constants/index.js';
+import { ErrorMessages } from '@/constants/errors.js';
 
 // ── Controller factory (enables dependency injection) ─────────────────────────
 
@@ -24,36 +27,43 @@ export function createPaymentController(service: PaymentService = defaultPayment
    * Body: { from, to, amount }
    */
   const processTip = catchAsync(async (req: Request, res: Response) => {
-    const { from, to, amount } = req.body
+    const { from, to, amount } = req.body;
     if (!from || !to || amount === undefined) {
-      throw new AppError(ErrorMessages.TIP_FIELDS_REQUIRED, HttpStatus.BAD_REQUEST, true, ErrorCode.VALIDATION_ERROR)
+      throw new AppError(
+        ErrorMessages.TIP_FIELDS_REQUIRED,
+        HttpStatus.BAD_REQUEST,
+        true,
+        ErrorCode.VALIDATION_ERROR,
+      );
     }
-    const result = service.tip({ from: String(from), to: String(to), amount: Number(amount) })
-    return res.status(HttpStatus.OK).json({ data: result, status: 'success', code: HttpStatus.OK })
-  })
+    const result = service.tip({ from: String(from), to: String(to), amount: Number(amount) });
+    return res.status(HttpStatus.OK).json({ data: result, status: 'success', code: HttpStatus.OK });
+  });
 
   /**
    * POST /api/payments/escrow
    * Body: { from, to, amount, expiryDate }
    */
   const createEscrow = catchAsync(async (req: Request, res: Response) => {
-    const { from, to, amount, expiryDate } = req.body
+    const { from, to, amount, expiryDate } = req.body;
     if (!from || !to || amount === undefined || !expiryDate) {
       throw new AppError(
         ErrorMessages.ESCROW_FIELDS_REQUIRED,
         HttpStatus.BAD_REQUEST,
         true,
         ErrorCode.VALIDATION_ERROR,
-      )
+      );
     }
     const result = service.createEscrow({
       from: String(from),
       to: String(to),
       amount: Number(amount),
       expiryDate: new Date(expiryDate),
-    })
-    return res.status(HttpStatus.CREATED).json({ data: result, status: 'success', code: HttpStatus.CREATED })
-  })
+    });
+    return res
+      .status(HttpStatus.CREATED)
+      .json({ data: result, status: 'success', code: HttpStatus.CREATED });
+  });
 
   /**
    * GET /api/payments/fee
@@ -63,8 +73,8 @@ export function createPaymentController(service: PaymentService = defaultPayment
       data: { fee_bps: service.getFeeBps() },
       status: 'success',
       code: HttpStatus.OK,
-    })
-  }
+    });
+  };
 
   /**
    * PATCH /api/payments/fee
@@ -72,24 +82,29 @@ export function createPaymentController(service: PaymentService = defaultPayment
    * Requires admin role.
    */
   const updateFee = catchAsync(async (req: Request, res: Response) => {
-    const { fee_bps } = req.body
+    const { fee_bps } = req.body;
     if (fee_bps === undefined) {
-      throw new AppError(ErrorMessages.FEE_BPS_REQUIRED, HttpStatus.BAD_REQUEST, true, ErrorCode.VALIDATION_ERROR)
+      throw new AppError(
+        ErrorMessages.FEE_BPS_REQUIRED,
+        HttpStatus.BAD_REQUEST,
+        true,
+        ErrorCode.VALIDATION_ERROR,
+      );
     }
-    service.setFeeBps(req.user?.role ?? '', Number(fee_bps))
+    service.setFeeBps(req.user?.role ?? '', Number(fee_bps));
     return res.status(HttpStatus.OK).json({
       data: { fee_bps: service.getFeeBps() },
       status: 'success',
       code: HttpStatus.OK,
-    })
-  })
+    });
+  });
 
-  return { processTip, createEscrow, getFee, updateFee }
+  return { processTip, createEscrow, getFee, updateFee };
 }
 
 // ── Default exports backed by the shared singleton ────────────────────────────
 // Route files import these directly; tests inject a custom service via the factory.
 
-const defaultController = createPaymentController()
+const defaultController = createPaymentController();
 
-export const { processTip, createEscrow, getFee, updateFee } = defaultController
+export const { processTip, createEscrow, getFee, updateFee } = defaultController;

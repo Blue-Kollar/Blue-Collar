@@ -20,25 +20,25 @@
  *   })
  */
 
-import React, { type ReactNode, type ReactElement } from 'react'
-import { render, type RenderOptions, type RenderResult } from '@testing-library/react'
-import type { FakeAuthUser } from '../factories/index.js'
+import React, { type ReactNode, type ReactElement } from 'react';
+import { render, type RenderOptions, type RenderResult } from '@testing-library/react';
+import type { FakeAuthUser } from '../factories/index.js';
 
 // ── AuthContext mock provider ─────────────────────────────────────────────────
 // We create a minimal stub rather than importing the real AuthContext to keep
 // the test-utils package decoupled from Next.js / client-only modules.
 
 interface AuthContextValue {
-  user: FakeAuthUser | null
-  token: string | null
-  isAuthenticated: boolean
-  isLoading: boolean
-  login: (user: FakeAuthUser, token: string) => void
-  logout: () => void
+  user: FakeAuthUser | null;
+  token: string | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  login: (user: FakeAuthUser, token: string) => void;
+  logout: () => void;
 }
 
 // Lazy-create the context so it can be reused across renders
-let _AuthCtx: React.Context<AuthContextValue> | null = null
+let _AuthCtx: React.Context<AuthContextValue> | null = null;
 
 function getAuthCtx(): React.Context<AuthContextValue> {
   if (!_AuthCtx) {
@@ -49,13 +49,13 @@ function getAuthCtx(): React.Context<AuthContextValue> {
       isLoading: false,
       login: () => {},
       logout: () => {},
-    })
+    });
   }
-  return _AuthCtx
+  return _AuthCtx;
 }
 
 export function useTestAuth(): AuthContextValue {
-  return React.useContext(getAuthCtx())
+  return React.useContext(getAuthCtx());
 }
 
 // ── Options ───────────────────────────────────────────────────────────────────
@@ -65,16 +65,16 @@ export interface RenderWithProvidersOptions extends Omit<RenderOptions, 'wrapper
    * Authenticated user to inject into AuthContext.
    * Pass `null` to render as unauthenticated (default).
    */
-  authUser?: FakeAuthUser | null
+  authUser?: FakeAuthUser | null;
   /** Raw JWT string placed in the context. Defaults to 'test-jwt'. */
-  token?: string | null
+  token?: string | null;
   /**
    * Whether the auth context should report isLoading=true.
    * Useful for testing loading skeleton states.
    */
-  authLoading?: boolean
+  authLoading?: boolean;
   /** Additional wrappers to compose around the provided children. */
-  extraWrappers?: Array<React.ComponentType<{ children: ReactNode }>>
+  extraWrappers?: Array<React.ComponentType<{ children: ReactNode }>>;
 }
 
 // ── Implementation ────────────────────────────────────────────────────────────
@@ -94,7 +94,7 @@ export function renderWithProviders(
     ...rtlOptions
   }: RenderWithProvidersOptions = {},
 ): RenderResult {
-  const AuthCtx = getAuthCtx()
+  const AuthCtx = getAuthCtx();
 
   const authValue: AuthContextValue = {
     user: authUser,
@@ -103,18 +103,18 @@ export function renderWithProviders(
     isLoading: authLoading,
     login: () => {},
     logout: () => {},
-  }
+  };
 
   function Wrapper({ children }: { children: ReactNode }): ReactElement {
-    let wrapped: ReactNode = children
+    let wrapped: ReactNode = children;
 
     // Apply any extra wrappers (innermost first)
     for (const W of [...extraWrappers].reverse()) {
-      wrapped = React.createElement(W, null, wrapped)
+      wrapped = React.createElement(W, null, wrapped);
     }
 
-    return React.createElement(AuthCtx.Provider, { value: authValue }, wrapped)
+    return React.createElement(AuthCtx.Provider, { value: authValue }, wrapped);
   }
 
-  return render(ui, { wrapper: Wrapper, ...rtlOptions })
+  return render(ui, { wrapper: Wrapper, ...rtlOptions });
 }

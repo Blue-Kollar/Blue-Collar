@@ -1,7 +1,7 @@
-import type { NotificationChannel } from './NotificationChannel.js'
-import { emailChannel } from './EmailChannel.js'
-import { pushChannel } from './PushChannel.js'
-import { inAppChannel } from './InAppChannel.js'
+import type { NotificationChannel } from './NotificationChannel.js';
+import { emailChannel } from './EmailChannel.js';
+import { pushChannel } from './PushChannel.js';
+import { inAppChannel } from './InAppChannel.js';
 
 /**
  * Channel registry that maintains all available notification channels.
@@ -14,18 +14,18 @@ import { inAppChannel } from './InAppChannel.js'
  * - Testable: can be mocked/stubbed for unit tests
  */
 export class ChannelRegistry {
-  private channels: Map<string, NotificationChannel>
+  private channels: Map<string, NotificationChannel>;
 
   constructor(channels: NotificationChannel[] = []) {
-    this.channels = new Map()
+    this.channels = new Map();
     // Register default channels
-    this.register(inAppChannel)
-    this.register(emailChannel)
-    this.register(pushChannel)
+    this.register(inAppChannel);
+    this.register(emailChannel);
+    this.register(pushChannel);
 
     // Allow custom channels to be injected (useful for testing)
     for (const channel of channels) {
-      this.register(channel)
+      this.register(channel);
     }
   }
 
@@ -34,7 +34,7 @@ export class ChannelRegistry {
    * If a channel with the same name already exists, it will be replaced.
    */
   register(channel: NotificationChannel): void {
-    this.channels.set(channel.name, channel)
+    this.channels.set(channel.name, channel);
   }
 
   /**
@@ -42,14 +42,14 @@ export class ChannelRegistry {
    * @returns The channel or undefined if not found
    */
   getChannel(name: string): NotificationChannel | undefined {
-    return this.channels.get(name)
+    return this.channels.get(name);
   }
 
   /**
    * Get all registered channels.
    */
   getAllChannels(): NotificationChannel[] {
-    return Array.from(this.channels.values())
+    return Array.from(this.channels.values());
   }
 
   /**
@@ -59,11 +59,11 @@ export class ChannelRegistry {
   getChannelsByNames(names: string[]): NotificationChannel[] {
     return names
       .map((name) => this.channels.get(name))
-      .filter((ch): ch is NotificationChannel => ch !== undefined)
+      .filter((ch): ch is NotificationChannel => ch !== undefined);
   }
 }
 
 /**
  * Default registry instance with all built-in channels registered.
  */
-export const defaultChannelRegistry = new ChannelRegistry()
+export const defaultChannelRegistry = new ChannelRegistry();

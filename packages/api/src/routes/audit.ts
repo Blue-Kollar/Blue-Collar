@@ -1,9 +1,9 @@
-import { Router } from 'express'
-import { queryLogs } from '@/controllers/audit.js'
-import { authenticate, authorize } from '@/middleware/auth.js'
+import { Router } from 'express';
+import { queryLogs } from '@/controllers/audit.js';
+import { authenticate, authorize } from '@/middleware/auth.js';
 
-const router = Router()
+const router = Router();
 
-router.get('/', authenticate, authorize('admin'), queryLogs)
+router.get('/', authenticate, authorize('admin'), queryLogs);
 
-export default router
+export default router;

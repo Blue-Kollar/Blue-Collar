@@ -6,13 +6,9 @@
  * Also covers the relocated auth-callback and wallet/history routes.
  * Issue #934
  */
-import { test, expect } from '@playwright/test'
-import { injectFreighterMock } from './freighter-mock'
-import {
-  BASE,
-  expectNoServerError,
-  expectAuthRedirect,
-} from './helpers'
+import { test, expect } from '@playwright/test';
+import { injectFreighterMock } from './freighter-mock';
+import { BASE, expectNoServerError, expectAuthRedirect } from './helpers';
 
 const ADMIN_ROUTES = [
   '/en/dashboard/admin',
@@ -21,40 +17,42 @@ const ADMIN_ROUTES = [
   '/en/dashboard/admin/audit',
   '/en/dashboard/admin/categories',
   '/en/dashboard/admin/moderation',
-]
+];
 
 test.describe('Admin dashboard routes (locale-prefixed)', () => {
   test.beforeEach(async ({ page }) => {
-    await injectFreighterMock(page)
-  })
+    await injectFreighterMock(page);
+  });
 
   for (const route of ADMIN_ROUTES) {
     test(`${route} is reachable (redirects to login when unauthenticated)`, async ({ page }) => {
-      await page.goto(`${BASE}${route}`)
-      await expectAuthRedirect(page)
-      await expectNoServerError(page)
-    })
+      await page.goto(`${BASE}${route}`);
+      await expectAuthRedirect(page);
+      await expectNoServerError(page);
+    });
   }
 
-  test('non-locale /dashboard/admin no longer resolves directly and is redirected to a locale prefix', async ({ page }) => {
-    await page.goto(`${BASE}/dashboard/admin`)
-    await page.waitForURL(/\/(en|fr|es|pt)\//, { timeout: 10_000 })
-    expect(page.url()).toMatch(/\/(en|fr|es|pt)\/(dashboard\/admin|.*auth.*|.*login.*)/)
-  })
-})
+  test('non-locale /dashboard/admin no longer resolves directly and is redirected to a locale prefix', async ({
+    page,
+  }) => {
+    await page.goto(`${BASE}/dashboard/admin`);
+    await page.waitForURL(/\/(en|fr|es|pt)\//, { timeout: 10_000 });
+    expect(page.url()).toMatch(/\/(en|fr|es|pt)\/(dashboard\/admin|.*auth.*|.*login.*)/);
+  });
+});
 
 test.describe('Relocated auth-callback and wallet/history routes', () => {
   test('auth-callback page loads under a locale prefix without crashing', async ({ page }) => {
-    await page.goto(`${BASE}/en/auth-callback`)
-    await expectNoServerError(page)
+    await page.goto(`${BASE}/en/auth-callback`);
+    await expectNoServerError(page);
     // No token/error query param present -> the page renders its "No authentication token received" error state
-    await expect(page.locator('body')).toContainText(/sign-in|token/i)
-  })
+    await expect(page.locator('body')).toContainText(/sign-in|token/i);
+  });
 
   test('wallet/history page loads under a locale prefix without crashing', async ({ page }) => {
-    await injectFreighterMock(page)
-    await page.goto(`${BASE}/en/wallet/history`)
-    await expectNoServerError(page)
-    await expect(page.locator('body')).toContainText(/transaction history/i)
-  })
-})
+    await injectFreighterMock(page);
+    await page.goto(`${BASE}/en/wallet/history`);
+    await expectNoServerError(page);
+    await expect(page.locator('body')).toContainText(/transaction history/i);
+  });
+});

@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import {
   ShieldCheck,
@@ -8,9 +8,9 @@ import {
   Wallet,
   Camera,
   type LucideIcon,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
-import { useTranslations } from "next-intl";
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { useTranslations } from 'next-intl';
 
 interface Badge {
   key: string;
@@ -38,20 +38,20 @@ export default function VerificationBadges({
   className,
   compact = false,
 }: Props) {
-  const t = useTranslations("componentText");
+  const t = useTranslations('componentText');
   const badges: Badge[] = [
-    { key: "identity", label: t("identityVerified"), icon: ShieldCheck, earned: isVerified },
-    { key: "phone", label: t("phoneVerified"), icon: Phone, earned: hasPhone },
-    { key: "email", label: t("emailVerified"), icon: Mail, earned: hasEmail },
-    { key: "wallet", label: t("walletConnected"), icon: Wallet, earned: hasWallet },
-    { key: "photo", label: t("photoAdded"), icon: Camera, earned: hasAvatar },
+    { key: 'identity', label: t('identityVerified'), icon: ShieldCheck, earned: isVerified },
+    { key: 'phone', label: t('phoneVerified'), icon: Phone, earned: hasPhone },
+    { key: 'email', label: t('emailVerified'), icon: Mail, earned: hasEmail },
+    { key: 'wallet', label: t('walletConnected'), icon: Wallet, earned: hasWallet },
+    { key: 'photo', label: t('photoAdded'), icon: Camera, earned: hasAvatar },
   ];
 
   const earnedCount = badges.filter((b) => b.earned).length;
 
   if (compact) {
     return (
-      <div className={cn("flex items-center gap-1.5", className)}>
+      <div className={cn('flex items-center gap-1.5', className)}>
         {badges
           .filter((b) => b.earned)
           .map((b) => (
@@ -65,7 +65,7 @@ export default function VerificationBadges({
           ))}
         {earnedCount < badges.length && (
           <span className="text-xs text-gray-400">
-            +{badges.length - earnedCount} {t("toEarn")}
+            +{badges.length - earnedCount} {t('toEarn')}
           </span>
         )}
       </div>
@@ -73,11 +73,11 @@ export default function VerificationBadges({
   }
 
   return (
-    <div className={cn("rounded-xl border bg-white p-4 shadow-sm", className)}>
+    <div className={cn('rounded-xl border bg-white p-4 shadow-sm', className)}>
       <div className="mb-3 flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-gray-800">{t("verification")}</h3>
+        <h3 className="text-sm font-semibold text-gray-800">{t('verification')}</h3>
         <span className="text-xs text-gray-400">
-          {t("earnedCount", { count: earnedCount, total: badges.length })}
+          {t('earnedCount', { count: earnedCount, total: badges.length })}
         </span>
       </div>
       <div className="space-y-2">
@@ -85,25 +85,20 @@ export default function VerificationBadges({
           <div
             key={badge.key}
             className={cn(
-              "flex items-center gap-2.5 rounded-lg px-3 py-2 transition-colors",
-              badge.earned ? "bg-green-50" : "bg-gray-50"
+              'flex items-center gap-2.5 rounded-lg px-3 py-2 transition-colors',
+              badge.earned ? 'bg-green-50' : 'bg-gray-50',
             )}
           >
-            <badge.icon
-              size={16}
-              className={badge.earned ? "text-green-600" : "text-gray-300"}
-            />
+            <badge.icon size={16} className={badge.earned ? 'text-green-600' : 'text-gray-300'} />
             <span
               className={cn(
-                "text-sm",
-                badge.earned ? "font-medium text-green-800" : "text-gray-400"
+                'text-sm',
+                badge.earned ? 'font-medium text-green-800' : 'text-gray-400',
               )}
             >
               {badge.label}
             </span>
-            {badge.earned && (
-              <BadgeCheck size={14} className="ml-auto text-green-500" />
-            )}
+            {badge.earned && <BadgeCheck size={14} className="ml-auto text-green-500" />}
           </div>
         ))}
       </div>

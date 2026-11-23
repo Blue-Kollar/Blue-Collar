@@ -20,47 +20,107 @@
         {
           "name": "Register",
           "request": {
-            "method": "POST", "url": "{{baseUrl}}/auth/register",
+            "method": "POST",
+            "url": "{{baseUrl}}/auth/register",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"firstName\": \"Ana\",\n  \"lastName\": \"Costa\",\n  \"email\": \"ana@example.com\",\n  \"password\": \"supersecure123\"\n}" }
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Ana\",\n  \"lastName\": \"Costa\",\n  \"email\": \"ana@example.com\",\n  \"password\": \"supersecure123\"\n}"
+            }
           }
         },
         {
           "name": "Login",
-          "event": [{ "listen": "test", "script": { "exec": ["const r = pm.response.json(); if (r.token) pm.collectionVariables.set('token', r.token);"], "type": "text/javascript" } }],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const r = pm.response.json(); if (r.token) pm.collectionVariables.set('token', r.token);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
-            "method": "POST", "url": "{{baseUrl}}/auth/login",
+            "method": "POST",
+            "url": "{{baseUrl}}/auth/login",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"email\": \"ana@example.com\",\n  \"password\": \"supersecure123\"\n}" }
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"ana@example.com\",\n  \"password\": \"supersecure123\"\n}"
+            }
           }
         },
         {
           "name": "Get Current User",
-          "request": { "method": "GET", "url": "{{baseUrl}}/auth/me", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] } }
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/auth/me",
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            }
+          }
         },
         {
           "name": "Logout",
-          "request": { "method": "DELETE", "url": "{{baseUrl}}/auth/logout", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] } }
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/auth/logout",
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            }
+          }
         },
         {
           "name": "Refresh Token",
-          "request": { "method": "POST", "url": "{{baseUrl}}/auth/refresh", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}" } }
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/auth/refresh",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}" }
+          }
         },
         {
           "name": "Verify Account",
-          "request": { "method": "PUT", "url": "{{baseUrl}}/auth/verify-account", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"token\": \"<token-from-email>\"\n}" } }
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/auth/verify-account",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"token\": \"<token-from-email>\"\n}" }
+          }
         },
         {
           "name": "Resend Verification",
-          "request": { "method": "POST", "url": "{{baseUrl}}/auth/resend-verification", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"email\": \"ana@example.com\"\n}" } }
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/auth/resend-verification",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"ana@example.com\"\n}" }
+          }
         },
         {
           "name": "Forgot Password",
-          "request": { "method": "POST", "url": "{{baseUrl}}/auth/forgot-password", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"email\": \"ana@example.com\"\n}" } }
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/auth/forgot-password",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"ana@example.com\"\n}" }
+          }
         },
         {
           "name": "Reset Password",
-          "request": { "method": "PUT", "url": "{{baseUrl}}/auth/reset-password", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"token\": \"<token-from-email>\",\n  \"password\": \"newpassword123\"\n}" } }
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/auth/reset-password",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"<token-from-email>\",\n  \"password\": \"newpassword123\"\n}"
+            }
+          }
         },
         {
           "name": "Google OAuth - Initiate",
@@ -73,27 +133,75 @@
       "item": [
         {
           "name": "Setup 2FA",
-          "request": { "method": "POST", "url": "{{baseUrl}}/auth/2fa/setup", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] } }
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/auth/2fa/setup",
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            }
+          }
         },
         {
           "name": "Enable 2FA",
-          "request": { "method": "POST", "url": "{{baseUrl}}/auth/2fa/enable", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] }, "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"code\": \"123456\"\n}" } }
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/auth/2fa/enable",
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"code\": \"123456\"\n}" }
+          }
         },
         {
           "name": "Verify 2FA (login step 2)",
-          "request": { "method": "POST", "url": "{{baseUrl}}/auth/2fa/verify", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"userId\": \"usr_abc123\",\n  \"code\": \"123456\"\n}" } }
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/auth/2fa/verify",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"usr_abc123\",\n  \"code\": \"123456\"\n}"
+            }
+          }
         },
         {
           "name": "Verify Backup Code",
-          "request": { "method": "POST", "url": "{{baseUrl}}/auth/2fa/verify-backup", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"userId\": \"usr_abc123\",\n  \"code\": \"BACKUP-CODE-1\"\n}" } }
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/auth/2fa/verify-backup",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"usr_abc123\",\n  \"code\": \"BACKUP-CODE-1\"\n}"
+            }
+          }
         },
         {
           "name": "Disable 2FA",
-          "request": { "method": "DELETE", "url": "{{baseUrl}}/auth/2fa", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] }, "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"code\": \"123456\"\n}" } }
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/auth/2fa",
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"code\": \"123456\"\n}" }
+          }
         },
         {
           "name": "Regenerate Backup Codes",
-          "request": { "method": "POST", "url": "{{baseUrl}}/auth/2fa/backup-codes/regenerate", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] } }
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/auth/2fa/backup-codes/regenerate",
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            }
+          }
         }
       ]
     },
@@ -106,7 +214,11 @@
         },
         {
           "name": "Get Category",
-          "request": { "method": "GET", "url": "{{baseUrl}}/categories/:id", "variable": [{ "key": "id", "value": "cat_plumber_01" }] }
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/categories/:id",
+            "variable": [{ "key": "id", "value": "cat_plumber_01" }]
+          }
         }
       ]
     },
@@ -115,34 +227,80 @@
       "item": [
         {
           "name": "List Workers",
-          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/workers?page=1&limit=20", "query": [{ "key": "page", "value": "1" }, { "key": "limit", "value": "20" }, { "key": "category", "value": "", "disabled": true }, { "key": "search", "value": "", "disabled": true }] } }
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/workers?page=1&limit=20",
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" },
+                { "key": "category", "value": "", "disabled": true },
+                { "key": "search", "value": "", "disabled": true }
+              ]
+            }
+          }
         },
         {
           "name": "Advanced Search",
-          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/workers/search/advanced?q=plumber&available=true", "query": [{ "key": "q", "value": "plumber" }, { "key": "category", "value": "", "disabled": true }, { "key": "minRating", "value": "", "disabled": true }, { "key": "available", "value": "true" }, { "key": "page", "value": "1" }, { "key": "limit", "value": "20" }] } }
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/workers/search/advanced?q=plumber&available=true",
+              "query": [
+                { "key": "q", "value": "plumber" },
+                { "key": "category", "value": "", "disabled": true },
+                { "key": "minRating", "value": "", "disabled": true },
+                { "key": "available", "value": "true" },
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" }
+              ]
+            }
+          }
         },
         {
           "name": "Get Worker",
-          "request": { "method": "GET", "url": "{{baseUrl}}/workers/:id", "variable": [{ "key": "id", "value": "wkr_abc123" }] }
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/workers/:id",
+            "variable": [{ "key": "id", "value": "wkr_abc123" }]
+          }
         },
         {
           "name": "List My Workers (curator)",
-          "request": { "method": "GET", "url": "{{baseUrl}}/workers/mine", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] } }
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/workers/mine",
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            }
+          }
         },
         {
           "name": "Create Worker (curator)",
           "request": {
-            "method": "POST", "url": "{{baseUrl}}/workers",
-            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+            "method": "POST",
+            "url": "{{baseUrl}}/workers",
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"name\": \"João Silva\",\n  \"categoryId\": \"cat_plumber_01\",\n  \"phone\": \"+55 11 99999-0000\",\n  \"email\": \"joao@example.com\",\n  \"bio\": \"10 years experience in residential plumbing.\",\n  \"walletAddress\": \"GABC...XYZ\"\n}" }
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"João Silva\",\n  \"categoryId\": \"cat_plumber_01\",\n  \"phone\": \"+55 11 99999-0000\",\n  \"email\": \"joao@example.com\",\n  \"bio\": \"10 years experience in residential plumbing.\",\n  \"walletAddress\": \"GABC...XYZ\"\n}"
+            }
           }
         },
         {
           "name": "Update Worker JSON (curator)",
           "request": {
-            "method": "PUT", "url": "{{baseUrl}}/workers/:id",
-            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+            "method": "PUT",
+            "url": "{{baseUrl}}/workers/:id",
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": { "mode": "raw", "raw": "{\n  \"bio\": \"Updated bio.\"\n}" },
             "variable": [{ "key": "id", "value": "wkr_abc123" }]
@@ -151,64 +309,177 @@
         {
           "name": "Update Worker with Photo (method-override)",
           "request": {
-            "method": "POST", "url": "{{baseUrl}}/workers/:id",
-            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+            "method": "POST",
+            "url": "{{baseUrl}}/workers/:id",
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
             "header": [{ "key": "X-HTTP-Method", "value": "PUT" }],
-            "body": { "mode": "formdata", "formdata": [{ "key": "name", "value": "João Silva", "type": "text" }, { "key": "bio", "value": "Updated bio.", "type": "text" }, { "key": "avatar", "type": "file", "src": "" }] },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "name", "value": "João Silva", "type": "text" },
+                { "key": "bio", "value": "Updated bio.", "type": "text" },
+                { "key": "avatar", "type": "file", "src": "" }
+              ]
+            },
             "variable": [{ "key": "id", "value": "wkr_abc123" }]
           }
         },
         {
           "name": "Toggle Worker Active (curator)",
-          "request": { "method": "PATCH", "url": "{{baseUrl}}/workers/:id/toggle", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] }, "variable": [{ "key": "id", "value": "wkr_abc123" }] }
+          "request": {
+            "method": "PATCH",
+            "url": "{{baseUrl}}/workers/:id/toggle",
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "variable": [{ "key": "id", "value": "wkr_abc123" }]
+          }
         },
         {
           "name": "Delete Worker (curator)",
-          "request": { "method": "DELETE", "url": "{{baseUrl}}/workers/:id", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] }, "variable": [{ "key": "id", "value": "wkr_abc123" }] }
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/workers/:id",
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "variable": [{ "key": "id", "value": "wkr_abc123" }]
+          }
         },
         {
           "name": "Get Availability",
-          "request": { "method": "GET", "url": "{{baseUrl}}/workers/:id/availability", "variable": [{ "key": "id", "value": "wkr_abc123" }] }
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/workers/:id/availability",
+            "variable": [{ "key": "id", "value": "wkr_abc123" }]
+          }
         },
         {
           "name": "Set Availability (curator)",
-          "request": { "method": "PUT", "url": "{{baseUrl}}/workers/:id/availability", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] }, "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"slots\": [\n    { \"day\": \"monday\", \"startTime\": \"08:00\", \"endTime\": \"17:00\" }\n  ]\n}" }, "variable": [{ "key": "id", "value": "wkr_abc123" }] }
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/workers/:id/availability",
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"slots\": [\n    { \"day\": \"monday\", \"startTime\": \"08:00\", \"endTime\": \"17:00\" }\n  ]\n}"
+            },
+            "variable": [{ "key": "id", "value": "wkr_abc123" }]
+          }
         },
         {
           "name": "Register On-Chain (curator)",
-          "request": { "method": "POST", "url": "{{baseUrl}}/workers/:id/register-on-chain", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] }, "variable": [{ "key": "id", "value": "wkr_abc123" }] }
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/workers/:id/register-on-chain",
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "variable": [{ "key": "id", "value": "wkr_abc123" }]
+          }
         },
         {
           "name": "Contact Worker",
-          "request": { "method": "POST", "url": "{{baseUrl}}/workers/:id/contact", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] }, "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"message\": \"Hi, I need a plumber this Friday.\"\n}" }, "variable": [{ "key": "id", "value": "wkr_abc123" }] }
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/workers/:id/contact",
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Hi, I need a plumber this Friday.\"\n}"
+            },
+            "variable": [{ "key": "id", "value": "wkr_abc123" }]
+          }
         },
         {
           "name": "List Contact Requests (curator)",
-          "request": { "method": "GET", "url": "{{baseUrl}}/workers/:id/contacts", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] }, "variable": [{ "key": "id", "value": "wkr_abc123" }] }
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/workers/:id/contacts",
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "variable": [{ "key": "id", "value": "wkr_abc123" }]
+          }
         },
         {
           "name": "Toggle Bookmark",
-          "request": { "method": "POST", "url": "{{baseUrl}}/workers/:id/bookmark", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] }, "variable": [{ "key": "id", "value": "wkr_abc123" }] }
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/workers/:id/bookmark",
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "variable": [{ "key": "id", "value": "wkr_abc123" }]
+          }
         },
         {
           "name": "Get Reputation",
-          "request": { "method": "GET", "url": "{{baseUrl}}/workers/:id/reputation", "variable": [{ "key": "id", "value": "wkr_abc123" }] }
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/workers/:id/reputation",
+            "variable": [{ "key": "id", "value": "wkr_abc123" }]
+          }
         },
         {
           "name": "Sync Reputation (admin)",
-          "request": { "method": "POST", "url": "{{baseUrl}}/workers/:id/reputation/sync", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] }, "variable": [{ "key": "id", "value": "wkr_abc123" }] }
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/workers/:id/reputation/sync",
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "variable": [{ "key": "id", "value": "wkr_abc123" }]
+          }
         },
         {
           "name": "Get Verifications (curator)",
-          "request": { "method": "GET", "url": "{{baseUrl}}/workers/:id/verifications", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] }, "variable": [{ "key": "id", "value": "wkr_abc123" }] }
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/workers/:id/verifications",
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "variable": [{ "key": "id", "value": "wkr_abc123" }]
+          }
         },
         {
           "name": "Get Analytics (curator)",
-          "request": { "method": "GET", "url": "{{baseUrl}}/workers/:id/analytics", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] }, "variable": [{ "key": "id", "value": "wkr_abc123" }] }
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/workers/:id/analytics",
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "variable": [{ "key": "id", "value": "wkr_abc123" }]
+          }
         },
         {
           "name": "Track Profile View",
-          "request": { "method": "POST", "url": "{{baseUrl}}/workers/:id/analytics/view", "variable": [{ "key": "id", "value": "wkr_abc123" }] }
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/workers/:id/analytics/view",
+            "variable": [{ "key": "id", "value": "wkr_abc123" }]
+          }
         }
       ]
     },
@@ -217,27 +488,77 @@
       "item": [
         {
           "name": "List Worker Reviews",
-          "request": { "method": "GET", "url": "{{baseUrl}}/workers/:id/reviews", "variable": [{ "key": "id", "value": "wkr_abc123" }] }
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/workers/:id/reviews",
+            "variable": [{ "key": "id", "value": "wkr_abc123" }]
+          }
         },
         {
           "name": "Submit Review",
-          "request": { "method": "POST", "url": "{{baseUrl}}/workers/:id/reviews", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] }, "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"rating\": 5,\n  \"body\": \"Excellent work!\"\n}" }, "variable": [{ "key": "id", "value": "wkr_abc123" }] }
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/workers/:id/reviews",
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 5,\n  \"body\": \"Excellent work!\"\n}"
+            },
+            "variable": [{ "key": "id", "value": "wkr_abc123" }]
+          }
         },
         {
           "name": "Delete Review",
-          "request": { "method": "DELETE", "url": "{{baseUrl}}/workers/reviews/:id", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] }, "variable": [{ "key": "id", "value": "rev_abc123" }] }
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/workers/reviews/:id",
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "variable": [{ "key": "id", "value": "rev_abc123" }]
+          }
         },
         {
           "name": "Flag Review",
-          "request": { "method": "PATCH", "url": "{{baseUrl}}/workers/reviews/:id/flag", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] }, "variable": [{ "key": "id", "value": "rev_abc123" }] }
+          "request": {
+            "method": "PATCH",
+            "url": "{{baseUrl}}/workers/reviews/:id/flag",
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "variable": [{ "key": "id", "value": "rev_abc123" }]
+          }
         },
         {
           "name": "Moderation Queue (admin)",
-          "request": { "method": "GET", "url": "{{baseUrl}}/workers/reviews/moderation/queue", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] } }
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/workers/reviews/moderation/queue",
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            }
+          }
         },
         {
           "name": "Moderate Review (admin)",
-          "request": { "method": "PATCH", "url": "{{baseUrl}}/workers/reviews/:id/moderate", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] }, "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"action\": \"approve\"\n}" }, "variable": [{ "key": "id", "value": "rev_abc123" }] }
+          "request": {
+            "method": "PATCH",
+            "url": "{{baseUrl}}/workers/reviews/:id/moderate",
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"action\": \"approve\"\n}" },
+            "variable": [{ "key": "id", "value": "rev_abc123" }]
+          }
         }
       ]
     },
@@ -246,35 +567,111 @@
       "item": [
         {
           "name": "Update Profile (PATCH)",
-          "request": { "method": "PATCH", "url": "{{baseUrl}}/users/me", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] }, "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"bio\": \"Looking for tradespeople in SP.\"\n}" } }
+          "request": {
+            "method": "PATCH",
+            "url": "{{baseUrl}}/users/me",
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"bio\": \"Looking for tradespeople in SP.\"\n}" }
+          }
         },
         {
           "name": "Update Profile with Avatar (method-override)",
-          "request": { "method": "POST", "url": "{{baseUrl}}/users/me", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] }, "header": [{ "key": "X-HTTP-Method", "value": "PUT" }], "body": { "mode": "formdata", "formdata": [{ "key": "firstName", "value": "Ana", "type": "text" }, { "key": "avatar", "type": "file", "src": "" }] } }
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/users/me",
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "header": [{ "key": "X-HTTP-Method", "value": "PUT" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "firstName", "value": "Ana", "type": "text" },
+                { "key": "avatar", "type": "file", "src": "" }
+              ]
+            }
+          }
         },
         {
           "name": "Change Password",
-          "request": { "method": "PUT", "url": "{{baseUrl}}/users/me/password", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] }, "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"currentPassword\": \"old_password\",\n  \"newPassword\": \"new_password123\"\n}" } }
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/users/me/password",
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"old_password\",\n  \"newPassword\": \"new_password123\"\n}"
+            }
+          }
         },
         {
           "name": "List Bookmarks",
-          "request": { "method": "GET", "url": "{{baseUrl}}/users/me/bookmarks", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] } }
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/users/me/bookmarks",
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            }
+          }
         },
         {
           "name": "Save Push Subscription",
-          "request": { "method": "POST", "url": "{{baseUrl}}/users/me/push-subscription", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] }, "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"endpoint\": \"https://fcm.googleapis.com/...\",\n  \"keys\": { \"p256dh\": \"...\", \"auth\": \"...\" }\n}" } }
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/users/me/push-subscription",
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"endpoint\": \"https://fcm.googleapis.com/...\",\n  \"keys\": { \"p256dh\": \"...\", \"auth\": \"...\" }\n}"
+            }
+          }
         },
         {
           "name": "Delete Push Subscription",
-          "request": { "method": "DELETE", "url": "{{baseUrl}}/users/me/push-subscription", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] } }
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/users/me/push-subscription",
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            }
+          }
         },
         {
           "name": "Complete Onboarding",
-          "request": { "method": "POST", "url": "{{baseUrl}}/users/onboarding/complete", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] } }
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/users/onboarding/complete",
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            }
+          }
         },
         {
           "name": "Delete Account",
-          "request": { "method": "DELETE", "url": "{{baseUrl}}/users/me", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] } }
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/users/me",
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            }
+          }
         }
       ]
     },
@@ -283,63 +680,197 @@
       "item": [
         {
           "name": "List Jobs",
-          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/jobs?page=1&limit=20&status=open", "query": [{ "key": "page", "value": "1" }, { "key": "limit", "value": "20" }, { "key": "status", "value": "open" }, { "key": "category", "value": "", "disabled": true }] } }
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/jobs?page=1&limit=20&status=open",
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" },
+                { "key": "status", "value": "open" },
+                { "key": "category", "value": "", "disabled": true }
+              ]
+            }
+          }
         },
         {
           "name": "Get Job",
-          "request": { "method": "GET", "url": "{{baseUrl}}/jobs/:id", "variable": [{ "key": "id", "value": "job_abc123" }] }
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/jobs/:id",
+            "variable": [{ "key": "id", "value": "job_abc123" }]
+          }
         },
         {
           "name": "Create Job",
-          "request": { "method": "POST", "url": "{{baseUrl}}/jobs", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] }, "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"title\": \"Fix bathroom pipe\",\n  \"description\": \"Leaking pipe under sink.\",\n  \"budget\": 150,\n  \"categoryId\": \"cat_plumber_01\"\n}" } }
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/jobs",
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Fix bathroom pipe\",\n  \"description\": \"Leaking pipe under sink.\",\n  \"budget\": 150,\n  \"categoryId\": \"cat_plumber_01\"\n}"
+            }
+          }
         },
         {
           "name": "Update Job",
-          "request": { "method": "PUT", "url": "{{baseUrl}}/jobs/:id", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] }, "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"title\": \"Updated title\",\n  \"status\": \"in_progress\"\n}" }, "variable": [{ "key": "id", "value": "job_abc123" }] }
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/jobs/:id",
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated title\",\n  \"status\": \"in_progress\"\n}"
+            },
+            "variable": [{ "key": "id", "value": "job_abc123" }]
+          }
         },
         {
           "name": "Delete Job",
-          "request": { "method": "DELETE", "url": "{{baseUrl}}/jobs/:id", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] }, "variable": [{ "key": "id", "value": "job_abc123" }] }
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/jobs/:id",
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "variable": [{ "key": "id", "value": "job_abc123" }]
+          }
         },
         {
           "name": "Renew Job",
-          "request": { "method": "POST", "url": "{{baseUrl}}/jobs/:id/renew", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] }, "variable": [{ "key": "id", "value": "job_abc123" }] }
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/jobs/:id/renew",
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "variable": [{ "key": "id", "value": "job_abc123" }]
+          }
         },
         {
           "name": "My Posted Jobs",
-          "request": { "method": "GET", "url": "{{baseUrl}}/jobs/me/posted", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] } }
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/jobs/me/posted",
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            }
+          }
         },
         {
           "name": "My Applications",
-          "request": { "method": "GET", "url": "{{baseUrl}}/jobs/me/applications", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] } }
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/jobs/me/applications",
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            }
+          }
         },
         {
           "name": "Apply to Job",
-          "request": { "method": "POST", "url": "{{baseUrl}}/jobs/:id/apply", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] }, "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"coverLetter\": \"I am available and experienced.\",\n  \"proposedBudget\": 130\n}" }, "variable": [{ "key": "id", "value": "job_abc123" }] }
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/jobs/:id/apply",
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"coverLetter\": \"I am available and experienced.\",\n  \"proposedBudget\": 130\n}"
+            },
+            "variable": [{ "key": "id", "value": "job_abc123" }]
+          }
         },
         {
           "name": "List Applications (job owner)",
-          "request": { "method": "GET", "url": "{{baseUrl}}/jobs/:id/applications", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] }, "variable": [{ "key": "id", "value": "job_abc123" }] }
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/jobs/:id/applications",
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "variable": [{ "key": "id", "value": "job_abc123" }]
+          }
         },
         {
           "name": "Update Application Status",
-          "request": { "method": "PATCH", "url": "{{baseUrl}}/jobs/:id/applications/:applicationId", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] }, "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"status\": \"accepted\"\n}" }, "variable": [{ "key": "id", "value": "job_abc123" }, { "key": "applicationId", "value": "app_abc123" }] }
+          "request": {
+            "method": "PATCH",
+            "url": "{{baseUrl}}/jobs/:id/applications/:applicationId",
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"accepted\"\n}" },
+            "variable": [
+              { "key": "id", "value": "job_abc123" },
+              { "key": "applicationId", "value": "app_abc123" }
+            ]
+          }
         },
         {
           "name": "Withdraw Application",
-          "request": { "method": "DELETE", "url": "{{baseUrl}}/jobs/:id/apply", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] }, "variable": [{ "key": "id", "value": "job_abc123" }] }
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/jobs/:id/apply",
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "variable": [{ "key": "id", "value": "job_abc123" }]
+          }
         },
         {
           "name": "Send Message",
-          "request": { "method": "POST", "url": "{{baseUrl}}/jobs/:id/messages", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] }, "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"body\": \"Can you start Monday?\"\n}" }, "variable": [{ "key": "id", "value": "job_abc123" }] }
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/jobs/:id/messages",
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"body\": \"Can you start Monday?\"\n}" },
+            "variable": [{ "key": "id", "value": "job_abc123" }]
+          }
         },
         {
           "name": "List Messages",
-          "request": { "method": "GET", "url": "{{baseUrl}}/jobs/:id/messages", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] }, "variable": [{ "key": "id", "value": "job_abc123" }] }
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/jobs/:id/messages",
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "variable": [{ "key": "id", "value": "job_abc123" }]
+          }
         },
         {
           "name": "Recommended Jobs for Worker",
-          "request": { "method": "GET", "url": "{{baseUrl}}/jobs/recommendations/:workerId", "variable": [{ "key": "workerId", "value": "wkr_abc123" }] }
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/jobs/recommendations/:workerId",
+            "variable": [{ "key": "workerId", "value": "wkr_abc123" }]
+          }
         }
       ]
     },
@@ -352,15 +883,48 @@
         },
         {
           "name": "Update Platform Fee (admin)",
-          "request": { "method": "PATCH", "url": "{{baseUrl}}/payments/fee", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] }, "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"fee_bps\": 50\n}" } }
+          "request": {
+            "method": "PATCH",
+            "url": "{{baseUrl}}/payments/fee",
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"fee_bps\": 50\n}" }
+          }
         },
         {
           "name": "Send Tip",
-          "request": { "method": "POST", "url": "{{baseUrl}}/payments/tip", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] }, "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"from\": \"GYOUR...WALLET\",\n  \"to\": \"GWORKER...WALLET\",\n  \"amount\": 10\n}" } }
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/payments/tip",
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"from\": \"GYOUR...WALLET\",\n  \"to\": \"GWORKER...WALLET\",\n  \"amount\": 10\n}"
+            }
+          }
         },
         {
           "name": "Create Escrow",
-          "request": { "method": "POST", "url": "{{baseUrl}}/payments/escrow", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] }, "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"from\": \"GYOUR...WALLET\",\n  \"to\": \"GWORKER...WALLET\",\n  \"amount\": 500,\n  \"expiryDate\": \"2026-08-01T00:00:00.000Z\"\n}" } }
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/payments/escrow",
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"from\": \"GYOUR...WALLET\",\n  \"to\": \"GWORKER...WALLET\",\n  \"amount\": 500,\n  \"expiryDate\": \"2026-08-01T00:00:00.000Z\"\n}"
+            }
+          }
         }
       ]
     },
@@ -369,15 +933,44 @@
       "item": [
         {
           "name": "Open Dispute",
-          "request": { "method": "POST", "url": "{{baseUrl}}/disputes", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] }, "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"jobId\": \"job_abc123\",\n  \"reason\": \"Work was not completed as agreed.\"\n}" } }
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/disputes",
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jobId\": \"job_abc123\",\n  \"reason\": \"Work was not completed as agreed.\"\n}"
+            }
+          }
         },
         {
           "name": "List Disputes (admin)",
-          "request": { "method": "GET", "url": "{{baseUrl}}/disputes", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] } }
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/disputes",
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            }
+          }
         },
         {
           "name": "Resolve Dispute (admin)",
-          "request": { "method": "PATCH", "url": "{{baseUrl}}/disputes/:id", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] }, "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"resolution\": \"Refund issued to user.\"\n}" }, "variable": [{ "key": "id", "value": "dispute_abc123" }] }
+          "request": {
+            "method": "PATCH",
+            "url": "{{baseUrl}}/disputes/:id",
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"resolution\": \"Refund issued to user.\"\n}" },
+            "variable": [{ "key": "id", "value": "dispute_abc123" }]
+          }
         }
       ]
     },
@@ -386,39 +979,119 @@
       "item": [
         {
           "name": "Get Stats",
-          "request": { "method": "GET", "url": "{{baseUrl}}/admin/stats", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] } }
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/admin/stats",
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            }
+          }
         },
         {
           "name": "List All Workers",
-          "request": { "method": "GET", "url": "{{baseUrl}}/admin/workers", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] } }
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/admin/workers",
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            }
+          }
         },
         {
           "name": "List All Users",
-          "request": { "method": "GET", "url": "{{baseUrl}}/admin/users", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] } }
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/admin/users",
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            }
+          }
         },
         {
           "name": "Bulk Toggle Workers",
-          "request": { "method": "POST", "url": "{{baseUrl}}/admin/workers/bulk-toggle", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] }, "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"ids\": [\"wkr_abc123\", \"wkr_def456\"]\n}" } }
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/admin/workers/bulk-toggle",
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"ids\": [\"wkr_abc123\", \"wkr_def456\"]\n}" }
+          }
         },
         {
           "name": "Bulk Delete Workers",
-          "request": { "method": "DELETE", "url": "{{baseUrl}}/admin/workers/bulk-delete", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] }, "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"ids\": [\"wkr_abc123\"]\n}" } }
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/admin/workers/bulk-delete",
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"ids\": [\"wkr_abc123\"]\n}" }
+          }
         },
         {
           "name": "Import Workers CSV",
-          "request": { "method": "POST", "url": "{{baseUrl}}/admin/workers/import", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] }, "body": { "mode": "formdata", "formdata": [{ "key": "file", "type": "file", "src": "" }] } }
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/admin/workers/import",
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [{ "key": "file", "type": "file", "src": "" }]
+            }
+          }
         },
         {
           "name": "Export Workers JSON",
-          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/admin/export/workers?format=json", "query": [{ "key": "format", "value": "json" }] }, "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] } }
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/admin/export/workers?format=json",
+              "query": [{ "key": "format", "value": "json" }]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            }
+          }
         },
         {
           "name": "Export Workers CSV",
-          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/admin/export/workers?format=csv", "query": [{ "key": "format", "value": "csv" }] }, "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] } }
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/admin/export/workers?format=csv",
+              "query": [{ "key": "format", "value": "csv" }]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            }
+          }
         },
         {
           "name": "Export Users JSON",
-          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/admin/export/users?format=json", "query": [{ "key": "format", "value": "json" }] }, "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] } }
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/admin/export/users?format=json",
+              "query": [{ "key": "format", "value": "json" }]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            }
+          }
         }
       ]
     },

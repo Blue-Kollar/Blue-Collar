@@ -19,84 +19,95 @@ import type {
   WorkerPersonalDashboard,
   AppNotification,
   AuditLogEntry,
-} from "@/types";
-import { BASE, request } from "./api/client";
+} from '@/types';
+import { BASE, request } from './api/client';
 
 // ─── Typed endpoint functions ─────────────────────────────────────────────────
 
 // Workers
 export const getWorkers = (params?: Record<string, string>) => {
-  const qs = params ? `?${new URLSearchParams(params).toString()}` : "";
+  const qs = params ? `?${new URLSearchParams(params).toString()}` : '';
   return request<ApiResponse<Worker[]> & { meta: Meta }>(`/workers${qs}`);
 };
 
 export const getMyWorkers = (params?: Record<string, string>) => {
-  const qs = params ? `?${new URLSearchParams(params).toString()}` : "";
+  const qs = params ? `?${new URLSearchParams(params).toString()}` : '';
   return request<ApiResponse<Worker[]> & { meta: Meta }>(`/workers/mine${qs}`);
 };
 
-export const getWorker = (id: string) =>
-  request<ApiResponse<Worker>>(`/workers/${id}`);
+export const getWorker = (id: string) => request<ApiResponse<Worker>>(`/workers/${id}`);
 
 export const createWorker = (data: FormData) =>
-  request<ApiResponse<Worker>>("/workers", {
-    method: "POST",
+  request<ApiResponse<Worker>>('/workers', {
+    method: 'POST',
     rawBody: data,
   });
 
 export const updateWorker = (id: string, data: FormData) =>
   request<ApiResponse<Worker>>(`/workers/${id}`, {
-    method: "POST",
+    method: 'POST',
     rawBody: data,
-    headers: { "X-HTTP-Method": "PUT" },
+    headers: { 'X-HTTP-Method': 'PUT' },
   });
 
-export const deleteWorker = (id: string) =>
-  request<void>(`/workers/${id}`, { method: "DELETE" });
+export const deleteWorker = (id: string) => request<void>(`/workers/${id}`, { method: 'DELETE' });
 
 export const toggleWorker = (id: string) =>
-  request<ApiResponse<Worker>>(`/workers/${id}/toggle`, { method: "PATCH" });
+  request<ApiResponse<Worker>>(`/workers/${id}/toggle`, { method: 'PATCH' });
 
 // Bookmarks
 export const toggleBookmark = (workerId: string) =>
-  request<ApiResponse<{ bookmarked: boolean }>>(`/workers/${workerId}/bookmark`, { method: "POST" });
+  request<ApiResponse<{ bookmarked: boolean }>>(`/workers/${workerId}/bookmark`, {
+    method: 'POST',
+  });
 
 export const getMyBookmarks = (params?: Record<string, string>) => {
-  const qs = params ? `?${new URLSearchParams(params).toString()}` : "";
+  const qs = params ? `?${new URLSearchParams(params).toString()}` : '';
   return request<ApiResponse<Worker[]> & { meta: Meta }>(`/users/me/bookmarks${qs}`);
 };
 
 // Reviews
 export const getWorkerReviews = (workerId: string, params?: Record<string, string>) => {
-  const qs = params ? `?${new URLSearchParams(params).toString()}` : "";
-  return request<ApiResponse<Review[]> & { meta: Meta; averageRating: number | null; reviewCount: number; distribution: RatingDistributionEntry[] }>(
-    `/workers/${workerId}/reviews${qs}`
-  );
+  const qs = params ? `?${new URLSearchParams(params).toString()}` : '';
+  return request<
+    ApiResponse<Review[]> & {
+      meta: Meta;
+      averageRating: number | null;
+      reviewCount: number;
+      distribution: RatingDistributionEntry[];
+    }
+  >(`/workers/${workerId}/reviews${qs}`);
 };
 
 export const createReview = (workerId: string, data: { rating: number; comment?: string }) =>
-  request<ApiResponse<Review>>(`/workers/${workerId}/reviews`, { method: "POST", body: data });
+  request<ApiResponse<Review>>(`/workers/${workerId}/reviews`, { method: 'POST', body: data });
 
 // Contact requests
 export const sendContactRequest = (workerId: string, message: string) =>
-  request<ApiResponse<unknown>>(`/workers/${workerId}/contact`, { method: "POST", body: { message } });
+  request<ApiResponse<unknown>>(`/workers/${workerId}/contact`, {
+    method: 'POST',
+    body: { message },
+  });
 
 // Categories
-export const getCategories = () =>
-  request<ApiResponse<Category[]>>("/categories");
+export const getCategories = () => request<ApiResponse<Category[]>>('/categories');
 
 // User profile
-export const updateProfile = (data: { firstName?: string; lastName?: string; phone?: string; bio?: string }) =>
-  request<ApiResponse<unknown>>("/users/me", { method: "PATCH", body: data });
+export const updateProfile = (data: {
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+  bio?: string;
+}) => request<ApiResponse<unknown>>('/users/me', { method: 'PATCH', body: data });
 
 export const changePassword = (currentPassword: string, newPassword: string) =>
-  request<{ status: string; message: string }>("/users/me/password", {
-    method: "PUT",
+  request<{ status: string; message: string }>('/users/me/password', {
+    method: 'PUT',
     body: { currentPassword, newPassword },
   });
 
 export const deleteAccount = () =>
-  request<{ status: string; message: string }>("/users/me", { method: "DELETE" });
+  request<{ status: string; message: string }>('/users/me', { method: 'DELETE' });
 
 // Analytics
 export const getWorkerAnalytics = (workerId: string) =>
@@ -105,49 +116,73 @@ export const getWorkerAnalytics = (workerId: string) =>
 export const getWorkerViewTrends = (workerId: string, days = 30) =>
   request<ApiResponse<ViewTrend[]>>(`/workers/${workerId}/analytics/trends?days=${days}`);
 
-export const getWorkerPersonalDashboard = (workerId: string, params?: { startDate?: string; endDate?: string; days?: number }) => {
-  const qs = params ? `?${new URLSearchParams(Object.entries(params).filter(([, v]) => v !== undefined).map(([k, v]) => [k, String(v)])).toString()}` : "";
-  return request<ApiResponse<WorkerPersonalDashboard>>(`/workers/${workerId}/analytics/dashboard${qs}`);
+export const getWorkerPersonalDashboard = (
+  workerId: string,
+  params?: { startDate?: string; endDate?: string; days?: number },
+) => {
+  const qs = params
+    ? `?${new URLSearchParams(
+        Object.entries(params)
+          .filter(([, v]) => v !== undefined)
+          .map(([k, v]) => [k, String(v)]),
+      ).toString()}`
+    : '';
+  return request<ApiResponse<WorkerPersonalDashboard>>(
+    `/workers/${workerId}/analytics/dashboard${qs}`,
+  );
 };
 
-export const exportWorkerPersonalAnalyticsCsv = (workerId: string, params?: { startDate?: string; endDate?: string; days?: number }) => {
-  const qs = params ? `?${new URLSearchParams(Object.entries(params).filter(([, v]) => v !== undefined).map(([k, v]) => [k, String(v)])).toString()}` : "";
+export const exportWorkerPersonalAnalyticsCsv = (
+  workerId: string,
+  params?: { startDate?: string; endDate?: string; days?: number },
+) => {
+  const qs = params
+    ? `?${new URLSearchParams(
+        Object.entries(params)
+          .filter(([, v]) => v !== undefined)
+          .map(([k, v]) => [k, String(v)]),
+      ).toString()}`
+    : '';
   return `${BASE}/workers/${workerId}/analytics/export${qs}`;
 };
 
 export const getCuratorAnalytics = () =>
-  request<ApiResponse<CuratorAnalytics>>("/analytics/curator");
+  request<ApiResponse<CuratorAnalytics>>('/analytics/curator');
 
 export const getPlatformAnalytics = () =>
-  request<ApiResponse<PlatformAnalytics>>("/analytics/platform");
+  request<ApiResponse<PlatformAnalytics>>('/analytics/platform');
 
-export const getTopWorkers = (metric = "views", limit = 10) =>
+export const getTopWorkers = (metric = 'views', limit = 10) =>
   request<ApiResponse<TopWorker[]>>(`/analytics/top-workers?metric=${metric}&limit=${limit}`);
 
-export const exportCuratorAnalyticsCsv = () =>
-  `${BASE}/analytics/export/curator`;
+export const exportCuratorAnalyticsCsv = () => `${BASE}/analytics/export/curator`;
 
-export const exportPlatformAnalyticsCsv = () =>
-  `${BASE}/analytics/export/platform`;
+export const exportPlatformAnalyticsCsv = () => `${BASE}/analytics/export/platform`;
 
 // ── Notifications ───────────────────────────────────────────────────────────
 
 export const getNotifications = (params?: { page?: number; limit?: number }) => {
-  const qs = params ? `?${new URLSearchParams(Object.entries(params).map(([k, v]) => [k, String(v)])).toString()}` : "";
+  const qs = params
+    ? `?${new URLSearchParams(Object.entries(params).map(([k, v]) => [k, String(v)])).toString()}`
+    : '';
   return request<ApiResponse<AppNotification[]> & { meta: Meta }>(`/v1/notifications${qs}`);
 };
 
 export const getUnreadNotificationCount = () =>
-  request<{ data: { count: number }; status: string; code: number }>("/v1/notifications/unread-count");
+  request<{ data: { count: number }; status: string; code: number }>(
+    '/v1/notifications/unread-count',
+  );
 
 export const markNotificationRead = (id: string) =>
-  request<ApiResponse<AppNotification>>(`/v1/notifications/${id}/read`, { method: "PATCH" });
+  request<ApiResponse<AppNotification>>(`/v1/notifications/${id}/read`, { method: 'PATCH' });
 
 export const markAllNotificationsRead = () =>
-  request<{ data: { count: number }; status: string; code: number }>("/v1/notifications/read-all", { method: "PATCH" });
+  request<{ data: { count: number }; status: string; code: number }>('/v1/notifications/read-all', {
+    method: 'PATCH',
+  });
 
 export const deleteNotification = (id: string) =>
-  request<void>(`/v1/notifications/${id}`, { method: "DELETE" });
+  request<void>(`/v1/notifications/${id}`, { method: 'DELETE' });
 
 export interface NotificationPreferences {
   newWorkerNearby: boolean;
@@ -157,77 +192,100 @@ export interface NotificationPreferences {
 }
 
 export const getNotificationPreferences = () =>
-  request<{ data: NotificationPreferences; status: string }>("/v1/notifications/preferences");
+  request<{ data: NotificationPreferences; status: string }>('/v1/notifications/preferences');
 
 export const updateNotificationPreferences = (prefs: Partial<NotificationPreferences>) =>
-  request<{ status: string; message: string }>("/v1/notifications/preferences", {
-    method: "PUT",
+  request<{ status: string; message: string }>('/v1/notifications/preferences', {
+    method: 'PUT',
     body: prefs,
   });
 
 // ── Conversations ───────────────────────────────────────────────────────────
 
-import type { Conversation, Message } from "@/types";
+import type { Conversation, Message } from '@/types';
 
 export const getConversations = (params?: { page?: number; limit?: number }) => {
-  const qs = params ? `?${new URLSearchParams(Object.entries(params).map(([k, v]) => [k, String(v)])).toString()}` : "";
+  const qs = params
+    ? `?${new URLSearchParams(Object.entries(params).map(([k, v]) => [k, String(v)])).toString()}`
+    : '';
   return request<ApiResponse<Conversation[]> & { meta: Meta }>(`/v1/conversations${qs}`);
 };
 
-export const startConversation = (data: { participantId: string; subject?: string; initialMessage: string }) =>
-  request<ApiResponse<Conversation>>("/v1/conversations", { method: "POST", body: data });
+export const startConversation = (data: {
+  participantId: string;
+  subject?: string;
+  initialMessage: string;
+}) => request<ApiResponse<Conversation>>('/v1/conversations', { method: 'POST', body: data });
 
 export const getConversation = (id: string) =>
   request<ApiResponse<Conversation>>(`/v1/conversations/${id}`);
 
 export const getConversationMessages = (id: string, params?: { page?: number; limit?: number }) => {
-  const qs = params ? `?${new URLSearchParams(Object.entries(params).map(([k, v]) => [k, String(v)])).toString()}` : "";
+  const qs = params
+    ? `?${new URLSearchParams(Object.entries(params).map(([k, v]) => [k, String(v)])).toString()}`
+    : '';
   return request<ApiResponse<Message[]> & { meta: Meta }>(`/v1/conversations/${id}/messages${qs}`);
 };
 
-export const sendMessage = (conversationId: string, data: { body: string; attachmentUrl?: string; attachmentType?: string }) =>
-  request<ApiResponse<Message>>(`/v1/conversations/${conversationId}/messages`, { method: "POST", body: data });
+export const sendMessage = (
+  conversationId: string,
+  data: { body: string; attachmentUrl?: string; attachmentType?: string },
+) =>
+  request<ApiResponse<Message>>(`/v1/conversations/${conversationId}/messages`, {
+    method: 'POST',
+    body: data,
+  });
 
 export const markConversationRead = (id: string) =>
-  request<{ status: string; code: number }>(`/v1/conversations/${id}/read`, { method: "PATCH" });
+  request<{ status: string; code: number }>(`/v1/conversations/${id}/read`, { method: 'PATCH' });
 
 // ── Review Helpful ──────────────────────────────────────────────────────────
 
 export const toggleReviewHelpful = (reviewId: string) =>
-  request<{ data: { helpful: boolean; count: number }; status: string; code: number }>(`/v1/reviews/${reviewId}/helpful`, { method: "POST" });
+  request<{ data: { helpful: boolean; count: number }; status: string; code: number }>(
+    `/v1/reviews/${reviewId}/helpful`,
+    { method: 'POST' },
+  );
 
 // ── Admin ──────────────────────────────────────────────────────────────────
 
 export const suspendUser = (userId: string) =>
-  request<ApiResponse<{ id: string; suspended: boolean }>>(`/v1/admin/users/${userId}/suspend`, { method: "PATCH" });
+  request<ApiResponse<{ id: string; suspended: boolean }>>(`/v1/admin/users/${userId}/suspend`, {
+    method: 'PATCH',
+  });
 
 export const unsuspendUser = (userId: string) =>
-  request<ApiResponse<{ id: string; suspended: boolean }>>(`/v1/admin/users/${userId}/unsuspend`, { method: "PATCH" });
+  request<ApiResponse<{ id: string; suspended: boolean }>>(`/v1/admin/users/${userId}/unsuspend`, {
+    method: 'PATCH',
+  });
 
 export const banUser = (userId: string) =>
-  request<ApiResponse<{ id: string; banned: boolean }>>(`/v1/admin/users/${userId}/ban`, { method: "PATCH" });
+  request<ApiResponse<{ id: string; banned: boolean }>>(`/v1/admin/users/${userId}/ban`, {
+    method: 'PATCH',
+  });
 
-export const changeUserRole = (userId: string, role: "user" | "curator" | "admin") =>
-  request<ApiResponse<{ id: string; email: string; firstName: string; lastName: string; role: string }>>(
-    `/v1/admin/users/${userId}/role`,
-    { method: "PATCH", body: { role } },
-  );
+export const changeUserRole = (userId: string, role: 'user' | 'curator' | 'admin') =>
+  request<
+    ApiResponse<{ id: string; email: string; firstName: string; lastName: string; role: string }>
+  >(`/v1/admin/users/${userId}/role`, { method: 'PATCH', body: { role } });
 
 export const bulkSuspendUsers = (ids: string[]) =>
   request<ApiResponse<{ updated: number; suspended: boolean }>>(`/v1/admin/users/bulk-suspend`, {
-    method: "PATCH",
+    method: 'PATCH',
     body: { ids },
   });
 
 export const bulkUnsuspendUsers = (ids: string[]) =>
   request<ApiResponse<{ updated: number; suspended: boolean }>>(`/v1/admin/users/bulk-unsuspend`, {
-    method: "PATCH",
+    method: 'PATCH',
     body: { ids },
   });
 
 export const getAuditLogs = (params?: Record<string, string>) => {
-  const qs = params ? `?${new URLSearchParams(params).toString()}` : "";
-  return request<{ data: AuditLogEntry[]; meta: Meta; status: string; code: number }>(`/v1/audit${qs}`);
+  const qs = params ? `?${new URLSearchParams(params).toString()}` : '';
+  return request<{ data: AuditLogEntry[]; meta: Meta; status: string; code: number }>(
+    `/v1/audit${qs}`,
+  );
 };
 
 export interface AdminUser {
@@ -235,15 +293,17 @@ export interface AdminUser {
   firstName: string;
   lastName: string;
   email: string;
-  role: "user" | "curator" | "admin";
+  role: 'user' | 'curator' | 'admin';
   deletedAt?: string | null;
   verified?: boolean;
   createdAt: string;
 }
 
 export const getAdminUsers = (params?: Record<string, string>) => {
-  const qs = params ? `?${new URLSearchParams(params).toString()}` : "";
-  return request<{ data: AdminUser[]; meta: Meta; status: string; code: number }>(`/v1/admin/users${qs}`);
+  const qs = params ? `?${new URLSearchParams(params).toString()}` : '';
+  return request<{ data: AdminUser[]; meta: Meta; status: string; code: number }>(
+    `/v1/admin/users${qs}`,
+  );
 };
 
 // ── Disputes ────────────────────────────────────────────────────────────────
@@ -263,13 +323,15 @@ export interface Dispute {
 }
 
 export const getDisputes = (params?: Record<string, string>) => {
-  const qs = params ? `?${new URLSearchParams(params).toString()}` : "";
-  return request<{ data: Dispute[]; meta: Meta; status: string; code: number }>(`/v1/disputes${qs}`);
+  const qs = params ? `?${new URLSearchParams(params).toString()}` : '';
+  return request<{ data: Dispute[]; meta: Meta; status: string; code: number }>(
+    `/v1/disputes${qs}`,
+  );
 };
 
 export const resolveDispute = (id: string, status: string, resolution?: string) =>
   request<ApiResponse<Dispute>>(`/v1/disputes/${id}/resolve`, {
-    method: "PATCH",
+    method: 'PATCH',
     body: { status, resolution },
   });
 
@@ -289,18 +351,20 @@ export interface ModerationReview {
 }
 
 export const getModerationQueue = () =>
-  request<{ data: ModerationReview[]; status: string; code: number }>("/v1/reviews/moderation/queue");
+  request<{ data: ModerationReview[]; status: string; code: number }>(
+    '/v1/reviews/moderation/queue',
+  );
 
-export const moderateReview = (reviewId: string, action: "approve" | "reject") =>
+export const moderateReview = (reviewId: string, action: 'approve' | 'reject') =>
   request<ApiResponse<ModerationReview>>(`/v1/reviews/${reviewId}/moderate`, {
-    method: "PATCH",
+    method: 'PATCH',
     body: { action },
   });
 
 // ── Account (profile settings page) ───────────────────────────────────────────
 
 export const updateAccount = (data: { firstName: string; lastName: string; email: string }) =>
-  request<ApiResponse<unknown>>("/users/me", { method: "PUT", body: data });
+  request<ApiResponse<unknown>>('/users/me', { method: 'PUT', body: data });
 
 // ── Email notification preferences (settings page) ───────────────────────────
 
@@ -312,7 +376,9 @@ export interface EmailNotificationPrefs {
 }
 
 export const getEmailNotificationPrefs = () =>
-  request<{ data?: EmailNotificationPrefs; status?: string } | EmailNotificationPrefs>("/users/me/notifications");
+  request<{ data?: EmailNotificationPrefs; status?: string } | EmailNotificationPrefs>(
+    '/users/me/notifications',
+  );
 
 export const updateEmailNotificationPrefs = (prefs: EmailNotificationPrefs) =>
-  request<{ status: string }>("/users/me/notifications", { method: "PUT", body: prefs });
+  request<{ status: string }>('/users/me/notifications', { method: 'PUT', body: prefs });

@@ -1,12 +1,12 @@
-import { beforeAll, afterAll, afterEach } from "vitest";
-import { execSync } from "child_process";
-import dotenv from "dotenv";
-import path from "path";
-import { PrismaClient } from "@prisma/client";
-import { PrismaPg } from "@prisma/adapter-pg";
+import { beforeAll, afterAll, afterEach } from 'vitest';
+import { execSync } from 'child_process';
+import dotenv from 'dotenv';
+import path from 'path';
+import { PrismaClient } from '@prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
 
 dotenv.config({
-  path: path.resolve(process.cwd(), ".env"),
+  path: path.resolve(process.cwd(), '.env'),
 });
 
 // Prefer TEST_DATABASE_URL only when it is a valid postgres URL.
@@ -17,18 +17,16 @@ const isValidPostgresUrl = (value?: string) => {
   if (!value) return false;
   try {
     const protocol = new URL(value).protocol;
-    return protocol === "postgres:" || protocol === "postgresql:";
+    return protocol === 'postgres:' || protocol === 'postgresql:';
   } catch {
     return false;
   }
 };
 
-process.env.DATABASE_URL = isValidPostgresUrl(testDbUrl)
-  ? testDbUrl
-  : baseDbUrl;
+process.env.DATABASE_URL = isValidPostgresUrl(testDbUrl) ? testDbUrl : baseDbUrl;
 
 if (!process.env.DATABASE_URL) {
-  throw new Error("TEST_DATABASE_URL or DATABASE_URL is missing");
+  throw new Error('TEST_DATABASE_URL or DATABASE_URL is missing');
 }
 
 const db = new PrismaClient({
@@ -40,7 +38,7 @@ const db = new PrismaClient({
 });
 
 beforeAll(async () => {
-  execSync("pnpm exec prisma migrate deploy", { stdio: "inherit" });
+  execSync('pnpm exec prisma migrate deploy', { stdio: 'inherit' });
 });
 
 afterEach(async () => {

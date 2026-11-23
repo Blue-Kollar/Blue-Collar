@@ -1,12 +1,12 @@
 packages:
-  - "packages/api"
-  - "packages/app"
-  - "packages/contracts"
-  - "packages/mobile"
-  - "packages/monitoring"
-  - "packages/sdk"
-  - "packages/test-utils"
-  - "packages/types"
+  - 'packages/api'
+  - 'packages/app'
+  - 'packages/contracts'
+  - 'packages/mobile'
+  - 'packages/monitoring'
+  - 'packages/sdk'
+  - 'packages/test-utils'
+  - 'packages/types'
 
 overrides:
   '@babel/core@<=7.29.0': '>=7.29.6'

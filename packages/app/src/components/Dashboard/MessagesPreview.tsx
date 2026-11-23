@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import Image from "next/image";
-import { MessageSquare } from "lucide-react";
-import { cn, formatDate } from "@/lib/utils";
-import Skeleton from "@/components/Skeleton";
-import type { Conversation } from "@/types";
-import { useTranslations } from "next-intl";
+import Link from 'next/link';
+import Image from 'next/image';
+import { MessageSquare } from 'lucide-react';
+import { cn, formatDate } from '@/lib/utils';
+import Skeleton from '@/components/Skeleton';
+import type { Conversation } from '@/types';
+import { useTranslations } from 'next-intl';
 
 interface Props {
   conversations: Conversation[];
@@ -16,11 +16,11 @@ interface Props {
 }
 
 export function MessagesPreview({ conversations, currentUserId, loading }: Props) {
-  const t = useTranslations("componentText");
+  const t = useTranslations('componentText');
   // ── Loading state (#1203) ──────────────────────────────────────────────────
   if (loading) {
     return (
-      <div className="flex flex-col gap-3 py-4" aria-busy="true" aria-label={t("loadingMessages")}>
+      <div className="flex flex-col gap-3 py-4" aria-busy="true" aria-label={t('loadingMessages')}>
         {Array.from({ length: 3 }).map((_, i) => (
           <div key={i} className="flex items-center gap-3 px-1">
             <Skeleton className="h-10 w-10 rounded-full shrink-0" />
@@ -39,7 +39,7 @@ export function MessagesPreview({ conversations, currentUserId, loading }: Props
     return (
       <div className="py-10 text-center">
         <MessageSquare size={32} className="mx-auto mb-2 text-gray-300" />
-        <p className="text-sm text-gray-400">{t("noMessagesYet")}</p>
+        <p className="text-sm text-gray-400">{t('noMessagesYet')}</p>
       </div>
     );
   }
@@ -67,16 +67,23 @@ export function MessagesPreview({ conversations, currentUserId, loading }: Props
                 />
               ) : (
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-100 text-brand-600 text-sm font-bold">
-                  {other?.user.firstName?.[0] ?? "?"}
+                  {other?.user.firstName?.[0] ?? '?'}
                 </div>
               )}
               <div className="flex-1 min-w-0">
-                <p className={cn("text-sm truncate", isUnread ? "font-semibold text-gray-900 dark:text-gray-100" : "font-medium text-gray-700 dark:text-gray-300")}>
-                  {other ? `${other.user.firstName} ${other.user.lastName}` : conv.subject ?? t("messages")}
+                <p
+                  className={cn(
+                    'text-sm truncate',
+                    isUnread
+                      ? 'font-semibold text-gray-900 dark:text-gray-100'
+                      : 'font-medium text-gray-700 dark:text-gray-300',
+                  )}
+                >
+                  {other
+                    ? `${other.user.firstName} ${other.user.lastName}`
+                    : (conv.subject ?? t('messages'))}
                 </p>
-                {lastMsg && (
-                  <p className="truncate text-xs text-gray-400">{lastMsg.body}</p>
-                )}
+                {lastMsg && <p className="truncate text-xs text-gray-400">{lastMsg.body}</p>}
               </div>
               <div className="shrink-0 flex flex-col items-end gap-1">
                 {lastMsg && (

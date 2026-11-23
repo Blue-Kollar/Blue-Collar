@@ -17,5 +17,5 @@ export type {
   ContactRequestActionPayload,
   ReviewActionPayload,
   TipActionPayload,
-  EscrowCreateActionPayload
-} from '@bluecollar/types'
+  EscrowCreateActionPayload,
+} from '@bluecollar/types';

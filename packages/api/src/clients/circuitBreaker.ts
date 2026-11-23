@@ -58,7 +58,8 @@ function backoffDelay(attempt: number, initial: number, max: number): number {
  * outbound calls in HTTP clients such as `StellarClient`.
  */
 export class CircuitBreaker {
-  private readonly opts: Required<Omit<CircuitBreakerOptions, 'onStateChange'>> & Pick<CircuitBreakerOptions, 'onStateChange'>;
+  private readonly opts: Required<Omit<CircuitBreakerOptions, 'onStateChange'>> &
+    Pick<CircuitBreakerOptions, 'onStateChange'>;
   private state: BreakerState = 'closed';
   private consecutiveFailures = 0;
   private openedAt = 0;
@@ -107,7 +108,10 @@ export class CircuitBreaker {
    * the reset timeout hasn't elapsed, short-circuiting sustained upstream
    * failures instead of piling up retries against a dead dependency.
    */
-  async execute<T>(fn: () => Promise<T>, isRetryable: (err: unknown) => boolean = defaultIsRetryable): Promise<T> {
+  async execute<T>(
+    fn: () => Promise<T>,
+    isRetryable: (err: unknown) => boolean = defaultIsRetryable,
+  ): Promise<T> {
     if (!this.canAttempt()) {
       throw new CircuitOpenError(this.opts.name);
     }
@@ -128,7 +132,10 @@ export class CircuitBreaker {
         if (!canRetry) break;
 
         const delayMs = backoffDelay(attempt, initialBackoffMs, maxBackoffMs);
-        logger.warn({ client: name, attempt: attempt + 1, delayMs, error: (err as Error)?.message }, 'retrying outbound call');
+        logger.warn(
+          { client: name, attempt: attempt + 1, delayMs, error: (err as Error)?.message },
+          'retrying outbound call',
+        );
         await new Promise((resolve) => setTimeout(resolve, delayMs));
       }
     }

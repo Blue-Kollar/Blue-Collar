@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import {
   BarChart,
@@ -10,8 +10,8 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-} from "recharts";
-import { formatDate } from "@/lib/utils";
+} from 'recharts';
+import { formatDate } from '@/lib/utils';
 
 interface ViewTrend {
   date: string;
@@ -36,18 +36,38 @@ interface Props {
   workers: WorkerStats[];
 }
 
-export function ViewTrendsChart({ trends, trendsLoading, workerName }: { trends: ViewTrend[] | null; trendsLoading: boolean; workerName: string }) {
+export function ViewTrendsChart({
+  trends,
+  trendsLoading,
+  workerName,
+}: {
+  trends: ViewTrend[] | null;
+  trendsLoading: boolean;
+  workerName: string;
+}) {
   if (trendsLoading) {
-    return <div className="flex items-center justify-center py-12"><div className="h-6 w-6 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" /></div>;
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+      </div>
+    );
   }
   if (!trends || trends.length === 0) return null;
   return (
     <ResponsiveContainer width="100%" height={250}>
       <LineChart data={trends}>
         <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="date" tickFormatter={(d) => formatDate(d, { month: "short", day: "numeric" })} fontSize={12} />
+        <XAxis
+          dataKey="date"
+          tickFormatter={(d) => formatDate(d, { month: 'short', day: 'numeric' })}
+          fontSize={12}
+        />
         <YAxis fontSize={12} />
-        <Tooltip labelFormatter={(d) => formatDate(String(d), { month: "long", day: "numeric", year: "numeric" })} />
+        <Tooltip
+          labelFormatter={(d) =>
+            formatDate(String(d), { month: 'long', day: 'numeric', year: 'numeric' })
+          }
+        />
         <Line type="monotone" dataKey="views" stroke="#2563eb" strokeWidth={2} dot={false} />
       </LineChart>
     </ResponsiveContainer>

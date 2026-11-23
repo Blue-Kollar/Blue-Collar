@@ -9,12 +9,15 @@ This document summarizes the changes made to enforce kebab-case file naming conv
 ## Changes Made
 
 ### 1. Documentation (CONTRIBUTING.md)
+
 Added comprehensive file naming convention section with:
+
 - Clear rules by file type
 - Examples of correct and incorrect naming
 - Enforcement details
 
 ### 2. ESLint Configuration
+
 - **Added dependency**: `eslint-plugin-unicorn@^56.0.1` to root `package.json`
 - **Configured rule**: `unicorn/filename-case` in `eslint-base-rules.js`
 - **Updated all package ESLint configs** to use the new filename rules:
@@ -27,9 +30,11 @@ Added comprehensive file naming convention section with:
 ### 3. File Renames
 
 #### API Package (`packages/api`)
+
 - `src/utils/AppError.ts` → `src/utils/app-error.ts`
 
 #### Mobile Package (`packages/mobile`)
+
 - `src/auth/BiometricAuth.ts` → `src/auth/biometric-auth.ts`
 - `src/auth/SecureStorage.ts` → `src/auth/secure-storage.ts`
 - `src/cache/CacheStore.ts` → `src/cache/cache-store.ts`
@@ -37,13 +42,16 @@ Added comprehensive file naming convention section with:
 - `src/cache/StaleWhileRevalidate.ts` → `src/cache/stale-while-revalidate.ts`
 
 #### Test Files (also renamed)
+
 - `src/auth/__tests__/BiometricAuth.test.ts` → `biometric-auth.test.ts`
 - `src/auth/__tests__/SecureStorage.test.ts` → `secure-storage.test.ts`
 - `src/cache/__tests__/CacheStore.test.ts` → `cache-store.test.ts`
 - `src/cache/__tests__/NetworkMonitor.test.ts` → `network-monitor.test.ts`
 
 ### 4. Import Updates
+
 All imports were automatically updated using the `smart_relocate` tool. Manual updates were made to:
+
 - `packages/api/src/services/response-time.service.test.ts`
 - `packages/mobile/src/cache/index.ts`
 - `packages/mobile/src/cache/network-monitor.ts`
@@ -56,9 +64,11 @@ All imports were automatically updated using the `smart_relocate` tool. Manual u
 ## File Naming Rules
 
 ### Enforced Convention
+
 **Default**: kebab-case for all TypeScript/JavaScript files
 
 ### Exceptions
+
 1. **React Components** (.tsx with JSX): PascalCase
    - ✅ `Navbar.tsx`, `BookmarkButton.tsx`
 
@@ -82,6 +92,7 @@ All imports were automatically updated using the `smart_relocate` tool. Manual u
 ## Required Actions
 
 ### Step 1: Install Dependencies
+
 Since `pnpm` was not directly available during the automated changes, you need to install the new dependency:
 
 ```bash
@@ -91,6 +102,7 @@ pnpm install
 This will install `eslint-plugin-unicorn@^56.0.1` which was added to `package.json`.
 
 ### Step 2: Verify Linting
+
 Run the lint check to ensure the filename convention is enforced:
 
 ```bash
@@ -100,6 +112,7 @@ pnpm lint
 Expected result: ✅ All lint checks should pass with no filename violations.
 
 ### Step 3: Run Type Check
+
 Verify that all import updates are correct:
 
 ```bash
@@ -109,6 +122,7 @@ pnpm type-check
 Expected result: ✅ No TypeScript errors related to missing modules or imports.
 
 ### Step 4: Run Tests
+
 Verify that all renamed files work correctly:
 
 ```bash
@@ -124,6 +138,7 @@ pnpm --filter @bluecollar/mobile test
 Expected result: ✅ All tests should pass.
 
 ### Step 5: Build
+
 Verify that the build process works:
 
 ```bash
@@ -147,14 +162,17 @@ The filename convention is now enforced by ESLint, which means:
 ## Troubleshooting
 
 ### If lint fails with "Cannot find module 'eslint-plugin-unicorn'"
+
 Run: `pnpm install`
 
 ### If you see import errors after the changes
+
 1. Check that you're using the correct file path (kebab-case)
 2. Search for the old PascalCase import: `grep -r "OldFileName" packages/`
 3. Update any remaining imports manually
 
 ### If tests fail
+
 1. Check that test files were also renamed to match their source files
 2. Verify mock paths in test files use the new kebab-case names
 
@@ -163,6 +181,7 @@ Run: `pnpm install`
 ## Files Modified
 
 ### Configuration Files
+
 - `package.json` (root)
 - `eslint-base-rules.js`
 - `packages/api/eslint.config.js`
@@ -172,12 +191,15 @@ Run: `pnpm install`
 - `packages/types/eslint.config.js`
 
 ### Documentation
+
 - `CONTRIBUTING.md`
 
 ### Renamed Source Files (API)
+
 - `packages/api/src/utils/app-error.ts`
 
 ### Renamed Source Files (Mobile)
+
 - `packages/mobile/src/auth/biometric-auth.ts`
 - `packages/mobile/src/auth/secure-storage.ts`
 - `packages/mobile/src/cache/cache-store.ts`
@@ -185,6 +207,7 @@ Run: `pnpm install`
 - `packages/mobile/src/cache/stale-while-revalidate.ts`
 
 ### Updated Imports
+
 - `packages/api/src/services/response-time.service.test.ts`
 - `packages/mobile/src/cache/index.ts`
 - `packages/mobile/src/cache/network-monitor.ts`
@@ -219,6 +242,7 @@ Run: `pnpm install`
 ## Questions or Issues?
 
 If you encounter any problems with the changes:
+
 1. Check that `pnpm install` completed successfully
 2. Review the "Troubleshooting" section above
 3. Check the ESLint output for specific filename violations

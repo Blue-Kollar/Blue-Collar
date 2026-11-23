@@ -1,11 +1,11 @@
-import type { Worker, Category, User } from '@prisma/client'
-import { CategoryResource } from './category.resource.js'
-import { UserResource } from './user.resource.js'
+import type { Worker, Category, User } from '@prisma/client';
+import { CategoryResource } from './category.resource.js';
+import { UserResource } from './user.resource.js';
 
 type WorkerWithRelations = Worker & {
-  category?: Category | null
-  curator?: User | null
-}
+  category?: Category | null;
+  curator?: User | null;
+};
 
 // Escapes HTML-significant characters so that any legacy unsanitised rows
 // (e.g. containing script tags) are neutralised when rendered by clients.
@@ -16,12 +16,12 @@ function escapeHtml(value: string): string {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;')
+    .replace(/'/g, '&#39;');
 }
 
 function escapeOptional(value: string | null | undefined): string | null {
-  if (value === null || value === undefined) return null
-  return escapeHtml(value)
+  if (value === null || value === undefined) return null;
+  return escapeHtml(value);
 }
 
 // PII SAFETY: phone and email are excluded from public API responses.
@@ -44,9 +44,9 @@ export function WorkerResource(worker: WorkerWithRelations) {
     updatedAt: worker.updatedAt,
     ...(worker.category ? { category: CategoryResource(worker.category) } : {}),
     ...(worker.curator ? { curator: UserResource(worker.curator) } : {}),
-  }
+  };
 }
 
 export function WorkerCollection(workers: WorkerWithRelations[]) {
-  return workers.map(WorkerResource)
+  return workers.map(WorkerResource);
 }

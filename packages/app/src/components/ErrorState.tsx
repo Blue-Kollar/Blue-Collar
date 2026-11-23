@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { AlertTriangle } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { useTranslations } from "next-intl";
+import { AlertTriangle } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { useTranslations } from 'next-intl';
 
 interface ErrorStateProps {
   /** Short heading, e.g. "Something went wrong" */
@@ -13,7 +13,7 @@ interface ErrorStateProps {
   onRetry?: () => void;
   retryLabel?: string;
   /** "inline" for a compact banner, "block" for a centered card */
-  variant?: "inline" | "block";
+  variant?: 'inline' | 'block';
   className?: string;
 }
 
@@ -22,28 +22,24 @@ export default function ErrorState({
   message,
   onRetry,
   retryLabel,
-  variant = "block",
+  variant = 'block',
   className,
 }: ErrorStateProps) {
-  const t = useTranslations("common");
-  const resolvedTitle = title ?? t("somethingWentWrong");
-  const resolvedRetryLabel = retryLabel ?? t("tryAgain");
-  if (variant === "inline") {
+  const t = useTranslations('common');
+  const resolvedTitle = title ?? t('somethingWentWrong');
+  const resolvedRetryLabel = retryLabel ?? t('tryAgain');
+  if (variant === 'inline') {
     return (
       <div
         role="alert"
         className={cn(
-          "flex flex-wrap items-center gap-2 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600 dark:bg-red-900/20 dark:text-red-400",
-          className
+          'flex flex-wrap items-center gap-2 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600 dark:bg-red-900/20 dark:text-red-400',
+          className,
         )}
       >
         <span>{message}</span>
         {onRetry && (
-          <button
-            type="button"
-            onClick={onRetry}
-            className="underline hover:no-underline"
-          >
+          <button type="button" onClick={onRetry} className="underline hover:no-underline">
             {resolvedRetryLabel}
           </button>
         )}
@@ -55,8 +51,8 @@ export default function ErrorState({
     <div
       role="alert"
       className={cn(
-        "flex flex-col items-center justify-center rounded-xl border border-red-200 bg-red-50 py-16 px-6 text-center dark:border-red-900/40 dark:bg-red-900/10",
-        className
+        'flex flex-col items-center justify-center rounded-xl border border-red-200 bg-red-50 py-16 px-6 text-center dark:border-red-900/40 dark:bg-red-900/10',
+        className,
       )}
     >
       <AlertTriangle size={22} className="text-red-500" aria-hidden="true" />

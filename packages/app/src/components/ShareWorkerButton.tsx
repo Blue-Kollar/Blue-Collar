@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { Share2 } from "lucide-react";
+import { useState } from 'react';
+import { Share2 } from 'lucide-react';
 
 interface ShareWorkerButtonProps {
   workerName: string;
@@ -15,9 +15,9 @@ export default function ShareWorkerButton({
   profileUrl,
 }: ShareWorkerButtonProps) {
   const [toastVisible, setToastVisible] = useState(false);
-  const [toastMessage, setToastMessage] = useState("");
+  const [toastMessage, setToastMessage] = useState('');
 
-  const url = profileUrl ?? (typeof window !== "undefined" ? window.location.href : "");
+  const url = profileUrl ?? (typeof window !== 'undefined' ? window.location.href : '');
   const title = `${workerName} - ${category} on Blue Collar`;
   const text = `Check out ${workerName}, a ${category} professional on Blue Collar.`;
 
@@ -28,12 +28,12 @@ export default function ShareWorkerButton({
   };
 
   const handleShare = async () => {
-    if (typeof navigator !== "undefined" && navigator.share) {
+    if (typeof navigator !== 'undefined' && navigator.share) {
       try {
         await navigator.share({ title, text, url });
       } catch (err) {
-        if ((err as DOMException).name !== "AbortError") {
-          showToast("Could not open share sheet.");
+        if ((err as DOMException).name !== 'AbortError') {
+          showToast('Could not open share sheet.');
         }
       }
       return;
@@ -41,9 +41,9 @@ export default function ShareWorkerButton({
 
     try {
       await navigator.clipboard.writeText(url);
-      showToast("Link copied!");
+      showToast('Link copied!');
     } catch {
-      showToast("Could not copy link.");
+      showToast('Could not copy link.');
     }
   };
 

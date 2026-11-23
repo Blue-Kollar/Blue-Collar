@@ -1,33 +1,33 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import Image from "next/image";
-import { BadgeCheck, MapPin, Zap } from "lucide-react";
-import { useTranslations } from "next-intl";
-import type { Worker } from "@/types";
-import BookmarkButton from "./BookmarkButton";
-import StarRating from "./StarRating";
-import { useCompare } from "@/context/CompareContext";
+import Link from 'next/link';
+import Image from 'next/image';
+import { BadgeCheck, MapPin, Zap } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import type { Worker } from '@/types';
+import BookmarkButton from './BookmarkButton';
+import StarRating from './StarRating';
+import { useCompare } from '@/context/CompareContext';
 
 interface WorkerCardProps {
   worker: Worker;
-  variant?: "standard" | "compact" | "featured";
+  variant?: 'standard' | 'compact' | 'featured';
 }
 
-export default function WorkerCard({ worker, variant = "standard" }: WorkerCardProps) {
-  const t = useTranslations("workerCard");
+export default function WorkerCard({ worker, variant = 'standard' }: WorkerCardProps) {
+  const t = useTranslations('workerCard');
   const { toggle, isSelected, isFull } = useCompare();
   const checked = isSelected(worker.id);
 
   const initials = worker.name
-    .split(" ")
+    .split(' ')
     .map((n) => n[0])
     .slice(0, 2)
-    .join("")
+    .join('')
     .toUpperCase();
 
   // Compact variant - minimal information
-  if (variant === "compact") {
+  if (variant === 'compact') {
     return (
       <Link href={`/workers/${worker.id}`}>
         <div className="relative group flex items-center gap-3 rounded-lg border bg-white p-3 shadow-sm transition-all duration-200 hover:shadow-md hover:border-blue-300">
@@ -50,7 +50,11 @@ export default function WorkerCard({ worker, variant = "standard" }: WorkerCardP
             <div className="flex items-center gap-1 font-semibold text-gray-800 truncate text-sm">
               <span className="truncate">{worker.name}</span>
               {worker.isVerified && (
-                <BadgeCheck size={14} className="shrink-0 text-blue-500" aria-label={t("verified")} />
+                <BadgeCheck
+                  size={14}
+                  className="shrink-0 text-blue-500"
+                  aria-label={t('verified')}
+                />
               )}
             </div>
             <span className="text-xs text-gray-500">{worker.category.name}</span>
@@ -68,13 +72,13 @@ export default function WorkerCard({ worker, variant = "standard" }: WorkerCardP
   }
 
   // Featured variant - highlighted with more prominence
-  if (variant === "featured") {
+  if (variant === 'featured') {
     return (
       <div className="relative group flex flex-col gap-4 rounded-xl border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-white p-6 shadow-md transition-all duration-200 hover:shadow-lg hover:border-blue-400">
         {/* Featured badge */}
         <div className="absolute top-3 right-3 flex items-center gap-1 bg-blue-600 text-white px-2 py-1 rounded-full text-xs font-semibold">
           <Zap size={12} />
-          {t("featured")}
+          {t('featured')}
         </div>
 
         {/* Compare checkbox */}
@@ -90,7 +94,7 @@ export default function WorkerCard({ worker, variant = "standard" }: WorkerCardP
             className="h-4 w-4 rounded border-gray-300 accent-blue-600 cursor-pointer disabled:cursor-not-allowed"
             aria-label={`Compare ${worker.name}`}
           />
-          <span className="text-xs text-gray-500 select-none">{t("compare")}</span>
+          <span className="text-xs text-gray-500 select-none">{t('compare')}</span>
         </label>
 
         <Link href={`/workers/${worker.id}`} className="flex flex-col gap-4">
@@ -115,7 +119,11 @@ export default function WorkerCard({ worker, variant = "standard" }: WorkerCardP
               <div className="flex items-center gap-2 font-bold text-gray-900 text-lg truncate">
                 <span className="truncate">{worker.name}</span>
                 {worker.isVerified && (
-                  <BadgeCheck size={18} className="shrink-0 text-blue-600" aria-label={t("verified")} />
+                  <BadgeCheck
+                    size={18}
+                    className="shrink-0 text-blue-600"
+                    aria-label={t('verified')}
+                  />
                 )}
               </div>
               <span className="mt-1 inline-block rounded-full bg-blue-100 px-3 py-1 text-sm font-semibold text-blue-700">
@@ -128,10 +136,10 @@ export default function WorkerCard({ worker, variant = "standard" }: WorkerCardP
           {worker.averageRating != null && (
             <div className="flex items-center gap-2 bg-white rounded-lg p-3">
               <StarRating rating={worker.averageRating} />
-              <span className="font-semibold text-gray-800">
-                {worker.averageRating.toFixed(1)}
+              <span className="font-semibold text-gray-800">{worker.averageRating.toFixed(1)}</span>
+              <span className="text-sm text-gray-500">
+                ({worker.reviewCount} {t('reviews')})
               </span>
-              <span className="text-sm text-gray-500">({worker.reviewCount} {t("reviews")})</span>
             </div>
           )}
 
@@ -150,8 +158,8 @@ export default function WorkerCard({ worker, variant = "standard" }: WorkerCardP
 
           <div className="mt-auto pt-2">
             <span className="inline-block w-full rounded-lg bg-blue-600 py-2.5 text-center text-sm font-semibold text-white transition-colors group-hover:bg-blue-700">
-                {t("viewProfile")}
-              </span>
+              {t('viewProfile')}
+            </span>
           </div>
         </Link>
       </div>
@@ -174,7 +182,7 @@ export default function WorkerCard({ worker, variant = "standard" }: WorkerCardP
           className="h-4 w-4 rounded border-gray-300 accent-blue-600 cursor-pointer disabled:cursor-not-allowed"
           aria-label={`Compare ${worker.name}`}
         />
-        <span className="text-xs text-gray-500 select-none">{t("compare")}</span>
+        <span className="text-xs text-gray-500 select-none">{t('compare')}</span>
       </label>
 
       <Link href={`/workers/${worker.id}`} className="flex flex-col gap-4">
@@ -199,7 +207,11 @@ export default function WorkerCard({ worker, variant = "standard" }: WorkerCardP
             <div className="flex items-center gap-1.5 font-semibold text-gray-800 truncate">
               <span className="truncate">{worker.name}</span>
               {worker.isVerified && (
-                <BadgeCheck size={16} className="shrink-0 text-blue-500" aria-label={t("verified")} />
+                <BadgeCheck
+                  size={16}
+                  className="shrink-0 text-blue-500"
+                  aria-label={t('verified')}
+                />
               )}
             </div>
             <span className="mt-0.5 inline-block rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-600">
@@ -233,7 +245,7 @@ export default function WorkerCard({ worker, variant = "standard" }: WorkerCardP
 
         <div className="mt-auto pt-1">
           <span className="inline-block w-full rounded-md border border-blue-600 py-1.5 text-center text-sm font-medium text-blue-600 transition-colors group-hover:bg-blue-600 group-hover:text-white">
-            {t("viewProfile")}
+            {t('viewProfile')}
           </span>
         </div>
       </Link>

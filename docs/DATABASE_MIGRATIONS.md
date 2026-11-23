@@ -47,7 +47,7 @@ npx prisma migrate diff \
 
 ## Expand/Contract pattern (zero-downtime)
 
-A zero-downtime deploy requires that both the *old* and *new* API versions can
+A zero-downtime deploy requires that both the _old_ and _new_ API versions can
 run against the database simultaneously during the rolling restart window
 (typically 1–5 minutes for a Kubernetes rolling update).
 
@@ -76,7 +76,7 @@ Renaming `Worker.phone` → `Worker.phoneNumber`.
 ALTER TABLE "Worker" ADD COLUMN IF NOT EXISTS "phoneNumber" TEXT;
 ```
 
-Deploy API v2 which writes to *both* `phone` and `phoneNumber`, reads from
+Deploy API v2 which writes to _both_ `phone` and `phoneNumber`, reads from
 `phoneNumber` (falling back to `phone` if null).
 
 Run backfill (see [Backfill job template](#backfill-job-template)):
@@ -130,23 +130,23 @@ ALTER TABLE "Worker" ALTER COLUMN "tier" SET DEFAULT 'standard';
 Before opening a PR that changes `prisma/schema.prisma` or adds a migration,
 verify every item in this checklist:
 
-| # | Check | Why |
-|---|-------|-----|
-| 1 | No `DROP COLUMN`, `DROP TABLE`, or `RENAME COLUMN` without an Expand phase already deployed | Breaks the running API |
-| 2 | No `NOT NULL` without a `DEFAULT` or a backfill on a non-empty table | Lock / constraint violation |
-| 3 | `CREATE INDEX` on tables > 100 k rows uses `CONCURRENTLY` | Avoids table lock |
-| 4 | Migration completes in < 30 s on production row counts | Confirmed by load-test or explain |
-| 5 | `prisma migrate diff --exit-code` passes locally | Drift between schema and migrations |
-| 6 | Migration is additive-only **or** a Contract migration with a corresponding merged Expand PR | Zero-downtime guarantee |
-| 7 | No `ALTER TABLE … RENAME` — use the two-migration rename approach above | Breaks old running code |
-| 8 | Foreign keys added with `NOT VALID` first, then validated separately | Avoids full-table scan lock |
+| #   | Check                                                                                        | Why                                 |
+| --- | -------------------------------------------------------------------------------------------- | ----------------------------------- |
+| 1   | No `DROP COLUMN`, `DROP TABLE`, or `RENAME COLUMN` without an Expand phase already deployed  | Breaks the running API              |
+| 2   | No `NOT NULL` without a `DEFAULT` or a backfill on a non-empty table                         | Lock / constraint violation         |
+| 3   | `CREATE INDEX` on tables > 100 k rows uses `CONCURRENTLY`                                    | Avoids table lock                   |
+| 4   | Migration completes in < 30 s on production row counts                                       | Confirmed by load-test or explain   |
+| 5   | `prisma migrate diff --exit-code` passes locally                                             | Drift between schema and migrations |
+| 6   | Migration is additive-only **or** a Contract migration with a corresponding merged Expand PR | Zero-downtime guarantee             |
+| 7   | No `ALTER TABLE … RENAME` — use the two-migration rename approach above                      | Breaks old running code             |
+| 8   | Foreign keys added with `NOT VALID` first, then validated separately                         | Avoids full-table scan lock         |
 
 ---
 
 ## Backfill job template
 
 For any Expand migration that adds a nullable column, create a one-off backfill
-script in `packages/api/src/database/backfills/`.  The template below is safe
+script in `packages/api/src/database/backfills/`. The template below is safe
 for large tables because it processes in batches.
 
 ```typescript
@@ -159,14 +159,14 @@ for large tables because it processes in batches.
  *
  * Idempotent — can be re-run safely.
  */
-import { db } from '../db.js'
+import { db } from '../db.js';
 
-const BATCH_SIZE = 500
+const BATCH_SIZE = 500;
 
 async function backfill() {
-  console.log('Starting backfill…')
-  let cursor: string | undefined
-  let total = 0
+  console.log('Starting backfill…');
+  let cursor: string | undefined;
+  let total = 0;
 
   while (true) {
     const rows = await db.worker.findMany({
@@ -178,26 +178,29 @@ async function backfill() {
       orderBy: { id: 'asc' },
       take: BATCH_SIZE,
       select: { id: true },
-    })
+    });
 
-    if (rows.length === 0) break
+    if (rows.length === 0) break;
 
     await db.worker.updateMany({
-      where: { id: { in: rows.map(r => r.id) } },
+      where: { id: { in: rows.map((r) => r.id) } },
       data: { newColumn: 'defaultValue' },
-    })
+    });
 
-    cursor = rows[rows.length - 1].id
-    total += rows.length
-    console.log(`  Processed ${total} rows…`)
+    cursor = rows[rows.length - 1].id;
+    total += rows.length;
+    console.log(`  Processed ${total} rows…`);
   }
 
-  console.log(`✅ Backfill complete — ${total} rows updated.`)
+  console.log(`✅ Backfill complete — ${total} rows updated.`);
 }
 
 backfill()
-  .catch(e => { console.error(e); process.exit(1) })
-  .finally(() => db.$disconnect())
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  })
+  .finally(() => db.$disconnect());
 ```
 
 ---
@@ -206,11 +209,11 @@ backfill()
 
 The `db-migrations.yml` workflow runs on every PR that touches `prisma/`:
 
-| Step | What it checks |
-|------|----------------|
-| Apply all migrations | `prisma migrate deploy` from scratch |
-| Schema drift | `prisma migrate diff --exit-code` |
-| Seed + query | Full seed runs without errors |
+| Step                            | What it checks                                                                                     |
+| ------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Apply all migrations            | `prisma migrate deploy` from scratch                                                               |
+| Schema drift                    | `prisma migrate diff --exit-code`                                                                  |
+| Seed + query                    | Full seed runs without errors                                                                      |
 | **Destructive migration check** | Scans migration SQL for `DROP`, `RENAME`, `NOT NULL` without defaults — fails the PR with guidance |
 
 ### Destructive-migration check

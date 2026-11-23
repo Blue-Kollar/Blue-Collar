@@ -24,11 +24,11 @@ Design specification for the admin surface covering user management, listing mod
 
 Only users with `role: admin` can access `/admin/*` routes. The app already enforces three roles via the Prisma schema:
 
-| Role | Access |
-|---|---|
-| `user` | Public pages, own profile |
+| Role      | Access                                    |
+| --------- | ----------------------------------------- |
+| `user`    | Public pages, own profile                 |
 | `curator` | `/dashboard` — manage own worker listings |
-| `admin` | Everything above + `/admin/*` |
+| `admin`   | Everything above + `/admin/*`             |
 
 Server-side middleware must reject non-admin users with a `403` before any data is returned.
 
@@ -102,12 +102,12 @@ Trend up:   text-green-600 bg-green-50 rounded-full px-2 py-0.5 text-xs
 Trend down: text-red-600   bg-red-50   rounded-full px-2 py-0.5 text-xs
 ```
 
-| Metric | Icon | Colour |
-|---|---|---|
-| Total Users | `Users` (lucide) | `blue` |
-| Active Listings | `Briefcase` | `green` |
-| Open Disputes | `AlertTriangle` | `amber` |
-| New Users (today) | `UserPlus` | `violet` |
+| Metric            | Icon             | Colour   |
+| ----------------- | ---------------- | -------- |
+| Total Users       | `Users` (lucide) | `blue`   |
+| Active Listings   | `Briefcase`      | `green`  |
+| Open Disputes     | `AlertTriangle`  | `amber`  |
+| New Users (today) | `UserPlus`       | `violet` |
 
 ### Recent Activity Feed
 
@@ -168,18 +168,19 @@ Shows the first 5 items needing moderation action.
 
 **Columns:**
 
-| Column | Width | Content |
-|---|---|---|
-| Checkbox | `w-10` | Bulk select |
-| User | `flex-1` | Avatar (h-8 w-8) + full name |
-| Email | `w-56` | Truncated if long |
-| Role | `w-24` | Badge: `user` (gray), `curator` (blue), `admin` (violet) |
-| Joined | `w-28` | Relative date (e.g., "Jan 5, 2025") |
-| Status | `w-24` | Badge: Active (green), Banned (red), Suspended (amber) |
+| Column   | Width    | Content                                                  |
+| -------- | -------- | -------------------------------------------------------- |
+| Checkbox | `w-10`   | Bulk select                                              |
+| User     | `flex-1` | Avatar (h-8 w-8) + full name                             |
+| Email    | `w-56`   | Truncated if long                                        |
+| Role     | `w-24`   | Badge: `user` (gray), `curator` (blue), `admin` (violet) |
+| Joined   | `w-28`   | Relative date (e.g., "Jan 5, 2025")                      |
+| Status   | `w-24`   | Badge: Active (green), Banned (red), Suspended (amber)   |
 
 **Search:** Debounced (300ms), searches across name and email.
 
 **Filters:**
+
 - Role: All / User / Curator / Admin
 - Status: All / Active / Banned / Suspended
 
@@ -271,12 +272,12 @@ Shows all listings that have been flagged, are pending review, or were recently 
 
 **Status badges:**
 
-| Status | Colour |
-|---|---|
-| Pending | `bg-amber-50 text-amber-600` |
-| Flagged | `bg-red-50 text-red-600` |
+| Status   | Colour                       |
+| -------- | ---------------------------- |
+| Pending  | `bg-amber-50 text-amber-600` |
+| Flagged  | `bg-red-50 text-red-600`     |
 | Approved | `bg-green-50 text-green-600` |
-| Rejected | `bg-gray-100 text-gray-500` |
+| Rejected | `bg-gray-100 text-gray-500`  |
 
 ### Listing Detail — Slide-Over Sheet
 
@@ -438,11 +439,11 @@ Each timeline entry:
 
 **Filters:**
 
-| Filter | Type | Options |
-|---|---|---|
-| Search | Text input | Free-text across actor and action |
-| Type | Dropdown | All / User actions / Listing actions / Dispute actions / System |
-| Date range | Date picker | Start date → End date |
+| Filter     | Type        | Options                                                         |
+| ---------- | ----------- | --------------------------------------------------------------- |
+| Search     | Text input  | Free-text across actor and action                               |
+| Type       | Dropdown    | All / User actions / Listing actions / Dispute actions / System |
+| Date range | Date picker | Start date → End date                                           |
 
 **Row click** expands an inline detail panel showing the full JSON payload of the action (for debugging).
 

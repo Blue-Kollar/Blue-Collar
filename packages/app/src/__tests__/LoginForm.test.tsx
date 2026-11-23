@@ -9,7 +9,9 @@ import { useRouter, useSearchParams } from 'next/navigation';
 
 vi.mock('next/link', () => ({
   default: ({ href, children, ...props }: any) => (
-    <a href={href} {...props}>{children}</a>
+    <a href={href} {...props}>
+      {children}
+    </a>
   ),
 }));
 
@@ -74,7 +76,7 @@ describe('LoginForm', () => {
       render(<LoginForm />);
       expect(screen.getByRole('link', { name: /forgot password/i })).toHaveAttribute(
         'href',
-        '/auth/forgot-password'
+        '/auth/forgot-password',
       );
     });
 
@@ -283,9 +285,10 @@ describe('LoginForm', () => {
       const user = userEvent.setup();
       let resolveLogin: any;
       (authApi.login as any).mockImplementation(
-        () => new Promise((resolve) => {
-          resolveLogin = resolve;
-        })
+        () =>
+          new Promise((resolve) => {
+            resolveLogin = resolve;
+          }),
       );
 
       render(<LoginForm />);
@@ -306,9 +309,10 @@ describe('LoginForm', () => {
       const user = userEvent.setup();
       let resolveLogin: any;
       (authApi.login as any).mockImplementation(
-        () => new Promise((resolve) => {
-          resolveLogin = resolve;
-        })
+        () =>
+          new Promise((resolve) => {
+            resolveLogin = resolve;
+          }),
       );
 
       render(<LoginForm />);

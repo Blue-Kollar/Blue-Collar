@@ -16,11 +16,11 @@
  * Uses the project's existing `injectFreighterMock` helper and extends it
  * with rejection variants.
  */
-import { test, expect } from '@playwright/test'
-import type { Page } from '@playwright/test'
-import { injectFreighterMock, MOCK_WALLET_ADDRESS } from './freighter-mock'
+import { test, expect } from '@playwright/test';
+import type { Page } from '@playwright/test';
+import { injectFreighterMock, MOCK_WALLET_ADDRESS } from './freighter-mock';
 
-const BASE = process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3001'
+const BASE = process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3001';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helper: inject a mock that immediately rejects access (user cancelled)
@@ -34,10 +34,10 @@ async function injectRejectedWalletMock(page: Page) {
       getNetwork: () => Promise.reject(new Error('Not connected')),
       signTransaction: () => Promise.reject(new Error('Not connected')),
       signBlob: () => Promise.reject(new Error('Not connected')),
-    }
-    ;(window as any).freighterApi = freighter
-    ;(window as any).__mockFreighter = freighter
-  })
+    };
+    (window as any).freighterApi = freighter;
+    (window as any).__mockFreighter = freighter;
+  });
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -46,20 +46,22 @@ async function injectRejectedWalletMock(page: Page) {
 async function injectNoWalletMock(page: Page) {
   await page.addInitScript(() => {
     // Remove any existing Freighter injection
-    delete (window as any).freighterApi
-    delete (window as any).__mockFreighter
-  })
+    delete (window as any).freighterApi;
+    delete (window as any).__mockFreighter;
+  });
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helper: find wallet connect button on a page
 // ─────────────────────────────────────────────────────────────────────────────
 async function findConnectButton(page: Page) {
-  return page.locator(
-    'button:has-text("Connect"), button:has-text("Connect Wallet"), ' +
-    'button:has-text("Sign In"), button[data-testid*="wallet" i], ' +
-    '[aria-label*="connect" i]'
-  ).first()
+  return page
+    .locator(
+      'button:has-text("Connect"), button:has-text("Connect Wallet"), ' +
+        'button:has-text("Sign In"), button[data-testid*="wallet" i], ' +
+        '[aria-label*="connect" i]',
+    )
+    .first();
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -67,247 +69,260 @@ async function findConnectButton(page: Page) {
 // ─────────────────────────────────────────────────────────────────────────────
 test.describe('Wallet Connection Flow — Happy Path (#1038)', () => {
   test.beforeEach(async ({ page }) => {
-    await injectFreighterMock(page)
-  })
+    await injectFreighterMock(page);
+  });
 
   test('home page loads without crashing', async ({ page }) => {
-    await page.goto(`${BASE}/en`)
-    await expect(page.locator('body')).not.toContainText('Internal Server Error')
-    await expect(page.locator('body')).not.toContainText('Application error')
-  })
+    await page.goto(`${BASE}/en`);
+    await expect(page.locator('body')).not.toContainText('Internal Server Error');
+    await expect(page.locator('body')).not.toContainText('Application error');
+  });
 
   test('injected wallet mock is accessible via window.__mockFreighter', async ({ page }) => {
-    await page.goto(`${BASE}/en`)
+    await page.goto(`${BASE}/en`);
     const address = await page.evaluate(async () => {
-      const mock = (window as any).__mockFreighter
-      if (!mock) return null
+      const mock = (window as any).__mockFreighter;
+      if (!mock) return null;
       try {
-        const result = await mock.getAddress()
-        return result?.address ?? null
+        const result = await mock.getAddress();
+        return result?.address ?? null;
       } catch {
-        return null
+        return null;
       }
-    })
+    });
     // The mock should return the fixed test address
-    expect(address).toBe(MOCK_WALLET_ADDRESS)
-  })
+    expect(address).toBe(MOCK_WALLET_ADDRESS);
+  });
 
   test('Freighter mock reports isConnected: true', async ({ page }) => {
-    await page.goto(`${BASE}/en`)
+    await page.goto(`${BASE}/en`);
     const connected = await page.evaluate(async () => {
-      const mock = (window as any).__mockFreighter
-      if (!mock) return null
+      const mock = (window as any).__mockFreighter;
+      if (!mock) return null;
       try {
-        const result = await mock.isConnected()
-        return result?.isConnected ?? null
+        const result = await mock.isConnected();
+        return result?.isConnected ?? null;
       } catch {
-        return null
+        return null;
       }
-    })
-    expect(connected).toBe(true)
-  })
+    });
+    expect(connected).toBe(true);
+  });
 
   test('requestAccess returns the fixed test address', async ({ page }) => {
-    await page.goto(`${BASE}/en`)
+    await page.goto(`${BASE}/en`);
     const address = await page.evaluate(async () => {
       try {
-        const result = await (window as any).__mockFreighter?.requestAccess()
-        return result?.address ?? null
+        const result = await (window as any).__mockFreighter?.requestAccess();
+        return result?.address ?? null;
       } catch {
-        return null
+        return null;
       }
-    })
-    expect(address).toBe(MOCK_WALLET_ADDRESS)
-  })
+    });
+    expect(address).toBe(MOCK_WALLET_ADDRESS);
+  });
 
   test('wallet connect button is visible on workers or dashboard page', async ({ page }) => {
-    const urlsToTry = [
-      `${BASE}/en/workers`,
-      `${BASE}/en/dashboard`,
-      `${BASE}/en`,
-    ]
+    const urlsToTry = [`${BASE}/en/workers`, `${BASE}/en/dashboard`, `${BASE}/en`];
 
-    let walletButtonFound = false
+    let walletButtonFound = false;
     for (const url of urlsToTry) {
-      await page.goto(url)
-      const btn = await findConnectButton(page)
-      if (await btn.count() > 0) {
-        await expect(btn).toBeVisible({ timeout: 5_000 })
-        walletButtonFound = true
-        break
+      await page.goto(url);
+      const btn = await findConnectButton(page);
+      if ((await btn.count()) > 0) {
+        await expect(btn).toBeVisible({ timeout: 5_000 });
+        walletButtonFound = true;
+        break;
       }
     }
 
     // If no connect button is found, ensure pages at least render
     if (!walletButtonFound) {
-      await page.goto(`${BASE}/en`)
-      await expect(page.locator('body')).not.toContainText('Internal Server Error')
+      await page.goto(`${BASE}/en`);
+      await expect(page.locator('body')).not.toContainText('Internal Server Error');
     }
-  })
+  });
 
   test('wallet signTransaction returns a mocked XDR string', async ({ page }) => {
-    await page.goto(`${BASE}/en`)
+    await page.goto(`${BASE}/en`);
     const signed = await page.evaluate(async () => {
       try {
-        const result = await (window as any).__mockFreighter?.signTransaction('mock-xdr', {})
-        return result?.signedTxXdr ?? null
+        const result = await (window as any).__mockFreighter?.signTransaction('mock-xdr', {});
+        return result?.signedTxXdr ?? null;
       } catch {
-        return null
+        return null;
       }
-    })
-    expect(typeof signed).toBe('string')
-    expect(signed).toBeTruthy()
-  })
+    });
+    expect(typeof signed).toBe('string');
+    expect(signed).toBeTruthy();
+  });
 
   test('getNetwork returns TESTNET network info', async ({ page }) => {
-    await page.goto(`${BASE}/en`)
+    await page.goto(`${BASE}/en`);
     const network = await page.evaluate(async () => {
       try {
-        const result = await (window as any).__mockFreighter?.getNetwork()
-        return result?.network ?? null
+        const result = await (window as any).__mockFreighter?.getNetwork();
+        return result?.network ?? null;
       } catch {
-        return null
+        return null;
       }
-    })
-    expect(network).toBe('TESTNET')
-  })
+    });
+    expect(network).toBe('TESTNET');
+  });
 
   test('wallet-connected state persists after soft client-side navigation', async ({ page }) => {
-    await page.goto(`${BASE}/en`)
+    await page.goto(`${BASE}/en`);
 
     // Simulate connection check
     const address1 = await page.evaluate(async () => {
       try {
-        const r = await (window as any).__mockFreighter?.getAddress()
-        return r?.address
-      } catch { return null }
-    })
+        const r = await (window as any).__mockFreighter?.getAddress();
+        return r?.address;
+      } catch {
+        return null;
+      }
+    });
 
     // Navigate to workers
-    await page.goto(`${BASE}/en/workers`)
+    await page.goto(`${BASE}/en/workers`);
 
     const address2 = await page.evaluate(async () => {
       try {
-        const r = await (window as any).__mockFreighter?.getAddress()
-        return r?.address
-      } catch { return null }
-    })
+        const r = await (window as any).__mockFreighter?.getAddress();
+        return r?.address;
+      } catch {
+        return null;
+      }
+    });
 
     // Address should be consistent (same mock)
-    expect(address1).toBe(address2)
-  })
+    expect(address1).toBe(address2);
+  });
 
   test('clicking wallet connect button does not crash the page', async ({ page }) => {
-    await page.goto(`${BASE}/en/workers`)
-    const btn = await findConnectButton(page)
+    await page.goto(`${BASE}/en/workers`);
+    const btn = await findConnectButton(page);
 
-    if (await btn.count() > 0) {
-      await btn.click()
+    if ((await btn.count()) > 0) {
+      await btn.click();
       // Wait for any wallet modal/interaction to settle
-      await expect(page.locator('body')).not.toContainText('Internal Server Error', { timeout: 5000 })
-      await expect(page.locator('body')).not.toContainText('Application error', { timeout: 5000 })
+      await expect(page.locator('body')).not.toContainText('Internal Server Error', {
+        timeout: 5000,
+      });
+      await expect(page.locator('body')).not.toContainText('Application error', { timeout: 5000 });
     }
-  })
-})
+  });
+});
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Suite: Failure & rejection paths
 // ─────────────────────────────────────────────────────────────────────────────
 test.describe('Wallet Connection Flow — Failure Paths (#1038)', () => {
   test('page renders correctly when Freighter is not installed', async ({ page }) => {
-    await injectNoWalletMock(page)
-    await page.goto(`${BASE}/en`)
-    await expect(page.locator('body')).not.toContainText('Internal Server Error')
-    await expect(page.locator('body')).not.toContainText('Application error')
+    await injectNoWalletMock(page);
+    await page.goto(`${BASE}/en`);
+    await expect(page.locator('body')).not.toContainText('Internal Server Error');
+    await expect(page.locator('body')).not.toContainText('Application error');
 
     // The app should gracefully handle missing wallet (no JS crash)
-    const jsErrors: string[] = []
-    page.on('pageerror', (err) => jsErrors.push(err.message))
+    const jsErrors: string[] = [];
+    page.on('pageerror', (err) => jsErrors.push(err.message));
     // Wait for page to fully settle — any wallet-related errors surface within a few frames
-    await expect(page.locator('body')).toBeVisible({ timeout: 5000 })
+    await expect(page.locator('body')).toBeVisible({ timeout: 5000 });
     // Filter out known non-critical errors
     const criticalErrors = jsErrors.filter(
-      (e) => !e.includes('freighter') && !e.includes('wallet')
-    )
-    expect(criticalErrors.length).toBe(0)
-  })
+      (e) => !e.includes('freighter') && !e.includes('wallet'),
+    );
+    expect(criticalErrors.length).toBe(0);
+  });
 
   test('wallet rejection returns an error state without crashing', async ({ page }) => {
-    await injectRejectedWalletMock(page)
-    await page.goto(`${BASE}/en`)
+    await injectRejectedWalletMock(page);
+    await page.goto(`${BASE}/en`);
 
     // Verify the page does not show a server crash
-    await expect(page.locator('body')).not.toContainText('Internal Server Error')
-    await expect(page.locator('body')).not.toContainText('Application error')
+    await expect(page.locator('body')).not.toContainText('Internal Server Error');
+    await expect(page.locator('body')).not.toContainText('Application error');
 
     // Try to exercise the rejection path via the mock
     const rejectionResult = await page.evaluate(async () => {
       try {
-        await (window as any).__mockFreighter?.requestAccess()
-        return 'resolved'
+        await (window as any).__mockFreighter?.requestAccess();
+        return 'resolved';
       } catch (e: any) {
-        return e.message ?? 'rejected'
+        return e.message ?? 'rejected';
       }
-    })
-    expect(rejectionResult).not.toBe('resolved')
-    expect(rejectionResult).toBeTruthy()
-  })
+    });
+    expect(rejectionResult).not.toBe('resolved');
+    expect(rejectionResult).toBeTruthy();
+  });
 
   test('wallet connect button with rejected mock shows user-friendly state', async ({ page }) => {
-    await injectRejectedWalletMock(page)
-    await page.goto(`${BASE}/en/workers`)
+    await injectRejectedWalletMock(page);
+    await page.goto(`${BASE}/en/workers`);
 
-    const btn = await findConnectButton(page)
-    if (await btn.count() > 0) {
-      await btn.click()
+    const btn = await findConnectButton(page);
+    if ((await btn.count()) > 0) {
+      await btn.click();
       // Wait for rejection to propagate through UI — either error state or no crash
-      await expect(page.locator('body')).not.toContainText('Internal Server Error', { timeout: 5000 })
+      await expect(page.locator('body')).not.toContainText('Internal Server Error', {
+        timeout: 5000,
+      });
       // Should not show raw error stack traces to users
-      await expect(page.locator('body')).not.toContainText('at Object.<anonymous>', { timeout: 5000 })
+      await expect(page.locator('body')).not.toContainText('at Object.<anonymous>', {
+        timeout: 5000,
+      });
     }
-  })
+  });
 
   test('wallet connection timeout does not leave page in broken state', async ({ page }) => {
     // Inject a mock that hangs indefinitely
     await page.addInitScript(() => {
       const freighter = {
         isConnected: () => Promise.resolve({ isConnected: false }),
-        requestAccess: () => new Promise(() => { /* never resolves */ }),
+        requestAccess: () =>
+          new Promise(() => {
+            /* never resolves */
+          }),
         getAddress: () => new Promise(() => {}),
         getNetwork: () => new Promise(() => {}),
         signTransaction: () => new Promise(() => {}),
         signBlob: () => new Promise(() => {}),
-      }
-      ;(window as any).freighterApi = freighter
-      ;(window as any).__mockFreighter = freighter
-    })
+      };
+      (window as any).freighterApi = freighter;
+      (window as any).__mockFreighter = freighter;
+    });
 
-    await page.goto(`${BASE}/en`)
-    await expect(page.locator('body')).not.toContainText('Internal Server Error')
+    await page.goto(`${BASE}/en`);
+    await expect(page.locator('body')).not.toContainText('Internal Server Error');
 
-    const btn = await findConnectButton(page)
-    if (await btn.count() > 0) {
-      await btn.click()
+    const btn = await findConnectButton(page);
+    if ((await btn.count()) > 0) {
+      await btn.click();
       // The page should show loading or a timeout indicator, not a hard crash.
       // Use assertion with timeout instead of fixed waitForTimeout.
-      await expect(page.locator('body')).not.toContainText('Internal Server Error', { timeout: 5000 })
-      await expect(page.locator('body')).not.toContainText('Application error', { timeout: 5000 })
+      await expect(page.locator('body')).not.toContainText('Internal Server Error', {
+        timeout: 5000,
+      });
+      await expect(page.locator('body')).not.toContainText('Application error', { timeout: 5000 });
     }
-  })
+  });
 
-  test('signed-out user attempting wallet-only action is redirected or shown auth prompt', async ({ page }) => {
-    await injectFreighterMock(page)
+  test('signed-out user attempting wallet-only action is redirected or shown auth prompt', async ({
+    page,
+  }) => {
+    await injectFreighterMock(page);
     // Try a page that typically requires auth + wallet
-    await page.goto(`${BASE}/en/dashboard`, { timeout: 15_000 })
+    await page.goto(`${BASE}/en/dashboard`, { timeout: 15_000 });
 
     // Should redirect to auth or show a prompt, not a 500
-    const url = page.url()
-    await expect(page.locator('body')).not.toContainText('Internal Server Error')
+    const url = page.url();
+    await expect(page.locator('body')).not.toContainText('Internal Server Error');
     const isAuthOrDashboard =
       url.includes('login') ||
       url.includes('auth') ||
       url.includes('dashboard') ||
-      url.includes('register')
-    expect(isAuthOrDashboard).toBe(true)
-  })
-})
+      url.includes('register');
+    expect(isAuthOrDashboard).toBe(true);
+  });
+});

@@ -5,9 +5,9 @@ name: DB Backups
 on:
   schedule:
     # Daily backup at 02:00 UTC
-    - cron: "0 2 * * *"
+    - cron: '0 2 * * *'
     # Weekly restore drill on Sunday at 03:00 UTC
-    - cron: "0 3 * * 0"
+    - cron: '0 3 * * 0'
   workflow_dispatch:
     inputs:
       job:
@@ -43,12 +43,12 @@ jobs:
           - 5432:5432
     env:
       DB_HOST: localhost
-      DB_PORT: "5432"
+      DB_PORT: '5432'
       DB_NAME: bluecollar
       DB_USER: bluecollar
       PGPASSWORD: ${{ secrets.DB_PASSWORD }}
       BACKUP_DIR: /tmp/backups
-      RETENTION_DAYS: "30"
+      RETENTION_DAYS: '30'
       GPG_PASSPHRASE: ${{ secrets.BACKUP_GPG_PASSPHRASE }}
       S3_BUCKET: ${{ secrets.BACKUP_S3_BUCKET }}
       AWS_REGION: ${{ secrets.AWS_REGION || 'us-east-1' }}
@@ -118,7 +118,7 @@ jobs:
           - 5432:5432
     env:
       DB_HOST: localhost
-      DB_PORT: "5432"
+      DB_PORT: '5432'
       DB_USER: bluecollar
       PGPASSWORD: ${{ secrets.DB_PASSWORD }}
       BACKUP_DIR: /tmp/backups

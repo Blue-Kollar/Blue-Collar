@@ -1,24 +1,24 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { Download, X } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useEffect, useState } from 'react';
+import { Download, X } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 }
 
 export default function InstallPrompt() {
-  const t = useTranslations("installPrompt");
+  const t = useTranslations('installPrompt');
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showPrompt, setShowPrompt] = useState(false);
   const [installed, setInstalled] = useState(false);
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (window.matchMedia("(display-mode: standalone)").matches) {
+    if (typeof window === 'undefined') return;
+    if (window.matchMedia('(display-mode: standalone)').matches) {
       setInstalled(true);
       return;
     }
@@ -29,21 +29,21 @@ export default function InstallPrompt() {
       setShowPrompt(true);
     };
 
-    window.addEventListener("beforeinstallprompt", handler);
+    window.addEventListener('beforeinstallprompt', handler);
 
-    window.addEventListener("appinstalled", () => {
+    window.addEventListener('appinstalled', () => {
       setInstalled(true);
       setShowPrompt(false);
     });
 
-    return () => window.removeEventListener("beforeinstallprompt", handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);
 
   const handleInstall = async () => {
     if (!deferredPrompt) return;
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === "accepted") {
+    if (outcome === 'accepted') {
       setInstalled(true);
     }
     setDeferredPrompt(null);
@@ -67,17 +67,13 @@ export default function InstallPrompt() {
           <Download size={20} className="text-blue-600 dark:text-blue-300" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-gray-900 dark:text-white">
-            {t("install")}
-          </p>
-          <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
-            {t("description")}
-          </p>
+          <p className="text-sm font-semibold text-gray-900 dark:text-white">{t('install')}</p>
+          <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">{t('description')}</p>
         </div>
         <button
           onClick={handleDismiss}
           className="flex shrink-0 items-center justify-center rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
-          aria-label={t("dismiss")}
+          aria-label={t('dismiss')}
         >
           <X size={16} />
         </button>
@@ -87,13 +83,13 @@ export default function InstallPrompt() {
           onClick={handleDismiss}
           className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800"
         >
-          {t("notNow")}
+          {t('notNow')}
         </button>
         <button
           onClick={handleInstall}
           className="flex-1 rounded-lg bg-blue-600 px-3 py-2 text-xs font-medium text-white hover:bg-blue-700"
         >
-          {t("install")}
+          {t('install')}
         </button>
       </div>
     </div>

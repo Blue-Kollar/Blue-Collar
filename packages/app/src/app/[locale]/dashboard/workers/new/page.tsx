@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
-import WorkerForm, { type WorkerFormInput } from "@/components/WorkerForm";
-import { useToast } from "@/hooks/useToast";
-import { createWorker } from "@/lib/api";
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
+import WorkerForm, { type WorkerFormInput } from '@/components/WorkerForm';
+import { useToast } from '@/hooks/useToast';
+import { createWorker } from '@/lib/api';
 
 export default function NewWorkerPage() {
   const router = useRouter();
@@ -18,15 +18,15 @@ export default function NewWorkerPage() {
     try {
       const form = new FormData();
       Object.entries(data).forEach(([k, v]) => {
-        if (v !== undefined && v !== "") form.append(k, v as string);
+        if (v !== undefined && v !== '') form.append(k, v as string);
       });
-      if (imageFile) form.append("avatar", imageFile);
+      if (imageFile) form.append('avatar', imageFile);
 
       await createWorker(form);
-      toast("Worker created successfully");
-      router.push("/dashboard");
+      toast('Worker created successfully');
+      router.push('/dashboard');
     } catch (err: unknown) {
-      toast(err instanceof Error ? err.message : "Failed to create worker", "error");
+      toast(err instanceof Error ? err.message : 'Failed to create worker', 'error');
     } finally {
       setIsSubmitting(false);
     }

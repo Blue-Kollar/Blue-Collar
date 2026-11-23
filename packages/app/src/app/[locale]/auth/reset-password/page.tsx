@@ -1,21 +1,21 @@
-"use client";
+'use client';
 
-import { Suspense, useState } from "react";
-import Link from "next/link";
-import { useSearchParams, useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, CheckCircle2, AlertCircle } from "lucide-react";
-import { resetPasswordSchema, type ResetPasswordInput, authApi } from "@/lib/auth";
-import FormField from "@/components/Form/FormField";
-import FormError from "@/components/Form/FormError";
-import PasswordStrength from "@/components/PasswordStrength";
-import { cn } from "@/lib/utils";
+import { Suspense, useState } from 'react';
+import Link from 'next/link';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { resetPasswordSchema, type ResetPasswordInput, authApi } from '@/lib/auth';
+import FormField from '@/components/Form/FormField';
+import FormError from '@/components/Form/FormError';
+import PasswordStrength from '@/components/PasswordStrength';
+import { cn } from '@/lib/utils';
 
 function ResetPasswordForm() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const token = searchParams.get("token");
+  const token = searchParams.get('token');
   const [apiError, setApiError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
@@ -26,14 +26,13 @@ function ResetPasswordForm() {
     formState: { errors, isSubmitting, touchedFields, dirtyFields },
   } = useForm<ResetPasswordInput>({
     resolver: zodResolver(resetPasswordSchema),
-    mode: "onChange",
+    mode: 'onChange',
   });
 
-  const passwordValue = watch("password") ?? "";
-  const confirmValue = watch("confirmPassword") ?? "";
+  const passwordValue = watch('password') ?? '';
+  const confirmValue = watch('confirmPassword') ?? '';
 
-  const isValid = (field: keyof ResetPasswordInput) =>
-    dirtyFields[field] && !errors[field];
+  const isValid = (field: keyof ResetPasswordInput) => dirtyFields[field] && !errors[field];
 
   const onSubmit = async (data: ResetPasswordInput) => {
     if (!token) return;
@@ -41,17 +40,17 @@ function ResetPasswordForm() {
     try {
       await authApi.resetPassword(token, data.password);
       setSuccess(true);
-      setTimeout(() => router.push("/auth/login"), 2500);
+      setTimeout(() => router.push('/auth/login'), 2500);
     } catch (err: unknown) {
-      setApiError(err instanceof Error ? err.message : "Something went wrong");
+      setApiError(err instanceof Error ? err.message : 'Something went wrong');
     }
   };
 
   const inputClass = (hasError?: boolean, valid?: boolean) =>
     cn(
-      "w-full rounded-lg border px-3 py-2.5 pr-9 text-sm outline-none focus:ring-2 focus:ring-blue-500 transition-colors",
-      hasError && "border-red-400 focus:ring-red-300",
-      valid && !hasError && "border-green-400 focus:ring-green-300"
+      'w-full rounded-lg border px-3 py-2.5 pr-9 text-sm outline-none focus:ring-2 focus:ring-blue-500 transition-colors',
+      hasError && 'border-red-400 focus:ring-red-300',
+      valid && !hasError && 'border-green-400 focus:ring-green-300',
     );
 
   if (!token) {
@@ -97,15 +96,13 @@ function ResetPasswordForm() {
             </div>
 
             <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4" noValidate>
-              {apiError && (
-                <FormError message={apiError} />
-              )}
+              {apiError && <FormError message={apiError} />}
 
               <FormField
                 label="New password"
                 id="password"
                 error={touchedFields.password ? errors.password?.message : undefined}
-                isValid={isValid("password")}
+                isValid={isValid('password')}
                 hint="At least 8 characters — mix uppercase, numbers and symbols"
               >
                 <input
@@ -113,10 +110,10 @@ function ResetPasswordForm() {
                   type="password"
                   autoComplete="new-password"
                   placeholder="Min. 8 characters"
-                  {...register("password")}
+                  {...register('password')}
                   className={inputClass(
                     touchedFields.password && !!errors.password,
-                    isValid("password")
+                    isValid('password'),
                   )}
                 />
                 <PasswordStrength password={passwordValue} />
@@ -127,9 +124,7 @@ function ResetPasswordForm() {
                 id="confirmPassword"
                 error={touchedFields.confirmPassword ? errors.confirmPassword?.message : undefined}
                 isValid={
-                  !!confirmValue &&
-                  !errors.confirmPassword &&
-                  confirmValue === passwordValue
+                  !!confirmValue && !errors.confirmPassword && confirmValue === passwordValue
                 }
               >
                 <input
@@ -137,10 +132,10 @@ function ResetPasswordForm() {
                   type="password"
                   autoComplete="new-password"
                   placeholder="••••••••"
-                  {...register("confirmPassword")}
+                  {...register('confirmPassword')}
                   className={inputClass(
                     touchedFields.confirmPassword && !!errors.confirmPassword,
-                    !!confirmValue && !errors.confirmPassword && confirmValue === passwordValue
+                    !!confirmValue && !errors.confirmPassword && confirmValue === passwordValue,
                   )}
                 />
               </FormField>
