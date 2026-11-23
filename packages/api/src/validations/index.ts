@@ -1,11 +1,16 @@
 /**
  * Central export for all validation schemas.
  *
- * Shared schemas now live in `@bluecollar/types` so the frontend and API
- * validate against a single source of truth. This module re-exports the
- * shared rules under their existing `*Rules` names so route imports do not
- * change, and keeps API-specific concerns (sanitised free-text fields,
- * push-subscription rules, etc.) local.
+ * Issue #1894 — Barrel export cleanup:
+ * This barrel intentionally re-exports shared Zod schemas from
+ * `@bluecollar/types` under their `*Rules` route aliases so that:
+ *   1. Route handlers import from one stable path (`@/validations/index.js`)
+ *   2. The types package remains the single source of truth for schema logic
+ *   3. Direct deep imports into `@bluecollar/types` internals are avoided
+ *
+ * When adding new shared schemas, add them to `@bluecollar/types/validations`
+ * first, then re-export the alias here. API-only schemas (sanitisation, push
+ * subscriptions) stay in their own files and are exported directly below.
  *
  * Usage:
  *   import { loginRules, createWorkerRules } from '@/validations/index.js'
@@ -13,48 +18,72 @@
  */
 
 // ---------------------------------------------------------------------------
-// Shared schemas (single source of truth in @bluecollar/types)
+// Shared schemas — aliased from @bluecollar/types (single source of truth)
+// The *Schema names from @bluecollar/types are re-exported as *Rules so that
+// route files do not need to change when schemas are refactored.
 // ---------------------------------------------------------------------------
 export {
-  // shared
-  idRules,
-  paginationRules,
-  emailRules,
-  phoneRules,
-  passwordRules,
+  // primitives
+  emailField as emailRules,
+  passwordField as passwordRules,
+  phoneField as phoneRules,
   // auth
-  loginRules,
-  registerRules,
-  refreshTokenRules,
-  forgotPasswordRules,
-  resetPasswordRules,
-  changePasswordRules,
+  loginSchema as loginRules,
+  registerSchema as registerRules,
+  forgotPasswordSchema as forgotPasswordRules,
+  resetPasswordSchema as resetPasswordRules,
+  verifyAccountSchema as verifyAccountRules,
+  resendVerificationSchema as resendVerificationRules,
+  changePasswordSchema as changePasswordRules,
   // user
-  updateProfileRules,
-  updateUserRules,
-  createUserRules,
+  updateProfileSchema as updateProfileRules,
   // booking
-  createBookingRules,
-  updateBookingRules,
-  bookingStatusRules,
+  createBookingSchema as createBookingRules,
+  listBookingsSchema as updateBookingRules,
+  updateBookingStatusSchema as bookingStatusRules,
   // job
-  createJobRules,
-  updateJobRules,
-  jobStatusRules,
-  // payment
-  createPaymentRules,
-  updatePaymentRules,
-  refundRules,
+  createJobSchema as createJobRules,
+  updateJobSchema as updateJobRules,
+  listJobsSchema as jobStatusRules,
   // wallet
-  walletTopUpRules,
-  walletWithdrawRules,
-  walletTransferRules,
+  linkWalletSchema as linkWalletRules,
+  buildTransactionSchema as buildTxRules,
+  broadcastTransactionSchema as broadcastRules,
+  fundWalletSchema as fundTestnetRules,
   // device
-  registerDeviceRules,
-  updateDeviceRules,
+  revokeDeviceSchema as revokeDeviceRules,
   // admin
-  adminLoginRules,
-  adminUserRules,
+  adminBulkActionSchema as adminUserRules,
+} from '@bluecollar/types'
+
+// Also export the schema names directly for callers that prefer the canonical names
+export {
+  loginSchema,
+  registerSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
+  verifyAccountSchema,
+  resendVerificationSchema,
+  changePasswordSchema,
+  updateProfileSchema,
+  createWorkerSchema as createWorkerRules,
+  updateWorkerSchema as updateWorkerRules,
+  createReviewSchema as createReviewRules,
+  createBookingSchema,
+  updateBookingStatusSchema,
+  createJobSchema,
+  updateJobSchema,
+  listJobsSchema,
+  applyToJobSchema,
+  updateApplicationStatusSchema,
+  linkWalletSchema,
+  buildTransactionSchema,
+  broadcastTransactionSchema,
+  fundWalletSchema,
+  revokeDeviceSchema,
+  adminBulkActionSchema,
+  tipPaymentSchema,
+  escrowPaymentSchema,
 } from '@bluecollar/types'
 
 // ---------------------------------------------------------------------------
