@@ -35,6 +35,9 @@ module.exports = {
     ...filenameRules,
     // React Native uses console for debugging; relax for dev ergonomics.
     'no-console': ['warn', { allow: ['warn', 'error'] }],
+
+    // ── Consistent type definitions (#1895) ────────────────────────────────
+    '@typescript-eslint/consistent-type-definitions': ['error', 'interface'],
   },
   overrides: [
     {
