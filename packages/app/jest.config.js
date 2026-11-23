@@ -26,9 +26,17 @@ module.exports = {
     '!src/**/index.{ts,tsx,js,jsx}',
     '!src/test-setup.ts',
   ],
+  // ── Coverage thresholds (issue #1867) ────────────────────────────────────
+  // Enforce 85% coverage across lines, functions, and statements. Branches
+  // are set at 80% to accommodate conditional rendering in React components
+  // (loading/error/empty states) that are tested indirectly through component
+  // integration but not as isolated unit-test branches.
   coverageThreshold: {
     global: {
       lines: 85,
+      functions: 85,
+      statements: 85,
+      branches: 80,
     },
   },
 };

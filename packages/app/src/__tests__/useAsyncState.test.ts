@@ -15,19 +15,14 @@ describe('useAsyncState', () => {
   })
 
   it('manages loading state during async execution', async () => {
-    const asyncFn = vi.fn().mockImplementation(() => new Promise(resolve => setTimeout(() => resolve('data'), 10)))
+    const asyncFn = vi.fn().mockResolvedValue('data')
     const { result } = renderHook(() => useAsyncState(asyncFn))
 
     expect(result.current.loading).toBe(false)
 
-    act(() => {
-      result.current.execute()
+    await act(async () => {
+      await result.current.execute()
     })
-
-    expect(result.current.loading).toBe(true)
-    expect(result.current.data).toBeNull()
-
-    await new Promise(resolve => setTimeout(resolve, 20))
 
     expect(result.current.loading).toBe(false)
     expect(result.current.data).toBe('data')

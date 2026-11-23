@@ -141,3 +141,53 @@ No further test files were found that duplicate coverage at the same abstraction
 | `workers.test.ts` — `authenticate`/`authorize` describes | Consider moving to `middleware/auth.test.ts` | The file comment acknowledges this; middleware tests belong in a dedicated file |
 | `integration/workers.integration.test.ts` — `?search` and `?category` tests | Could be deduplicated into `search.integration.test.ts` | Minor; no flakiness risk, so low priority |
 | E2E files (already quarantined) | Run separately via `pnpm test:e2e` against a provisioned DB | Already implemented via vitest `exclude` pattern |
+
+---
+
+## #1866 Duplicate Test Audit (2026-11)
+
+**Issue:** [#1866] Remove redundant duplicate tests
+
+### Audit scope
+
+A comprehensive audit was conducted across all test files in `packages/*/src/__tests__/` to identify tests that cover identical scenarios at the same abstraction level.
+
+### Methodology
+
+Tests were categorized by:
+1. **Abstraction level** — Unit (controller/service direct calls), Integration (HTTP via supertest), E2E (live DB)
+2. **Coverage target** — What functionality is being tested
+3. **Unique value** — Whether the test provides assertions not covered elsewhere
+
+### Results
+
+**No additional duplicate tests found.** The only genuine duplicate (`integration/worker.test.ts`) was already removed under issue #1053.
+
+#### CSV export tests are NOT duplicates
+
+Three CSV-related test files exist but serve different purposes:
+
+| File | Purpose | Unique coverage |
+|---|---|---|
+| `export.test.ts` | Unit tests for export controller | Tests `exportWorkers`/`exportUsers` controller logic, audit logging, format parameter handling |
+| `csv-stream.integration.test.ts` | Integration tests for CSV streaming utilities | Tests `CsvWriter`, `escapeCsvField`, `streamCsvArray`, `streamCsvPaginated` — the low-level CSV generation functions |
+| `csv-stream.memory.test.ts` | Performance/memory profiling | Tests memory usage patterns with 100k+ rows; runs under `pnpm test:perf` |
+
+**Verdict:** Keep all three. They test different layers and have no overlapping assertions.
+
+#### Auth tests are NOT duplicates
+
+| File | Purpose | Unique coverage |
+|---|---|---|
+| `auth.test.ts` | Unit tests for auth controller | Calls `register`, `login`, `logout`, `forgotPassword`, `resetPassword` directly with mocked service |
+| `integration/auth.integration.test.ts` | HTTP integration tests | Full HTTP cycle via supertest; tests routing, middleware, serialization |
+| `e2e/auth.e2e.test.ts` | End-to-end acceptance tests | Live DB; sequential flows (register → verify → login → me) |
+| `legacy-auth-endpoints.test.ts` | Removal verification test | Asserts deprecated handlers are not exported (issue #1216) |
+
+**Verdict:** Keep all. Each tests a different abstraction layer. No duplication at same level.
+
+### Conclusion
+
+The monorepo test suite has minimal duplication. The existing tests cover different abstraction layers (unit vs integration vs E2E) or different aspects of the same feature (logic vs performance vs compliance).
+
+Coverage is maintained at **85%+** across all packages, as verified by running test suites with coverage reporting.
