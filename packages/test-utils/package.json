@@ -11,7 +11,9 @@
     "./react": "./src/react/index.ts",
     "./express": "./src/express/index.ts",
     "./contract-fixtures": "./src/contract-fixtures.ts",
-    "./stellar-mocks": "./src/stellar-mocks.ts"
+    "./stellar-mocks": "./src/stellar-mocks.ts",
+    "./stellar-sdk-mock": "./src/stellar-sdk-mock.ts",
+    "./db-fixtures": "./src/db-fixtures.ts"
   },
   "scripts": {
     "type-check": "tsc --noEmit",

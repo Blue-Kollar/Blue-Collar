@@ -10,6 +10,7 @@ import { logger } from '@/config/logger.js'
 import { transporter } from '@/mailer/transport.js'
 import type { EmailJobData } from '@/queue/index.js'
 import { registerGracefulShutdown } from '@/utils/gracefulShutdown.js'
+import { escapeHtml } from '@/utils/sanitize.js'
 
 const connection = { host: redis.options.host ?? 'localhost', port: redis.options.port ?? 6379 }
 
@@ -20,11 +21,12 @@ export const emailWorker = new Worker<EmailJobData>(
 
     logger.info({ jobId: job.id, to, templateName }, 'Processing email job')
 
+    const body = String(context.message ?? subject)
     await transporter.sendMail({
       to,
       subject,
-      html: `<p>${context.message ?? subject}</p>`,
-      text: String(context.message ?? subject),
+      html: `<p>${escapeHtml(body)}</p>`,
+      text: body,
     })
 
     logger.info({ jobId: job.id, to }, 'Email sent successfully')

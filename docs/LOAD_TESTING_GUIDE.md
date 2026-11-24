@@ -2,6 +2,8 @@
 
 This guide covers setting up load testing with k6 to ensure application scalability and identify performance bottlenecks for the BlueCollar API. The implementation lives in `packages/api/load/` with CI workflows in `.github/workflows/`.
 
+> **Canonical API baseline (#1877):** use [`deploy/load-tests/api-baseline.k6.js`](../deploy/load-tests/api-baseline.k6.js) with the threshold/capacity definition, run commands and baseline-recording procedure in [LOAD_TESTING.md](LOAD_TESTING.md#canonical-api-baseline-1877). The `packages/api/load/` scripts described below are a separate legacy suite; `deploy/load-tests/` holds the maintained, runnable scripts.
+
 ## Architecture
 
 ```

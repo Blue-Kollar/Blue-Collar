@@ -13,11 +13,11 @@ import React from 'react'
 import { render } from '@testing-library/react-native'
 
 // Mock the NetworkMonitor hook so we control banner state precisely
-jest.mock('../NetworkMonitor', () => ({
+jest.mock('../network-monitor', () => ({
   useNetworkMonitor: jest.fn(),
 }))
 
-const { useNetworkMonitor } = require('../NetworkMonitor')
+const { useNetworkMonitor } = require('../network-monitor')
 
 type BannerState = {
   isOffline: boolean

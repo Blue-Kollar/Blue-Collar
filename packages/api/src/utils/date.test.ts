@@ -1,10 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import {
-  parseUtcDate,
-  formatUtcIso,
-  addUtcMs,
-  nowUtc,
-} from './date';
+import { describe, it, expect, vi, afterEach } from 'vitest';
+import { parseUtcDate, formatUtcIso, addUtcMs, nowUtc } from './date';
 
 describe('parseUtcDate', () => {
   it('treats timezone-less ISO input as UTC', () => {
@@ -84,22 +79,35 @@ describe('addUtcMs', () => {
   });
 
   it('accepts a string or epoch as the base', () => {
-    expect(addUtcMs('2024-01-01T00:00:00', 1000).toISOString()).toBe(
-      '2024-01-01T00:00:01.000Z',
-    );
-    expect(addUtcMs(1704067200000, 1000).toISOString()).toBe(
-      '2024-01-01T00:00:01.000Z',
-    );
+    expect(addUtcMs('2024-01-01T00:00:00', 1000).toISOString()).toBe('2024-01-01T00:00:01.000Z');
+    expect(addUtcMs(1704067200000, 1000).toISOString()).toBe('2024-01-01T00:00:01.000Z');
   });
 });
 
 describe('nowUtc', () => {
-  it('returns a Date close to Date.now()', () => {
-    const before = Date.now();
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('returns a Date equal to the faked system time', () => {
+    const fixed = new Date('2026-01-15T12:00:00.000Z');
+    vi.useFakeTimers();
+    vi.setSystemTime(fixed);
+
     const now = nowUtc();
-    const after = Date.now();
+
     expect(now).toBeInstanceOf(Date);
-    expect(now.getTime()).toBeGreaterThanOrEqual(before);
-    expect(now.getTime()).toBeLessThanOrEqual(after);
+    expect(now.getTime()).toBe(fixed.getTime());
+    expect(now.getTime()).toBe(Date.now());
+  });
+
+  it('follows the clock when fake time is advanced', () => {
+    const fixed = new Date('2026-01-15T12:00:00.000Z');
+    vi.useFakeTimers();
+    vi.setSystemTime(fixed);
+
+    vi.advanceTimersByTime(5_000);
+
+    expect(nowUtc().getTime()).toBe(fixed.getTime() + 5_000);
   });
 });

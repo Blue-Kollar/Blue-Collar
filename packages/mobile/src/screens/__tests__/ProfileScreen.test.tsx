@@ -16,18 +16,18 @@ import { Alert } from 'react-native'
 import { render, fireEvent, waitFor, act } from '@testing-library/react-native'
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
-jest.mock('../../../context/AuthContext', () => ({
+jest.mock('@/context/AuthContext', () => ({
   useAuth: jest.fn(),
 }))
 
-jest.mock('../../../lib/api', () => ({
+jest.mock('@/lib/api', () => ({
   userApi: {
     updateProfile: jest.fn(),
   },
 }))
 
-const { useAuth } = require('../../../context/AuthContext')
-const { userApi } = require('../../../lib/api')
+const { useAuth } = require('@/context/AuthContext')
+const { userApi } = require('@/lib/api')
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 const defaultUser = {
