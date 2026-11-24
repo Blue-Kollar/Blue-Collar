@@ -162,7 +162,9 @@ describe('SDK ↔ API contract: Category', () => {
       id: expect.any(String),
       name: expect.any(String),
     });
-    expect(typeof serialized.description === 'string' || serialized.description === null).toBe(true);
+    expect(typeof serialized.description === 'string' || serialized.description === null).toBe(
+      true,
+    );
     expect(typeof serialized.icon === 'string' || serialized.icon === null).toBe(true);
   });
 
@@ -266,8 +268,8 @@ describe('SDK ↔ API contract: Worker', () => {
     // Verify portfolioImages is NOT present
     expect(serialized).not.toHaveProperty('portfolioImages');
 
-    // Type check will fail here because serialized shape !== Worker:
-    // assertAssignableTo<Worker>(serialized); // ❌ Intentionally commented out
+    // Type check would fail here because the serialized shape !== Worker;
+    // see the KNOWN DRIFT note above until the shared type is reconciled.
   });
 
   it('includes core Worker fields', () => {

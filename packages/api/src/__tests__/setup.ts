@@ -4,7 +4,8 @@ import { db } from '../db.js';
 // Set test environment variables
 process.env.NODE_ENV = 'test';
 process.env.JWT_SECRET = 'test-jwt-secret-key-for-testing';
-process.env.DATABASE_URL = process.env.DATABASE_URL || 'postgresql://localhost:5432/bluecollar_test';
+process.env.DATABASE_URL =
+  process.env.DATABASE_URL || 'postgresql://localhost:5432/bluecollar_test';
 process.env.REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379/1';
 process.env.APP_URL = 'http://localhost:3000';
 process.env.GOOGLE_CLIENT_ID ||= 'test-google-client-id';
@@ -20,7 +21,7 @@ process.env.MAIL_PASS ||= 'test-mail-password';
 // connection error instead of silently hitting the live testnet.
 //
 // Individual tests that need real-looking Horizon responses must install
-// MockStellarRpcServer (packages/api/src/clients/mockStellarRpcServer.ts)
+// MockStellarRpcServer (packages/api/src/clients/mock-stellar-rpc-server.ts)
 // or vi.stubGlobal('fetch', ...) themselves — the guard does not block those.
 if (!process.env.HORIZON_URL) {
   process.env.HORIZON_URL = 'http://127.0.0.1:0'; // port 0 is always refused

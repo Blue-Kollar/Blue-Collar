@@ -8,7 +8,7 @@
  */
 
 import { AppError, ErrorCode } from '@/utils/app-error.js';
-import { CircuitBreaker } from './circuitBreaker.js';
+import { CircuitBreaker } from './circuit-breaker.js';
 import { config } from '@/config/config.js';
 
 const HORIZON_URL = config.stellar.horizonUrl;

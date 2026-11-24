@@ -1,5 +1,9 @@
-export type { NotificationChannel, NotificationMessage, DeliveryResult } from './NotificationChannel.js'
-export { EmailChannel, emailChannel } from './EmailChannel.js'
-export { PushChannel, pushChannel } from './PushChannel.js'
-export { InAppChannel, inAppChannel } from './InAppChannel.js'
-export { ChannelRegistry, defaultChannelRegistry } from './ChannelRegistry.js'
+export type {
+  NotificationChannel,
+  NotificationMessage,
+  DeliveryResult,
+} from './notification-channel.js';
+export { EmailChannel, emailChannel } from './email-channel.js';
+export { PushChannel, pushChannel } from './push-channel.js';
+export { InAppChannel, inAppChannel } from './in-app-channel.js';
+export { ChannelRegistry, defaultChannelRegistry } from './channel-registry.js';

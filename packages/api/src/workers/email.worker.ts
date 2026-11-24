@@ -4,47 +4,47 @@
  * Processes jobs from the email queue with retry/backoff and DLQ.
  */
 
-import { Worker, type Job } from 'bullmq'
-import { redis } from '@/config/redis.js'
-import { logger } from '@/config/logger.js'
-import { transporter } from '@/mailer/transport.js'
-import type { EmailJobData } from '@/queue/index.js'
-import { registerGracefulShutdown } from '@/utils/gracefulShutdown.js'
+import { Worker, type Job } from 'bullmq';
+import { redis } from '@/config/redis.js';
+import { logger } from '@/config/logger.js';
+import { transporter } from '@/mailer/transport.js';
+import type { EmailJobData } from '@/queue/index.js';
+import { registerGracefulShutdown } from '@/utils/graceful-shutdown.js';
 
-const connection = { host: redis.options.host ?? 'localhost', port: redis.options.port ?? 6379 }
+const connection = { host: redis.options.host ?? 'localhost', port: redis.options.port ?? 6379 };
 
 export const emailWorker = new Worker<EmailJobData>(
   'email',
   async (job: Job<EmailJobData>) => {
-    const { to, subject, templateName, context } = job.data
+    const { to, subject, templateName, context } = job.data;
 
-    logger.info({ jobId: job.id, to, templateName }, 'Processing email job')
+    logger.info({ jobId: job.id, to, templateName }, 'Processing email job');
 
     await transporter.sendMail({
       to,
       subject,
       html: `<p>${context.message ?? subject}</p>`,
       text: String(context.message ?? subject),
-    })
+    });
 
-    logger.info({ jobId: job.id, to }, 'Email sent successfully')
+    logger.info({ jobId: job.id, to }, 'Email sent successfully');
   },
   {
     connection,
     concurrency: 5,
   },
-)
+);
 
 emailWorker.on('completed', (job) => {
-  logger.debug({ jobId: job.id }, 'Email job completed')
-})
+  logger.debug({ jobId: job.id }, 'Email job completed');
+});
 
 emailWorker.on('failed', (job, err) => {
-  logger.error({ jobId: job?.id, err, attempts: job?.attemptsMade }, 'Email job failed')
-})
+  logger.error({ jobId: job?.id, err, attempts: job?.attemptsMade }, 'Email job failed');
+});
 
 emailWorker.on('error', (err) => {
-  logger.error({ err }, 'Email worker error')
-})
+  logger.error({ err }, 'Email worker error');
+});
 
-registerGracefulShutdown(emailWorker, 'email-worker')
+registerGracefulShutdown(emailWorker, 'email-worker');

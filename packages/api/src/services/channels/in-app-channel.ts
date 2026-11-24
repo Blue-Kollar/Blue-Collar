@@ -1,8 +1,12 @@
-import type { NotificationChannel, NotificationMessage, DeliveryResult } from './NotificationChannel.js'
-import { notificationRepository } from '@/repositories/notification.repository.js'
-import { logger } from '@/config/logger.js'
-import { nowUtc } from '@/utils/date.js'
-import type { NotificationType } from '@prisma/client'
+import type {
+  NotificationChannel,
+  NotificationMessage,
+  DeliveryResult,
+} from './notification-channel.js';
+import { notificationRepository } from '@/repositories/notification.repository.js';
+import { logger } from '@/config/logger.js';
+import { nowUtc } from '@/utils/date.js';
+import type { NotificationType } from '@prisma/client';
 
 /**
  * In-app notification channel adapter.
@@ -10,14 +14,14 @@ import type { NotificationType } from '@prisma/client'
  * Always sends (no preference gating) as in-app is the core delivery mechanism.
  */
 export class InAppChannel implements NotificationChannel {
-  readonly name = 'inapp'
+  readonly name = 'inapp';
 
   /**
    * In-app notifications always send regardless of preferences.
    * This ensures users have a record of all notifications in their center.
    */
   shouldSend(): boolean {
-    return true
+    return true;
   }
 
   /**
@@ -29,7 +33,7 @@ export class InAppChannel implements NotificationChannel {
       channel: this.name,
       status: 'failed',
       sentAt: nowUtc(),
-    }
+    };
 
     try {
       await notificationRepository.createNotification({
@@ -38,20 +42,16 @@ export class InAppChannel implements NotificationChannel {
         title: message.title,
         message: message.message,
         href: message.href,
-      })
+      });
 
-      result.status = 'sent'
+      result.status = 'sent';
     } catch (error) {
-      logger.error(
-        { error, userId: message.userId },
-        'In-app notification creation failed'
-      )
-      result.error =
-        error instanceof Error ? error.message : 'Unknown error'
+      logger.error({ error, userId: message.userId }, 'In-app notification creation failed');
+      result.error = error instanceof Error ? error.message : 'Unknown error';
     }
 
-    return result
+    return result;
   }
 }
 
-export const inAppChannel = new InAppChannel()
+export const inAppChannel = new InAppChannel();

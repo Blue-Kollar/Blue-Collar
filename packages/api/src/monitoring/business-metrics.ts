@@ -14,10 +14,10 @@ import {
   recordReview,
   recordContractRegistration,
   recordContractTransaction,
-} from '@/middleware/metrics.js'
-import { db } from '@/db.js'
-import { logger } from '@/config/logger.js'
-import { getErrorMessage } from '@/utils/getErrorMessage.js'
+} from '@/middleware/metrics.js';
+import { db } from '@/db.js';
+import { logger } from '@/config/logger.js';
+import { getErrorMessage } from '@/utils/get-error-message.js';
 
 class BusinessMetricsRecorder {
   /**
@@ -27,10 +27,10 @@ class BusinessMetricsRecorder {
     try {
       const activeCount = await db.worker.count({
         where: { isActive: true },
-      })
-      setActiveWorkers(activeCount)
+      });
+      setActiveWorkers(activeCount);
     } catch (err) {
-      logger.error(`Failed to sync worker metrics: ${getErrorMessage(err)}`)
+      logger.error(`Failed to sync worker metrics: ${getErrorMessage(err)}`);
     }
   }
 
@@ -39,30 +39,30 @@ class BusinessMetricsRecorder {
    */
   async syncUserMetrics() {
     try {
-      const totalCount = await db.user.count()
+      const totalCount = await db.user.count();
       const verifiedCount = await db.user.count({
         where: { verified: true },
-      })
+      });
 
-      setUsersTotal(totalCount, 'all')
-      setUsersVerified(verifiedCount, 'all')
+      setUsersTotal(totalCount, 'all');
+      setUsersVerified(verifiedCount, 'all');
 
       // By role
       const roleStats = await db.user.groupBy({
         by: ['role'],
         _count: true,
-      })
+      });
 
       for (const stat of roleStats) {
-        setUsersTotal(stat._count, stat.role)
+        setUsersTotal(stat._count, stat.role);
 
         const verifiedByRole = await db.user.count({
           where: { role: stat.role, verified: true },
-        })
-        setUsersVerified(verifiedByRole, stat.role)
+        });
+        setUsersVerified(verifiedByRole, stat.role);
       }
     } catch (err) {
-      logger.error(`Failed to sync user metrics: ${getErrorMessage(err)}`)
+      logger.error(`Failed to sync user metrics: ${getErrorMessage(err)}`);
     }
   }
 
@@ -71,9 +71,9 @@ class BusinessMetricsRecorder {
    */
   recordWorkerCreated(category: string) {
     try {
-      recordWorkerRegistration(category, 'success')
+      recordWorkerRegistration(category, 'success');
     } catch (err) {
-      logger.error(`Failed to record worker registration: ${getErrorMessage(err)}`)
+      logger.error(`Failed to record worker registration: ${getErrorMessage(err)}`);
     }
   }
 
@@ -82,9 +82,9 @@ class BusinessMetricsRecorder {
    */
   recordPayment(amount: number, currency: string = 'XLM', usdValue: number = 0) {
     try {
-      recordTip(amount, currency, usdValue)
+      recordTip(amount, currency, usdValue);
     } catch (err) {
-      logger.error(`Failed to record payment metric: ${getErrorMessage(err)}`)
+      logger.error(`Failed to record payment metric: ${getErrorMessage(err)}`);
     }
   }
 
@@ -93,9 +93,9 @@ class BusinessMetricsRecorder {
    */
   recordReviewCreated(rating: number, category: string = 'all') {
     try {
-      recordReview(rating, category)
+      recordReview(rating, category);
     } catch (err) {
-      logger.error(`Failed to record review metric: ${getErrorMessage(err)}`)
+      logger.error(`Failed to record review metric: ${getErrorMessage(err)}`);
     }
   }
 
@@ -104,9 +104,9 @@ class BusinessMetricsRecorder {
    */
   recordContractRegistrationAttempt(success: boolean) {
     try {
-      recordContractRegistration(success ? 'success' : 'failure')
+      recordContractRegistration(success ? 'success' : 'failure');
     } catch (err) {
-      logger.error(`Failed to record contract registration metric: ${getErrorMessage(err)}`)
+      logger.error(`Failed to record contract registration metric: ${getErrorMessage(err)}`);
     }
   }
 
@@ -115,9 +115,9 @@ class BusinessMetricsRecorder {
    */
   recordContractTx(type: string, success: boolean, gasUsed?: number) {
     try {
-      recordContractTransaction(type, success ? 'success' : 'failure', gasUsed)
+      recordContractTransaction(type, success ? 'success' : 'failure', gasUsed);
     } catch (err) {
-      logger.error(`Failed to record contract transaction metric: ${getErrorMessage(err)}`)
+      logger.error(`Failed to record contract transaction metric: ${getErrorMessage(err)}`);
     }
   }
 
@@ -126,11 +126,14 @@ class BusinessMetricsRecorder {
    * Run every 5 minutes to keep metrics fresh
    */
   startPeriodicSync() {
-    setInterval(() => {
-      this.syncWorkerMetrics()
-      this.syncUserMetrics()
-    }, 5 * 60 * 1000) // 5 minutes
+    setInterval(
+      () => {
+        this.syncWorkerMetrics();
+        this.syncUserMetrics();
+      },
+      5 * 60 * 1000,
+    ); // 5 minutes
   }
 }
 
-export const metricsRecorder = new BusinessMetricsRecorder()
+export const metricsRecorder = new BusinessMetricsRecorder();

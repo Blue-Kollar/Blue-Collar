@@ -6,11 +6,11 @@
  * implementation and one configuration source.
  */
 
-import { createRateLimiter } from './rateLimit.js'
-import { CONTACT, GENERAL_API } from '@/config/rateLimits.js'
+import { createRateLimiter } from './rate-limit.js';
+import { CONTACT, GENERAL_API } from '@/config/rate-limits.js';
 
 /** Contact request limiter: 5/hour for authenticated users, 1/hour anon. */
-export const contactRateLimit = createRateLimiter(CONTACT)
+export const contactRateLimit = createRateLimiter(CONTACT);
 
 /** General API limiter: 200/15min for authenticated users, 60/15min anon. */
-export const generalRateLimit = createRateLimiter(GENERAL_API)
+export const generalRateLimit = createRateLimiter(GENERAL_API);

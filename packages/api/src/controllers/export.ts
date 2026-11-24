@@ -9,33 +9,42 @@
  *
  * Issue #1641: CSV exports now stream without buffering to handle large datasets.
  */
-import type { Request, Response } from 'express'
-import { db } from '@/db.js'
-import { log } from '@/services/audit.service.js'
-import { catchAsync } from '@/utils/catchAsync.js'
-import { CsvWriter } from '@/utils/csv-writer.js'
+import type { Request, Response } from 'express';
+import { db } from '@/db.js';
+import { log } from '@/services/audit.service.js';
+import { catchAsync } from '@/utils/catch-async.js';
+import { CsvWriter } from '@/utils/csv-writer.js';
 
 export const exportWorkers = catchAsync(async (req: Request, res: Response) => {
-  const format = (req.query.format as string) === 'csv' ? 'csv' : 'json'
+  const format = (req.query.format as string) === 'csv' ? 'csv' : 'json';
 
   log({
     userId: req.user?.id,
     action: 'admin.export',
     resource: 'Worker',
     meta: { format, ip: req.ip },
-  }).catch(() => {})
+  }).catch(() => {});
 
   if (format === 'csv') {
     // Stream CSV without buffering
-    const writer = new CsvWriter(res, 'workers.csv')
-    writer.initialize()
+    const writer = new CsvWriter(res, 'workers.csv');
+    writer.initialize();
 
-    const headers = ['ID', 'Name', 'Email', 'Phone', 'Active', 'Verified', 'Category', 'Created At']
-    await writer.writeHeader(headers)
+    const headers = [
+      'ID',
+      'Name',
+      'Email',
+      'Phone',
+      'Active',
+      'Verified',
+      'Category',
+      'Created At',
+    ];
+    await writer.writeHeader(headers);
 
-    const pageSize = 1000
-    let skip = 0
-    let hasMore = true
+    const pageSize = 1000;
+    let skip = 0;
+    let hasMore = true;
 
     while (hasMore) {
       const workers = await db.worker.findMany({
@@ -53,11 +62,11 @@ export const exportWorkers = catchAsync(async (req: Request, res: Response) => {
         orderBy: { createdAt: 'desc' },
         skip,
         take: pageSize,
-      })
+      });
 
       if (workers.length === 0) {
-        hasMore = false
-        break
+        hasMore = false;
+        break;
       }
 
       for (const w of workers) {
@@ -70,18 +79,18 @@ export const exportWorkers = catchAsync(async (req: Request, res: Response) => {
           w.isVerified,
           w.category.name,
           w.createdAt.toISOString(),
-        ])
+        ]);
       }
 
       if (workers.length < pageSize) {
-        hasMore = false
+        hasMore = false;
       } else {
-        skip += pageSize
+        skip += pageSize;
       }
     }
 
-    await writer.end()
-    return
+    await writer.end();
+    return;
   }
 
   // JSON format: still buffer all data
@@ -98,7 +107,7 @@ export const exportWorkers = catchAsync(async (req: Request, res: Response) => {
       createdAt: true,
     },
     orderBy: { createdAt: 'desc' },
-  })
+  });
 
   const rows = workers.map((w) => ({
     id: w.id,
@@ -109,34 +118,34 @@ export const exportWorkers = catchAsync(async (req: Request, res: Response) => {
     isVerified: w.isVerified,
     category: w.category.name,
     createdAt: w.createdAt.toISOString(),
-  }))
+  }));
 
-  res.setHeader('Content-Type', 'application/json')
-  res.setHeader('Content-Disposition', 'attachment; filename="workers.json"')
-  return res.json({ status: 'success', code: 200, data: rows, meta: { count: rows.length } })
-})
+  res.setHeader('Content-Type', 'application/json');
+  res.setHeader('Content-Disposition', 'attachment; filename="workers.json"');
+  return res.json({ status: 'success', code: 200, data: rows, meta: { count: rows.length } });
+});
 
 export const exportUsers = catchAsync(async (req: Request, res: Response) => {
-  const format = (req.query.format as string) === 'csv' ? 'csv' : 'json'
+  const format = (req.query.format as string) === 'csv' ? 'csv' : 'json';
 
   log({
     userId: req.user?.id,
     action: 'admin.export',
     resource: 'User',
     meta: { format, ip: req.ip },
-  }).catch(() => {})
+  }).catch(() => {});
 
   if (format === 'csv') {
     // Stream CSV without buffering
-    const writer = new CsvWriter(res, 'users.csv')
-    writer.initialize()
+    const writer = new CsvWriter(res, 'users.csv');
+    writer.initialize();
 
-    const headers = ['ID', 'Email', 'First Name', 'Last Name', 'Role', 'Verified', 'Created At']
-    await writer.writeHeader(headers)
+    const headers = ['ID', 'Email', 'First Name', 'Last Name', 'Role', 'Verified', 'Created At'];
+    await writer.writeHeader(headers);
 
-    const pageSize = 1000
-    let skip = 0
-    let hasMore = true
+    const pageSize = 1000;
+    let skip = 0;
+    let hasMore = true;
 
     while (hasMore) {
       const users = await db.user.findMany({
@@ -153,11 +162,11 @@ export const exportUsers = catchAsync(async (req: Request, res: Response) => {
         orderBy: { createdAt: 'desc' },
         skip,
         take: pageSize,
-      })
+      });
 
       if (users.length === 0) {
-        hasMore = false
-        break
+        hasMore = false;
+        break;
       }
 
       for (const u of users) {
@@ -169,18 +178,18 @@ export const exportUsers = catchAsync(async (req: Request, res: Response) => {
           u.role,
           u.verified,
           u.createdAt.toISOString(),
-        ])
+        ]);
       }
 
       if (users.length < pageSize) {
-        hasMore = false
+        hasMore = false;
       } else {
-        skip += pageSize
+        skip += pageSize;
       }
     }
 
-    await writer.end()
-    return
+    await writer.end();
+    return;
   }
 
   // JSON format: still buffer all data
@@ -196,7 +205,7 @@ export const exportUsers = catchAsync(async (req: Request, res: Response) => {
       createdAt: true,
     },
     orderBy: { createdAt: 'desc' },
-  })
+  });
 
   const rows = users.map((u) => ({
     id: u.id,
@@ -206,9 +215,9 @@ export const exportUsers = catchAsync(async (req: Request, res: Response) => {
     role: u.role,
     verified: u.verified,
     createdAt: u.createdAt.toISOString(),
-  }))
+  }));
 
-  res.setHeader('Content-Type', 'application/json')
-  res.setHeader('Content-Disposition', 'attachment; filename="users.json"')
-  return res.json({ status: 'success', code: 200, data: rows, meta: { count: rows.length } })
-})
+  res.setHeader('Content-Type', 'application/json');
+  res.setHeader('Content-Disposition', 'attachment; filename="users.json"');
+  return res.json({ status: 'success', code: 200, data: rows, meta: { count: rows.length } });
+});

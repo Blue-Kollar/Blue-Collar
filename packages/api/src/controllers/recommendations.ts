@@ -1,23 +1,28 @@
-import type { Request, Response } from 'express'
-import * as recommendationService from '@/services/recommendation.service.js'
-import { catchAsync } from '@/utils/catchAsync.js'
-import { AppError, ErrorCode } from '@/utils/app-error.js'
+import type { Request, Response } from 'express';
+import * as recommendationService from '@/services/recommendation.service.js';
+import { catchAsync } from '@/utils/catch-async.js';
+import { AppError, ErrorCode } from '@/utils/app-error.js';
 
 export const getRecommendations = catchAsync(async (req: Request, res: Response) => {
-  const limit = Math.min(Number(req.query.limit ?? 10), 50)
-  const result = await recommendationService.getRecommendations(req.user!.id, limit)
-  return res.json({ ...result, status: 'success', code: 200 })
-})
+  const limit = Math.min(Number(req.query.limit ?? 10), 50);
+  const result = await recommendationService.getRecommendations(req.user!.id, limit);
+  return res.json({ ...result, status: 'success', code: 200 });
+});
 
 export const trackInteraction = catchAsync(async (req: Request, res: Response) => {
-  const { workerId, type } = req.body
+  const { workerId, type } = req.body;
   if (!workerId || !type) {
-    throw new AppError('workerId and type are required', 400, true, ErrorCode.VALIDATION_ERROR)
+    throw new AppError('workerId and type are required', 400, true, ErrorCode.VALIDATION_ERROR);
   }
-  const validTypes = ['view', 'bookmark', 'tip', 'contact']
+  const validTypes = ['view', 'bookmark', 'tip', 'contact'];
   if (!validTypes.includes(type)) {
-    throw new AppError(`type must be one of: ${validTypes.join(', ')}`, 400, true, ErrorCode.VALIDATION_ERROR)
+    throw new AppError(
+      `type must be one of: ${validTypes.join(', ')}`,
+      400,
+      true,
+      ErrorCode.VALIDATION_ERROR,
+    );
   }
-  await recommendationService.trackInteraction(req.user!.id, workerId, type)
-  return res.status(201).json({ status: 'success', message: 'Interaction tracked', code: 201 })
-})
+  await recommendationService.trackInteraction(req.user!.id, workerId, type);
+  return res.status(201).json({ status: 'success', message: 'Interaction tracked', code: 201 });
+});

@@ -1,6 +1,6 @@
 /**
  * API contract tests — validate the actual API response shapes against the
- * canonical contract schemas in ./responseSchemas.ts at RUNTIME (not just at
+ * canonical contract schemas in ./response-schemas.ts at RUNTIME (not just at
  * compile time). The serializers exercised here are exactly what the route
  * controllers return, so this catches response-shape drift that would otherwise
  * only surface in production clients.
@@ -30,7 +30,7 @@ import {
   ReadinessResponseSchema,
   PaginatedSchema,
   AccountInfoSchema,
-} from './responseSchemas.js';
+} from './response-schemas.js';
 
 // ── Fixtures (representative Prisma-shaped records) ───────────────────────────
 
@@ -353,7 +353,14 @@ describe('API contract — Auth (POST /auth/login)', () => {
     const broken = {
       status: 'success',
       code: 202,
-      data: { id: 'usr_1', email: 'a@b.com', firstName: 'A', lastName: 'B', role: 'user', verified: true },
+      data: {
+        id: 'usr_1',
+        email: 'a@b.com',
+        firstName: 'A',
+        lastName: 'B',
+        role: 'user',
+        verified: true,
+      },
     };
     expect(AuthLoginResponseSchema.safeParse(broken).success).toBe(false);
   });

@@ -1,14 +1,14 @@
-import type { Request, Response } from 'express'
-import * as workerService from '@/services/worker.service.js'
-import * as searchService from '@/services/search.service.js'
-import { catchAsync } from '@/utils/catchAsync.js'
-import { AppError, ErrorCode } from '@/utils/app-error.js'
-import { workerSerializer } from '@/serializers/index.js'
-import type { CreateWorkerBody, UpdateWorkerBody } from '@/interfaces/index.js'
-import { invalidateCachePattern } from '@/middleware/cache.js'
-import { getWorkerReputation, syncReputationToDb } from '@/services/stellar.service.js'
-import { ErrorMessages } from '@/constants/errors.js'
-import { sanitizeObject } from '@/utils/sanitize.js'
+import type { Request, Response } from 'express';
+import * as workerService from '@/services/worker.service.js';
+import * as searchService from '@/services/search.service.js';
+import { catchAsync } from '@/utils/catch-async.js';
+import { AppError, ErrorCode } from '@/utils/app-error.js';
+import { workerSerializer } from '@/serializers/index.js';
+import type { CreateWorkerBody, UpdateWorkerBody } from '@/interfaces/index.js';
+import { invalidateCachePattern } from '@/middleware/cache.js';
+import { getWorkerReputation, syncReputationToDb } from '@/services/stellar.service.js';
+import { ErrorMessages } from '@/constants/errors.js';
+import { sanitizeObject } from '@/utils/sanitize.js';
 
 // Free-text fields on worker create/update bodies that must be sanitised
 // before they reach the service layer (defence in depth alongside the
@@ -24,22 +24,25 @@ const WORKER_FREE_TEXT_FIELDS = [
   'state',
   'country',
   'website',
-] as const
+] as const;
 
 function sanitizeWorkerBody<T extends Record<string, unknown>>(body: T): T {
-  if (!body || typeof body !== 'object') return body
+  if (!body || typeof body !== 'object') return body;
   const freeText = Object.fromEntries(
     WORKER_FREE_TEXT_FIELDS.filter((field) => field in body).map((field) => [field, body[field]]),
-  ) as Parameters<typeof sanitizeObject>[0]
-  return { ...body, ...sanitizeObject(freeText) } as T
+  ) as Parameters<typeof sanitizeObject>[0];
+  return { ...body, ...sanitizeObject(freeText) } as T;
 }
 
 // Parse a comma-separated ?fields= query param into a set for O(1) lookup.
 // An empty/absent param means "return all fields".
 function parseFields(raw: unknown): Set<string> | null {
-  if (!raw) return null
-  const fields = String(raw).split(',').map(f => f.trim()).filter(Boolean)
-  return fields.length > 0 ? new Set(fields) : null
+  if (!raw) return null;
+  const fields = String(raw)
+    .split(',')
+    .map((f) => f.trim())
+    .filter(Boolean);
+  return fields.length > 0 ? new Set(fields) : null;
 }
 
 // Apply a sparse fieldset to an object, keeping only the requested keys.
@@ -47,22 +50,40 @@ function sparseFields(
   obj: Record<string, unknown>,
   fields: Set<string> | null,
 ): Record<string, unknown> {
-  if (!fields) return obj
-  return Object.fromEntries([...fields].filter(f => f in obj).map(f => [f, obj[f]]))
+  if (!fields) return obj;
+  return Object.fromEntries([...fields].filter((f) => f in obj).map((f) => [f, obj[f]]));
 }
 
 function parseCategoryIds(categories: unknown): string[] | undefined {
   return categories
-    ? String(categories).split(',').map(s => s.trim()).filter(Boolean)
-    : undefined
+    ? String(categories)
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean)
+    : undefined;
 }
 
 // Cursor-paginated mode: no `page`/`lat`/`lng` query params.
-async function listWorkersCursorMode(query: Record<string, unknown>, fieldSet: Set<string> | null, limitNum: number, res: Response) {
+async function listWorkersCursorMode(
+  query: Record<string, unknown>,
+  fieldSet: Set<string> | null,
+  limitNum: number,
+  res: Response,
+) {
   const {
-    category, categories, isVerified, city, state, country,
-    available, listedSince, minRating, maxRating, search, cursor,
-  } = query
+    category,
+    categories,
+    isVerified,
+    city,
+    state,
+    country,
+    available,
+    listedSince,
+    minRating,
+    maxRating,
+    search,
+    cursor,
+  } = query;
 
   const result = await workerService.listWorkersCursor({
     category: category ? String(category) : undefined,
@@ -78,45 +99,70 @@ async function listWorkersCursorMode(query: Record<string, unknown>, fieldSet: S
     search: search ? String(search) : undefined,
     cursor: cursor ? String(cursor) : undefined,
     limit: limitNum,
-  })
+  });
 
   return res.json({
-    data: result.data.map(w => sparseFields(w as Record<string, unknown>, fieldSet)),
+    data: result.data.map((w) => sparseFields(w as Record<string, unknown>, fieldSet)),
     nextCursor: result.nextCursor,
     limit: limitNum,
     status: 'success',
     code: 200,
-  })
+  });
 }
 
 // Geo-radius mode: `lat`/`lng` (optionally `radius`, `page`) query params.
-async function listWorkersGeoMode(query: Record<string, unknown>, fieldSet: Set<string> | null, limitNum: number, res: Response) {
-  const { category, page, lat, lng, radius } = query
-  const userLat = Number(lat)
-  const userLng = Number(lng)
-  const radiusKm = radius ? Number(radius) : 10
+async function listWorkersGeoMode(
+  query: Record<string, unknown>,
+  fieldSet: Set<string> | null,
+  limitNum: number,
+  res: Response,
+) {
+  const { category, page, lat, lng, radius } = query;
+  const userLat = Number(lat);
+  const userLng = Number(lng);
+  const radiusKm = radius ? Number(radius) : 10;
 
   if (isNaN(userLat) || isNaN(userLng) || isNaN(radiusKm))
-    throw new AppError(ErrorMessages.INVALID_GEO_PARAMS, 400, true, ErrorCode.VALIDATION_ERROR)
+    throw new AppError(ErrorMessages.INVALID_GEO_PARAMS, 400, true, ErrorCode.VALIDATION_ERROR);
 
   const paginated = await workerService.listWorkersGeo({
-    lat: userLat, lng: userLng, radiusKm,
+    lat: userLat,
+    lng: userLng,
+    radiusKm,
     category: category ? String(category) : undefined,
     page: Number(page),
     limit: limitNum,
-  })
+  });
   const geoData = fieldSet
-    ? paginated.map(w => sparseFields(w as Record<string, unknown>, fieldSet))
-    : paginated
-  return res.json({ data: geoData, status: 'success', code: 200 })
+    ? paginated.map((w) => sparseFields(w as Record<string, unknown>, fieldSet))
+    : paginated;
+  return res.json({ data: geoData, status: 'success', code: 200 });
 }
 
 // Offset-paginated mode (default): `page` provided without `lat`/`lng`.
-async function listWorkersOffsetMode(query: Record<string, unknown>, fieldSet: Set<string> | null, limitNum: number, res: Response) {
+async function listWorkersOffsetMode(
+  query: Record<string, unknown>,
+  fieldSet: Set<string> | null,
+  limitNum: number,
+  res: Response,
+) {
   const {
-    category, categories, page, search, lang, city, state, country,
-    minRating, maxRating, available, listedSince, sortBy, sortOrder, isVerified,
-  } = query
+    category,
+    categories,
+    page,
+    search,
+    lang,
+    city,
+    state,
+    country,
+    minRating,
+    maxRating,
+    available,
+    listedSince,
+    sortBy,
+    sortOrder,
+    isVerified,
+  } = query;
 
   const result = await workerService.listWorkers({
     category: category ? String(category) : undefined,
@@ -135,23 +181,27 @@ async function listWorkersOffsetMode(query: Record<string, unknown>, fieldSet: S
     sortBy: sortBy as 'rating' | 'newest' | 'oldest' | 'name' | undefined,
     sortOrder: sortOrder as 'asc' | 'desc' | undefined,
     isVerified: isVerified !== undefined ? isVerified === 'true' : undefined,
-  })
+  });
 
-  const resultData = fieldSet && Array.isArray(result.data)
-    ? { ...result, data: result.data.map((w) => sparseFields(w as Record<string, unknown>, fieldSet)) }
-    : result
-  return res.json({ ...resultData, status: 'success', code: 200 })
+  const resultData =
+    fieldSet && Array.isArray(result.data)
+      ? {
+          ...result,
+          data: result.data.map((w) => sparseFields(w as Record<string, unknown>, fieldSet)),
+        }
+      : result;
+  return res.json({ ...resultData, status: 'success', code: 200 });
 }
 
 export async function listWorkers(req: Request, res: Response) {
-  const query = req.query as Record<string, unknown>
-  const { page, lat, lng, limit = '20', fields: fieldsParam } = query
-  const limitNum = Math.min(Math.max(Number(limit) || 20, 1), 100)
-  const fieldSet = parseFields(fieldsParam)
+  const query = req.query as Record<string, unknown>;
+  const { page, lat, lng, limit = '20', fields: fieldsParam } = query;
+  const limitNum = Math.min(Math.max(Number(limit) || 20, 1), 100);
+  const fieldSet = parseFields(fieldsParam);
 
-  if (!page && !lat && !lng) return listWorkersCursorMode(query, fieldSet, limitNum, res)
-  if (lat && lng) return listWorkersGeoMode(query, fieldSet, limitNum, res)
-  return listWorkersOffsetMode(query, fieldSet, limitNum, res)
+  if (!page && !lat && !lng) return listWorkersCursorMode(query, fieldSet, limitNum, res);
+  if (lat && lng) return listWorkersGeoMode(query, fieldSet, limitNum, res);
+  return listWorkersOffsetMode(query, fieldSet, limitNum, res);
 }
 
 /**
@@ -166,9 +216,9 @@ export async function listWorkers(req: Request, res: Response) {
  * @param res - JSON `{ data: Worker, status, code }` or 404.
  */
 export async function showWorker(req: Request, res: Response) {
-  const worker = await workerService.getWorkerWithPortfolio(req.params.id!)
-  if (!worker) throw new AppError('Not found', 404, true, ErrorCode.NOT_FOUND)
-  return res.json({ data: worker, status: 'success', code: 200 })
+  const worker = await workerService.getWorkerWithPortfolio(req.params.id!);
+  if (!worker) throw new AppError('Not found', 404, true, ErrorCode.NOT_FOUND);
+  return res.json({ data: worker, status: 'success', code: 200 });
 }
 
 /**
@@ -178,19 +228,25 @@ export async function showWorker(req: Request, res: Response) {
  * @param req - Body: `CreateWorkerBody`. `req.user` must be set by auth middleware.
  * @param res - JSON `{ data: Worker, status, code: 201 }`.
  */
-export const createWorker = catchAsync(async (req: Request<{}, {}, CreateWorkerBody>, res: Response) => {
-  const sanitizedBody = sanitizeWorkerBody(req.body as unknown as Record<string, unknown>) as unknown as CreateWorkerBody
-  const worker = await workerService.createWorkerWithMedia(sanitizedBody, req.user!.id, req.file)
-  await invalidateCachePattern(`cache:*workers?*`)
-  return res.status(201).json({
-    // NOTE: worker has already been through formatWorker() (narrowed category/curator
-    // shape), not the raw Prisma relations workerSerializer.serialize() expects — a
-    // pre-existing mismatch this any-cleanup surfaced but does not fix (out of scope).
-    data: workerSerializer.serialize(worker as unknown as Parameters<typeof workerSerializer.serialize>[0]),
-    status: 'success',
-    code: 201
-  })
-})
+export const createWorker = catchAsync(
+  async (req: Request<{}, {}, CreateWorkerBody>, res: Response) => {
+    const sanitizedBody = sanitizeWorkerBody(
+      req.body as unknown as Record<string, unknown>,
+    ) as unknown as CreateWorkerBody;
+    const worker = await workerService.createWorkerWithMedia(sanitizedBody, req.user!.id, req.file);
+    await invalidateCachePattern(`cache:*workers?*`);
+    return res.status(201).json({
+      // NOTE: worker has already been through formatWorker() (narrowed category/curator
+      // shape), not the raw Prisma relations workerSerializer.serialize() expects — a
+      // pre-existing mismatch this any-cleanup surfaced but does not fix (out of scope).
+      data: workerSerializer.serialize(
+        worker as unknown as Parameters<typeof workerSerializer.serialize>[0],
+      ),
+      status: 'success',
+      code: 201,
+    });
+  },
+);
 
 /**
  * PUT /api/workers/:id
@@ -214,18 +270,29 @@ export const createWorker = catchAsync(async (req: Request<{}, {}, CreateWorkerB
  * @param req - Route param `id`. Body: `UpdateWorkerBody` (JSON or multipart).
  * @param res - JSON `{ data: Worker, status, code }`.
  */
-export const updateWorker = catchAsync(async (req: Request<Record<string, string | undefined>, {}, UpdateWorkerBody>, res: Response) => {
-  const sanitizedBody = sanitizeWorkerBody(req.body as unknown as Record<string, unknown>) as unknown as UpdateWorkerBody
-  const worker = await workerService.updateWorkerWithMedia(req.params.id!, sanitizedBody, req.file, req.user?.id)
-  await invalidateCachePattern(`cache:*workers/${req.params.id!}*`)
-  await invalidateCachePattern(`cache:*workers?*`)
-  return res.json({
-    // See createWorker() above: pre-existing formatWorker()/serialize() shape mismatch.
-    data: workerSerializer.serialize(worker as unknown as Parameters<typeof workerSerializer.serialize>[0]),
-    status: 'success',
-    code: 200
-  })
-})
+export const updateWorker = catchAsync(
+  async (req: Request<Record<string, string | undefined>, {}, UpdateWorkerBody>, res: Response) => {
+    const sanitizedBody = sanitizeWorkerBody(
+      req.body as unknown as Record<string, unknown>,
+    ) as unknown as UpdateWorkerBody;
+    const worker = await workerService.updateWorkerWithMedia(
+      req.params.id!,
+      sanitizedBody,
+      req.file,
+      req.user?.id,
+    );
+    await invalidateCachePattern(`cache:*workers/${req.params.id!}*`);
+    await invalidateCachePattern(`cache:*workers?*`);
+    return res.json({
+      // See createWorker() above: pre-existing formatWorker()/serialize() shape mismatch.
+      data: workerSerializer.serialize(
+        worker as unknown as Parameters<typeof workerSerializer.serialize>[0],
+      ),
+      status: 'success',
+      code: 200,
+    });
+  },
+);
 
 /**
  * DELETE /api/workers/:id
@@ -235,10 +302,10 @@ export const updateWorker = catchAsync(async (req: Request<Record<string, string
  * @param res - 204 No Content on success.
  */
 export async function deleteWorker(req: Request, res: Response) {
-  await workerService.deleteWorkerWithMedia(req.params.id as string)
-  await invalidateCachePattern(`cache:*workers/${req.params.id}*`)
-  await invalidateCachePattern(`cache:*workers?*`)
-  return res.status(204).send()
+  await workerService.deleteWorkerWithMedia(req.params.id as string);
+  await invalidateCachePattern(`cache:*workers/${req.params.id}*`);
+  await invalidateCachePattern(`cache:*workers?*`);
+  return res.status(204).send();
 }
 
 /**
@@ -249,16 +316,18 @@ export async function deleteWorker(req: Request, res: Response) {
  * @param res - JSON `{ data: Worker, status, code }`.
  */
 export const toggleActivation = catchAsync(async (req: Request, res: Response) => {
-  const updated = await workerService.toggleWorker(req.params.id as string)
-  await invalidateCachePattern(`cache:*workers/${req.params.id}*`)
-  await invalidateCachePattern(`cache:*workers?*`)
+  const updated = await workerService.toggleWorker(req.params.id as string);
+  await invalidateCachePattern(`cache:*workers/${req.params.id}*`);
+  await invalidateCachePattern(`cache:*workers?*`);
   return res.json({
     // See createWorker() above: pre-existing formatWorker()/serialize() shape mismatch.
-    data: workerSerializer.serialize(updated as unknown as Parameters<typeof workerSerializer.serialize>[0]),
+    data: workerSerializer.serialize(
+      updated as unknown as Parameters<typeof workerSerializer.serialize>[0],
+    ),
     status: 'success',
-    code: 200
-  })
-})
+    code: 200,
+  });
+});
 
 /**
  * GET /api/workers/mine
@@ -268,12 +337,12 @@ export const toggleActivation = catchAsync(async (req: Request, res: Response) =
  * @param res - JSON `{ data: Worker[], meta, status, code }`.
  */
 export async function listMyWorkers(req: Request, res: Response) {
-  const { page = '1', limit = '20' } = req.query
-  const result = await workerService.listMyWorkers(req.user!.id, Number(page), Number(limit))
-  return res.json({ ...result, status: 'success', code: 200 })
+  const { page = '1', limit = '20' } = req.query;
+  const result = await workerService.listMyWorkers(req.user!.id, Number(page), Number(limit));
+  return res.json({ ...result, status: 'success', code: 200 });
 }
 
-export type SearchService = Pick<typeof searchService, 'searchWorkers' | 'performAdvancedSearch'>
+export type SearchService = Pick<typeof searchService, 'searchWorkers' | 'performAdvancedSearch'>;
 
 /**
  * Builds the /search route handlers on top of an injected search service.
@@ -289,29 +358,47 @@ export function createSearchHandlers(service: SearchService = searchService) {
      */
     searchWorkersHandler: catchAsync(async (req: Request, res: Response) => {
       const {
-        q, query, lang, lat, lng, radius,
-        categories, minRating, maxRating,
-        dayOfWeek, isVerified, sortBy,
-        page = '1', limit = '20',
-      } = req.query
+        q,
+        query,
+        lang,
+        lat,
+        lng,
+        radius,
+        categories,
+        minRating,
+        maxRating,
+        dayOfWeek,
+        isVerified,
+        sortBy,
+        page = '1',
+        limit = '20',
+      } = req.query;
 
-      const result = await service.searchWorkers({
-        query: (q || query) ? String(q ?? query) : undefined,
-        lang: lang ? String(lang) : undefined,
-        lat: lat ? Number(lat) : undefined,
-        lng: lng ? Number(lng) : undefined,
-        radius: radius ? Number(radius) : undefined,
-        categories: categories ? String(categories).split(',').map(c => c.trim()).filter(Boolean) : undefined,
-        minRating: minRating ? Number(minRating) : undefined,
-        maxRating: maxRating ? Number(maxRating) : undefined,
-        dayOfWeek: dayOfWeek !== undefined ? Number(dayOfWeek) : undefined,
-        isVerified: isVerified !== undefined ? isVerified === 'true' : undefined,
-        sortBy: sortBy as 'relevance' | 'rating' | 'distance' | 'newest' | undefined,
-        page: Number(page),
-        limit: Math.min(Math.max(Number(limit) || 20, 1), 100),
-      }, req.ip)
+      const result = await service.searchWorkers(
+        {
+          query: q || query ? String(q ?? query) : undefined,
+          lang: lang ? String(lang) : undefined,
+          lat: lat ? Number(lat) : undefined,
+          lng: lng ? Number(lng) : undefined,
+          radius: radius ? Number(radius) : undefined,
+          categories: categories
+            ? String(categories)
+                .split(',')
+                .map((c) => c.trim())
+                .filter(Boolean)
+            : undefined,
+          minRating: minRating ? Number(minRating) : undefined,
+          maxRating: maxRating ? Number(maxRating) : undefined,
+          dayOfWeek: dayOfWeek !== undefined ? Number(dayOfWeek) : undefined,
+          isVerified: isVerified !== undefined ? isVerified === 'true' : undefined,
+          sortBy: sortBy as 'relevance' | 'rating' | 'distance' | 'newest' | undefined,
+          page: Number(page),
+          limit: Math.min(Math.max(Number(limit) || 20, 1), 100),
+        },
+        req.ip,
+      );
 
-      return res.json({ ...result, status: 'success', code: 200 })
+      return res.json({ ...result, status: 'success', code: 200 });
     }),
 
     /**
@@ -323,34 +410,53 @@ export function createSearchHandlers(service: SearchService = searchService) {
      */
     advancedSearch: catchAsync(async (req: Request, res: Response) => {
       const {
-        query, lat, lng, radius, categories, minRating, maxRating,
-        dayOfWeek, startTime, endTime, isVerified, sortBy,
-        page = '1', limit = '20',
-      } = req.query
+        query,
+        lat,
+        lng,
+        radius,
+        categories,
+        minRating,
+        maxRating,
+        dayOfWeek,
+        startTime,
+        endTime,
+        isVerified,
+        sortBy,
+        page = '1',
+        limit = '20',
+      } = req.query;
 
-      const result = await service.performAdvancedSearch({
-        query: query ? String(query) : undefined,
-        lat: lat ? Number(lat) : undefined,
-        lng: lng ? Number(lng) : undefined,
-        radius: radius ? Number(radius) : undefined,
-        categories: categories ? String(categories).split(',').map(c => c.trim()).filter(Boolean) : undefined,
-        minRating: minRating ? Number(minRating) : undefined,
-        maxRating: maxRating ? Number(maxRating) : undefined,
-        dayOfWeek: dayOfWeek ? Number(dayOfWeek) : undefined,
-        startTime: startTime ? String(startTime) : undefined,
-        endTime: endTime ? String(endTime) : undefined,
-        isVerified: isVerified !== undefined ? isVerified === 'true' : undefined,
-        sortBy: sortBy ? String(sortBy) : undefined,
-        page: Number(page),
-        limit: Number(limit),
-      }, req.ip || 'unknown')
+      const result = await service.performAdvancedSearch(
+        {
+          query: query ? String(query) : undefined,
+          lat: lat ? Number(lat) : undefined,
+          lng: lng ? Number(lng) : undefined,
+          radius: radius ? Number(radius) : undefined,
+          categories: categories
+            ? String(categories)
+                .split(',')
+                .map((c) => c.trim())
+                .filter(Boolean)
+            : undefined,
+          minRating: minRating ? Number(minRating) : undefined,
+          maxRating: maxRating ? Number(maxRating) : undefined,
+          dayOfWeek: dayOfWeek ? Number(dayOfWeek) : undefined,
+          startTime: startTime ? String(startTime) : undefined,
+          endTime: endTime ? String(endTime) : undefined,
+          isVerified: isVerified !== undefined ? isVerified === 'true' : undefined,
+          sortBy: sortBy ? String(sortBy) : undefined,
+          page: Number(page),
+          limit: Number(limit),
+        },
+        req.ip || 'unknown',
+      );
 
-      return res.json({ ...result, status: 'success', code: 200 })
+      return res.json({ ...result, status: 'success', code: 200 });
     }),
-  }
+  };
 }
 
-export const { searchWorkersHandler, advancedSearch } = createSearchHandlers()
+export const { searchWorkersHandler, advancedSearch } = createSearchHandlers();
 
 /**
  * GET /api/workers/:id/reputation
@@ -364,8 +470,8 @@ export const { searchWorkersHandler, advancedSearch } = createSearchHandlers()
  * @param res - JSON `{ data: ReputationSummary, status, code }`.
  */
 export async function getReputation(req: Request, res: Response) {
-  const data = await getWorkerReputation(req.params.id!)
-  return res.json({ data, status: 'success', code: 200 })
+  const data = await getWorkerReputation(req.params.id!);
+  return res.json({ data, status: 'success', code: 200 });
 }
 
 /**
@@ -382,10 +488,10 @@ export async function getReputation(req: Request, res: Response) {
  */
 export async function syncReputation(req: Request, res: Response) {
   const { avgRating, reviewCount, reputation } = req.body as {
-    avgRating: number
-    reviewCount: number
-    reputation: number
-  }
-  const data = await syncReputationToDb(req.params.id!, avgRating, reviewCount, reputation)
-  return res.json({ data, status: 'success', code: 200 })
+    avgRating: number;
+    reviewCount: number;
+    reputation: number;
+  };
+  const data = await syncReputationToDb(req.params.id!, avgRating, reviewCount, reputation);
+  return res.json({ data, status: 'success', code: 200 });
 }

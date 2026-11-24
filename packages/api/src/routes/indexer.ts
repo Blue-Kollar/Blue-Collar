@@ -1,12 +1,16 @@
-import { Router } from 'express'
-import * as indexerController from '@/controllers/indexer.js'
-import { publicReadRateLimiter } from '@/config/rateLimiter.js'
+import { Router } from 'express';
+import * as indexerController from '@/controllers/indexer.js';
+import { publicReadRateLimiter } from '@/config/rate-limiter.js';
 
-const router = Router()
+const router = Router();
 
 // Query indexed events
-router.get('/', publicReadRateLimiter, indexerController.queryEvents)
-router.get('/worker-registrations/:contractId/:ownerAddress', publicReadRateLimiter, indexerController.getWorkerRegistrations)
-router.get('/cursor/:contractId', publicReadRateLimiter, indexerController.getCursor)
+router.get('/', publicReadRateLimiter, indexerController.queryEvents);
+router.get(
+  '/worker-registrations/:contractId/:ownerAddress',
+  publicReadRateLimiter,
+  indexerController.getWorkerRegistrations,
+);
+router.get('/cursor/:contractId', publicReadRateLimiter, indexerController.getCursor);
 
-export default router
+export default router;

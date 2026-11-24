@@ -48,13 +48,13 @@
  * The `deploy/logstash` pipeline ingests these files.
  */
 
-import pinoHttp from 'pino-http'
-import type { Request } from 'express'
-import type { IncomingMessage } from 'node:http'
-import { logger } from '@/config/logger.js'
+import pinoHttp from 'pino-http';
+import type { Request } from 'express';
+import type { IncomingMessage } from 'node:http';
+import { logger } from '@/config/logger.js';
 
 /** Request augmented with the authenticated user attached by auth middleware. */
-type LoggedRequest = IncomingMessage & { user?: { id?: string }; id?: string }
+type LoggedRequest = IncomingMessage & { user?: { id?: string }; id?: string };
 
 export const requestLogger = pinoHttp({
   // Use the shared, centrally-configured pino logger so log level, redaction,
@@ -81,14 +81,15 @@ export const requestLogger = pinoHttp({
   }),
 
   customSuccessMessage: (req: IncomingMessage, res) => `${req.method} ${req.url} ${res.statusCode}`,
-  customErrorMessage: (req: IncomingMessage, res, err) => `${req.method} ${req.url} ${res.statusCode} — ${err.message}`,
+  customErrorMessage: (req: IncomingMessage, res, err) =>
+    `${req.method} ${req.url} ${res.statusCode} — ${err.message}`,
 
   serializers: {
     req: (req) => ({ method: req.method, url: req.url }),
     res: (res) => ({ statusCode: res.statusCode }),
     err: (err) => ({ message: err.message, type: err.type }),
   },
-})
+});
 
 /**
  * Create a child logger bound to a specific request ID.
@@ -97,7 +98,7 @@ export const requestLogger = pinoHttp({
  * automatically correlated with the originating HTTP request:
  *
  * ```ts
- * import { childLogger } from '@/middleware/requestLogger.js'
+ * import { childLogger } from '@/middleware/request-logger.js'
  *
  * function handleRequest(req: Request) {
  *   const log = childLogger(req)
@@ -111,5 +112,5 @@ export function childLogger(req: Request) {
     requestId: req.id,
     userId: req.user?.id ?? null,
     service: 'bluecollar-api',
-  })
+  });
 }

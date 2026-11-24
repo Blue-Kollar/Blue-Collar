@@ -15,6 +15,7 @@
     "test": "pnpm --filter @bluecollar/api test && pnpm --filter @bluecollar/app test",
     "test:integration:db": "pnpm --filter @bluecollar/api test:integration:db",
     "type-check": "pnpm --filter @bluecollar/types type-check && pnpm --filter @bluecollar/api tsc --noEmit && pnpm --filter @bluecollar/app type-check",
+    "typecheck:base": "node -e \"const fs=require('node:fs'),path=require('node:path'),cp=require('node:child_process');const b=JSON.parse(fs.readFileSync('tsconfig.base.json','utf8')).compilerOptions,k=Object.keys(b),d=fs.readdirSync('packages').filter(x=>fs.existsSync(path.join('packages',x,'tsconfig.json')));for(const x of d){const f=path.join('packages',x,'tsconfig.json'),c=JSON.parse(fs.readFileSync(f,'utf8'));if(c.extends!=='../../tsconfig.base.json')throw Error(f+' must extend base');for(const o of k)if(o in (c.compilerOptions||{}))throw Error(f+' duplicates '+o);const v=JSON.parse(cp.execFileSync('pnpm',['exec','tsc','-p',f,'--showConfig'],{encoding:'utf8'})).compilerOptions;for(const o of k)if(v[o]!==b[o])throw Error(f+' missing '+o)}console.log('tsconfig base verified for '+d.length+' packages')\"",
     "lint": "pnpm --filter @bluecollar/types lint && pnpm --filter @bluecollar/sdk lint && pnpm --filter @bluecollar/api lint && pnpm --filter @bluecollar/app lint && pnpm lint:dead-code",
     "lint:dead-code": "knip",
     "format": "prettier --write \"packages/**/*.{ts,tsx,js,json,md}\"",
