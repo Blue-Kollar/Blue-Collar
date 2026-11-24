@@ -25,11 +25,11 @@ import type {
   ApiResponse,
   AccountInfo,
 } from '@bluecollar/types';
-import { categorySerializer } from '../../serializers/category.serializer.js';
-import { userSerializer } from '../../serializers/user.serializer.js';
-import { reviewSerializer } from '../../serializers/review.serializer.js';
-import { workerSerializer } from '../../serializers/worker.serializer.js';
-import { jobSerializer } from '../../serializers/job.serializer.js';
+import { categorySerializer } from '@/serializers/category.serializer.js';
+import { userSerializer } from '@/serializers/user.serializer.js';
+import { reviewSerializer } from '@/serializers/review.serializer.js';
+import { workerSerializer } from '@/serializers/worker.serializer.js';
+import { jobSerializer } from '@/serializers/job.serializer.js';
 
 // ── Fixtures (representative Prisma-shaped records) ───────────────────────────
 
@@ -162,7 +162,9 @@ describe('SDK ↔ API contract: Category', () => {
       id: expect.any(String),
       name: expect.any(String),
     });
-    expect(typeof serialized.description === 'string' || serialized.description === null).toBe(true);
+    expect(typeof serialized.description === 'string' || serialized.description === null).toBe(
+      true,
+    );
     expect(typeof serialized.icon === 'string' || serialized.icon === null).toBe(true);
   });
 

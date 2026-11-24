@@ -8,9 +8,9 @@
  * In production profiling, tighten these values.
  */
 
-import { describe, it, expect, vi, beforeAll, afterAll } from 'vitest'
-import request from 'supertest'
-import app from '../../app.js'
+import { describe, it, expect, vi, beforeAll, afterAll } from 'vitest';
+import request from 'supertest';
+import app from '@/app.js';
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
 
@@ -35,7 +35,7 @@ vi.mock('../../db.js', () => ({
       findUnique: vi.fn().mockResolvedValue({ id: '1', name: 'Plumber', slug: 'plumber' }),
     },
   },
-}))
+}));
 
 vi.mock('../../config/redis.js', () => ({
   redis: {
@@ -47,7 +47,7 @@ vi.mock('../../config/redis.js', () => ({
     quit: vi.fn().mockResolvedValue(undefined),
   },
   cacheMetrics: { hits: 0, misses: 0 },
-}))
+}));
 
 vi.mock('../../config/env.js', () => ({
   env: {
@@ -62,7 +62,7 @@ vi.mock('../../config/env.js', () => ({
     MAIL_PASS: 'test',
     APP_URL: 'http://localhost:3000',
   },
-}))
+}));
 
 // ─── Thresholds (ms) ──────────────────────────────────────────────────────────
 
@@ -72,23 +72,20 @@ const THRESHOLDS = {
   workers: 300,
   auth_login: 500,
   cache_metrics: 100,
-} as const
+} as const;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 /** Measure median response time over `iterations` requests. */
-async function measureMedianMs(
-  fn: () => Promise<unknown>,
-  iterations = 10,
-): Promise<number> {
-  const times: number[] = []
+async function measureMedianMs(fn: () => Promise<unknown>, iterations = 10): Promise<number> {
+  const times: number[] = [];
   for (let i = 0; i < iterations; i++) {
-    const start = performance.now()
-    await fn()
-    times.push(performance.now() - start)
+    const start = performance.now();
+    await fn();
+    times.push(performance.now() - start);
   }
-  times.sort((a, b) => a - b)
-  return times[Math.floor(times.length / 2)]
+  times.sort((a, b) => a - b);
+  return times[Math.floor(times.length / 2)];
 }
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
@@ -96,32 +93,36 @@ async function measureMedianMs(
 describe('Performance benchmarks', () => {
   describe('GET /health', () => {
     it(`responds within ${THRESHOLDS.health}ms (median over 10 requests)`, async () => {
-      const median = await measureMedianMs(() => request(app).get('/health'))
-      console.log(`  /health median: ${median.toFixed(1)}ms (threshold: ${THRESHOLDS.health}ms)`)
-      expect(median).toBeLessThan(THRESHOLDS.health)
-    })
+      const median = await measureMedianMs(() => request(app).get('/health'));
+      console.log(`  /health median: ${median.toFixed(1)}ms (threshold: ${THRESHOLDS.health}ms)`);
+      expect(median).toBeLessThan(THRESHOLDS.health);
+    });
 
     it('returns 200 or 503 (not a crash)', async () => {
-      const res = await request(app).get('/health')
-      expect([200, 503]).toContain(res.status)
-    })
-  })
+      const res = await request(app).get('/health');
+      expect([200, 503]).toContain(res.status);
+    });
+  });
 
   describe('GET /api/categories', () => {
     it(`responds within ${THRESHOLDS.categories}ms (median over 10 requests)`, async () => {
-      const median = await measureMedianMs(() => request(app).get('/api/categories'))
-      console.log(`  /api/categories median: ${median.toFixed(1)}ms (threshold: ${THRESHOLDS.categories}ms)`)
-      expect(median).toBeLessThan(THRESHOLDS.categories)
-    })
-  })
+      const median = await measureMedianMs(() => request(app).get('/api/categories'));
+      console.log(
+        `  /api/categories median: ${median.toFixed(1)}ms (threshold: ${THRESHOLDS.categories}ms)`,
+      );
+      expect(median).toBeLessThan(THRESHOLDS.categories);
+    });
+  });
 
   describe('GET /api/workers', () => {
     it(`responds within ${THRESHOLDS.workers}ms (median over 10 requests)`, async () => {
-      const median = await measureMedianMs(() => request(app).get('/api/workers'))
-      console.log(`  /api/workers median: ${median.toFixed(1)}ms (threshold: ${THRESHOLDS.workers}ms)`)
-      expect(median).toBeLessThan(THRESHOLDS.workers)
-    })
-  })
+      const median = await measureMedianMs(() => request(app).get('/api/workers'));
+      console.log(
+        `  /api/workers median: ${median.toFixed(1)}ms (threshold: ${THRESHOLDS.workers}ms)`,
+      );
+      expect(median).toBeLessThan(THRESHOLDS.workers);
+    });
+  });
 
   describe('POST /api/auth/login', () => {
     it(`responds within ${THRESHOLDS.auth_login}ms (median over 5 requests)`, async () => {
@@ -131,47 +132,49 @@ describe('Performance benchmarks', () => {
             .post('/api/auth/login')
             .send({ email: 'test@example.com', password: 'password123' }),
         5,
-      )
-      console.log(`  /api/auth/login median: ${median.toFixed(1)}ms (threshold: ${THRESHOLDS.auth_login}ms)`)
-      expect(median).toBeLessThan(THRESHOLDS.auth_login)
-    })
-  })
+      );
+      console.log(
+        `  /api/auth/login median: ${median.toFixed(1)}ms (threshold: ${THRESHOLDS.auth_login}ms)`,
+      );
+      expect(median).toBeLessThan(THRESHOLDS.auth_login);
+    });
+  });
 
   describe('GET /metrics/cache', () => {
     it(`responds within ${THRESHOLDS.cache_metrics}ms`, async () => {
-      const start = performance.now()
-      await request(app).get('/metrics/cache')
-      const elapsed = performance.now() - start
-      console.log(`  /metrics/cache: ${elapsed.toFixed(1)}ms (threshold: ${THRESHOLDS.cache_metrics}ms)`)
-      expect(elapsed).toBeLessThan(THRESHOLDS.cache_metrics)
-    })
-  })
+      const start = performance.now();
+      await request(app).get('/metrics/cache');
+      const elapsed = performance.now() - start;
+      console.log(
+        `  /metrics/cache: ${elapsed.toFixed(1)}ms (threshold: ${THRESHOLDS.cache_metrics}ms)`,
+      );
+      expect(elapsed).toBeLessThan(THRESHOLDS.cache_metrics);
+    });
+  });
 
   describe('Concurrent request handling', () => {
     it('handles 20 concurrent /health requests without degradation', async () => {
-      const concurrency = 20
-      const start = performance.now()
-      await Promise.all(
-        Array.from({ length: concurrency }, () => request(app).get('/health')),
-      )
-      const total = performance.now() - start
-      const perRequest = total / concurrency
+      const concurrency = 20;
+      const start = performance.now();
+      await Promise.all(Array.from({ length: concurrency }, () => request(app).get('/health')));
+      const total = performance.now() - start;
+      const perRequest = total / concurrency;
       console.log(
         `  ${concurrency} concurrent /health: total=${total.toFixed(1)}ms, per-req=${perRequest.toFixed(1)}ms`,
-      )
+      );
       // Each request should average under 500ms even under concurrency
-      expect(perRequest).toBeLessThan(500)
-    })
+      expect(perRequest).toBeLessThan(500);
+    });
 
     it('handles 10 concurrent /api/categories requests', async () => {
-      const concurrency = 10
-      const start = performance.now()
+      const concurrency = 10;
+      const start = performance.now();
       await Promise.all(
         Array.from({ length: concurrency }, () => request(app).get('/api/categories')),
-      )
-      const total = performance.now() - start
-      console.log(`  ${concurrency} concurrent /api/categories: total=${total.toFixed(1)}ms`)
-      expect(total).toBeLessThan(THRESHOLDS.categories * concurrency)
-    })
-  })
-})
+      );
+      const total = performance.now() - start;
+      console.log(`  ${concurrency} concurrent /api/categories: total=${total.toFixed(1)}ms`);
+      expect(total).toBeLessThan(THRESHOLDS.categories * concurrency);
+    });
+  });
+});

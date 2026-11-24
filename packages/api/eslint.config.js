@@ -3,21 +3,22 @@
 //
 // Shared rules are sourced from /eslint-base-rules.js (#1289) so that all
 // packages enforce the same baseline. Add only api-specific overrides here.
-import js from '@eslint/js'
-import tsPlugin from '@typescript-eslint/eslint-plugin'
-import tsParser from '@typescript-eslint/parser'
-import unicornPlugin from 'eslint-plugin-unicorn'
-import globals from 'globals'
-import { createRequire } from 'module'
+import js from '@eslint/js';
+import tsPlugin from '@typescript-eslint/eslint-plugin';
+import tsParser from '@typescript-eslint/parser';
+import unicornPlugin from 'eslint-plugin-unicorn';
+import globals from 'globals';
+import { createRequire } from 'module';
 
-const require = createRequire(import.meta.url)
+const require = createRequire(import.meta.url);
 const {
   tsRules,
   baseRules,
   productionOnlyRules,
   filenameRules,
   deprecationRules,
-} = require('../../eslint-base-rules.js')
+  importRules,
+} = require('../../eslint-base-rules.js');
 
 export default [
   {
@@ -48,6 +49,7 @@ export default [
       ...productionOnlyRules,
       ...filenameRules,
       ...deprecationRules,
+      ...importRules,
     },
   },
   {
@@ -62,4 +64,4 @@ export default [
       'no-console': 'off',
     },
   },
-]
+];

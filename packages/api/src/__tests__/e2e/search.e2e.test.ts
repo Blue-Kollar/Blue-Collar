@@ -14,8 +14,8 @@
 
 import { describe, it, expect, beforeAll } from 'vitest';
 import request from 'supertest';
-import { db } from '../../db.js';
-import app from '../../app.js';
+import { db } from '@/db.js';
+import app from '@/app.js';
 
 vi.mock('../../mailer/transport.js', () => ({
   transporter: { sendMail: vi.fn().mockResolvedValue({ messageId: 'mock' }) },
@@ -94,7 +94,12 @@ describe('Search E2E', () => {
     noMatchWorkerId = none.id;
 
     await db.review.create({
-      data: { workerId: heavyMatchWorkerId, authorId: curatorId, rating: 5, body: 'Fantastic work.' },
+      data: {
+        workerId: heavyMatchWorkerId,
+        authorId: curatorId,
+        rating: 5,
+        body: 'Fantastic work.',
+      },
     });
     await db.review.create({
       data: { workerId: lightMatchWorkerId, authorId: curatorId, rating: 2, body: 'Not great.' },

@@ -1,13 +1,19 @@
 // Flat config (ESLint 9+) for @bluecollar/types.
 // Shared baseline rules come from /eslint-base-rules.js (#1289).
-import js from '@eslint/js'
-import tsPlugin from '@typescript-eslint/eslint-plugin'
-import tsParser from '@typescript-eslint/parser'
-import unicornPlugin from 'eslint-plugin-unicorn'
-import { createRequire } from 'module'
+import js from '@eslint/js';
+import tsPlugin from '@typescript-eslint/eslint-plugin';
+import tsParser from '@typescript-eslint/parser';
+import unicornPlugin from 'eslint-plugin-unicorn';
+import { createRequire } from 'module';
 
-const require = createRequire(import.meta.url)
-const { tsRules, baseRules, productionOnlyRules, filenameRules } = require('../../eslint-base-rules.js')
+const require = createRequire(import.meta.url);
+const {
+  tsRules,
+  baseRules,
+  productionOnlyRules,
+  filenameRules,
+  importRules,
+} = require('../../eslint-base-rules.js');
 
 export default [
   {
@@ -34,6 +40,7 @@ export default [
       ...baseRules,
       ...productionOnlyRules,
       ...filenameRules,
+      ...importRules,
     },
   },
   {
@@ -52,4 +59,4 @@ export default [
       '@typescript-eslint/no-explicit-any': 'warn',
     },
   },
-]
+];

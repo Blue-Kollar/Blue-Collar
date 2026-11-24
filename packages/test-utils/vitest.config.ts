@@ -6,9 +6,15 @@
  * here gives the package first-class coverage and proves the shared helpers
  * behave deterministically (issue #1276 / #1278).
  */
-import { defineConfig } from 'vitest/config'
+import { fileURLToPath } from 'node:url';
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+    },
+  },
   test: {
     globals: true,
     environment: 'node',
@@ -20,4 +26,4 @@ export default defineConfig({
       exclude: ['**/*.test.ts', '**/*.d.ts'],
     },
   },
-})
+});

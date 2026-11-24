@@ -1,7 +1,10 @@
 title = "Blue-Collar Gitleaks config"
 
-# ── Custom rules ──────────────────────────────────────────────────────────────
-# Rules defined here extend the built-in gitleaks rule set.
+# A custom config REPLACES gitleaks' built-in rule set, so every detector we
+# rely on must be declared below. Rules extend the issue #1475 Stellar rule
+# with common provider token formats.
+
+# ── Stellar ────────────────────────────────────────────────────────────────────
 
 # Issue #1475: Stellar secret seed format detection
 #
@@ -20,11 +23,11 @@ title = "Blue-Collar Gitleaks config"
 id          = "stellar-secret-seed"
 description = "Stellar Ed25519 secret seed (StrKey-encoded private key starting with 'S')"
 regex       = '''(?:^|[^A-Z2-7])S([A-Z2-7]{55})(?:[^A-Z2-7]|$)'''
+entropy     = 3.5
 tags        = ["stellar", "private-key", "secret-seed"]
 severity    = "CRITICAL"
-entropy     = 3.5
 
-  [rules.allowlist]
+  [[rules.allowlists]]
   description = "Placeholder Stellar seeds used only in docs and tests"
   regexes = [
     # Canonical dummy seed used in Stellar documentation and test examples
@@ -39,11 +42,94 @@ entropy     = 3.5
     "deploy/load-tests/.*",
   ]
 
-# Gitleaks 8.18 accepts a single global `[allowlist]` table, so every exemption
-# is merged here. Each entry is a regex, not a glob.
-[allowlist]
-description = "Placeholder credentials in tests, example env files, and deploy templates"
+# ── Cloud / provider tokens ───────────────────────────────────────────────────
 
+[[rules]]
+id          = "aws-access-key-id"
+description = "AWS access key ID"
+regex       = '''\b((?:A3T[A-Z0-9]|AKIA|ASIA|AGPA|AIDA|AROA|AIPA|ANPA|ANVA|ABIA|ACCA)[A-Z0-9]{16})\b'''
+keywords    = ["AKIA", "ASIA", "A3T", "AGPA", "AIDA", "AROA", "AIPA", "ANPA", "ANVA", "ABIA", "ACCA"]
+tags        = ["key", "aws", "access-key"]
+severity    = "HIGH"
+
+[[rules]]
+id          = "github-pat"
+description = "GitHub personal access token (classic)"
+regex       = '''\b(gh[pousr]_[A-Za-z0-9]{36,255})\b'''
+keywords    = ["ghp_", "gho_", "ghu_", "ghs_", "ghr_"]
+tags        = ["key", "github", "token"]
+severity    = "HIGH"
+
+[[rules]]
+id          = "github-fine-grained-pat"
+description = "GitHub fine-grained personal access token"
+regex       = '''\b(github_pat_[A-Za-z0-9_]{22,255})\b'''
+keywords    = ["github_pat_"]
+tags        = ["key", "github", "token"]
+severity    = "HIGH"
+
+[[rules]]
+id          = "gitlab-pat"
+description = "GitLab personal access token"
+regex       = '''\b(glpat-[A-Za-z0-9_-]{20,})\b'''
+keywords    = ["glpat-"]
+tags        = ["key", "gitlab", "token"]
+severity    = "HIGH"
+
+[[rules]]
+id          = "stripe-secret-key"
+description = "Stripe live secret or restricted key"
+regex       = '''\b((?:sk|rk)_live_[0-9a-zA-Z]{24,})\b'''
+keywords    = ["sk_live_", "rk_live_"]
+tags        = ["key", "stripe", "token"]
+severity    = "HIGH"
+
+[[rules]]
+id          = "google-api-key"
+description = "Google API key"
+regex       = '''\b(AIza[0-9A-Za-z_-]{35})\b'''
+keywords    = ["AIza"]
+tags        = ["key", "google", "api-key"]
+severity    = "HIGH"
+
+[[rules]]
+id          = "slack-token"
+description = "Slack bot/user/app token"
+regex       = '''\b(xox[baprs]-[0-9A-Za-z-]{10,})\b'''
+keywords    = ["xoxb-", "xoxp-", "xoxa-", "xoxr-", "xoxs-"]
+tags        = ["key", "slack", "token"]
+severity    = "HIGH"
+
+[[rules]]
+id          = "npm-token"
+description = "npm access token"
+regex       = '''\b(npm_[A-Za-z0-9]{36})\b'''
+keywords    = ["npm_"]
+tags        = ["key", "npm", "token"]
+severity    = "HIGH"
+
+[[rules]]
+id          = "sendgrid-api-key"
+description = "SendGrid API key"
+regex       = '''\b(SG\.[A-Za-z0-9_-]{22}\.[A-Za-z0-9_-]{43})\b'''
+keywords    = ["SG."]
+tags        = ["key", "sendgrid", "token"]
+severity    = "HIGH"
+
+[[rules]]
+id          = "private-key"
+description = "PEM-encoded private key"
+regex       = '''-----BEGIN (?:RSA |DSA |EC |OPENSSH |ENCRYPTED |PGP )?PRIVATE KEY-----'''
+keywords    = ["PRIVATE KEY"]
+tags        = ["key", "private-key"]
+severity    = "CRITICAL"
+
+# ── Global allowlists ─────────────────────────────────────────────────────────
+
+# Each entry is a regex, not a glob. Keep these narrow: a path allowlist hides
+# every rule for that path, so only add fixtures that cannot hold real creds.
+[[allowlists]]
+description = "Placeholder credentials in tests, example env files, and vendored dependencies"
 regexes = [
   # Test JWT secrets
   '(?i)test.secret',
@@ -55,6 +141,10 @@ regexes = [
 ]
 
 paths = [
+  # Vendored SDK/provider bundles contain documented dummy keys
+  "node_modules/",
+  # Validation fixtures: fake seeds intentionally used as invalid inputs
+  "packages/app/src/__tests__/",
   # Password123! used exclusively in e2e and integration tests
   "packages/api/src/__tests__/",
   "packages/api/src/controllers/.*\\.test\\.ts",

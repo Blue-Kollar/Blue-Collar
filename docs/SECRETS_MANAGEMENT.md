@@ -141,11 +141,13 @@ docker exec vault vault kv put kv/bluecollar/aws \
 ### 4.1 AppRole Authentication
 
 Enable AppRole:
+
 ```bash
 docker exec vault vault auth enable approle
 ```
 
 Create AppRole:
+
 ```bash
 docker exec vault vault write auth/approle/role/bluecollar-api \
   token_ttl=1h \
@@ -154,11 +156,13 @@ docker exec vault vault write auth/approle/role/bluecollar-api \
 ```
 
 Get Role ID:
+
 ```bash
 docker exec vault vault read auth/approle/role/bluecollar-api/role-id
 ```
 
 Generate Secret ID:
+
 ```bash
 docker exec vault vault write -f auth/approle/role/bluecollar-api/secret-id
 ```
@@ -166,11 +170,13 @@ docker exec vault vault write -f auth/approle/role/bluecollar-api/secret-id
 ### 4.2 Kubernetes Authentication
 
 Enable Kubernetes auth:
+
 ```bash
 docker exec vault vault auth enable kubernetes
 ```
 
 Configure Kubernetes:
+
 ```bash
 docker exec vault vault write auth/kubernetes/config \
   kubernetes_host="https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_SERVICE_PORT" \
@@ -210,6 +216,7 @@ path "auth/token/lookup-self" {
 ```
 
 Apply policy:
+
 ```bash
 docker exec vault vault policy write bluecollar-api /vault/policies/bluecollar-api.hcl
 ```
@@ -309,6 +316,7 @@ volumes:
 ### 8.1 Vault Client Library
 
 Install dependency:
+
 ```bash
 npm install node-vault
 ```
@@ -366,12 +374,12 @@ async function initializeSecrets() {
   try {
     const dbSecret = await getSecret('database');
     const apiSecret = await getSecret('api');
-    
+
     process.env.DATABASE_URL = `postgresql://${dbSecret.username}:${dbSecret.password}@${dbSecret.host}:${dbSecret.port}/${dbSecret.database}`;
     process.env.JWT_SECRET = apiSecret.jwt_secret;
     process.env.GOOGLE_CLIENT_ID = apiSecret.google_client_id;
     process.env.GOOGLE_CLIENT_SECRET = apiSecret.google_client_secret;
-    
+
     console.log('Secrets loaded from Vault');
   } catch (error) {
     console.error('Failed to load secrets from Vault', error);
@@ -437,14 +445,14 @@ canonical rotation procedure for each secret class.
 
 ### 12.1 Rotation Schedule
 
-| Secret | Rotation Frequency | Procedure |
-|--------|--------------------|-----------|
-| `JWT_SECRET` | 90 days (or immediately on suspected leak) | See §12.2 |
-| `DATABASE_URL` / DB password | 90 days | See §12.3 |
-| `MAIL_PASS` (SMTP) | 180 days | See §12.4 |
-| `GOOGLE_CLIENT_SECRET` | Per Google policy / on suspected leak | See §12.5 |
-| `BACKUP_GPG_PASSPHRASE` | 180 days | See §12.6 |
-| Vault root token | Never stored; unseal keys in hardware vault | N/A |
+| Secret                       | Rotation Frequency                          | Procedure |
+| ---------------------------- | ------------------------------------------- | --------- |
+| `JWT_SECRET`                 | 90 days (or immediately on suspected leak)  | See §12.2 |
+| `DATABASE_URL` / DB password | 90 days                                     | See §12.3 |
+| `MAIL_PASS` (SMTP)           | 180 days                                    | See §12.4 |
+| `GOOGLE_CLIENT_SECRET`       | Per Google policy / on suspected leak       | See §12.5 |
+| `BACKUP_GPG_PASSPHRASE`      | 180 days                                    | See §12.6 |
+| Vault root token             | Never stored; unseal keys in hardware vault | N/A       |
 
 ### 12.2 JWT Secret Rotation
 
@@ -516,10 +524,10 @@ push and pull request to prevent secrets from entering the repository.
 
 ### Tools
 
-| Tool | Mode | Action on detection |
-|------|------|---------------------|
-| **Gitleaks** | Full history diff on push; PR delta on PRs | Hard CI failure |
-| **TruffleHog** | Verified secrets only | Hard CI failure |
+| Tool           | Mode                                       | Action on detection |
+| -------------- | ------------------------------------------ | ------------------- |
+| **Gitleaks**   | Full history diff on push; PR delta on PRs | Hard CI failure     |
+| **TruffleHog** | Verified secrets only                      | Hard CI failure     |
 
 ### What is scanned
 
@@ -528,13 +536,10 @@ push and pull request to prevent secrets from entering the repository.
 
 ### False-positive suppression
 
-Add a `.gitleaks.toml` at repo root to allowlist known false positives:
-
-```toml
-[[allowlist.regexes]]
-description = "Example key in docs"
-regex = "EXAMPLE_KEY_[A-Z0-9]+"
-```
+Known false positives are allowlisted in the root `.gitleaks.toml`. Keep any
+new entry narrowly scoped (an exact regex or a test-fixture path) and document
+its justification. See [SECRET_SCANNING.md](./SECRET_SCANNING.md) for the
+supported config format and local scan commands.
 
 ### Responding to a detected secret
 
