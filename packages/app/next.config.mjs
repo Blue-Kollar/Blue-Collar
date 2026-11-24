@@ -64,15 +64,6 @@ const nextConfig = {
   },
 
   // ── Bundle analysis (run: ANALYZE=true next build) ──────────────────────────
-  ...(process.env.ANALYZE === 'true' && {
-    webpack: (config, { isServer }) => {
-      if (!isServer) {
-        config.resolve.fallback = { ...config.resolve.fallback, "sodium-native": false };
-      }
-      return config;
-    },
-  }),
-
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.fallback = { ...config.resolve.fallback, "sodium-native": false };

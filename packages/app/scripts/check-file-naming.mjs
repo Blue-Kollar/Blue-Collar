@@ -17,8 +17,9 @@
 
 import { readdirSync, statSync } from "fs";
 import { join, relative, basename, extname } from "path";
+import { fileURLToPath } from "url";
 
-const ROOT = new URL("../src", import.meta.url).pathname;
+const ROOT = fileURLToPath(new URL("../src", import.meta.url));
 
 const PASCAL = /^[A-Z][A-Za-z0-9]*(\.[a-z]+)*\.(ts|tsx)$/;
 const CAMEL  = /^[a-z][A-Za-z0-9]*(\.[a-z]+)*\.(ts|tsx)$/;
@@ -48,7 +49,7 @@ let violations = 0;
 walk(join(ROOT, "components"), (fullPath) => {
   const rel = relative(ROOT, fullPath);
   // Skip shadcn/ui files (intentionally kebab-case)
-  if (rel.startsWith("components/ui/")) return;
+  if (rel.startsWith("components/ui/") || rel.startsWith("components\\ui\\")) return;
 
   const name = basename(fullPath);
   if (isExempt(name)) return;
