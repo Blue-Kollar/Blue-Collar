@@ -16,6 +16,7 @@ WASM_DIR := target/wasm32v1-none/release
 .PHONY: build build-registry build-market test lint \
         coverage coverage-html coverage-open coverage-summary \
         fuzz fuzz-proptest fuzz-register fuzz-tip fuzz-migrate \
+        fuzz-dispute fuzz-escrow-ops fuzz-corpus \
         audit security-scan \
         deploy-testnet deploy-mainnet \
         deploy-registry-testnet deploy-market-testnet \
@@ -119,6 +120,17 @@ fuzz-tip:
 fuzz-migrate:
 	cargo install --locked cargo-fuzz
 	cargo +nightly fuzz run fuzz_migrate --features fuzzing -- -max_len=1024 -timeout=10
+
+fuzz-dispute:
+	cargo install --locked cargo-fuzz
+	cargo +nightly fuzz run fuzz_dispute --features fuzzing -- -max_len=1024 -timeout=10
+
+fuzz-escrow-ops:
+	cargo install --locked cargo-fuzz
+	cargo +nightly fuzz run fuzz_escrow_ops --features fuzzing -- -max_len=1024 -timeout=10
+
+fuzz-corpus:
+	./scripts/run-corpus.sh
 
 # ---------------------------------------------------------------------------
 # Deploy — testnet
