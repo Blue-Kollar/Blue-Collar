@@ -20,13 +20,13 @@ import { Alert } from 'react-native'
 import { render, fireEvent, waitFor, act } from '@testing-library/react-native'
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
-jest.mock('../../../lib/api', () => ({
+jest.mock('@/lib/api', () => ({
   contactRequestsApi: {
     create: jest.fn(),
   },
 }))
 
-const { contactRequestsApi } = require('../../../lib/api')
+const { contactRequestsApi } = require('@/lib/api')
 
 let JobPostingScreen: React.ComponentType<any>
 

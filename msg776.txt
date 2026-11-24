@@ -1,0 +1,17 @@
+feat(#776): implement worker availability and booking API
+
+- Add Booking model and BookingStatus enum to prisma/schema.prisma
+  Indexes on (workerId, startTime), (requesterId, startTime), (workerId, status)
+- Create booking.service.ts:
+  - createBooking: validates future time, no self-booking, worker existence,
+    availability schedule coverage, conflict detection (overlap check),
+    enqueues booking_request notification
+  - confirmBooking: worker-only, enqueues booking_confirmed notification
+  - cancelBooking: either party, enqueues booking_cancelled notification
+  - getWorkerBookings and getRequesterBookings with pagination and status filter
+- Create controllers/bookings.ts: createBooking, confirmBooking, cancelBooking, getMyBookings
+- Create routes/bookings.ts:
+  POST /bookings, GET /bookings/mine, PATCH /bookings/:id/confirm, PATCH /bookings/:id/cancel
+  All routes require authenticateJWT, POST uses bookingRateLimit
+
+Closes #776

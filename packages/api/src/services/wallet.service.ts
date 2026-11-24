@@ -1,6 +1,7 @@
 import { walletRepository as defaultWalletRepository } from '@/repositories/wallet.repository.js'
 import { stellarClient as defaultStellarClient, StellarClient } from '@/clients/stellar.client.js'
 import { AppError, ErrorCode } from '@/utils/app-error.js'
+import { sanitizeText } from '@/utils/sanitize.js'
 
 /**
  * WalletService encapsulates wallet business logic.
@@ -68,7 +69,7 @@ export function createWalletService(deps: WalletServiceDeps = {}) {
         sourcePublicKey,
         destinationPublicKey,
         amount,
-        memo: memo || '',
+        memo: memo ? sanitizeText(memo) : '',
         sequence: nextSequence,
         description: 'Use stellar-sdk to sign this transaction and then broadcast',
       }

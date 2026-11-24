@@ -17,6 +17,9 @@ describe("CacheStore", () => {
   let cacheStore: CacheStore;
   let mockStorage: Map<string, string>;
 
+  beforeAll(() => jest.useFakeTimers());
+  afterAll(() => jest.useRealTimers());
+
   beforeEach(() => {
     mockStorage = new Map();
     const MMKV = require("react-native-mmkv").MMKV;

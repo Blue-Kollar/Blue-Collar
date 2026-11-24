@@ -61,17 +61,19 @@ export function nowUtc(): Date {
 }
 
 /**
- * Format a Date as an ISO 8601 UTC string.
+ * Format a date input as an ISO 8601 UTC string.
+ * Accepts the same input shapes as {@link parseUtcDate}.
  */
-export function formatUtcIso(date: Date): string {
-  return date.toISOString();
+export function formatUtcIso(date: string | number | Date): string {
+  return parseUtcDate(date).toISOString();
 }
 
 /**
  * Return a new Date offset from the given date by the specified milliseconds.
+ * Accepts the same input shapes as {@link parseUtcDate}.
  */
-export function addUtcMs(date: Date, ms: number): Date {
-  return new Date(date.getTime() + ms);
+export function addUtcMs(date: string | number | Date, ms: number): Date {
+  return new Date(parseUtcDate(date).getTime() + ms);
 }
 
 /**
@@ -79,7 +81,5 @@ export function addUtcMs(date: Date, ms: number): Date {
  * containing the given date.
  */
 export function startOfUtcDay(date: Date): Date {
-  return new Date(
-    Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()),
-  );
+  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
 }

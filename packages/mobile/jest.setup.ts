@@ -103,7 +103,7 @@ jest.mock('expo-router', () => ({
 // ─────────────────────────────────────────────────────────────────────────────
 // Global fetch stub (react-native provides it, jest doesn't)
 // ─────────────────────────────────────────────────────────────────────────────
-global.fetch = jest.fn().mockResolvedValue({
+globalThis.fetch = jest.fn().mockResolvedValue({
   ok: true,
   status: 200,
   statusText: 'OK',

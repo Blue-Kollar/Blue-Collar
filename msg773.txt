@@ -1,0 +1,12 @@
+feat(#773): implement Redis caching layer
+
+- Create cache.service.ts with cacheGet/cacheSet/cacheDel/cacheOrFetch
+- CacheTTL presets: SHORT(60) MEDIUM(300) LONG(600) HOUR(3600) DAY(86400)
+- CacheKeys typed namespace for workers, categories, ratings, availability
+- invalidateWorkerCache/invalidateCategoryCache/invalidateRatingCache helpers
+- Prometheus metrics: cache_hits_total, cache_misses_total, cache_operation_duration_seconds
+- Graceful degradation when Redis is unavailable
+- Update cache.ts middleware to delegate to cache.service
+- Only caches 2xx responses, X-Cache HIT/MISS headers on every GET
+
+Closes #773

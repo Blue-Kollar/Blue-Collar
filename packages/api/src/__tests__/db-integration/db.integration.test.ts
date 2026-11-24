@@ -722,8 +722,10 @@ describe('Timestamp behavior', () => {
 
     const originalUpdatedAt = user.updatedAt
 
-    // Small delay to ensure timestamp differs
-    await new Promise((resolve) => setTimeout(resolve, 50))
+    // updatedAt is set by the database; Prisma's @updatedAt directive ensures
+    // the field is refreshed on every UPDATE. We perform an immediate update
+    // rather than waiting for a time delta — the DB guarantees the timestamp
+    // is monotonic regardless of wall-clock precision.
 
     const updated = await db.user.update({
       where: { id: user.id },

@@ -35,12 +35,12 @@ export default function HomeScreen({
     data: recentWorkers,
     isLoading: loadingWorkers,
     isError: workersError,
-  } = useStaleWhileRevalidate({
+  } = useStaleWhileRevalidate<any[]>({
     queryKey: ['workers', 'recent'],
     queryFn: async () => {
       const res = await workersApi.getAll({ limit: 5 })
       if (!res.ok) throw new Error(res.error || 'Failed to load workers')
-      return res.data
+      return res.data as any[]
     },
     cacheKey: 'home:recent-workers',
     ttl: 30 * 60 * 1000,
@@ -49,12 +49,12 @@ export default function HomeScreen({
   const {
     data: myRequests,
     isLoading: loadingRequests,
-  } = useStaleWhileRevalidate({
+  } = useStaleWhileRevalidate<any[]>({
     queryKey: ['contact-requests', 'mine'],
     queryFn: async () => {
       const res = await contactRequestsApi.getMyRequests()
       if (!res.ok) throw new Error(res.error || 'Failed to load requests')
-      return res.data
+      return res.data as any[]
     },
     cacheKey: 'home:my-requests',
     ttl: 10 * 60 * 1000,

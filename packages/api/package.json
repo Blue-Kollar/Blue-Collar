@@ -14,7 +14,7 @@
     "test:coverage:baseline": "vitest run --coverage --coverage.reporter=text --coverage.reporter=json-summary --coverage.reporter=html",
     "test:integration:db": "vitest run --config vitest.db-integration.config.ts",
     "test:integration:db:watch": "vitest --config vitest.db-integration.config.ts",
-    "test:contract": "vitest run src/__tests__/contract/apiContract.test.ts",
+    "test:contract": "vitest run src/__tests__/contract/apiContract.test.ts src/__tests__/contract/sdk-api-contract.test.ts",
     "test:perf": "vitest run src/__tests__/performance",
     "migrate": "prisma migrate dev",
     "prisma:generate": "prisma generate",
