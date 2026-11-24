@@ -1,0 +1,59 @@
+name: Lint
+
+# Enforces import ordering, cycle detection (#1893), consistent type
+# definitions (#1895), and all shared baseline lint rules across the monorepo.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "packages/**/*.ts"
+      - "packages/**/*.tsx"
+      - "eslint-base-rules.js"
+      - "packages/**/eslint.config.js"
+      - "packages/**/.eslintrc.js"
+      - ".github/workflows/lint.yml"
+  pull_request:
+    paths:
+      - "packages/**/*.ts"
+      - "packages/**/*.tsx"
+      - "eslint-base-rules.js"
+      - "packages/**/eslint.config.js"
+      - "packages/**/.eslintrc.js"
+      - ".github/workflows/lint.yml"
+  workflow_dispatch:
+
+env:
+  CI: "true"
+
+jobs:
+  lint:
+    name: ESLint (all packages)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint @bluecollar/types
+        run: pnpm --filter @bluecollar/types lint
+
+      - name: Lint @bluecollar/sdk
+        run: pnpm --filter @bluecollar/sdk lint
+
+      - name: Lint @bluecollar/api
+        run: pnpm --filter @bluecollar/api lint
+
+      - name: Lint @bluecollar/app
+        run: pnpm --filter @bluecollar/app lint
+
+      - name: Check dead code / unused exports
+        run: pnpm lint:dead-code

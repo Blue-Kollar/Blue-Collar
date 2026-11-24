@@ -34,10 +34,10 @@ import { config } from './config.js'
 // and fails fast on missing/invalid values.
 
 /** Max connections for the primary (write) pool. */
-const DB_POOL_SIZE = config.DB_POOL_SIZE
+const DB_POOL_SIZE = config.db.poolSize
 
 /** Max connections for the read-replica pool (can be larger for read-heavy workloads). */
-const DB_READ_POOL_SIZE = config.DB_READ_POOL_SIZE
+const DB_READ_POOL_SIZE = config.db.readPoolSize
 
 // ── Shared Prisma transaction options ─────────────────────────────────────────
 
@@ -57,7 +57,7 @@ const BASE_TRANSACTION_OPTIONS = {
  */
 export const db = new PrismaClient({
   adapter: new PrismaPg({
-    connectionString: config.DATABASE_URL,
+    connectionString: config.db.url,
     max: DB_POOL_SIZE,
   }),
   transactionOptions: BASE_TRANSACTION_OPTIONS,
@@ -80,7 +80,7 @@ export const db = new PrismaClient({
  */
 export const readDb = new PrismaClient({
   adapter: new PrismaPg({
-    connectionString: config.DATABASE_READ_URL ?? config.DATABASE_URL,
+    connectionString: config.db.readUrl ?? config.db.url,
     max: DB_READ_POOL_SIZE,
   }),
   transactionOptions: BASE_TRANSACTION_OPTIONS,

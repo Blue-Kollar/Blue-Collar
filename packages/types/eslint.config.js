@@ -32,6 +32,12 @@ export default [
     plugins: {
       '@typescript-eslint': tsPlugin,
       unicorn: unicornPlugin,
+      'import-x': importXPlugin,
+    },
+    settings: {
+      'import-x/resolver': {
+        typescript: { project: './tsconfig.json' },
+      },
     },
     rules: {
       ...tsPlugin.configs.recommended.rules,
