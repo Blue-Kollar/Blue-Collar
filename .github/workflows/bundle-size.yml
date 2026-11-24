@@ -46,6 +46,7 @@ jobs:
       - name: Report bundle stats
         run: |
           echo "## Bundle Size Report" >> $GITHUB_STEP_SUMMARY
+          echo "Budgets aligned with lighthouse-budget.json; see docs/bundle-size.md" >> $GITHUB_STEP_SUMMARY
           du -sh packages/app/.next/static/chunks/ 2>/dev/null | awk '{print "**Total JS chunks:** " $1}' >> $GITHUB_STEP_SUMMARY
           du -sh packages/app/.next/ 2>/dev/null | awk '{print "**Total .next:** " $1}' >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
