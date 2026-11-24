@@ -28,24 +28,24 @@
  *     "Replay behavior" below.
  */
 
-import { describe, it, expect, beforeAll } from 'vitest'
-import request from 'supertest'
-import * as OTPAuth from 'otpauth'
-import { db } from '../../db.js'
-import app from '../../app.js'
+import { describe, it, expect, beforeAll } from 'vitest';
+import request from 'supertest';
+import * as OTPAuth from 'otpauth';
+import { db } from '@/db.js';
+import app from '@/app.js';
 
 vi.mock('../../mailer/transport.js', () => ({
   transporter: { sendMail: vi.fn().mockResolvedValue({ messageId: 'mock' }) },
-}))
+}));
 
-import { vi } from 'vitest'
+import { vi } from 'vitest';
 
-const PASSWORD = 'Password123!'
+const PASSWORD = 'Password123!';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 async function createVerifiedUser(email: string) {
-  const argon2 = await import('argon2')
+  const argon2 = await import('argon2');
   return db.user.create({
     data: {
       email,
@@ -55,12 +55,12 @@ async function createVerifiedUser(email: string) {
       role: 'user',
       verified: true,
     },
-  })
+  });
 }
 
 async function loginAs(email: string): Promise<string> {
-  const res = await request(app).post('/api/auth/login').send({ email, password: PASSWORD })
-  return res.body.token as string
+  const res = await request(app).post('/api/auth/login').send({ email, password: PASSWORD });
+  return res.body.token as string;
 }
 
 /** Mirrors the exact TOTP parameters used by twoFactor.service.ts. */
@@ -72,55 +72,55 @@ function totpFor(base32Secret: string, email: string) {
     digits: 6,
     period: 30,
     secret: OTPAuth.Secret.fromBase32(base32Secret),
-  })
+  });
 }
 
 /** A code guaranteed to fall outside the service's ±1 period validation window. */
 function wrongCodeFor(base32Secret: string, email: string) {
-  return totpFor(base32Secret, email).generate({ timestamp: Date.now() + 5 * 60_000 })
+  return totpFor(base32Secret, email).generate({ timestamp: Date.now() + 5 * 60_000 });
 }
 
 // ── State ────────────────────────────────────────────────────────────────────
 
-let userId: string
-let userEmail: string
-let authToken: string
-let secret: string
+let userId: string;
+let userEmail: string;
+let authToken: string;
+let secret: string;
 
 describe('Two-Factor Auth E2E', () => {
   beforeAll(async () => {
-    userEmail = 'e2e-2fa@example.com'
-    const user = await createVerifiedUser(userEmail)
-    userId = user.id
-    authToken = await loginAs(userEmail)
-  })
+    userEmail = 'e2e-2fa@example.com';
+    const user = await createVerifiedUser(userEmail);
+    userId = user.id;
+    authToken = await loginAs(userEmail);
+  });
 
   // ── Setup ────────────────────────────────────────────────────────────────
   describe('POST /api/auth/2fa/setup', () => {
     it('returns 401 when unauthenticated', async () => {
-      const res = await request(app).post('/api/auth/2fa/setup')
-      expect(res.status).toBe(401)
-    })
+      const res = await request(app).post('/api/auth/2fa/setup');
+      expect(res.status).toBe(401);
+    });
 
     it('returns a secret + otpauth URI + QR code for an authenticated user', async () => {
       const res = await request(app)
         .post('/api/auth/2fa/setup')
-        .set('Authorization', `Bearer ${authToken}`)
+        .set('Authorization', `Bearer ${authToken}`);
 
-      expect(res.status).toBe(200)
-      expect(typeof res.body.data.secret).toBe('string')
-      expect(res.body.data.secret.length).toBeGreaterThan(0)
-      expect(res.body.data.uri).toMatch(/^otpauth:\/\/totp\//)
-      expect(res.body.data.qrCode).toMatch(/^data:image\/png;base64,/)
+      expect(res.status).toBe(200);
+      expect(typeof res.body.data.secret).toBe('string');
+      expect(res.body.data.secret.length).toBeGreaterThan(0);
+      expect(res.body.data.uri).toMatch(/^otpauth:\/\/totp\//);
+      expect(res.body.data.qrCode).toMatch(/^data:image\/png;base64,/);
 
-      secret = res.body.data.secret
+      secret = res.body.data.secret;
 
       // Secret is persisted immediately, but 2FA is not enabled until verified.
-      const stored = await db.user.findUnique({ where: { id: userId } })
-      expect(stored?.twoFactorSecret).toBe(secret)
-      expect(stored?.twoFactorEnabled).toBe(false)
-    })
-  })
+      const stored = await db.user.findUnique({ where: { id: userId } });
+      expect(stored?.twoFactorSecret).toBe(secret);
+      expect(stored?.twoFactorEnabled).toBe(false);
+    });
+  });
 
   // ── Enable ───────────────────────────────────────────────────────────────
   describe('POST /api/auth/2fa/enable', () => {
@@ -128,49 +128,49 @@ describe('Two-Factor Auth E2E', () => {
       const res = await request(app)
         .post('/api/auth/2fa/enable')
         .set('Authorization', `Bearer ${authToken}`)
-        .send({})
-      expect(res.status).toBe(400)
+        .send({});
+      expect(res.status).toBe(400);
 
-      const stored = await db.user.findUnique({ where: { id: userId } })
-      expect(stored?.twoFactorEnabled).toBe(false)
-    })
+      const stored = await db.user.findUnique({ where: { id: userId } });
+      expect(stored?.twoFactorEnabled).toBe(false);
+    });
 
     it('rejects an incorrect TOTP token and leaves 2FA disabled', async () => {
-      const wrong = wrongCodeFor(secret, userEmail)
+      const wrong = wrongCodeFor(secret, userEmail);
       const res = await request(app)
         .post('/api/auth/2fa/enable')
         .set('Authorization', `Bearer ${authToken}`)
-        .send({ token: wrong })
-      expect(res.status).toBe(400)
+        .send({ token: wrong });
+      expect(res.status).toBe(400);
 
-      const stored = await db.user.findUnique({ where: { id: userId } })
-      expect(stored?.twoFactorEnabled).toBe(false)
-    })
+      const stored = await db.user.findUnique({ where: { id: userId } });
+      expect(stored?.twoFactorEnabled).toBe(false);
+    });
 
     it('accepts the correct current TOTP token and enables 2FA', async () => {
-      const code = totpFor(secret, userEmail).generate()
+      const code = totpFor(secret, userEmail).generate();
       const res = await request(app)
         .post('/api/auth/2fa/enable')
         .set('Authorization', `Bearer ${authToken}`)
-        .send({ token: code })
+        .send({ token: code });
 
-      expect(res.status).toBe(200)
-      expect(Array.isArray(res.body.data.backupCodes)).toBe(true)
-      expect(res.body.data.backupCodes.length).toBeGreaterThan(0)
+      expect(res.status).toBe(200);
+      expect(Array.isArray(res.body.data.backupCodes)).toBe(true);
+      expect(res.body.data.backupCodes.length).toBeGreaterThan(0);
 
-      const stored = await db.user.findUnique({ where: { id: userId } })
-      expect(stored?.twoFactorEnabled).toBe(true)
-    })
+      const stored = await db.user.findUnique({ where: { id: userId } });
+      expect(stored?.twoFactorEnabled).toBe(true);
+    });
 
     it('returns 409 when 2FA is already enabled', async () => {
-      const code = totpFor(secret, userEmail).generate()
+      const code = totpFor(secret, userEmail).generate();
       const res = await request(app)
         .post('/api/auth/2fa/enable')
         .set('Authorization', `Bearer ${authToken}`)
-        .send({ token: code })
-      expect(res.status).toBe(409)
-    })
-  })
+        .send({ token: code });
+      expect(res.status).toBe(409);
+    });
+  });
 
   // ── Login after 2FA is enabled ───────────────────────────────────────────
   // KNOWN GAP: loginUser() in auth.service.ts never checks twoFactorEnabled.
@@ -181,59 +181,55 @@ describe('Two-Factor Auth E2E', () => {
     it('KNOWN GAP: still returns a full access token without requiring a 2FA step', async () => {
       const res = await request(app)
         .post('/api/auth/login')
-        .send({ email: userEmail, password: PASSWORD })
+        .send({ email: userEmail, password: PASSWORD });
 
-      expect(res.status).toBe(202)
-      expect(typeof res.body.token).toBe('string')
-      expect(res.body.token.length).toBeGreaterThan(0)
+      expect(res.status).toBe(202);
+      expect(typeof res.body.token).toBe('string');
+      expect(res.body.token.length).toBeGreaterThan(0);
       // No pending-2FA / step-up indicator of any kind is returned.
-      expect(res.body.requiresTwoFactor).toBeUndefined()
-    })
-  })
+      expect(res.body.requiresTwoFactor).toBeUndefined();
+    });
+  });
 
   // ── Verify (standalone TOTP check, not wired into login) ────────────────
   describe('POST /api/auth/2fa/verify', () => {
     it('returns 400 when userId or token is missing', async () => {
-      const res = await request(app).post('/api/auth/2fa/verify').send({ userId })
-      expect(res.status).toBe(400)
-    })
+      const res = await request(app).post('/api/auth/2fa/verify').send({ userId });
+      expect(res.status).toBe(400);
+    });
 
     it('returns 401 for a nonexistent userId', async () => {
-      const code = totpFor(secret, userEmail).generate()
+      const code = totpFor(secret, userEmail).generate();
       const res = await request(app)
         .post('/api/auth/2fa/verify')
-        .send({ userId: 'nonexistent-user-id', token: code })
-      expect(res.status).toBe(401)
-    })
+        .send({ userId: 'nonexistent-user-id', token: code });
+      expect(res.status).toBe(401);
+    });
 
     it('returns 401 for a user who has not enabled 2FA', async () => {
-      const other = await createVerifiedUser('e2e-2fa-no2fa@example.com')
+      const other = await createVerifiedUser('e2e-2fa-no2fa@example.com');
       const res = await request(app)
         .post('/api/auth/2fa/verify')
-        .send({ userId: other.id, token: '123456' })
-      expect(res.status).toBe(401)
-    })
+        .send({ userId: other.id, token: '123456' });
+      expect(res.status).toBe(401);
+    });
 
     it('rejects an incorrect/expired TOTP code', async () => {
-      const wrong = wrongCodeFor(secret, userEmail)
-      const res = await request(app)
-        .post('/api/auth/2fa/verify')
-        .send({ userId, token: wrong })
-      expect(res.status).toBe(401)
-    })
+      const wrong = wrongCodeFor(secret, userEmail);
+      const res = await request(app).post('/api/auth/2fa/verify').send({ userId, token: wrong });
+      expect(res.status).toBe(401);
+    });
 
     it('accepts the correct current TOTP code', async () => {
-      const code = totpFor(secret, userEmail).generate()
-      const res = await request(app)
-        .post('/api/auth/2fa/verify')
-        .send({ userId, token: code })
+      const code = totpFor(secret, userEmail).generate();
+      const res = await request(app).post('/api/auth/2fa/verify').send({ userId, token: code });
 
-      expect(res.status).toBe(200)
+      expect(res.status).toBe(200);
       // KNOWN GAP: no JWT/session token is issued here — verify2FA only
       // confirms the code, it does not complete a login.
-      expect(res.body.token).toBeUndefined()
-    })
-  })
+      expect(res.body.token).toBeUndefined();
+    });
+  });
 
   // ── Replay behavior ──────────────────────────────────────────────────────
   // KNOWN GAP: twoFactor.service.ts does not track used codes, so a valid
@@ -242,58 +238,58 @@ describe('Two-Factor Auth E2E', () => {
   // not exist.
   describe('Replay behavior (no protection implemented)', () => {
     it('KNOWN GAP: the same valid TOTP code is accepted twice in a row', async () => {
-      const code = totpFor(secret, userEmail).generate()
+      const code = totpFor(secret, userEmail).generate();
 
-      const first = await request(app).post('/api/auth/2fa/verify').send({ userId, token: code })
-      const second = await request(app).post('/api/auth/2fa/verify').send({ userId, token: code })
+      const first = await request(app).post('/api/auth/2fa/verify').send({ userId, token: code });
+      const second = await request(app).post('/api/auth/2fa/verify').send({ userId, token: code });
 
-      expect(first.status).toBe(200)
-      expect(second.status).toBe(200)
-    })
-  })
+      expect(first.status).toBe(200);
+      expect(second.status).toBe(200);
+    });
+  });
 
   // ── Disable (requires re-authentication via TOTP) ───────────────────────
   describe('DELETE /api/auth/2fa', () => {
     it('returns 401 when unauthenticated', async () => {
-      const res = await request(app).delete('/api/auth/2fa').send({ token: '123456' })
-      expect(res.status).toBe(401)
-    })
+      const res = await request(app).delete('/api/auth/2fa').send({ token: '123456' });
+      expect(res.status).toBe(401);
+    });
 
     it('returns 400 when no token is provided', async () => {
       const res = await request(app)
         .delete('/api/auth/2fa')
         .set('Authorization', `Bearer ${authToken}`)
-        .send({})
-      expect(res.status).toBe(400)
+        .send({});
+      expect(res.status).toBe(400);
 
-      const stored = await db.user.findUnique({ where: { id: userId } })
-      expect(stored?.twoFactorEnabled).toBe(true)
-    })
+      const stored = await db.user.findUnique({ where: { id: userId } });
+      expect(stored?.twoFactorEnabled).toBe(true);
+    });
 
     it('rejects disabling with an incorrect TOTP token', async () => {
-      const wrong = wrongCodeFor(secret, userEmail)
+      const wrong = wrongCodeFor(secret, userEmail);
       const res = await request(app)
         .delete('/api/auth/2fa')
         .set('Authorization', `Bearer ${authToken}`)
-        .send({ token: wrong })
-      expect(res.status).toBe(400)
+        .send({ token: wrong });
+      expect(res.status).toBe(400);
 
-      const stored = await db.user.findUnique({ where: { id: userId } })
-      expect(stored?.twoFactorEnabled).toBe(true)
-    })
+      const stored = await db.user.findUnique({ where: { id: userId } });
+      expect(stored?.twoFactorEnabled).toBe(true);
+    });
 
     it('disables 2FA when given a correct, current TOTP token', async () => {
-      const code = totpFor(secret, userEmail).generate()
+      const code = totpFor(secret, userEmail).generate();
       const res = await request(app)
         .delete('/api/auth/2fa')
         .set('Authorization', `Bearer ${authToken}`)
-        .send({ token: code })
-      expect(res.status).toBe(200)
+        .send({ token: code });
+      expect(res.status).toBe(200);
 
-      const stored = await db.user.findUnique({ where: { id: userId } })
-      expect(stored?.twoFactorEnabled).toBe(false)
-      expect(stored?.twoFactorSecret).toBeNull()
-      expect(stored?.twoFactorBackupCodes).toEqual([])
-    })
-  })
-})
+      const stored = await db.user.findUnique({ where: { id: userId } });
+      expect(stored?.twoFactorEnabled).toBe(false);
+      expect(stored?.twoFactorSecret).toBeNull();
+      expect(stored?.twoFactorBackupCodes).toEqual([]);
+    });
+  });
+});

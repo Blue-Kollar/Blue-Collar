@@ -10,7 +10,9 @@
     "declaration": true,
     "outDir": "./dist",
     "jsx": "react-jsx",
+    "baseUrl": ".",
     "paths": {
+      "@/*": ["src/*"],
       "@bluecollar/types": ["../types/src/index.ts"]
     }
   },

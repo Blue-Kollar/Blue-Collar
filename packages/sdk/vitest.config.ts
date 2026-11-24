@@ -8,9 +8,15 @@
  * constants and utils) must maintain 90 %+ coverage. The node environment is
  * used because the SDK uses the native `fetch` API, available in Node 18+.
  */
+import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+    },
+  },
   test: {
     globals: true,
     environment: 'node',

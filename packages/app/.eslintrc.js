@@ -9,7 +9,7 @@
  * eslint.config.js and extend the shared preset directly.
  */
 
-'use strict'
+'use strict';
 
 const {
   tsRules,
@@ -17,7 +17,8 @@ const {
   productionOnlyRules,
   filenameRules,
   deprecationRules,
-} = require('../../eslint-base-rules.js')
+  importRules,
+} = require('../../eslint-base-rules.js');
 
 /** @type {import('eslint').Linter.Config} */
 module.exports = {
@@ -37,6 +38,7 @@ module.exports = {
     // sanctioned place for console output; see the override below.
     'no-console': 'error',
     ...filenameRules,
+    ...importRules,
 
     // ── Deprecation detection (#1688) ──────────────────────────────────────
     ...deprecationRules,
@@ -52,4 +54,4 @@ module.exports = {
     // ── App-specific rules ─────────────────────────────────────────────────
     'jsx-a11y/control-has-associated-label': 'warn',
   },
-}
+};

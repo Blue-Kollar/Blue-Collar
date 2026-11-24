@@ -33,14 +33,14 @@
     }
   },
   "devDependencies": {
-    "@faker-js/faker": "^10.5.0",
+    "@faker-js/faker": "catalog:",
     "@testing-library/react": "^14.0.0",
-    "@types/react": "^18.2.0",
-    "@types/react-dom": "^18.2.0",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
     "@bluecollar/sdk": "workspace:*",
     "@bluecollar/types": "workspace:*",
-    "typescript": "^5.4.0",
-    "vitest": "^3.2.6"
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   },
   "license": "MIT"
 }

@@ -8,9 +8,15 @@
  * are enforced at 85%+ across lines, functions, branches and statements to
  * match the repository-wide standard (issue #1055).
  */
-import { defineConfig } from 'vitest/config'
+import { fileURLToPath } from 'node:url';
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+    },
+  },
   test: {
     globals: true,
     environment: 'node',
@@ -28,4 +34,4 @@ export default defineConfig({
       },
     },
   },
-})
+});

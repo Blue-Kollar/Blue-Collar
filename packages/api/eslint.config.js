@@ -11,7 +11,7 @@ import importXPlugin from 'eslint-plugin-import-x'
 import globals from 'globals'
 import { createRequire } from 'module'
 
-const require = createRequire(import.meta.url)
+const require = createRequire(import.meta.url);
 const {
   tsRules,
   baseRules,
@@ -76,4 +76,4 @@ export default [
       'no-console': 'off',
     },
   },
-]
+];

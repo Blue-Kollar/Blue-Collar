@@ -9,7 +9,7 @@ import { describe, it, beforeAll, afterAll } from 'vitest';
 import { Verifier } from '@pact-foundation/pact';
 import path from 'path';
 import { createServer } from 'http';
-import app from '../../app.js';
+import app from '@/app.js';
 
 let server: ReturnType<typeof createServer>;
 let port: number;

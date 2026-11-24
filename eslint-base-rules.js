@@ -35,31 +35,34 @@
  *     literal-string rule is enforced everywhere.
  */
 
-'use strict'
+'use strict';
 
 /**
  * TypeScript-specific rules applied to all *.ts / *.tsx source files.
  * These are the rules that were duplicated across packages before #1289.
  */
 const tsRules = {
-  '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+  '@typescript-eslint/no-unused-vars': [
+    'warn',
+    { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+  ],
   '@typescript-eslint/no-explicit-any': 'error',
   '@typescript-eslint/explicit-function-return-type': 'off',
-}
+};
 
 /**
  * General rules that apply to every JS/TS file.
  */
 const baseRules = {
   'no-debugger': 'error',
-}
+};
 
 /**
  * Rules that apply to production code but NOT to scripts / seed files / tests.
  */
 const productionOnlyRules = {
   'no-console': 'error',
-}
+};
 
 /**
  * File naming convention rules enforcing kebab-case (#1691).
@@ -81,7 +84,7 @@ const filenameRules = {
       ],
     },
   ],
-}
+};
 
 /**
  * Deprecation detection (#1688).
@@ -102,7 +105,7 @@ const filenameRules = {
  */
 const deprecationRules = {
   '@typescript-eslint/no-deprecated': 'error',
-}
+};
 
 /**
  * Hardcoded i18n string detection (#1797).
@@ -123,7 +126,21 @@ const i18nRules = {
       'should-validate-template': true,
     },
   ],
-}
+};
+
+const importRules = {
+  'no-restricted-imports': [
+    'warn',
+    {
+      patterns: [
+        {
+          group: ['../../**'],
+          message: 'Use the "@/..." path alias instead of a deep relative import (issue #1888).',
+        },
+      ],
+    },
+  ],
+};
 
 /**
  * Import ordering and cycle detection rules (#1893).

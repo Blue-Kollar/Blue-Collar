@@ -15,8 +15,8 @@
 
 import { describe, it, expect, beforeAll } from 'vitest';
 import request from 'supertest';
-import { db } from '../../db.js';
-import app from '../../app.js';
+import { db } from '@/db.js';
+import app from '@/app.js';
 
 vi.mock('../../mailer/transport.js', () => ({
   transporter: { sendMail: vi.fn().mockResolvedValue({ messageId: 'mock' }) },

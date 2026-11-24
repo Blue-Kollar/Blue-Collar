@@ -11,11 +11,11 @@
  * Run: pnpm --filter @bluecollar/api test:contract
  */
 import { describe, it, expect } from 'vitest';
-import { categorySerializer } from '../../serializers/category.serializer.js';
-import { userSerializer } from '../../serializers/user.serializer.js';
-import { reviewSerializer } from '../../serializers/review.serializer.js';
-import { workerSerializer } from '../../serializers/worker.serializer.js';
-import { jobSerializer } from '../../serializers/job.serializer.js';
+import { categorySerializer } from '@/serializers/category.serializer.js';
+import { userSerializer } from '@/serializers/user.serializer.js';
+import { reviewSerializer } from '@/serializers/review.serializer.js';
+import { workerSerializer } from '@/serializers/worker.serializer.js';
+import { jobSerializer } from '@/serializers/job.serializer.js';
 import {
   ApiEnvelopeSchema,
   CategorySchema,
@@ -353,7 +353,14 @@ describe('API contract — Auth (POST /auth/login)', () => {
     const broken = {
       status: 'success',
       code: 202,
-      data: { id: 'usr_1', email: 'a@b.com', firstName: 'A', lastName: 'B', role: 'user', verified: true },
+      data: {
+        id: 'usr_1',
+        email: 'a@b.com',
+        firstName: 'A',
+        lastName: 'B',
+        role: 'user',
+        verified: true,
+      },
     };
     expect(AuthLoginResponseSchema.safeParse(broken).success).toBe(false);
   });
