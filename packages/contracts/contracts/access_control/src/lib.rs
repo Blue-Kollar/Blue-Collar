@@ -353,4 +353,177 @@ mod tests {
         assert_eq!(role_to_id(&env, &Symbol::new(&env, ROLE_REP_MGR)), ROLE_REP_MGR_ID);
         assert_eq!(role_to_id(&env, &Symbol::new(&env, ROLE_UPGRADER)), ROLE_UPGRADER_ID);
     }
+
+    // -------------------------------------------------------------------------
+    // Extended tests — issue #1849 (coverage), #1850 (pause), #1851 (roles)
+    // -------------------------------------------------------------------------
+
+    #[test]
+    fn test_role_to_id_curator_mgr_and_fee_mgr_share_manager_slot() {
+        let env = make_env();
+        // Both curator_mgr and fee_mgr map to the ROLE_MANAGER_ID bucket by design.
+        assert_eq!(role_to_id(&env, &Symbol::new(&env, ROLE_CURATOR_MGR)), ROLE_MANAGER_ID);
+        assert_eq!(role_to_id(&env, &Symbol::new(&env, ROLE_FEE_MGR)), ROLE_MANAGER_ID);
+    }
+
+    #[test]
+    fn test_set_role_members_overwrites_previous_list() {
+        let env = make_env();
+        let alice = Address::generate(&env);
+        let bob = Address::generate(&env);
+        let role_id = ROLE_ADMIN_ID;
+
+        let mut members = Vec::new(&env);
+        members.push_back(alice.clone());
+        set_role_members(&env, role_id, &members);
+        assert_eq!(get_role_members(&env, role_id).len(), 1);
+
+        let mut new_members = Vec::new(&env);
+        new_members.push_back(bob.clone());
+        set_role_members(&env, role_id, &new_members);
+
+        let stored = get_role_members(&env, role_id);
+        assert_eq!(stored.len(), 1);
+        assert_eq!(stored.get(0).unwrap(), bob);
+    }
+
+    #[test]
+    fn test_set_role_members_empty_clears_list() {
+        let env = make_env();
+        let alice = Address::generate(&env);
+        let role = Symbol::new(&env, ROLE_ADMIN);
+
+        grant_role(&env, &role, &alice);
+        assert_eq!(get_role_members(&env, ROLE_ADMIN_ID).len(), 1);
+
+        let empty: Vec<Address> = Vec::new(&env);
+        set_role_members(&env, ROLE_ADMIN_ID, &empty);
+        assert_eq!(get_role_members(&env, ROLE_ADMIN_ID).len(), 0);
+    }
+
+    #[test]
+    fn test_revoke_one_of_many_members_preserves_rest() {
+        let env = make_env();
+        let alice = Address::generate(&env);
+        let bob = Address::generate(&env);
+        let carol = Address::generate(&env);
+        let role = Symbol::new(&env, ROLE_PAUSER);
+
+        grant_role(&env, &role, &alice);
+        grant_role(&env, &role, &bob);
+        grant_role(&env, &role, &carol);
+
+        revoke_role(&env, &role, &bob).unwrap();
+
+        assert!(has_role(&env, &role, &alice));
+        assert!(!has_role(&env, &role, &bob));
+        assert!(has_role(&env, &role, &carol));
+        assert_eq!(get_role_members(&env, ROLE_PAUSER_ID).len(), 2);
+    }
+
+    #[test]
+    fn test_revoke_last_member_leaves_empty_list() {
+        let env = make_env();
+        let alice = Address::generate(&env);
+        let role = Symbol::new(&env, ROLE_UPGRADER);
+
+        grant_role(&env, &role, &alice);
+        revoke_role(&env, &role, &alice).unwrap();
+
+        assert!(!has_role(&env, &role, &alice));
+        assert_eq!(get_role_members(&env, ROLE_UPGRADER_ID).len(), 0);
+    }
+
+    #[test]
+    fn test_require_role_empty_role_list_returns_missing_role() {
+        let env = make_env();
+        // No members granted — empty list must return MissingRole.
+        let stranger = Address::generate(&env);
+        let role = Symbol::new(&env, ROLE_UPGRADER);
+        assert_eq!(
+            require_role(&env, &role, &stranger),
+            Err(ContractError::MissingRole)
+        );
+    }
+
+    #[test]
+    fn test_require_role_one_of_many_members_succeeds() {
+        let env = make_env();
+        let alice = Address::generate(&env);
+        let bob = Address::generate(&env);
+        let role = Symbol::new(&env, ROLE_PAUSER);
+
+        grant_role(&env, &role, &alice);
+        grant_role(&env, &role, &bob);
+
+        assert!(require_role(&env, &role, &alice).is_ok());
+        assert!(require_role(&env, &role, &bob).is_ok());
+    }
+
+    #[test]
+    fn test_set_paused_true_then_false_cycles_correctly() {
+        let env = make_env();
+        // Start unpaused.
+        assert!(require_not_paused(&env).is_ok());
+
+        set_paused(&env, true);
+        assert!(require_not_paused(&env).is_err());
+
+        set_paused(&env, false);
+        assert!(require_not_paused(&env).is_ok());
+
+        // A second pause/unpause cycle must work identically.
+        set_paused(&env, true);
+        assert!(require_not_paused(&env).is_err());
+        set_paused(&env, false);
+        assert!(require_not_paused(&env).is_ok());
+    }
+
+    #[test]
+    fn test_paused_flag_is_independent_of_role_storage() {
+        let env = make_env();
+        let admin = Address::generate(&env);
+        let role = Symbol::new(&env, ROLE_ADMIN);
+
+        grant_role(&env, &role, &admin);
+        set_paused(&env, true);
+
+        // Pausing does not remove roles.
+        assert!(has_role(&env, &role, &admin));
+        assert!(require_not_paused(&env).is_err());
+
+        set_paused(&env, false);
+        // Unpausing does not remove roles either.
+        assert!(has_role(&env, &role, &admin));
+    }
+
+    #[test]
+    fn test_unknown_role_members_stored_at_max_id_bucket() {
+        let env = make_env();
+        let alice = Address::generate(&env);
+        let unknown_role = Symbol::new(&env, "mystery_role_xyz");
+
+        grant_role(&env, &unknown_role, &alice);
+        assert!(has_role(&env, &unknown_role, &alice));
+
+        // Check the bucket is u64::MAX.
+        let bucket = role_to_id(&env, &unknown_role);
+        assert_eq!(bucket, u64::MAX);
+        let members = get_role_members(&env, bucket);
+        assert_eq!(members.len(), 1);
+        assert_eq!(members.get(0).unwrap(), alice);
+    }
+
+    #[test]
+    fn test_revoke_from_unknown_role_returns_account_does_not_hold_role() {
+        let env = make_env();
+        let alice = Address::generate(&env);
+        let unknown_role = Symbol::new(&env, "ghost_role");
+
+        // alice was never granted this role.
+        assert_eq!(
+            revoke_role(&env, &unknown_role, &alice),
+            Err(ContractError::AccountDoesNotHoldRole)
+        );
+    }
 }

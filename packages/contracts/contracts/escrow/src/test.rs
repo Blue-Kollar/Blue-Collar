@@ -1137,3 +1137,160 @@ mod gas_budgets {
         );
     }
 }
+
+// ---------------------------------------------------------------------------
+// Role management  (#1849 coverage, #1851 access-control)
+// ---------------------------------------------------------------------------
+
+#[test]
+fn test_grant_role_success() {
+    let (env, admin, _, _, _, contract_id) = setup_env();
+    let client = deploy_and_init(&env, &admin, &contract_id);
+
+    let new_pauser = Address::generate(&env);
+    let role = Symbol::new(&env, logic::ROLE_PAUSER);
+    assert!(!client.has_role(&role, &new_pauser));
+    client.grant_role(&admin, &role, &new_pauser);
+    assert!(client.has_role(&role, &new_pauser));
+}
+
+#[test]
+fn test_grant_role_non_admin_panics() {
+    let (env, admin, _, _, _, contract_id) = setup_env();
+    let client = deploy_and_init(&env, &admin, &contract_id);
+
+    let stranger = Address::generate(&env);
+    let role = Symbol::new(&env, logic::ROLE_PAUSER);
+    assert_eq!(
+        client.try_grant_role(&stranger, &role, &Address::generate(&env)),
+        Err(Ok(ContractError::MissingRole))
+    );
+}
+
+#[test]
+fn test_revoke_role_success() {
+    let (env, admin, _, _, _, contract_id) = setup_env();
+    let client = deploy_and_init(&env, &admin, &contract_id);
+
+    let pauser = Address::generate(&env);
+    let role = Symbol::new(&env, logic::ROLE_PAUSER);
+    client.grant_role(&admin, &role, &pauser);
+    assert!(client.has_role(&role, &pauser));
+    client.revoke_role(&admin, &role, &pauser);
+    assert!(!client.has_role(&role, &pauser));
+}
+
+#[test]
+fn test_revoke_role_non_admin_panics() {
+    let (env, admin, _, _, _, contract_id) = setup_env();
+    let client = deploy_and_init(&env, &admin, &contract_id);
+
+    let stranger = Address::generate(&env);
+    let role = Symbol::new(&env, logic::ROLE_PAUSER);
+    assert_eq!(
+        client.try_revoke_role(&stranger, &role, &admin),
+        Err(Ok(ContractError::MissingRole))
+    );
+}
+
+#[test]
+fn test_has_role_false_for_ungranted() {
+    let (env, admin, _, _, _, contract_id) = setup_env();
+    let client = deploy_and_init(&env, &admin, &contract_id);
+
+    let stranger = Address::generate(&env);
+    assert!(!client.has_role(&Symbol::new(&env, logic::ROLE_PAUSER), &stranger));
+}
+
+#[test]
+fn test_version_returns_contract_version() {
+    let (env, admin, _, _, _, contract_id) = setup_env();
+    let client = deploy_and_init(&env, &admin, &contract_id);
+    assert_eq!(client.version(), VERSION);
+}
+
+#[test]
+fn test_grant_role_idempotent() {
+    let (env, admin, _, _, _, contract_id) = setup_env();
+    let client = deploy_and_init(&env, &admin, &contract_id);
+
+    let pauser = Address::generate(&env);
+    let role = Symbol::new(&env, logic::ROLE_PAUSER);
+    client.grant_role(&admin, &role, &pauser);
+    client.grant_role(&admin, &role, &pauser); // second call must be a no-op
+    assert!(client.has_role(&role, &pauser));
+}
+
+// ---------------------------------------------------------------------------
+// Pause / unpause  (#1850)
+// ---------------------------------------------------------------------------
+
+#[test]
+fn test_release_while_paused_panics() {
+    let (env, admin, depositor, beneficiary, token, contract_id) = setup_env();
+    let client = deploy_and_init(&env, &admin, &contract_id);
+    set_time(&env, 1_000);
+
+    let id = Symbol::new(&env, "ep1");
+    client.create_escrow(&depositor, &beneficiary, &token, &id, &5_000, &9_000);
+    client.pause(&admin);
+    assert_eq!(
+        client.try_release_escrow(&depositor, &id),
+        Err(Ok(ContractError::ContractIsPaused))
+    );
+}
+
+#[test]
+fn test_cancel_while_paused_panics() {
+    let (env, admin, depositor, beneficiary, token, contract_id) = setup_env();
+    let client = deploy_and_init(&env, &admin, &contract_id);
+    set_time(&env, 1_000);
+
+    let id = Symbol::new(&env, "ep2");
+    client.create_escrow(&depositor, &beneficiary, &token, &id, &5_000, &9_000);
+    client.pause(&admin);
+    assert_eq!(
+        client.try_cancel_escrow(&admin, &id),
+        Err(Ok(ContractError::ContractIsPaused))
+    );
+}
+
+#[test]
+fn test_dispute_while_paused_panics() {
+    let (env, admin, depositor, beneficiary, token, contract_id) = setup_env();
+    let client = deploy_and_init(&env, &admin, &contract_id);
+    set_time(&env, 1_000);
+
+    let id = Symbol::new(&env, "ep3");
+    client.create_escrow(&depositor, &beneficiary, &token, &id, &5_000, &9_000);
+    client.pause(&admin);
+    assert_eq!(
+        client.try_dispute_escrow(&depositor, &id),
+        Err(Ok(ContractError::ContractIsPaused))
+    );
+}
+
+#[test]
+fn test_pause_requires_pauser_role() {
+    let (env, admin, _, _, _, contract_id) = setup_env();
+    let client = deploy_and_init(&env, &admin, &contract_id);
+
+    let stranger = Address::generate(&env);
+    assert_eq!(
+        client.try_pause(&stranger),
+        Err(Ok(ContractError::MissingRole))
+    );
+}
+
+#[test]
+fn test_unpause_requires_pauser_role() {
+    let (env, admin, _, _, _, contract_id) = setup_env();
+    let client = deploy_and_init(&env, &admin, &contract_id);
+    client.pause(&admin);
+
+    let stranger = Address::generate(&env);
+    assert_eq!(
+        client.try_unpause(&stranger),
+        Err(Ok(ContractError::MissingRole))
+    );
+}
