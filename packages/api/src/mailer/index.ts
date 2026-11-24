@@ -2,6 +2,7 @@ import { transporter } from './transport.js'
 import { logger } from '@/config/logger.js'
 import { render } from './templateEngine.js'
 import { config } from '@/config/config.js'
+import { escapeHtml } from '@/utils/sanitize.js'
 
 const APP_URL = config.appUrl
 const FROM = `BlueCollar <${config.mail.user}>`
@@ -123,7 +124,7 @@ export async function sendVerificationStatusEmail(
   reviewNote?: string,
 ) {
   const action = status === 'approved' ? 'approved ✅' : 'rejected ❌'
-  const noteHtml = reviewNote ? `<p><strong>Note:</strong> ${reviewNote}</p>` : ''
+  const noteHtml = reviewNote ? `<p><strong>Note:</strong> ${escapeHtml(reviewNote)}</p>` : ''
   await sendNotificationEmail({
     to,
     subject: `Worker verification ${status}: ${workerName}`,

@@ -19,7 +19,22 @@
  */
 
 import { faker } from '@faker-js/faker'
-import type { PrismaClient } from '@prisma/client'
+
+/**
+ * Minimal structural type for the Prisma client used by these factories.
+ * Declaring it locally keeps test-utils importable in packages that do not
+ * have `@prisma/client` installed, while a real PrismaClient remains assignable.
+ */
+export interface PrismaFixtureClient {
+  user: any
+  stellarAccount: any
+  webhookSubscription: any
+  webhookLog: any
+  worker: any
+  category: any
+  booking: any
+  escrowRecord: any
+}
 
 /**
  * Create a StellarAccount fixture with optional overrides.
@@ -35,7 +50,7 @@ import type { PrismaClient } from '@prisma/client'
  *   })
  */
 export async function createStellarAccount(
-  db: PrismaClient,
+  db: PrismaFixtureClient,
   overrides: Partial<{
     userId: string
     publicKey: string
@@ -62,7 +77,7 @@ export async function createStellarAccount(
   return db.stellarAccount.create({
     data: {
       userId,
-      publicKey: faker.string.alphaNumeric(56), // Stellar public key format (~56 chars)
+      publicKey: faker.string.alphanumeric(56), // Stellar public key format (~56 chars)
       balance: 100, // Default balance in XLM
       sequences: BigInt(0),
       ...rest,
@@ -84,7 +99,7 @@ export async function createStellarAccount(
  *   })
  */
 export async function createWebhookSubscription(
-  db: PrismaClient,
+  db: PrismaFixtureClient,
   overrides: Partial<{
     userId: string
     url: string
@@ -109,7 +124,6 @@ export async function createWebhookSubscription(
 
   return db.webhookSubscription.create({
     data: {
-      userId,
       url: faker.internet.url(),
       secret: faker.string.hexadecimal({ length: 64 }), // 32 bytes in hex = 64 chars
       events: ['payment.created', 'payment.completed'],
@@ -136,7 +150,7 @@ export async function createWebhookSubscription(
  *   })
  */
 export async function createWebhookLog(
-  db: PrismaClient,
+  db: PrismaFixtureClient,
   subscriptionId: string,
   overrides: Partial<{
     event: string
@@ -182,7 +196,7 @@ export async function createWebhookLog(
  *   })
  */
 export async function createBooking(
-  db: PrismaClient,
+  db: PrismaFixtureClient,
   overrides: Partial<{
     workerId: string
     requesterId: string
@@ -226,8 +240,6 @@ export async function createBooking(
 
   return db.booking.create({
     data: {
-      workerId,
-      requesterId,
       startTime,
       endTime,
       timezone: 'UTC',
@@ -256,7 +268,7 @@ export async function createBooking(
  *   })
  */
 export async function createEscrowRecord(
-  db: PrismaClient,
+  db: PrismaFixtureClient,
   overrides: Partial<{
     jobId: string | null
     payerId: string
@@ -301,8 +313,6 @@ export async function createEscrowRecord(
 
   return db.escrowRecord.create({
     data: {
-      payerId,
-      payeeId,
       amountXlm: 50, // Default 50 XLM
       status: 'pending',
       expiresAt,
@@ -328,7 +338,7 @@ export async function createEscrowRecord(
  *   const accounts = await createStellarAccounts(db, 5)
  */
 export async function createStellarAccounts(
-  db: PrismaClient,
+  db: PrismaFixtureClient,
   count: number,
   baseOverrides: Partial<{
     userId: string
@@ -358,7 +368,7 @@ export async function createStellarAccounts(
  *   const subscriptions = await createWebhookSubscriptions(db, userId, 3)
  */
 export async function createWebhookSubscriptions(
-  db: PrismaClient,
+  db: PrismaFixtureClient,
   userId: string,
   count: number,
   baseOverrides: Partial<{
@@ -391,7 +401,7 @@ export async function createWebhookSubscriptions(
  *   const bookings = await createBookings(db, 5, { workerId, requesterId })
  */
 export async function createBookings(
-  db: PrismaClient,
+  db: PrismaFixtureClient,
   count: number,
   baseOverrides: Partial<{
     workerId: string
@@ -423,7 +433,7 @@ export async function createBookings(
  *   const escrows = await createEscrowRecords(db, 5, { amountXlm: 100 })
  */
 export async function createEscrowRecords(
-  db: PrismaClient,
+  db: PrismaFixtureClient,
   count: number,
   baseOverrides: Partial<{
     jobId: string | null
@@ -452,7 +462,7 @@ export async function createEscrowRecords(
  * @param db - Prisma client instance
  * @returns User ID
  */
-async function getOrCreateUserId(db: PrismaClient): Promise<string> {
+async function getOrCreateUserId(db: PrismaFixtureClient): Promise<string> {
   const user = await db.user.create({
     data: {
       email: faker.internet.email(),
@@ -471,7 +481,7 @@ async function getOrCreateUserId(db: PrismaClient): Promise<string> {
  * @param db - Prisma client instance
  * @returns Category ID
  */
-async function getOrCreateCategoryId(db: PrismaClient): Promise<string> {
+async function getOrCreateCategoryId(db: PrismaFixtureClient): Promise<string> {
   const existing = await db.category.findFirst()
   if (existing) return existing.id
 

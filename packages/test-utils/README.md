@@ -1,20 +1,15 @@
 # @bluecollar/test-utils
 
-Shared test utilities for all BlueCollar packages. Replaces duplicated helper
-functions that previously lived independently in every test file.
-
-## What's inside
-
-| Export path | Contents |
-|---|---|
-| `@bluecollar/test-utils` (root) | Everything below, re-exported |
-| `@bluecollar/test-utils/factories` | Data factories (`userFactory`, `workerFactory`, `categoryFactory`, `reviewFactory`, `authUserFactory`, `stellarAddressFactory`) |
-| `@bluecollar/test-utils/react` | `renderWithProviders` — wraps RTL `render` with `AuthContext` pre-wired |
+Shared, deterministic test utilities for every BlueCollar package. This is a
+private workspace package: it replaces the per-file `makeReq` / `makeRes` /
+factory / fixture boilerplate that used to be copied into individual test files.
+Nothing here talks to a real database, network, or Stellar node unless you
+explicitly ask it to.
 
 ## Installation
 
-The package is a private workspace member. Add it as a `devDependency` in
-whichever package needs it:
+Add it as a dev dependency in the consuming package (no `pnpm install` is needed
+if it is already present in the workspace lockfile):
 
 ```json
 {
@@ -24,7 +19,34 @@ whichever package needs it:
 }
 ```
 
-Then run `pnpm install` from the repo root.
+## Subpath exports
+
+Every subpath below is declared in `package.json` → `exports`, so it can be
+imported by name from any workspace package.
+
+| Subpath | Contents | Typical consumer |
+|---|---|---|
+| `@bluecollar/test-utils` (root) | All of the below **except** React helpers, re-exported from one place | Any test that needs two or more kinds of helper |
+| `@bluecollar/test-utils/factories` | `userFactory`, `workerFactory`, `categoryFactory`, `reviewFactory`, `authUserFactory`, `stellarAddressFactory` and the `Fake*` interfaces | api, app, mobile |
+| `@bluecollar/test-utils/express` | `makeRequest`, `makeResponse`, `makeNext`, `makeJwt`, `makeExpiredJwt` and the `Mock*` interfaces | api controller / middleware tests |
+| `@bluecollar/test-utils/react` | `renderWithProviders`, `useTestAuth`, `RenderWithProvidersOptions` | app (React) tests only |
+| `@bluecollar/test-utils/contract-fixtures` | Account factories, account states, escrow/worker fixtures, Horizon response builders, `TESTNET_*` / `MAINNET_*` URL constants | sdk, contracts, api |
+| `@bluecollar/test-utils/stellar-mocks` | Horizon / Freighter / Soroban mocks, `makeMockStellarClient`, fixture helpers and `MOCK_*` constants | api, app, sdk |
+| `@bluecollar/test-utils/stellar-sdk-mock` | `MockStellarServer`, `MockSorobanRpcServer`, `createMockStellarClient`, `mockAccountFixture`, `mockTransactionFixture` | api integration tests |
+| `@bluecollar/test-utils/db-fixtures` | Prisma-backed `create*` / `create*Batch` factories for StellarAccount, WebhookSubscription, WebhookLog, Booking and EscrowRecord | api integration tests |
+
+### Root vs subpath
+
+- Use the **root** when you need helpers from several modules at once:
+  `import { userFactory, makeResponse, accountFixture } from '@bluecollar/test-utils'`.
+  The root lists its exports explicitly; there are no `export *` collisions and
+  every runtime export of the non-React subpaths is re-exported by identity.
+- Use a **subpath** when you only need one concern (smaller import graph, clearer
+  intent) or when you need React helpers. `renderWithProviders` and `useTestAuth`
+  are **only** available from `/react`: the root deliberately omits them so that
+  API/mobile tests do not have to resolve React just to import a factory.
+- Deep imports such as `@bluecollar/test-utils/src/...` are not supported; add a
+  new entry to `exports` instead (see below).
 
 ## Usage
 
@@ -34,21 +56,22 @@ Then run `pnpm install` from the repo root.
 import { userFactory, workerFactory, authUserFactory } from '@bluecollar/test-utils'
 
 const curator = userFactory({ role: 'curator', verified: true })
-const worker  = workerFactory({ isActive: false })
-const auth    = authUserFactory({ role: 'admin' })
+const worker = workerFactory({ isActive: false })
+const auth = authUserFactory({ role: 'admin' })
 ```
 
 All factories accept `Partial<T>` overrides so you only specify what differs
-from the sensible defaults.
+from the defaults. `userFactory()` returns a full DB-shape user;
+`authUserFactory()` returns only the fields carried in a JWT / AuthContext.
 
-### Express mock helpers (API unit tests)
+### Express mocks
 
 ```ts
-import { makeRequest, makeResponse, makeNext, makeJwt } from '@bluecollar/test-utils'
+import { makeRequest, makeResponse, makeNext } from '@bluecollar/test-utils'
 
 it('returns 200 on success', async () => {
-  const req  = makeRequest({ body: { email: 'a@b.com' }, user: { id: 'u-1', role: 'user' } })
-  const res  = makeResponse()
+  const req = makeRequest({ body: { email: 'a@b.com' } })
+  const res = makeResponse()
   const next = makeNext()
 
   await myController(req as any, res as any, next as any)
@@ -58,7 +81,12 @@ it('returns 200 on success', async () => {
 })
 ```
 
-### React render helper (app unit tests)
+`makeResponse()` pre-wires `status.mockReturnValue(res)`, so `res.status(200).json(...)`
+chains correctly. `makeJwt()` / `makeExpiredJwt()` sign with
+`process.env.JWT_SECRET ?? 'test-secret'` and require `jsonwebtoken` to be
+available in the consuming package.
+
+### React render helper
 
 ```tsx
 import { renderWithProviders } from '@bluecollar/test-utils/react'
@@ -72,77 +100,90 @@ it('shows curator-only edit button', () => {
 })
 ```
 
-Available options for `renderWithProviders`:
-
 | Option | Type | Default | Description |
 |---|---|---|---|
 | `authUser` | `FakeAuthUser \| null` | `null` | The authenticated user |
-| `token` | `string \| null` | `'test-jwt'` if authUser set, else `null` | JWT token |
+| `token` | `string \| null` | `'test-jwt'` if `authUser` set, else `null` | JWT token |
 | `authLoading` | `boolean` | `false` | Whether auth is still loading |
 | `extraWrappers` | `ComponentType[]` | `[]` | Extra providers to wrap around the component |
 
-## Migration guide
+`useTestAuth()` reads the same context from a component under test.
 
-### Before (#1058): per-file helpers
-
-```ts
-// Scattered across dozens of test files in packages/api and packages/app
-function makeRes() {
-  const res: any = {}
-  res.status = vi.fn().mockReturnValue(res)
-  res.json = vi.fn().mockReturnValue(res)
-  return res
-}
-
-function createTestUser(overrides = {}) {
-  return { id: faker.string.uuid(), email: faker.internet.email(), ... }
-}
-```
-
-### After (#1058): shared imports
+### Contract fixtures
 
 ```ts
-import { makeRequest, makeResponse, makeNext, userFactory } from '@bluecollar/test-utils'
+import {
+  makeTestAccountSet,
+  fundedAccount,
+  resetAllCounters,
+  TESTNET_FRIENDBOT_URL,
+} from '@bluecollar/test-utils/contract-fixtures'
+
+beforeEach(() => resetAllCounters())
+
+const { admin, curator, worker, payer, feeRecipient } = makeTestAccountSet()
+const sender = fundedAccount({ label: 'sender' })
 ```
 
-Differences to keep in mind when migrating:
+Key helpers: `makeTestAccount`, `makeTestAccountSet`, `freshAccount`,
+`fundedAccount`, `zeroBalanceAccount`, `authorizedAccount`,
+`unauthorizedAccount`, `makeSenderRecipient`, `makeAccountStates`,
+`makeTestWorkerFixture`, `makeEscrowId`, `futureExpiry`,
+`buildMockFundedResponse`, `buildMockAccountResponse`, `mockFundTestnetAccount`,
+and the `reset*Counter` helpers. Deterministic keys/counters make snapshots
+stable; reset them in `beforeEach`.
 
-- `makeResponse()` already sets up `status.mockReturnValue(res)` — you don't
-  need to do it yourself.
-- `userFactory()` returns a full DB-shape user; `authUserFactory()` returns
-  only the fields present in JWT / AuthContext.
-- `makeJwt()` signs with `process.env.JWT_SECRET ?? 'test-secret'`, which
-  matches the `JWT_SECRET` set in `src/__tests__/setup.ts`.
+The `TESTNET_FRIENDBOT_URL`, `TESTNET_HORIZON_URL` and `MAINNET_HORIZON_URL`
+constants have the same names and values as the ones in `@bluecollar/sdk`. They
+are declared locally so test-utils does not have to import the SDK barrel (the
+SDK also dev-depends on test-utils, which made that import circular).
 
-## Adding new helpers
+### Stellar SDK mocks (`/stellar-sdk-mock`)
 
-Add to the appropriate file:
+```ts
+import {
+  MockStellarServer,
+  createMockStellarClient,
+} from '@bluecollar/test-utils/stellar-sdk-mock'
 
-- **Domain data** (new model factories): `src/factories/index.ts`
-- **Express mocks**: `src/express/index.ts`
-- **React/Next helpers**: `src/react/index.ts`
+const server = new MockStellarServer()
+const client = createMockStellarClient(server)
+```
 
-Export from `src/index.ts` if the helper belongs at the root entry point.
+`createMockStellarClient` accepts either a `MockStellarServer` (so the client
+uses that server's state) or an object of per-method overrides
+(`getAccountInfo`, `broadcastTransaction`, `pollTransactionStatus`,
+`getAccountTransactions`). It returns `{ horizonServer, sorobanServer, ... }`.
+`MockStellarServer` supports `setAccountResponse`, `getAccount`,
+`submitTransaction`, `getTransaction`, `getAccountTransactions`,
+`setFailureMode` and `reset`; `MockSorobanRpcServer` is the RPC equivalent.
+`mockAccountFixture()` and `mockTransactionFixture()` now reuse the shared
+`MOCK_STELLAR_ADDRESS` / `MOCK_TX_HASH` constants from `/stellar-mocks`.
 
-Then re-run `pnpm install` and import from the consuming package.
+### Database fixtures (`/db-fixtures`)
 
-## Audit results (#1058)
+```ts
+import {
+  createStellarAccount,
+  createEscrowRecord,
+  createWebhookSubscription,
+} from '@bluecollar/test-utils/db-fixtures'
 
-The following helpers were identified as duplicates before consolidation:
+const account = await createStellarAccount(db, { userId, balance: 100 })
+```
 
-| Helper | Appeared in |
-|---|---|
-| `makeReq` / `makeRequest` / `createMockRequest` | `auth.test.ts`, `workers.test.ts`, `helpers/factories.ts`, `security/regression.test.ts`, +12 more |
-| `makeRes` / `makeResponse` / `createMockResponse` | Same files as above |
-| `makeNext` / `createMockNext` | Same files |
-| `createTestUser` / `userFactory` | `helpers/factories.ts`, `factories/user.factory.ts`, app `Dashboard.test.tsx` |
-| `createTestWorkerData` / `workerFactory` | `helpers/factories.ts`, `factories/worker.factory.ts` |
-| `generateTestToken` / `makeJwt` | `helpers/factories.ts`, `auth.test.ts`, `workers.test.ts`, +8 more |
+All factories take a Prisma client as the first argument and a partial override
+object as the last. They auto-create related rows (user, worker, category,
+payer/payee) when the corresponding id is omitted, and batch variants exist:
+`createStellarAccounts`, `createWebhookSubscriptions`, `createBookings`,
+`createEscrowRecords`. The client parameter is typed with the local structural
+`PrismaFixtureClient` interface, so a real `PrismaClient` is accepted without
+test-utils needing `@prisma/client` as a hard dependency.
 
-## Stellar SDK Mocks
+### Stellar mocks (`/stellar-mocks`)
 
-> Added in issue #1265. Import from `@bluecollar/test-utils/stellar-mocks` or
-> from the package root.
+> Added in issues #1054 / #1265. Import from `@bluecollar/test-utils/stellar-mocks`
+> or from the package root.
 
 ```ts
 import {
@@ -162,7 +203,7 @@ import {
 } from '@bluecollar/test-utils/stellar-mocks'
 ```
 
-### Well-known address constants
+#### Well-known address constants
 
 | Constant | Use |
 |---|---|
@@ -173,163 +214,131 @@ import {
 | `MOCK_SEQUENCE` | Stable account sequence (`bigint`) |
 | `MOCK_BALANCE` | Stable XLM balance (`number`, `100`) |
 
-### Fixture helpers
-
-#### `accountFixture(overrides?)`
-
-Returns a default `getAccountInfo` response matching the shared constants.
+#### Fixture helpers
 
 ```ts
-import { accountFixture, MOCK_STELLAR_ADDRESS } from '@bluecollar/test-utils/stellar-mocks'
-
-const info = accountFixture()
-// { publicKey: MOCK_STELLAR_ADDRESS, balance: 100, sequence: 1234567n }
-
-const custom = accountFixture({ balance: 9999, publicKey: 'GCUSTOM' })
+accountFixture()                                  // { publicKey, balance: 100, sequence: 1234567n }
+accountFixture({ balance: 9999, publicKey: 'GCUSTOM' })
+transactionFixture()                              // { txHash: MOCK_TX_HASH, txId: 'id_abcdef12' }
+transactionFixture({ txHash: 'deadbeef' + '0'.repeat(56) }) // txId is derived
+balanceFixture()                                  // { status: 'confirmed', resultCode: 'ok' }
+balanceFixture({ status: 'failed', resultCode: 'op_underfunded' })
 ```
 
-#### `transactionFixture(overrides?)`
+#### `makeMockStellarClient(options?)`
 
-Returns a default `broadcastTransaction` response.
-
-```ts
-import { transactionFixture, MOCK_TX_HASH } from '@bluecollar/test-utils/stellar-mocks'
-
-const tx = transactionFixture()
-// { txHash: MOCK_TX_HASH, txId: 'id_abcdef12' }
-
-const custom = transactionFixture({ txHash: 'deadbeef' + '0'.repeat(56) })
-// txId is auto-derived as 'id_deadbeef' unless also overridden
-```
-
-#### `balanceFixture(overrides?)`
-
-Returns a default `pollTransactionStatus` response.
+Creates a fully-typed, `vi.fn()`-backed mock of `StellarClient` for injection.
+Every method is a spy, so call arguments can be asserted.
 
 ```ts
-import { balanceFixture } from '@bluecollar/test-utils/stellar-mocks'
-
-const ok = balanceFixture()
-// { status: 'confirmed', resultCode: 'ok' }
-
-const failed = balanceFixture({ status: 'failed', resultCode: 'op_underfunded' })
-```
-
-### `makeMockStellarClient(options?)`
-
-Creates a fully-typed, vi.fn()-backed mock of `StellarClient`. Use it for unit
-tests that need to inject a fake client without touching the network.
-
-```ts
-import {
-  makeMockStellarClient,
-  accountFixture,
-  MOCK_STELLAR_ADDRESS,
-} from '@bluecollar/test-utils/stellar-mocks'
-
-// Replace the default exported singleton:
 vi.mock('../clients/stellar.client.js', () => ({
   stellarClient: makeMockStellarClient(),
   StellarClient: vi.fn().mockImplementation(() => makeMockStellarClient()),
 }))
 
-// Or inject directly:
-it('returns account balance', async () => {
-  const client = makeMockStellarClient({
-    accountInfo: accountFixture({ balance: 500 }),
-  })
-  const result = await client.getAccountInfo(MOCK_STELLAR_ADDRESS)
-  expect(result.balance).toBe(500)
-  expect(client.getAccountInfo).toHaveBeenCalledWith(MOCK_STELLAR_ADDRESS)
-})
-
-// Simulate failures:
-it('handles account not found', async () => {
-  const client = makeMockStellarClient({ accountInfoFails: true })
-  await expect(client.getAccountInfo('GABCD')).rejects.toThrow('Account not found')
-})
+const client = makeMockStellarClient({ accountInfo: accountFixture({ balance: 500 }) })
+expect((await client.getAccountInfo(MOCK_STELLAR_ADDRESS)).balance).toBe(500)
 ```
 
-Available `MockStellarClientOptions` fields:
+| Option | Type | Default |
+|---|---|---|
+| `accountInfo` / `accountInfoFails` | `AccountInfoFixture` / `boolean` | `accountFixture()` / `false` |
+| `broadcastResult` / `broadcastFails` | `TransactionFixture` / `boolean` | `transactionFixture()` / `false` |
+| `txStatus` / `pollFails` | `BalanceFixture` / `boolean` | `balanceFixture()` / `false` |
+| `fundResult` / `fundFails` | `{ txHash, message }` / `boolean` | mock success / `false` |
+| `accountTransactions` / `accountTransactionsFails` | array / `boolean` | `[]` / `false` |
 
-| Field | Type | Default | Description |
-|---|---|---|---|
-| `accountInfo` | `AccountInfoFixture` | `accountFixture()` | Resolved value of `getAccountInfo` |
-| `accountInfoFails` | `boolean` | `false` | Makes `getAccountInfo` reject |
-| `broadcastResult` | `TransactionFixture` | `transactionFixture()` | Resolved value of `broadcastTransaction` |
-| `broadcastFails` | `boolean` | `false` | Makes `broadcastTransaction` reject |
-| `txStatus` | `BalanceFixture` | `balanceFixture()` | Resolved value of `pollTransactionStatus` |
-| `pollFails` | `boolean` | `false` | Makes `pollTransactionStatus` reject |
-| `fundResult` | `{ txHash, message }` | `{ txHash: MOCK_TX_HASH, message: 'Account funded successfully' }` | Resolved value of `fundTestnetAccount` |
-| `fundFails` | `boolean` | `false` | Makes `fundTestnetAccount` reject |
-| `accountTransactions` | `Array<{ hash, created_at }>` | `[]` | Resolved value of `getAccountTransactions` |
-| `accountTransactionsFails` | `boolean` | `false` | Makes `getAccountTransactions` reject |
+#### `makeMockHorizonFetch(options?)`
 
-### `makeMockHorizonFetch(options?)`
-
-Returns a `vi.fn()` suitable for `vi.stubGlobal('fetch', ...)` that intercepts
-Horizon REST calls and returns configurable test fixtures.
+Returns a `vi.fn()` for `vi.stubGlobal('fetch', ...)` that intercepts Horizon
+REST calls. Supports `accountNotFound`, `broadcastFails`, `txPending`, custom
+`balance`, `sequence`, `txHash` and `extraBalances`.
 
 ```ts
-import {
-  makeMockHorizonFetch,
-  MOCK_TX_HASH,
-} from '@bluecollar/test-utils/stellar-mocks'
-
-// Stub the global fetch before the test:
-vi.stubGlobal('fetch', makeMockHorizonFetch())
-
-// Simulate account not found:
 vi.stubGlobal('fetch', makeMockHorizonFetch({ accountNotFound: true }))
-
-// Simulate broadcast failure:
-vi.stubGlobal('fetch', makeMockHorizonFetch({ broadcastFails: true }))
-
-// Simulate a pending transaction:
-vi.stubGlobal('fetch', makeMockHorizonFetch({ txPending: true }))
-
-// Custom response values:
-vi.stubGlobal('fetch', makeMockHorizonFetch({
-  balance: '250.0000000',
-  sequence: '9999',
-  txHash: MOCK_TX_HASH,
-}))
 ```
 
-### `makeFreighterMock(options?)`
+#### `makeFreighterMock(options?)`
 
-Returns a mock object matching the `@stellar/freighter-api` module shape.
+Mirrors the `@stellar/freighter-api` module shape (`isConnected`,
+`requestAccess`, `getAddress`, `getNetwork`, `signTransaction`, `signBlob`).
 
 ```ts
-import {
-  makeFreighterMock,
-  MOCK_STELLAR_ADDRESS,
-} from '@bluecollar/test-utils/stellar-mocks'
-
-// Mock the Freighter browser extension:
 vi.mock('@stellar/freighter-api', () =>
-  makeFreighterMock({ isConnected: true, address: MOCK_STELLAR_ADDRESS })
-)
-
-it('reads the wallet address', async () => {
-  const mock = makeFreighterMock({ isConnected: true, address: MOCK_STELLAR_ADDRESS })
-  const { address } = await mock.getAddress()
-  expect(address).toBe(MOCK_STELLAR_ADDRESS)
-})
+  makeFreighterMock({ isConnected: true, address: MOCK_STELLAR_ADDRESS }))
 ```
 
-### `makeSorobanRpcMock(options?)`
+#### `makeSorobanRpcMock(options?)`
 
-Creates a minimal mock of the Soroban RPC / stellar-sdk `Server` object.
+Minimal mock of the Soroban RPC / `stellar-sdk` `Server` object, including
+`SorobanRpc.Server`, `Networks`, `Keypair`, `Contract`, `TransactionBuilder`,
+`Asset`, `Operation` and `Memo`. Use `simulateResult` / `simulateFails` to drive
+contract simulation paths.
+
+## Adding new utilities
+
+1. Put the implementation in the matching module:
+   - domain data → `src/factories/index.ts`
+   - Express/JWT mocks → `src/express/index.ts`
+   - React/Next helpers → `src/react/index.ts` (subpath only)
+   - account/contract fixtures → `src/contract-fixtures.ts`
+   - Horizon/Freighter/Soroban mocks → `src/stellar-mocks.ts`
+   - stateful Stellar server/client mocks → `src/stellar-sdk-mock.ts`
+   - Prisma-backed fixtures → `src/db-fixtures.ts`
+2. If it is a new file, add a `"./<name>": "./src/<name>.ts"` entry to the
+   `exports` map in `package.json`. Subpaths must be declared or consumers
+   cannot import them.
+3. Add the symbol to the explicit export list in `src/index.ts` (unless it is a
+   React helper — those stay subpath-only).
+4. Export its TypeScript types alongside the value so consumers can annotate.
+5. Add a test under `tests/` that imports it both from its subpath and, when
+   applicable, from the root. Run `pnpm --filter @bluecollar/test-utils test`,
+   `... type-check` and `... exec knip`.
+
+## Deprecated / removed helpers
+
+| Helper | Status | Notes / replacement |
+|---|---|---|
+| `createMockTransaction` (from `/stellar-sdk-mock`) | **Removed in #1879** | Was unused across the monorepo and imported a non-existent `@stellar/js-sdk` package. Build real transactions with `@stellar/stellar-sdk` in the consuming package, or use `transactionFixture` from `/stellar-mocks`. |
+| Trailing `export { mockAccountFixture, mockTransactionFixture }` in `stellar-sdk-mock.ts` | **Removed in #1879** | Both are already exported at their declarations; the second export was a duplicate that broke parsing of the root barrel. |
+| Re-export of `TESTNET_*` / `MAINNET_*` from `@bluecollar/sdk` | **Changed in #1879** | Constants now live locally with identical names/values; no consumer change needed. |
+| `@prisma/client` type import in `/db-fixtures` | **Removed in #1879** | Replaced by `PrismaFixtureClient`; pass a real `PrismaClient` as before. |
+| `makeMockStellarClient` vs `createMockStellarClient` | Both supported | `makeMockStellarClient` gives `vi.fn()` spies for injection; `createMockStellarClient` wires stateful `MockStellarServer` / `MockSorobanRpcServer` instances. Prefer the latter for integration-style tests. |
+
+Nothing else was removed: all other public helpers are still exported from the
+same subpath and from the root.
+
+## Migration guide
+
+### Before (#1058): per-file helpers
 
 ```ts
-import { makeSorobanRpcMock } from '@bluecollar/test-utils/stellar-mocks'
-
-vi.mock('@stellar/stellar-sdk', () => makeSorobanRpcMock({
-  simulateResult: { success: true },
-}))
-
-// Simulate a contract invocation failure:
-vi.mock('@stellar/stellar-sdk', () => makeSorobanRpcMock({ simulateFails: true }))
+function makeRes() {
+  const res: any = {}
+  res.status = vi.fn().mockReturnValue(res)
+  res.json = vi.fn().mockReturnValue(res)
+  return res
+}
+function createTestUser(overrides = {}) {
+  return { id: faker.string.uuid(), email: faker.internet.email(), ...overrides }
+}
 ```
 
+### After: shared imports
+
+```ts
+import { makeRequest, makeResponse, makeNext, userFactory } from '@bluecollar/test-utils'
+```
+
+## Audit results (#1058)
+
+The original consolidation replaced these duplicated helpers:
+
+| Old name | New shared name |
+|---|---|
+| `makeReq` / `makeRequest` / `createMockRequest` | `makeRequest` |
+| `makeRes` / `makeResponse` / `createMockResponse` | `makeResponse` |
+| `makeNext` / `createMockNext` | `makeNext` |
+| `createTestUser` / `userFactory` | `userFactory` |
+| `createTestWorkerData` / `workerFactory` | `workerFactory` |
+| `generateTestToken` / `makeJwt` | `makeJwt` |
