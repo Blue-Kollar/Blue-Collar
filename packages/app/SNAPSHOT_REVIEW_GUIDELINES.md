@@ -1,9 +1,25 @@
 # Snapshot Test Review Guidelines
 
-> Issue: #1059 — Snapshot test cleanup and review process
+> Issues: #1059 — snapshot test cleanup and review process; #1869 — final
+> snapshot policy cleanup.
 >
 > This document is the canonical reference for snapshot testing decisions in
-> this project. Update it if the project's testing strategy changes.
+> `packages/app`. Update it if the project's testing strategy changes.
+
+---
+
+## Current policy (final state after #1869)
+
+**There are no `toMatchSnapshot()` calls and no `.snap` files in `packages/app`.**
+All component tests now assert observable behaviour: accessible roles, labels,
+text, key attributes and element counts. A Tailwind class rename, icon upgrade
+or wrapper-element change must never break a unit test on its own.
+
+| Allowed                                                                           | Not allowed                                                                            |
+| --------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| Narrow `toMatchInlineSnapshot()` for a small, stable serialized value (see below) | `toMatchSnapshot()` / `toMatchInlineSnapshot()` on a rendered container or DOM subtree |
+| Playwright `toHaveScreenshot()` visual baselines (human-reviewed PNGs)            | Snapshots of third-party library output (recharts, Radix internals)                    |
+|                                                                                   | Snapshots used as a substitute for text, role or disabled-state assertions             |
 
 ---
 
@@ -19,46 +35,29 @@ attributes, data attributes, whitespace. This means:
 - A developer runs `vitest --update-snapshots` to "fix" it without reading
   the diff, silently accepting a real regression.
 
-Over time, snapshot diffs become noise that reviewers stop reading.
+Over time, snapshot diffs become noise that reviewers stop reading. This is why
+the remaining broad snapshots were removed in #1869.
 
 ---
 
 ## When snapshots ARE appropriate
 
-Use snapshots only when you need to detect **unintentional structural changes**
-to a highly stable, visually-reviewed component, AND you have a process for
-reviewing those diffs carefully.
+Use a **narrow inline snapshot** only when you need to detect unintentional
+changes to a small, stable, serialised value that is itself the contract:
 
-**Good candidates:**
-
-| Scenario | Why it's appropriate |
-|---|---|
-| A design-system primitive (Button, Badge) whose DOM structure is intentionally frozen | Small, stable, reviewed on every update |
-| A serialised data format (e.g., CSV export, email template HTML) | The format IS the contract |
-| A Playwright visual regression screenshot (`toHaveScreenshot`) | Captures pixel-level regressions across full pages; reviewed by a human |
+| Scenario                                                              | Why it's appropriate                   |
+| --------------------------------------------------------------------- | -------------------------------------- |
+| A serialised data format (e.g. CSV export, error-envelope JSON)       | The format IS the contract             |
+| A small pure-function result that is awkward to assert field-by-field | Diff is visible inline and < ~20 lines |
 
 **Poor candidates:**
 
-| Scenario | Why it's inappropriate |
-|---|---|
-| `expect(container).toMatchSnapshot()` on a full page component | Too broad; breaks on unrelated changes |
-| Snapshot of a component that renders third-party library output | You don't own the snapshot shape |
-| Testing that text content is correct via a snapshot | Use `screen.getByText(...)` instead |
-| Testing that a button exists via a snapshot | Use `screen.getByRole('button', { name: ... })` instead |
-
----
-
-## Snapshot review checklist
-
-When a snapshot diff appears in a PR, the reviewer **must**:
-
-1. **Read the full diff** — do not accept it without understanding what changed.
-2. **Ask**: did the component's user-facing behaviour change? If yes, is that
-   intentional?
-3. **Ask**: is the diff caused by a dependency upgrade (e.g., icon library)?
-   If so, consider removing the snapshot and writing a targeted assertion.
-4. **Reject** a snapshot update that looks like it was committed just to make
-   CI pass without a corresponding intentional component change.
+| Scenario                                                       | Why it's inappropriate                          |
+| -------------------------------------------------------------- | ----------------------------------------------- |
+| `expect(container).toMatchSnapshot()` on any component or page | Too broad; breaks on unrelated changes          |
+| Snapshot of third-party library output                         | You don't own the snapshot shape                |
+| Testing text via a snapshot                                    | Use `screen.getByText(...)`                     |
+| Testing that a button exists via a snapshot                    | Use `screen.getByRole('button', { name: ... })` |
 
 ---
 
@@ -69,9 +68,9 @@ Instead of:
 ```tsx
 // ❌ Broad — breaks on unrelated DOM changes
 it('renders correctly', () => {
-  const { container } = render(<LoadingState message="Loading…" />)
-  expect(container).toMatchSnapshot()
-})
+  const { container } = render(<LoadingState message="Loading…" />);
+  expect(container).toMatchSnapshot();
+});
 ```
 
 Write:
@@ -79,23 +78,23 @@ Write:
 ```tsx
 // ✅ Targeted — tests observable, user-facing behaviour
 it('shows the message text', () => {
-  render(<LoadingState message="Loading…" />)
-  expect(screen.getByText('Loading…')).toBeInTheDocument()
-})
+  render(<LoadingState message="Loading…" />);
+  expect(screen.getByText('Loading…')).toBeInTheDocument();
+});
 
 it('exposes a status role for screen readers', () => {
-  render(<LoadingState />)
-  expect(screen.getByRole('status')).toBeInTheDocument()
-})
+  render(<LoadingState />);
+  expect(screen.getByRole('status')).toBeInTheDocument();
+});
 ```
 
 ---
 
-## Inline snapshots
+## Allowed narrow inline snapshots
 
-`toMatchInlineSnapshot()` is preferable to file-based snapshots when:
-- The snapshot is small enough to read inline (< ~20 lines of serialised output).
-- You want code review to surface the snapshot content automatically.
+`toMatchInlineSnapshot()` is preferable to file-based snapshots when the value
+is small enough to read inline (< ~20 lines) and the diff should be visible in
+the PR:
 
 ```tsx
 // ✅ Inline snapshot — diff is visible directly in the PR
@@ -106,9 +105,12 @@ it('serialises the API error shape', () => {
       "message": "Unauthorized",
       "status": "error",
     }
-  `)
-})
+  `);
+});
 ```
+
+Do not use this escape hatch for rendered React elements — assert roles,
+labels, text and attributes instead.
 
 ---
 
@@ -127,101 +129,57 @@ They are **not** subject to the anti-patterns above.
 
 ---
 
-## Updating a snapshot deliberately
+## Snapshot review checklist
+
+When a snapshot-related diff appears in a PR, the reviewer **must**:
+
+1. **Read the full diff** — do not accept it without understanding what changed.
+2. **Ask**: is the snapshot narrow (a serialised value or a visual baseline)?
+   Reject any `toMatchSnapshot()` on a rendered container or DOM subtree.
+3. **Ask**: did user-facing behaviour change intentionally? If yes, is the
+   assertion updated to describe the new behaviour?
+4. **Ask**: is the diff caused by a dependency upgrade (e.g. icon library)?
+   If so, remove the snapshot and write a targeted assertion instead.
+5. **Reject** a snapshot update that exists only to make CI pass without a
+   corresponding intentional component change.
+6. Confirm no new `.snap` file was added under `src/` and that obsolete `.snap`
+   files were deleted in the same change.
+
+---
+
+## Audit results (#1059, #1267, #1869)
+
+| File                                                           | Finding                                                 | Action taken                                                         |
+| -------------------------------------------------------------- | ------------------------------------------------------- | -------------------------------------------------------------------- |
+| `src/__tests__/LoadingState.test.tsx`                          | 3 broad `toMatchSnapshot()` calls                       | **Replaced** (#1059) with role/text/variant assertions               |
+| `src/__tests__/ErrorState.test.tsx`                            | 3 broad `toMatchSnapshot()` calls                       | **Replaced** (#1059) with alert/message/retry assertions             |
+| `src/__tests__/ui-snapshots.test.tsx`                          | 16 snapshot call sites → 27 stored snapshots            | **Replaced** (#1869) with role, label, text and count assertions     |
+| `src/__tests__/__snapshots__/ui-snapshots.test.tsx.snap`       | 27 committed snapshots                                  | **Deleted** (#1869)                                                  |
+| `src/__tests__/cls-skeleton-loaders.test.tsx`                  | 4 `toMatchSnapshot()` calls (generated on first run)    | **Replaced** (#1869) with busy-state, dimension and count assertions |
+| `src/components/charts/__tests__/ChartComponents.test.tsx`     | 3 `toMatchSnapshot()` calls                             | **Replaced** (#1869) with chart data/key/axis assertions             |
+| `src/components/Dashboard/__tests__/DashboardWidgets.test.tsx` | 3 `toMatchSnapshot()` calls                             | **Replaced** (#1869) with metric/event/stat assertions               |
+| `visual/snapshots.spec.ts`                                     | Playwright `toHaveScreenshot()` visual regression suite | **Kept** — appropriate human-reviewed pixel snapshots                |
+
+Snapshot counts removed by #1869: **27 stored snapshots** in the committed
+`.snap` file plus **10** that would have been generated on first run by the
+other three files (4 skeleton + 3 chart + 3 widget calls) — **37 total**.
+
+No `.snap` files remain under `packages/app/src`, and no `toMatchSnapshot()`
+calls remain in the app package. Behavioural coverage (roles, disabled state,
+error text, ARIA) is the primary strategy for stateful and design-system
+components alike.
+
+---
+
+## Running app tests
 
 ```bash
-# Vitest: update all stale file-based snapshots
-pnpm --filter @bluecollar/app test -- --update-snapshots
+# A single behavioural test file
+pnpm --filter @bluecollar/app exec vitest run src/__tests__/ui-snapshots.test.tsx
 
-# Playwright: update visual baselines for a specific spec
+# Full app unit suite
+pnpm --filter @bluecollar/app exec vitest run
+
+# Playwright visual baselines (separate suite)
 pnpm --filter @bluecollar/app exec playwright test visual/ --update-snapshots
 ```
-
-Always commit snapshot updates in a **separate commit** from the component
-change, with a commit message that explains what changed and why:
-
-```
-test(snapshot): update LoadingState snapshots after Tailwind v4 class rename
-
-The `animate-spin` class was renamed to `motion-safe:animate-spin` in the
-Tailwind v4 migration. No user-visible behaviour changed.
-```
-
----
-
-## Audit results (#1059)
-
-Files audited: all `*.test.{ts,tsx}` files under `packages/app/src/__tests__/`
-and `packages/mobile/src/**/__tests__/`.
-
-| File | Finding | Action taken |
-|---|---|---|
-| `LoadingState.test.tsx` | 3 broad `toMatchSnapshot()` calls on full container | **Replaced** with 7 targeted assertions |
-| `ErrorState.test.tsx` | 3 broad `toMatchSnapshot()` calls on full container | **Replaced** with 9 targeted assertions (added retry-click test) |
-| `visual/snapshots.spec.ts` | Playwright `toHaveScreenshot()` — visual regression suite | **Kept** — appropriate use of pixel snapshots |
-| All other test files | No `toMatchSnapshot` usage found | No action required |
-
-No stored `.snap` files were found on disk. The two files above used
-`toMatchSnapshot()` but the snapshot files had not yet been committed (they
-are generated on first run). Replacing them now prevents those files from
-ever being created.
-
----
-
-## #1267 — Shared UI snapshot suite
-
-> Issue: #1267 — Add snapshot tests for critical shared UI components
-
-A focused snapshot suite was added for the **high-reuse, design-system
-primitives** whose DOM is intentionally frozen. These are the approved snapshot
-candidates per the "When snapshots ARE appropriate" guidance above.
-
-**Test file:** `packages/app/src/__tests__/ui-snapshots.test.tsx`
-**Snapshot file (committed):** `packages/app/src/__tests__/__snapshots__/ui-snapshots.test.tsx.snap`
-
-### Components & states covered
-
-| Component | States / variants snapshotted |
-|---|---|
-| `Button` (`components/ui/button.tsx`) | all 6 variants × all 4 sizes + disabled |
-| `Badge` (`components/ui/badge.tsx`) | all 4 variants |
-| `Card` (`components/ui/card.tsx`) | composed Card + Header/Title/Content/Footer |
-| `Input` (`components/ui/input.tsx`) | default + disabled |
-| `IconButton` (`components/IconButton.tsx`) | default + disabled (with `aria-label`) |
-| `StarRating` (`components/StarRating.tsx`) | 3/5 and 5/5 |
-| `CategoryBadge` (`components/CategoryBadge.tsx`) | md label, md no-label, sm (electrician) |
-| `Dialog` / Modal (`components/ui/dialog.tsx`) | closed trigger + open content |
-
-### Keeping snapshots deterministic
-
-- `lucide-react` icons are mocked to stable placeholder spans so SVG internals
-  never pollute the snapshot.
-- `@/lib/utils` `cn` is mocked to a plain class join so Tailwind-merge output is
-  stable.
-- Radix `Dialog` ids use React's deterministic `useId`, so they are stable
-  across runs.
-
-### How contributors run / inspect / update
-
-```bash
-# Run the snapshot tests
-pnpm --filter @bluecollar/app test src/__tests__/ui-snapshots.test.tsx
-
-# Full app test suite (includes snapshots)
-pnpm --filter @bluecollar/app test
-
-# Inspect a diff: snapshots are committed, so `git diff` shows the change.
-# Review the diff carefully (see "Snapshot review checklist" above) — do NOT
-# blindly accept it.
-
-# Intentionally update when the component intentionally changed:
-pnpm --filter @bluecollar/app test -- --update-snapshots
-# (or the shorthand) pnpm --filter @bluecollar/app test -- -u
-```
-
-Always commit snapshot updates in a **separate commit** from the component
-change, with a message explaining the intentional change (see
-"Updating a snapshot deliberately" above). Do not use snapshots as a replacement
-for meaningful behavioural assertions — behavioural tests (roles, disabled,
-error text, aria) remain the primary coverage for stateful components.
-

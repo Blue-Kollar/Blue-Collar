@@ -1,18 +1,13 @@
 /**
- * Snapshot regression tests for critical, high-reuse shared UI components.
+ * Behavioural regression tests for critical, high-reuse shared UI components.
  *
- * Per packages/app/SNAPSHOT_REVIEW_GUIDELINES.md, snapshots are only used here
- * for stable design-system primitives whose DOM is intentionally frozen
- * (Button, Badge, Card, IconButton, StarRating, CategoryBadge, Dialog/Modal,
- * Input). Stateful feature components continue to rely on behavioural
- * assertions elsewhere.
+ * Per packages/app/SNAPSHOT_REVIEW_GUIDELINES.md, broad DOM snapshots were
+ * removed in favour of targeted assertions on roles, labels, text, disabled
+ * state and accessible star ratings. CSS classes and wrapper elements are
+ * deliberately not pinned — a Tailwind upgrade or icon change must not break
+ * these tests when user-facing behaviour is unchanged (#1869).
  *
- * Lucide icons and the `cn` class helper are mocked so the emitted markup is
- * deterministic (no unstable SVG path ids, no Tailwind-merge reordering).
- *
- * Run:        pnpm --filter @bluecollar/app test
- * Update:      pnpm --filter @bluecollar/app test -- -u
- * (or)         pnpm --filter @bluecollar/app test -- --update-snapshots
+ * Run: pnpm --filter @bluecollar/app exec vitest run src/__tests__/ui-snapshots.test.tsx
  */
 import { screen } from '@testing-library/react';
 import { renderWithIntl as render } from '@/__tests__/renderWithIntl';
@@ -34,13 +29,17 @@ import { IconButton } from '@/components/IconButton';
 import StarRating from '@/components/StarRating';
 import { CategoryBadge } from '@/components/CategoryBadge';
 
-// Deterministic class concatenation (mirrors tailwind-merge output for our uses).
-vi.mock('@/lib/utils', () => ({
-  cn: (...args: unknown[]) => args.filter(Boolean).join(' '),
+// `@/lib/utils` re-exports Stellar helpers from the shared SDK. Isolate the
+// UI primitives from unrelated SDK imports so these tests stay offline.
+vi.mock('@bluecollar/sdk', () => ({
+  STROOPS_PER_XLM: 10_000_000,
+  MAX_DECIMAL_PLACES: 7,
+  formatWalletAddress: (address: string) => address,
+  isValidStellarAddress: () => true,
 }));
 
-// Replace every lucide icon with a stable placeholder so SVG internals never
-// pollute the snapshot.
+// Replace every lucide icon with a stable placeholder so tests can assert on a
+// test id instead of SVG internals.
 vi.mock('lucide-react', () => ({
   X: () => <span data-testid="icon-x" />,
   Star: (props: { 'aria-hidden'?: string; className?: string }) => (
@@ -60,42 +59,42 @@ vi.mock('lucide-react', () => ({
 
 // ── Button ───────────────────────────────────────────────────────────────────
 
-describe('Button snapshots', () => {
+describe('Button', () => {
   const variants = ['default', 'destructive', 'outline', 'secondary', 'ghost', 'link'] as const;
   const sizes = ['default', 'sm', 'lg', 'icon'] as const;
 
-  it.each(variants)('renders the %s variant', (variant) => {
-    const { container } = render(<Button variant={variant}>Action</Button>);
-    expect(container.firstChild).toMatchSnapshot();
+  it.each(variants)('renders an enabled %s button with its label', (variant) => {
+    render(<Button variant={variant}>Action</Button>);
+    expect(screen.getByRole('button', { name: 'Action' })).toBeEnabled();
   });
 
-  it.each(sizes)('renders the %s size', (size) => {
-    const { container } = render(<Button size={size}>Action</Button>);
-    expect(container.firstChild).toMatchSnapshot();
+  it.each(sizes)('renders an enabled %s button with its label', (size) => {
+    render(<Button size={size}>Action</Button>);
+    expect(screen.getByRole('button', { name: 'Action' })).toBeEnabled();
   });
 
-  it('renders a disabled button', () => {
-    const { container } = render(<Button disabled>Action</Button>);
-    expect(container.firstChild).toMatchSnapshot();
+  it('renders a disabled button that cannot be clicked', () => {
+    render(<Button disabled>Action</Button>);
+    expect(screen.getByRole('button', { name: 'Action' })).toBeDisabled();
   });
 });
 
 // ── Badge ────────────────────────────────────────────────────────────────────
 
-describe('Badge snapshots', () => {
+describe('Badge', () => {
   const variants = ['default', 'secondary', 'destructive', 'outline'] as const;
 
-  it.each(variants)('renders the %s variant', (variant) => {
-    const { container } = render(<Badge variant={variant}>New</Badge>);
-    expect(container.firstChild).toMatchSnapshot();
+  it.each(variants)('renders the %s badge text', (variant) => {
+    render(<Badge variant={variant}>New</Badge>);
+    expect(screen.getByText('New')).toBeInTheDocument();
   });
 });
 
 // ── Card ──────────────────────────────────────────────────────────────────────
 
-describe('Card snapshots', () => {
-  it('renders a composed card with content', () => {
-    const { container } = render(
+describe('Card', () => {
+  it('renders a composed card with title, content and action', () => {
+    render(
       <Card>
         <CardHeader>
           <CardTitle>Job title</CardTitle>
@@ -108,84 +107,100 @@ describe('Card snapshots', () => {
         </CardFooter>
       </Card>,
     );
-    expect(container.firstChild).toMatchSnapshot();
+
+    expect(screen.getByRole('heading', { name: 'Job title' })).toBeInTheDocument();
+    expect(screen.getByText('Description text')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Apply' })).toBeEnabled();
   });
 });
 
 // ── Input (native ui) ──────────────────────────────────────────────────────────
 
-describe('Input (ui) snapshots', () => {
-  it('renders a default input', () => {
-    const { container } = render(<Input placeholder="Email" />);
-    expect(container.firstChild).toMatchSnapshot();
+describe('Input (ui)', () => {
+  it('renders an editable input with its placeholder', () => {
+    render(<Input placeholder="Email" />);
+    expect(screen.getByPlaceholderText('Email')).toBeEnabled();
   });
 
-  it('renders a disabled input', () => {
-    const { container } = render(<Input placeholder="Email" disabled />);
-    expect(container.firstChild).toMatchSnapshot();
+  it('renders a disabled input with its placeholder', () => {
+    render(<Input placeholder="Email" disabled />);
+    expect(screen.getByPlaceholderText('Email')).toBeDisabled();
   });
 });
 
 // ── IconButton ──────────────────────────────────────────────────────────────────
 
-describe('IconButton snapshots', () => {
-  it('renders a default icon button with aria-label', () => {
-    const { container } = render(
+describe('IconButton', () => {
+  it('exposes its aria-label as the accessible name', () => {
+    render(
       <IconButton aria-label="Close menu">
         <span data-testid="icon-x" />
       </IconButton>,
     );
-    expect(container.firstChild).toMatchSnapshot();
+
+    expect(screen.getByRole('button', { name: 'Close menu' })).toBeEnabled();
+    expect(screen.getByTestId('icon-x')).toBeInTheDocument();
   });
 
   it('renders a disabled icon button', () => {
-    const { container } = render(
+    render(
       <IconButton aria-label="Close menu" disabled>
         <span data-testid="icon-x" />
       </IconButton>,
     );
-    expect(container.firstChild).toMatchSnapshot();
+
+    expect(screen.getByRole('button', { name: 'Close menu' })).toBeDisabled();
   });
 });
 
 // ── StarRating ──────────────────────────────────────────────────────────────────
 
-describe('StarRating snapshots', () => {
-  it('renders a 3/5 rating', () => {
-    const { container } = render(<StarRating rating={3} max={5} />);
-    expect(container.firstChild).toMatchSnapshot();
+describe('StarRating', () => {
+  it('announces a 3/5 rating and renders five stars', () => {
+    render(<StarRating rating={3} max={5} />);
+
+    expect(screen.getByRole('img', { name: '3 out of 5 stars' })).toBeInTheDocument();
+    expect(screen.getAllByTestId('icon-star')).toHaveLength(5);
   });
 
-  it('renders a full 5/5 rating', () => {
-    const { container } = render(<StarRating rating={5} />);
-    expect(container.firstChild).toMatchSnapshot();
+  it('announces a full 5/5 rating', () => {
+    render(<StarRating rating={5} />);
+
+    expect(screen.getByRole('img', { name: '5 out of 5 stars' })).toBeInTheDocument();
+    expect(screen.getAllByTestId('icon-star')).toHaveLength(5);
   });
 });
 
 // ── CategoryBadge ───────────────────────────────────────────────────────────────
 
-describe('CategoryBadge snapshots', () => {
-  it('renders a plumber badge (md, label shown)', () => {
-    const { container } = render(<CategoryBadge slug="plumber" />);
-    expect(container.firstChild).toMatchSnapshot();
+describe('CategoryBadge', () => {
+  it('shows the plumber label and icon', () => {
+    render(<CategoryBadge slug="plumber" />);
+
+    expect(screen.getByText('Plumber')).toBeInTheDocument();
+    expect(screen.getByTestId('icon-droplets')).toBeInTheDocument();
   });
 
-  it('renders a plumber badge without the label', () => {
-    const { container } = render(<CategoryBadge slug="plumber" showLabel={false} />);
-    expect(container.firstChild).toMatchSnapshot();
+  it('hides the visible label when showLabel is false', () => {
+    render(<CategoryBadge slug="plumber" showLabel={false} />);
+
+    expect(screen.queryByText('Plumber')).not.toBeInTheDocument();
+    expect(screen.getByText('Plumber category')).toBeInTheDocument();
   });
 
-  it('renders a small electrician badge', () => {
-    const { container } = render(<CategoryBadge slug="electrician" size="sm" />);
-    expect(container.firstChild).toMatchSnapshot();
+  it('shows the small electrician badge', () => {
+    render(<CategoryBadge slug="electrician" size="sm" />);
+
+    expect(screen.getByText('Electrician')).toBeInTheDocument();
+    expect(screen.getByTestId('icon-zap')).toBeInTheDocument();
   });
 });
 
 // ── Dialog / Modal ──────────────────────────────────────────────────────────────
 
-describe('Dialog (Modal) snapshots', () => {
-  it('renders the closed trigger only', () => {
-    const { container } = render(
+describe('Dialog (Modal)', () => {
+  it('renders a closed trigger that opens a dialog', () => {
+    render(
       <Dialog>
         <DialogTrigger>Open</DialogTrigger>
         <DialogContent>
@@ -195,10 +210,14 @@ describe('Dialog (Modal) snapshots', () => {
         </DialogContent>
       </Dialog>,
     );
-    expect(container.firstChild).toMatchSnapshot();
+
+    const trigger = screen.getByRole('button', { name: 'Open' });
+    expect(trigger).toHaveAttribute('aria-haspopup', 'dialog');
+    expect(trigger).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
-  it('renders the open modal content', () => {
+  it('renders the open modal title, content and close control', () => {
     render(
       <Dialog open onOpenChange={() => {}}>
         <DialogContent>
@@ -209,8 +228,10 @@ describe('Dialog (Modal) snapshots', () => {
         </DialogContent>
       </Dialog>,
     );
-    // Radix renders modal content in a portal on document.body.
-    const dialog = screen.getByRole('dialog');
-    expect(dialog).toMatchSnapshot();
+
+    expect(screen.getByRole('dialog', { name: 'Confirm action' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Confirm action' })).toBeInTheDocument();
+    expect(screen.getByText('Are you sure you want to continue?')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument();
   });
 });
