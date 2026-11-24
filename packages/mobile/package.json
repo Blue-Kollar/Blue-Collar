@@ -49,7 +49,7 @@
   },
   "jest": {
     "preset": "jest-expo",
-    "setupFilesAfterFramework": [
+    "setupFilesAfterEnv": [
       "<rootDir>/jest.setup.ts"
     ],
     "fakeTimers": {
@@ -64,7 +64,7 @@
       "!src/**/__tests__/**",
       "!src/app/_layout.tsx"
     ],
-    "coverageThresholds": {
+    "coverageThreshold": {
       "global": {
         "branches": 80,
         "functions": 85,

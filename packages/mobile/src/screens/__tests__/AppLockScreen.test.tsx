@@ -2,20 +2,20 @@ import React from 'react';
 import { render, waitFor, fireEvent, act } from '@testing-library/react-native';
 import { AppLockScreen } from '../AppLockScreen';
 
-jest.mock('../../auth/BiometricAuth', () => ({
+jest.mock('@/auth/biometric-auth', () => ({
   BiometricAuth: {
     authenticate: jest.fn(),
   },
 }));
 
-jest.mock('../../auth/SecureStorage', () => ({
+jest.mock('@/auth/secure-storage', () => ({
   SecureStorage: {
     clear: jest.fn(),
   },
 }));
 
-const { BiometricAuth } = require('@/auth/BiometricAuth');
-const { SecureStorage } = require('@/auth/SecureStorage');
+const { BiometricAuth } = require('@/auth/biometric-auth')
+const { SecureStorage } = require('@/auth/secure-storage')
 
 describe('AppLockScreen', () => {
   beforeEach(() => {

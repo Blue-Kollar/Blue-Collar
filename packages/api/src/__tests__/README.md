@@ -19,12 +19,12 @@ mask real issues and slow down CI. The monorepo enforces a strict no-retry polic
 
 Patterns that cause flakiness and are **not allowed** in the default test suite:
 
-| Pattern | Why it fails | Fix |
-|---|---|---|
-| `await new Promise(resolve => setTimeout(resolve, 100))` | Wall-clock timing depends on CPU load | Use `vi.useFakeTimers()` and `vi.advanceTimersByTime()` |
-| `let sharedState` across `describe` blocks | Order-dependent — one test modifies state used by the next | Isolate state with `beforeEach`/`afterEach` or factories |
-| `prisma.user.create()` without mocking | Real DB calls fail in CI without provisioned database | Mock `db` module with `vi.mock('../../db.js')` |
-| TOTP codes tested within 30s window | Validation window makes tests time-sensitive | Mock `Date.now()` or use pre-generated valid codes |
+| Pattern                                                  | Why it fails                                               | Fix                                                      |
+| -------------------------------------------------------- | ---------------------------------------------------------- | -------------------------------------------------------- |
+| `await new Promise(resolve => setTimeout(resolve, 100))` | Wall-clock timing depends on CPU load                      | Use `vi.useFakeTimers()` and `vi.advanceTimersByTime()`  |
+| `let sharedState` across `describe` blocks               | Order-dependent — one test modifies state used by the next | Isolate state with `beforeEach`/`afterEach` or factories |
+| `prisma.user.create()` without mocking                   | Real DB calls fail in CI without provisioned database      | Mock `db` module with `vi.mock('../../db.js')`           |
+| TOTP codes tested within 30s window                      | Validation window makes tests time-sensitive               | Mock `Date.now()` or use pre-generated valid codes       |
 
 If a test cannot be made deterministic (requires real DB, timing-sensitive by design), it
 belongs in the E2E quarantine zone, not the default suite.
@@ -58,11 +58,11 @@ environment and the same infrastructure stubs, so `test-harness.ts` holds them o
 
 ### What it provides
 
-| Export | Purpose |
-|---|---|
-| `TEST_ENV` | Every variable `config/config.ts` requires at load time. Applied to `process.env` when the harness is imported (without overwriting values already set). |
-| `makeAuthToken(role?, id?, email?)` | Signs a JWT the `authenticate` middleware accepts. |
-| `infraMocks` | Factories returning the module shape for each infrastructure module: `redis`, `env`, `openapiDocs`, `passport`, `requestLogger`, `events`, `queue`, `rateLimiter`, `versionRateLimit`, `userRateLimit`, `mailerTransport`. |
+| Export                              | Purpose                                                                                                                                                                                                                    |
+| ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `TEST_ENV`                          | Every variable `config/config.ts` requires at load time. Applied to `process.env` when the harness is imported (without overwriting values already set).                                                                   |
+| `makeAuthToken(role?, id?, email?)` | Signs a JWT the `authenticate` middleware accepts.                                                                                                                                                                         |
+| `infraMocks`                        | Factories returning the module shape for each infrastructure module: `redis`, `env`, `openapiDocs`, `passport`, `requestLogger`, `events`, `queue`, `rateLimiter`, `versionRateLimit`, `userRateLimit`, `mailerTransport`. |
 
 ### Usage
 
@@ -70,23 +70,27 @@ The harness must be imported **before** `app` so the environment is in place whe
 module loads. Wire each infrastructure mock with a factory that imports the harness lazily:
 
 ```ts
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import request from 'supertest'
-import { makeAuthToken } from '../test-harness.js'
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import request from 'supertest';
+import { makeAuthToken } from '../test-harness.js';
 
-vi.mock('../../config/redis.js', async () => (await import('../test-harness.js')).infraMocks.redis())
-vi.mock('../../config/env.js', async () => (await import('../test-harness.js')).infraMocks.env())
-vi.mock('../../queue/index.js', async () => (await import('../test-harness.js')).infraMocks.queue())
+vi.mock('../../config/redis.js', async () =>
+  (await import('../test-harness.js')).infraMocks.redis(),
+);
+vi.mock('../../config/env.js', async () => (await import('../test-harness.js')).infraMocks.env());
+vi.mock('../../queue/index.js', async () =>
+  (await import('../test-harness.js')).infraMocks.queue(),
+);
 // ...the rest of the infraMocks entries your suite needs...
 
 // Suite-specific: only the database model stubs belong here.
 vi.mock('../../db.js', () => ({
   db: { category: { findMany: vi.fn() /* ... */ } },
   disconnectDb: vi.fn().mockResolvedValue(undefined),
-}))
+}));
 
-import app from '../../app.js'
-import { db } from '../../db.js'
+import app from '../../app.js';
+import { db } from '../../db.js';
 ```
 
 Then build requests as usual:
@@ -94,8 +98,8 @@ Then build requests as usual:
 ```ts
 const res = await request(app)
   .get('/api/categories')
-  .set('Authorization', `Bearer ${makeAuthToken('admin', 'admin-1')}`)
-expect(res.status).toBe(200)
+  .set('Authorization', `Bearer ${makeAuthToken('admin', 'admin-1')}`);
+expect(res.status).toBe(200);
 ```
 
 Suites that use the harness: `integration/categories.integration.test.ts` and
@@ -108,6 +112,17 @@ Suites that use the harness: `integration/categories.integration.test.ts` and
 - Do not call `vi.mock` inside the harness. Factories are pure so a suite can override one
   entry for a single test if it needs to.
 - Use `vi.useFakeTimers` for anything time-dependent. Do not sleep for real milliseconds.
+
+## Database integration isolation (issue #1871)
+
+`pnpm test:integration:db` uses `helpers/db-isolation.ts`. Each test runs in its own Prisma
+transaction that is always rolled back in `afterEach`; nested `db.$transaction(...)` calls use
+SAVEPOINTs on that same transaction. The exported `db` is a routing proxy, so tests keep using it
+unchanged. A baseline `TRUNCATE ... RESTART IDENTITY CASCADE` of all known tables runs once per
+worker under a PostgreSQL advisory lock (stable key shared by all workers), so parallel workers
+cannot interleave resets. Files stay in a single fork only because the current suite creates
+committed fixtures in its own `beforeAll`; suites that create fixtures inside tests can enable
+`fileParallelism`. The helper has no runtime Prisma dependency and is unit-tested with a mock.
 
 ## Other conventions
 

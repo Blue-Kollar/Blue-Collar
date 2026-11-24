@@ -4,6 +4,14 @@ import { notificationRepository } from '@/repositories/notification.repository.j
 import { logger } from '@/config/logger.js'
 import { AppError } from '@/utils/app-error.js'
 import { nowUtc } from '@/utils/date.js'
+import { escapeHtml } from '@/utils/sanitize.js'
+
+/** Only http(s) links and same-origin relative paths are safe in an email anchor. */
+function safeHref(href?: string): string | undefined {
+  if (!href) return undefined
+  const trimmed = href.trim()
+  return /^(https?:\/\/|\/)/i.test(trimmed) ? trimmed : undefined
+}
 
 /**
  * Email notification channel adapter.
@@ -47,12 +55,13 @@ export class EmailChannel implements NotificationChannel {
         throw new AppError('User not found', 404)
       }
 
+      const href = safeHref(message.href)
       await transporter.sendMail({
         to: user.email,
         subject: message.title,
         text: message.message,
-        html: `<p>${message.message}</p>${
-          message.href ? `<a href="${message.href}">View</a>` : ''
+        html: `<p>${escapeHtml(message.message)}</p>${
+          href ? `<a href="${escapeHtml(href)}">View</a>` : ''
         }`,
       })
 

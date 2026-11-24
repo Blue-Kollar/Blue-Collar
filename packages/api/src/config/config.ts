@@ -27,6 +27,9 @@ export const envSchema = z.object({
   ALLOWED_ORIGINS: z.string().default('http://localhost:3001'),
 
   DATABASE_URL: nonEmpty('DATABASE_URL'),
+  DATABASE_READ_URL: z.string().optional(),
+  DB_POOL_SIZE: z.coerce.number().int().positive().default(10),
+  DB_READ_POOL_SIZE: z.coerce.number().int().positive().default(20),
   JWT_SECRET: nonEmpty('JWT_SECRET'),
   GOOGLE_CLIENT_ID: nonEmpty('GOOGLE_CLIENT_ID'),
   GOOGLE_CLIENT_SECRET: nonEmpty('GOOGLE_CLIENT_SECRET'),
@@ -73,7 +76,12 @@ export interface Config {
   logLevel: string;
   logDir: string;
   allowedOrigins: string[];
-  db: { url: string };
+  db: {
+    url: string;
+    readUrl: string | undefined;
+    poolSize: number;
+    readPoolSize: number;
+  };
   auth: { jwtSecret: string; googleClientId: string; googleClientSecret: string };
   mail: { host: string; port: number; user: string; pass: string };
   redis: { url: string };
@@ -129,7 +137,12 @@ export function loadConfig(source: NodeJS.ProcessEnv = process.env): Config {
     logLevel: e.LOG_LEVEL,
     logDir: e.LOG_DIR,
     allowedOrigins: e.ALLOWED_ORIGINS.split(',').map((s) => s.trim()),
-    db: { url: e.DATABASE_URL },
+    db: {
+      url: e.DATABASE_URL,
+      readUrl: e.DATABASE_READ_URL,
+      poolSize: e.DB_POOL_SIZE,
+      readPoolSize: e.DB_READ_POOL_SIZE,
+    },
     auth: {
       jwtSecret: e.JWT_SECRET,
       googleClientId: e.GOOGLE_CLIENT_ID,

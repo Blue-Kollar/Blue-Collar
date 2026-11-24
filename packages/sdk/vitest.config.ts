@@ -1,12 +1,12 @@
 /**
  * vitest.config.ts — packages/sdk
  *
- * Coverage thresholds enforced at 85 %+ (issue #1055).
+ * Coverage thresholds enforced at 90 %+ (issues #1055, #1874).
  *
  * The SDK is a pure TypeScript library with no framework dependencies.
- * All public API surface (HorizonClient, RegistryClient, SdkError, createSdk)
- * must maintain 85 %+ coverage. The node environment is used because the SDK
- * uses the native `fetch` API, which is available in Node 18+.
+ * All public API surface (HorizonClient, RegistryClient, SdkError, createSdk,
+ * constants and utils) must maintain 90 %+ coverage. The node environment is
+ * used because the SDK uses the native `fetch` API, available in Node 18+.
  */
 import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vitest/config';
@@ -23,19 +23,17 @@ export default defineConfig({
     include: ['src/**/*.test.ts', 'src/**/__tests__/**/*.test.ts'],
     // Blocks real network access so SDK tests run offline (issue #1599).
     setupFiles: ['./src/__tests__/setup/offline.ts'],
-    // Blocks real network access so SDK tests run offline (issue #1599).
-    setupFiles: ['./src/__tests__/setup/offline.ts'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
       include: ['src/**/*.ts'],
       exclude: ['src/**/__tests__/**', 'src/**/*.test.ts', 'src/types.ts', '**/*.d.ts'],
-      // ── Thresholds (issue #1055) ──────────────────────────────────────────
+      // ── Thresholds (issues #1055, #1874) ──────────────────────────────────
       thresholds: {
-        lines: 85,
-        functions: 85,
-        branches: 80,
-        statements: 85,
+        lines: 90,
+        functions: 90,
+        branches: 85,
+        statements: 90,
       },
     },
   },

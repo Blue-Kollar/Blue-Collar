@@ -4,8 +4,8 @@ import { render, waitFor, fireEvent, act } from '@testing-library/react-native'
 import { BiometricSettingsScreen } from '../BiometricSettingsScreen'
 import { BiometricType } from '@/auth/biometric-auth'
 
-jest.mock('@/auth/BiometricAuth', () => {
-  const actual = jest.requireActual('@/auth/BiometricAuth')
+jest.mock('@/auth/biometric-auth', () => {
+  const actual = jest.requireActual('@/auth/biometric-auth')
   return {
     ...actual,
     BiometricAuth: {
@@ -17,7 +17,7 @@ jest.mock('@/auth/BiometricAuth', () => {
   }
 })
 
-const { BiometricAuth } = require('@/auth/BiometricAuth')
+const { BiometricAuth } = require('@/auth/biometric-auth')
 
 describe('BiometricSettingsScreen', () => {
   beforeEach(() => {

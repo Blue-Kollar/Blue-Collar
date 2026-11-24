@@ -3,7 +3,7 @@ import { Text } from 'react-native';
 import { render, act, waitFor, fireEvent } from '@testing-library/react-native';
 import { AuthProvider, useAuth } from '../AuthContext';
 
-jest.mock('../../auth/SecureStorage', () => ({
+jest.mock('@/auth/secure-storage', () => ({
   SecureStorage: {
     isAuthenticated: jest.fn(),
     getUser: jest.fn(),
@@ -13,14 +13,14 @@ jest.mock('../../auth/SecureStorage', () => ({
   },
 }));
 
-jest.mock('../../auth/BiometricAuth', () => ({
+jest.mock('@/auth/biometric-auth', () => ({
   BiometricAuth: {
     isEnabled: jest.fn(),
   },
 }));
 
-const { SecureStorage } = require('@/auth/SecureStorage');
-const { BiometricAuth } = require('@/auth/BiometricAuth');
+const { SecureStorage } = require('@/auth/secure-storage')
+const { BiometricAuth } = require('@/auth/biometric-auth')
 
 function Consumer() {
   const { isAuthenticated, isLoading, isLocked, user, login, logout, unlock } = useAuth();

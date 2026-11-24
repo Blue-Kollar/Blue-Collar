@@ -3,12 +3,13 @@
 //
 // Shared rules are sourced from /eslint-base-rules.js (#1289) so that all
 // packages enforce the same baseline. Add only api-specific overrides here.
-import js from '@eslint/js';
-import tsPlugin from '@typescript-eslint/eslint-plugin';
-import tsParser from '@typescript-eslint/parser';
-import unicornPlugin from 'eslint-plugin-unicorn';
-import globals from 'globals';
-import { createRequire } from 'module';
+import js from '@eslint/js'
+import tsPlugin from '@typescript-eslint/eslint-plugin'
+import tsParser from '@typescript-eslint/parser'
+import unicornPlugin from 'eslint-plugin-unicorn'
+import importXPlugin from 'eslint-plugin-import-x'
+import globals from 'globals'
+import { createRequire } from 'module'
 
 const require = createRequire(import.meta.url);
 const {
@@ -18,7 +19,8 @@ const {
   filenameRules,
   deprecationRules,
   importRules,
-} = require('../../eslint-base-rules.js');
+  typeDefinitionRules,
+} = require('../../eslint-base-rules.js')
 
 export default [
   {
@@ -41,6 +43,12 @@ export default [
     plugins: {
       '@typescript-eslint': tsPlugin,
       unicorn: unicornPlugin,
+      'import-x': importXPlugin,
+    },
+    settings: {
+      'import-x/resolver': {
+        typescript: { project: './tsconfig.json' },
+      },
     },
     rules: {
       ...tsPlugin.configs.recommended.rules,
@@ -49,7 +57,11 @@ export default [
       ...productionOnlyRules,
       ...filenameRules,
       ...deprecationRules,
-      ...importRules,
+      // Remap import/* rule names to import-x/* for ESLint 9 flat config (#1893)
+      'import-x/no-cycle': importRules['import/no-cycle'],
+      'import-x/order': importRules['import/order'],
+      // Consistent type definitions (#1895)
+      ...typeDefinitionRules,
     },
   },
   {

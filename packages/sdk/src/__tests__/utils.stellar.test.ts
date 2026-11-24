@@ -5,7 +5,7 @@ import {
   formatWalletAddress,
   formatXLM,
   isValidStellarAddress,
-} from '../utils/stellar';
+} from '../utils/stellar.js';
 
 describe('utils/stellar', () => {
   describe('constants', () => {

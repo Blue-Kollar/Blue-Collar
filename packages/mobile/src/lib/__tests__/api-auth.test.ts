@@ -29,13 +29,13 @@ const SecureStore = require('expo-secure-store')
 // ── Test the SecureStorage + fetch integration ────────────────────────────────
 describe('[regression] Mobile API – auth token integration', () => {
   const mockFetch = jest.fn()
-  let originalFetch: typeof global.fetch
+  let originalFetch: typeof globalThis.fetch
 
   beforeEach(() => {
     SecureStore.__store.clear()
     jest.clearAllMocks()
-    originalFetch = global.fetch
-    global.fetch = mockFetch
+    originalFetch = globalThis.fetch
+    globalThis.fetch = mockFetch
     mockFetch.mockResolvedValue({
       ok: true,
       status: 200,
@@ -47,7 +47,7 @@ describe('[regression] Mobile API – auth token integration', () => {
   })
 
   afterEach(() => {
-    global.fetch = originalFetch
+    globalThis.fetch = originalFetch
   })
 
   it('SecureStorage.isAuthenticated returns true after token is stored', async () => {

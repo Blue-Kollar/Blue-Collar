@@ -17,51 +17,42 @@
  * const form = useForm<LoginInput>({ resolver: zodResolver(loginSchema) })
  * ```
  */
-import { z } from 'zod'
-import {
-  ApplicationStatus,
-  BookingStatus,
-  JobStatus,
-  JobUrgency,
-} from './status'
+import { z } from 'zod';
+import { ApplicationStatus, BookingStatus, JobStatus, JobUrgency } from './status';
 
 // ── Status enums (derived from shared constants) ─────────────────────────────
 // Built from the `@bluecollar/types` status constants so validation rules and
 // TypeScript types can never drift apart (issue #1681).
 
 /** Valid job status values. */
-export const jobStatusSchema = z.enum(
-  Object.values(JobStatus) as [JobStatus, ...JobStatus[]],
-)
+export const jobStatusSchema = z.enum(Object.values(JobStatus) as [JobStatus, ...JobStatus[]]);
 
 /** Valid booking status values. */
 export const bookingStatusSchema = z.enum(
   Object.values(BookingStatus) as [BookingStatus, ...BookingStatus[]],
-)
+);
 
 /** Valid job application status values. */
 export const applicationStatusSchema = z.enum(
   Object.values(ApplicationStatus) as [ApplicationStatus, ...ApplicationStatus[]],
-)
+);
 
 /** Valid job urgency values. */
-export const jobUrgencySchema = z.enum(
-  Object.values(JobUrgency) as [JobUrgency, ...JobUrgency[]],
-)
+export const jobUrgencySchema = z.enum(Object.values(JobUrgency) as [JobUrgency, ...JobUrgency[]]);
 
 // ── Primitive field schemas ───────────────────────────────────────────────────
 
 /** Valid email address. */
-export const emailField = z.string().email('Invalid email address')
+export const emailField = z.string().email('Invalid email address');
 
 /** Password — minimum 8 characters. */
-export const passwordField = z.string().min(8, 'Password must be at least 8 characters')
+export const passwordField = z.string().min(8, 'Password must be at least 8 characters');
 
 /** Non-empty name string. */
-export const nameField = z.string().min(1, 'This field is required')
+export const nameField = z.string().min(1, 'This field is required');
 
 /** Non-empty opaque token (verification / reset links). */
-export const tokenField = z.string().min(1, 'Token is required')
+export const tokenField = z.string().min(1, 'Token is required');
 
 /**
  * Optional phone number field.
@@ -72,7 +63,7 @@ export const phoneField = z
   .string()
   .regex(/^\+?[\d\s\-().]{7,20}$/, 'Enter a valid phone number')
   .optional()
-  .or(z.literal(''))
+  .or(z.literal(''));
 
 /**
  * Optional Stellar public key (starts with G, 56 chars, base32).
@@ -81,7 +72,7 @@ export const stellarAddressField = z
   .string()
   .regex(/^G[A-Z2-7]{55}$/, 'Must be a valid Stellar public key (starts with G)')
   .optional()
-  .or(z.literal(''))
+  .or(z.literal(''));
 
 // ── Auth schemas ──────────────────────────────────────────────────────────────
 
@@ -89,7 +80,7 @@ export const stellarAddressField = z
 export const loginSchema = z.object({
   email: emailField,
   password: z.string().min(1, 'Password is required'),
-})
+});
 
 /** POST /auth/register */
 export const registerSchema = z.object({
@@ -97,28 +88,28 @@ export const registerSchema = z.object({
   password: passwordField,
   firstName: nameField,
   lastName: nameField,
-})
+});
 
 /** POST /auth/forgot-password */
 export const forgotPasswordSchema = z.object({
   email: emailField,
-})
+});
 
 /** PUT /auth/reset-password */
 export const resetPasswordSchema = z.object({
   token: tokenField,
   password: passwordField,
-})
+});
 
 /** PUT /auth/verify-account */
 export const verifyAccountSchema = z.object({
   token: tokenField,
-})
+});
 
 /** POST /auth/resend-verification */
 export const resendVerificationSchema = z.object({
   email: emailField,
-})
+});
 
 // ── User schemas ──────────────────────────────────────────────────────────────
 
@@ -127,13 +118,13 @@ export const updateProfileSchema = z.object({
   firstName: nameField.max(50).optional(),
   lastName: nameField.max(50).optional(),
   email: emailField.optional(),
-})
+});
 
 /** PUT /users/me/password */
 export const changePasswordSchema = z.object({
   currentPassword: z.string().min(1, 'Current password is required'),
   newPassword: passwordField,
-})
+});
 
 // ── Worker schemas ────────────────────────────────────────────────────────────
 
@@ -150,7 +141,7 @@ export const createWorkerSchema = z
   .refine((d) => d.phone || d.email, {
     message: 'Either phone or email is required',
     path: ['phone'],
-  })
+  });
 
 /** PUT /workers/:id — all fields optional */
 export const updateWorkerSchema = z.object({
@@ -160,13 +151,13 @@ export const updateWorkerSchema = z.object({
   email: emailField.optional().or(z.literal('')),
   bio: z.string().max(500, 'Bio must be under 500 characters').optional(),
   walletAddress: stellarAddressField,
-})
+});
 
 /** POST /workers/:id/reviews */
 export const createReviewSchema = z.object({
   rating: z.number().int().min(1).max(5),
   comment: z.string().optional(),
-})
+});
 
 // ── Booking schemas ──────────────────────────────────────────────────────────
 
@@ -177,19 +168,19 @@ export const createBookingSchema = z.object({
   scheduledAt: z.string().min(1, 'Please select a date').optional(),
   notes: z.string().max(1000, 'Notes must be under 1000 characters').optional(),
   amount: z.number().positive('Amount must be greater than 0').optional(),
-})
+});
 
 /** GET /bookings — list/filter bookings. */
 export const listBookingsSchema = z.object({
   status: bookingStatusSchema.optional(),
   page: z.coerce.number().int().min(1).optional(),
   limit: z.coerce.number().int().min(1).max(100).optional(),
-})
+});
 
 /** PATCH /bookings/:id — update booking status. */
 export const updateBookingStatusSchema = z.object({
   status: bookingStatusSchema,
-})
+});
 
 // ── Job schemas ──────────────────────────────────────────────────────────────
 
@@ -201,18 +192,22 @@ export const createJobSchema = z.object({
   budget: z.number().positive('Budget must be greater than 0').optional(),
   urgency: jobUrgencySchema.optional(),
   location: z.string().max(200).optional(),
-})
+});
 
 /** PUT /jobs/:id — update a job posting (all fields optional). */
 export const updateJobSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters').max(120).optional(),
-  description: z.string().min(10, 'Description must be at least 10 characters').max(5000).optional(),
+  description: z
+    .string()
+    .min(10, 'Description must be at least 10 characters')
+    .max(5000)
+    .optional(),
   categoryId: z.string().min(1).optional(),
   budget: z.number().positive('Budget must be greater than 0').optional(),
   urgency: jobUrgencySchema.optional(),
   location: z.string().max(200).optional(),
   status: jobStatusSchema.optional(),
-})
+});
 
 /** GET /jobs — list/filter jobs. */
 export const listJobsSchema = z.object({
@@ -221,18 +216,18 @@ export const listJobsSchema = z.object({
   urgency: jobUrgencySchema.optional(),
   page: z.coerce.number().int().min(1).optional(),
   limit: z.coerce.number().int().min(1).max(100).optional(),
-})
+});
 
 /** POST /jobs/:id/apply — apply to a job. */
 export const applyToJobSchema = z.object({
   coverLetter: z.string().max(2000, 'Cover letter must be under 2000 characters').optional(),
   proposedRate: z.number().positive('Proposed rate must be greater than 0').optional(),
-})
+});
 
 /** PATCH /jobs/:id/applications/:applicationId — update application status. */
 export const updateApplicationStatusSchema = z.object({
   status: applicationStatusSchema,
-})
+});
 
 // ── Wallet schemas ───────────────────────────────────────────────────────────
 
@@ -241,7 +236,7 @@ export const linkWalletSchema = z.object({
   address: z
     .string()
     .regex(/^G[A-Z2-7]{55}$/, 'Must be a valid Stellar public key (starts with G)'),
-})
+});
 
 /** POST /wallet/build — build an unsigned transaction. */
 export const buildTransactionSchema = z.object({
@@ -251,12 +246,12 @@ export const buildTransactionSchema = z.object({
   amount: z.string().min(1, 'Amount is required'),
   asset: z.string().optional(),
   memo: z.string().max(28, 'Memo must be 28 characters or less').optional(),
-})
+});
 
 /** POST /wallet/broadcast — broadcast a signed transaction. */
 export const broadcastTransactionSchema = z.object({
   signedXdr: z.string().min(1, 'Signed transaction is required'),
-})
+});
 
 /** POST /wallet/fund — fund an account via friendbot/testnet. */
 export const fundWalletSchema = z.object({
@@ -264,14 +259,14 @@ export const fundWalletSchema = z.object({
     .string()
     .regex(/^G[A-Z2-7]{55}$/, 'Must be a valid Stellar public key (starts with G)'),
   amount: z.string().optional(),
-})
+});
 
 // ── Device schemas ───────────────────────────────────────────────────────────
 
 /** DELETE /devices/:id — revoke a device session. */
 export const revokeDeviceSchema = z.object({
   deviceId: z.string().min(1, 'Device ID is required'),
-})
+});
 
 // ── Admin schemas ────────────────────────────────────────────────────────────
 
@@ -280,7 +275,7 @@ export const adminBulkActionSchema = z.object({
   action: z.enum(['suspend', 'activate', 'delete', 'verify']),
   ids: z.array(z.string().min(1)).min(1, 'Select at least one item'),
   reason: z.string().max(500).optional(),
-})
+});
 
 // ── Payment schemas ──────────────────────────────────────────────────────────
 
@@ -289,20 +284,20 @@ export const tipPaymentSchema = z.object({
   recipientId: z.string().min(1, 'Recipient is required'),
   amount: z.number().positive('Amount must be greater than 0'),
   message: z.string().max(280, 'Message must be 280 characters or less').optional(),
-})
+});
 
 /** POST /payments/escrow — create an escrow payment. */
 export const escrowPaymentSchema = z.object({
   workerId: z.string().min(1, 'Worker is required'),
   amount: z.number().positive('Amount must be greater than 0'),
   terms: z.string().min(1, 'Terms are required').max(2000),
-})
+});
 
 /** POST /payments/fee — calculate a platform fee. */
 export const feeCalculationSchema = z.object({
   amount: z.number().positive('Amount must be greater than 0'),
   method: z.string().optional(),
-})
+});
 
 // ── Imperative validation helpers ────────────────────────────────────────────
 // Plain functions that validate individual values and return an error string or
@@ -310,13 +305,13 @@ export const feeCalculationSchema = z.object({
 // custom hooks). The regex constants mirror the Zod field regexes above so
 // rules stay in sync.
 
-export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-export const PHONE_REGEX = /^\+?[\d\s\-().]{7,20}$/
-export const STELLAR_ADDRESS_REGEX = /^G[A-Z2-7]{55}$/
+export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+export const PHONE_REGEX = /^\+?[\d\s\-().]{7,20}$/;
+export const STELLAR_ADDRESS_REGEX = /^G[A-Z2-7]{55}$/;
 
 /** Returns true when the string is a structurally valid email address. */
 export function isValidEmail(email: string): boolean {
-  return EMAIL_REGEX.test(email.trim())
+  return EMAIL_REGEX.test(email.trim());
 }
 
 /**
@@ -324,15 +319,15 @@ export function isValidEmail(email: string): boolean {
  * undefined when the value is acceptable.
  */
 export function validateEmail(email?: string, required = true): string | undefined {
-  const trimmed = email?.trim() ?? ''
-  if (!trimmed) return required ? 'Email is required' : undefined
-  if (!isValidEmail(trimmed)) return 'Enter a valid email'
-  return undefined
+  const trimmed = email?.trim() ?? '';
+  if (!trimmed) return required ? 'Email is required' : undefined;
+  if (!isValidEmail(trimmed)) return 'Enter a valid email';
+  return undefined;
 }
 
 /** Returns true when the password meets the minimum length requirement. */
 export function isValidPassword(password: string, minLength = 8): boolean {
-  return typeof password === 'string' && password.length >= minLength
+  return typeof password === 'string' && password.length >= minLength;
 }
 
 /**
@@ -344,9 +339,9 @@ export function validatePassword(
   minLength = 8,
   required = true,
 ): string | undefined {
-  if (!password) return required ? 'Password is required' : undefined
-  if (password.length < minLength) return `Password must be at least ${minLength} characters`
-  return undefined
+  if (!password) return required ? 'Password is required' : undefined;
+  if (password.length < minLength) return `Password must be at least ${minLength} characters`;
+  return undefined;
 }
 
 /**
@@ -354,16 +349,16 @@ export function validatePassword(
  * arrays, numbers, booleans, etc.).
  */
 export function isRequired(value: unknown): boolean {
-  if (value === null || value === undefined) return false
-  if (typeof value === 'string') return value.trim().length > 0
-  if (Array.isArray(value)) return value.length > 0
-  return true
+  if (value === null || value === undefined) return false;
+  if (typeof value === 'string') return value.trim().length > 0;
+  if (Array.isArray(value)) return value.length > 0;
+  return true;
 }
 
 /** Validates that a required field is non-empty. */
 export function validateRequired(value: unknown, fieldName = 'This field'): string | undefined {
-  if (!isRequired(value)) return `${fieldName} is required`
-  return undefined
+  if (!isRequired(value)) return `${fieldName} is required`;
+  return undefined;
 }
 
 /** Validates that a string meets a minimum length. */
@@ -372,9 +367,9 @@ export function validateMinLength(
   min: number,
   fieldName = 'Field',
 ): string | undefined {
-  const len = (value ?? '').trim().length
-  if (len < min) return `${fieldName} must be at least ${min} characters`
-  return undefined
+  const len = (value ?? '').trim().length;
+  if (len < min) return `${fieldName} must be at least ${min} characters`;
+  return undefined;
 }
 
 /** Validates that a string does not exceed a maximum length. */
@@ -383,39 +378,35 @@ export function validateMaxLength(
   max: number,
   fieldName = 'Field',
 ): string | undefined {
-  const len = (value ?? '').length
-  if (len > max) return `${fieldName} must be ${max} characters or less`
-  return undefined
+  const len = (value ?? '').length;
+  if (len > max) return `${fieldName} must be ${max} characters or less`;
+  return undefined;
 }
 
 /** Returns true when the string is a valid Stellar public key. */
 export function isValidStellarAddress(address: string): boolean {
-  return STELLAR_ADDRESS_REGEX.test(address.trim())
+  return STELLAR_ADDRESS_REGEX.test(address.trim());
 }
 
 /** Validates a Stellar public key and returns a human-readable error message. */
-export function validateStellarAddress(
-  address?: string,
-  required = false,
-): string | undefined {
-  const trimmed = address?.trim() ?? ''
-  if (!trimmed) return required ? 'Stellar address is required' : undefined
-  if (!isValidStellarAddress(trimmed))
-    return 'Must be a valid Stellar public key (starts with G)'
-  return undefined
+export function validateStellarAddress(address?: string, required = false): string | undefined {
+  const trimmed = address?.trim() ?? '';
+  if (!trimmed) return required ? 'Stellar address is required' : undefined;
+  if (!isValidStellarAddress(trimmed)) return 'Must be a valid Stellar public key (starts with G)';
+  return undefined;
 }
 
 /** Returns true when the phone string matches an accepted format. */
 export function isValidPhone(phone: string): boolean {
-  return PHONE_REGEX.test(phone.trim())
+  return PHONE_REGEX.test(phone.trim());
 }
 
 /** Validates a phone number field and returns a human-readable error message. */
 export function validatePhone(phone?: string, required = false): string | undefined {
-  const trimmed = phone?.trim() ?? ''
-  if (!trimmed) return required ? 'Phone number is required' : undefined
-  if (!isValidPhone(trimmed)) return 'Enter a valid phone number'
-  return undefined
+  const trimmed = phone?.trim() ?? '';
+  if (!trimmed) return required ? 'Phone number is required' : undefined;
+  if (!isValidPhone(trimmed)) return 'Enter a valid phone number';
+  return undefined;
 }
 
 /** Validates a positive numeric amount. */
@@ -424,12 +415,11 @@ export function validateAmount(
   min = 0,
   fieldName = 'Amount',
 ): string | undefined {
-  if (amount === undefined || amount === null || amount === '')
-    return `${fieldName} is required`
-  const parsed = typeof amount === 'number' ? amount : parseFloat(amount as string)
-  if (isNaN(parsed) || !isFinite(parsed)) return `${fieldName} must be a valid number`
-  if (parsed <= min) return `${fieldName} must be greater than ${min}`
-  return undefined
+  if (amount === undefined || amount === null || amount === '') return `${fieldName} is required`;
+  const parsed = typeof amount === 'number' ? amount : parseFloat(amount as string);
+  if (isNaN(parsed) || !isFinite(parsed)) return `${fieldName} must be a valid number`;
+  if (parsed <= min) return `${fieldName} must be greater than ${min}`;
+  return undefined;
 }
 
 /** Validates that two string values are equal (e.g. password confirmation). */
@@ -438,48 +428,48 @@ export function validateMatch(
   value2: string,
   message = 'Fields do not match',
 ): string | undefined {
-  if (value1 !== value2) return message
-  return undefined
+  if (value1 !== value2) return message;
+  return undefined;
 }
 
 /** Validates standard user-profile fields and returns a map of field errors. */
 export function validateUserProfile(profile: {
-  firstName?: string
-  lastName?: string
-  email?: string
+  firstName?: string;
+  lastName?: string;
+  email?: string;
 }): Partial<Record<'firstName' | 'lastName' | 'email', string>> {
-  const errors: Partial<Record<'firstName' | 'lastName' | 'email', string>> = {}
+  const errors: Partial<Record<'firstName' | 'lastName' | 'email', string>> = {};
 
-  const fnError = validateRequired(profile.firstName, 'First name')
-  if (fnError) errors.firstName = fnError
+  const fnError = validateRequired(profile.firstName, 'First name');
+  if (fnError) errors.firstName = fnError;
 
-  const lnError = validateRequired(profile.lastName, 'Last name')
-  if (lnError) errors.lastName = lnError
+  const lnError = validateRequired(profile.lastName, 'Last name');
+  if (lnError) errors.lastName = lnError;
 
-  const emailError = validateEmail(profile.email, true)
-  if (emailError) errors.email = emailError
+  const emailError = validateEmail(profile.email, true);
+  if (emailError) errors.email = emailError;
 
-  return errors
+  return errors;
 }
 
 /** Validates escrow-creation form fields and returns a map of field errors. */
 export function validateEscrowForm(form: {
-  amount?: string
-  counterparty?: string
-  terms?: string
+  amount?: string;
+  counterparty?: string;
+  terms?: string;
 }): Partial<Record<'amount' | 'counterparty' | 'terms', string>> {
-  const errors: Partial<Record<'amount' | 'counterparty' | 'terms', string>> = {}
+  const errors: Partial<Record<'amount' | 'counterparty' | 'terms', string>> = {};
 
-  const amountError = validateAmount(form.amount, 0, 'Amount')
-  if (amountError) errors.amount = amountError
+  const amountError = validateAmount(form.amount, 0, 'Amount');
+  if (amountError) errors.amount = amountError;
 
-  const counterpartyError = validateRequired(form.counterparty, 'Counterparty address')
-  if (counterpartyError) errors.counterparty = counterpartyError
+  const counterpartyError = validateRequired(form.counterparty, 'Counterparty address');
+  if (counterpartyError) errors.counterparty = counterpartyError;
 
-  const termsError = validateRequired(form.terms, 'Terms')
-  if (termsError) errors.terms = termsError
+  const termsError = validateRequired(form.terms, 'Terms');
+  if (termsError) errors.terms = termsError;
 
-  return errors
+  return errors;
 }
 
 /** Validates contact message content. */
@@ -488,42 +478,195 @@ export function validateContactMessage(
   minLength = 10,
   maxLength = 1000,
 ): { isValid: boolean; error?: string } {
-  const trimmed = message.trim()
-  if (!trimmed) return { isValid: false, error: 'Message cannot be empty' }
+  const trimmed = message.trim();
+  if (!trimmed) return { isValid: false, error: 'Message cannot be empty' };
   if (trimmed.length < minLength)
-    return { isValid: false, error: `Message must be at least ${minLength} characters` }
+    return { isValid: false, error: `Message must be at least ${minLength} characters` };
   if (trimmed.length > maxLength)
-    return { isValid: false, error: `Message must be ${maxLength} characters or less` }
-  return { isValid: true }
+    return { isValid: false, error: `Message must be ${maxLength} characters or less` };
+  return { isValid: true };
 }
 
 // ── Inferred TypeScript types ─────────────────────────────────────────────────
 
-export type LoginInput = z.infer<typeof loginSchema>
-export type RegisterInput = z.infer<typeof registerSchema>
-export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>
-export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>
-export type VerifyAccountInput = z.infer<typeof verifyAccountSchema>
-export type ResendVerificationInput = z.infer<typeof resendVerificationSchema>
-export type UpdateProfileInput = z.infer<typeof updateProfileSchema>
-export type ChangePasswordInput = z.infer<typeof changePasswordSchema>
-export type CreateWorkerInput = z.infer<typeof createWorkerSchema>
-export type UpdateWorkerInput = z.infer<typeof updateWorkerSchema>
-export type CreateReviewInput = z.infer<typeof createReviewSchema>
-export type CreateBookingInput = z.infer<typeof createBookingSchema>
-export type ListBookingsInput = z.infer<typeof listBookingsSchema>
-export type UpdateBookingStatusInput = z.infer<typeof updateBookingStatusSchema>
-export type CreateJobInput = z.infer<typeof createJobSchema>
-export type UpdateJobInput = z.infer<typeof updateJobSchema>
-export type ListJobsInput = z.infer<typeof listJobsSchema>
-export type ApplyToJobInput = z.infer<typeof applyToJobSchema>
-export type UpdateApplicationStatusInput = z.infer<typeof updateApplicationStatusSchema>
-export type LinkWalletInput = z.infer<typeof linkWalletSchema>
-export type BuildTransactionInput = z.infer<typeof buildTransactionSchema>
-export type BroadcastTransactionInput = z.infer<typeof broadcastTransactionSchema>
-export type FundWalletInput = z.infer<typeof fundWalletSchema>
-export type RevokeDeviceInput = z.infer<typeof revokeDeviceSchema>
-export type AdminBulkActionInput = z.infer<typeof adminBulkActionSchema>
-export type TipPaymentInput = z.infer<typeof tipPaymentSchema>
-export type EscrowPaymentInput = z.infer<typeof escrowPaymentSchema>
-export type FeeCalculationInput = z.infer<typeof feeCalculationSchema>
+export type LoginInput = z.infer<typeof loginSchema>;
+export type RegisterInput = z.infer<typeof registerSchema>;
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
+export type VerifyAccountInput = z.infer<typeof verifyAccountSchema>;
+export type ResendVerificationInput = z.infer<typeof resendVerificationSchema>;
+export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
+export type CreateWorkerInput = z.infer<typeof createWorkerSchema>;
+export type UpdateWorkerInput = z.infer<typeof updateWorkerSchema>;
+export type CreateReviewInput = z.infer<typeof createReviewSchema>;
+export type CreateBookingInput = z.infer<typeof createBookingSchema>;
+export type ListBookingsInput = z.infer<typeof listBookingsSchema>;
+export type UpdateBookingStatusInput = z.infer<typeof updateBookingStatusSchema>;
+export type CreateJobInput = z.infer<typeof createJobSchema>;
+export type UpdateJobInput = z.infer<typeof updateJobSchema>;
+export type ListJobsInput = z.infer<typeof listJobsSchema>;
+export type ApplyToJobInput = z.infer<typeof applyToJobSchema>;
+export type UpdateApplicationStatusInput = z.infer<typeof updateApplicationStatusSchema>;
+export type LinkWalletInput = z.infer<typeof linkWalletSchema>;
+export type BuildTransactionInput = z.infer<typeof buildTransactionSchema>;
+export type BroadcastTransactionInput = z.infer<typeof broadcastTransactionSchema>;
+export type FundWalletInput = z.infer<typeof fundWalletSchema>;
+export type RevokeDeviceInput = z.infer<typeof revokeDeviceSchema>;
+export type AdminBulkActionInput = z.infer<typeof adminBulkActionSchema>;
+export type TipPaymentInput = z.infer<typeof tipPaymentSchema>;
+export type EscrowPaymentInput = z.infer<typeof escrowPaymentSchema>;
+export type FeeCalculationInput = z.infer<typeof feeCalculationSchema>;
+
+const LEGACY_MAX_AMOUNT = 1_000_000_000;
+
+export const emailSchema = z
+  .string({
+    required_error: 'Email is required',
+    invalid_type_error: 'Email is required',
+  })
+  .trim()
+  .min(1, 'Email is required')
+  .email('Invalid email address');
+
+export const passwordSchema = z
+  .string({
+    required_error: 'Password is required',
+    invalid_type_error: 'Password is required',
+  })
+  .min(8, 'Password must be at least 8 characters')
+  .regex(/[A-Z]/, 'Password must contain an uppercase letter')
+  .regex(/[a-z]/, 'Password must contain a lowercase letter')
+  .regex(/\d/, 'Password must contain a number');
+
+export const stellarAddressSchema = z
+  .string({
+    required_error: 'Stellar address is required',
+    invalid_type_error: 'Stellar address is required',
+  })
+  .min(1, 'Stellar address is required')
+  .regex(STELLAR_ADDRESS_REGEX, 'Invalid Stellar address');
+
+export const amountSchema = z.preprocess(
+  (value) => {
+    if (typeof value === 'string') {
+      const trimmed = value.trim();
+      if (trimmed === '') return NaN;
+      const parsed = Number(trimmed);
+      return Number.isNaN(parsed) || !Number.isFinite(parsed) ? 'not-a-number' : parsed;
+    }
+    return value;
+  },
+  z
+    .number({ invalid_type_error: 'Amount must be a valid number' })
+    .positive('Amount must be greater than 0')
+    .lt(LEGACY_MAX_AMOUNT, 'Amount exceeds maximum allowed value'),
+);
+
+export const matchSchema = z.object({
+  title: z
+    .string({
+      required_error: 'Title is required',
+      invalid_type_error: 'Title is required',
+    })
+    .min(1, 'Title is required')
+    .min(3, 'Title must be at least 3 characters'),
+  description: z
+    .string({
+      required_error: 'Description is required',
+      invalid_type_error: 'Description is required',
+    })
+    .min(1, 'Description is required'),
+  amount: amountSchema,
+  stellarAddress: stellarAddressSchema,
+});
+
+export const contactMessageSchema = z.object({
+  name: z
+    .string({
+      required_error: 'Name is required',
+      invalid_type_error: 'Name is required',
+    })
+    .min(1, 'Name is required'),
+  email: emailSchema,
+  message: z
+    .string({
+      required_error: 'Message is required',
+      invalid_type_error: 'Message is required',
+    })
+    .min(1, 'Message is required')
+    .min(10, 'Message must be at least 10 characters'),
+});
+
+function legacyError(
+  result: z.SafeParseReturnType<unknown, unknown>,
+  fallback: string,
+): string | null {
+  if (result.success) return null;
+  return result.error.issues[0]?.message ?? fallback;
+}
+
+export function validateEmailLegacy(email?: string): string | null {
+  return legacyError(emailSchema.safeParse(email), 'Invalid email address');
+}
+
+export function validatePasswordLegacy(password?: string): string | null {
+  return legacyError(passwordSchema.safeParse(password), 'Password is invalid');
+}
+
+export function validateStellarAddressLegacy(address?: string): string | null {
+  return legacyError(stellarAddressSchema.safeParse(address), 'Invalid Stellar address');
+}
+
+export function validateAmountLegacy(amount?: string | number): string | null {
+  return legacyError(amountSchema.safeParse(amount), 'Amount must be a valid number');
+}
+
+export interface LegacyMatchInput {
+  title?: string;
+  description?: string;
+  amount?: string | number;
+  stellarAddress?: string;
+}
+
+export type LegacyMatchErrors = Partial<
+  Record<'title' | 'description' | 'amount' | 'stellarAddress', string>
+>;
+
+function legacyFieldErrors<K extends string>(
+  result: z.SafeParseReturnType<unknown, unknown>,
+  fields: readonly K[],
+): Partial<Record<K, string>> {
+  const errors: Partial<Record<K, string>> = {};
+  if (result.success) return errors;
+  for (const issue of result.error.issues) {
+    const field = issue.path[0];
+    if (typeof field === 'string' && fields.includes(field as K) && !errors[field as K]) {
+      errors[field as K] = issue.message;
+    }
+  }
+  return errors;
+}
+
+export function validateMatchLegacy(match: LegacyMatchInput): LegacyMatchErrors {
+  return legacyFieldErrors(matchSchema.safeParse(match), [
+    'title',
+    'description',
+    'amount',
+    'stellarAddress',
+  ]);
+}
+
+export interface LegacyContactMessageInput {
+  name?: string;
+  email?: string;
+  message?: string;
+}
+
+export type LegacyContactMessageErrors = Partial<Record<'name' | 'email' | 'message', string>>;
+
+export function validateContactMessageLegacy(
+  message: LegacyContactMessageInput,
+): LegacyContactMessageErrors {
+  return legacyFieldErrors(contactMessageSchema.safeParse(message), ['name', 'email', 'message']);
+}

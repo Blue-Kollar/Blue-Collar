@@ -12,7 +12,6 @@ const {
   baseRules,
   productionOnlyRules,
   filenameRules,
-  importRules,
 } = require('../../eslint-base-rules.js');
 
 export default [
@@ -33,6 +32,12 @@ export default [
     plugins: {
       '@typescript-eslint': tsPlugin,
       unicorn: unicornPlugin,
+      'import-x': importXPlugin,
+    },
+    settings: {
+      'import-x/resolver': {
+        typescript: { project: './tsconfig.json' },
+      },
     },
     rules: {
       ...tsPlugin.configs.recommended.rules,
@@ -40,7 +45,7 @@ export default [
       ...baseRules,
       ...productionOnlyRules,
       ...filenameRules,
-      ...importRules,
+      'no-redeclare': 'off',
     },
   },
   {

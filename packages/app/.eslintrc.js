@@ -48,6 +48,9 @@ module.exports = {
     // instead of ad-hoc `any` annotations.
     '@typescript-eslint/no-explicit-any': 'error',
 
+    // ── Consistent type definitions (#1895) ────────────────────────────────
+    '@typescript-eslint/consistent-type-definitions': ['error', 'interface'],
+
     // ── App-specific rules ─────────────────────────────────────────────────
     'jsx-a11y/control-has-associated-label': 'warn',
   },

@@ -7,9 +7,9 @@
  * previously mocked '../db.js' method-by-method) into fast, isolated unit
  * tests: `createUserService({ userRepository: new FakeUserRepository() })`.
  */
-import type { IUserRepository } from '@/repositories/user.repository.js';
-import type { IJobRepository } from '@/repositories/job.repository.js';
-import type { IBookingRepository, BookingSlot } from '@/repositories/booking.repository.js';
+import type { IUserRepository } from '../../repositories/user.repository.js';
+import type { IJobRepository } from '../../repositories/job.repository.js';
+import type { IBookingRepository, BookingSlot } from '../../repositories/booking.repository.js';
 
 let idCounter = 0;
 function nextId(prefix: string): string {
